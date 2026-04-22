@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>科学探险家 · 六年级下册</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: "微软雅黑","PingFang SC",sans-serif; background: linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%); min-height: 100vh; color: #fff; overflow-x: hidden; }
+.particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; overflow: hidden; }
+.particle { position: absolute; width: 6px; height: 6px; background: rgba(255,255,255,0.3); border-radius: 50%; animation: float 15s infinite; }
+@keyframes float { 0%,100% { transform: translateY(100vh) rotate(0deg); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; } }
+.container { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 20px 15px; }
+.header { text-align: center; margin-bottom: 30px; padding: 30px 20px; background: rgba(255,255,255,0.05); border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); }
+.header h1 { font-size: 2em; margin-bottom: 10px; background: linear-gradient(90deg,#60a5fa,#a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.header p { color: rgba(255,255,255,0.6); font-size: 0.95em; }
+.units-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 20px; margin-bottom: 30px; }
+.unit-card { border-radius: 20px; padding: 20px; border: 2px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); transition: all 0.3s; cursor: pointer; }
+.unit-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.3); border-color: rgba(255,255,255,0.3); }
+.unit-header { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+.unit-emoji { font-size: 2.5em; }
+.unit-title { font-size: 1.2em; font-weight: bold; }
+.unit-sub { font-size: 0.8em; color: rgba(255,255,255,0.5); }
+.lessons-list { display: flex; flex-direction: column; gap: 8px; }
+.lesson-btn { padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; cursor: pointer; font-family: inherit; font-size: 0.9em; text-align: left; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+.lesson-btn:hover { background: rgba(255,255,255,0.12); transform: scale(1.02); }
+.lesson-name { font-weight: bold; }
+.lesson-desc { font-size: 0.8em; opacity: 0.65; margin-left: auto; }
+.back-btn { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.7); padding: 12px 24px; border-radius: 30px; font-size: 0.9em; cursor: pointer; font-family: inherit; transition: all 0.3s; text-decoration: none; }
+.back-btn:hover { background: rgba(255,255,255,0.2); color: #fff; }
+
+#gameScreen { display: none; }
+.game-card { background: rgba(255,255,255,0.07); border-radius: 24px; padding: 25px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); }
+.game-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+.game-info { display: flex; align-items: center; gap: 15px; }
+.progress-ring-wrap { position: relative; width: 70px; height: 70px; }
+.progress-ring { transform: rotate(-90deg); transform-origin: 50% 50%; }
+.progress-ring-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 6; }
+.progress-ring-fill { fill: none; stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 0.3s; }
+.progress-ring-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 1.1em; font-weight: bold; }
+.game-title { font-size: 1.1em; font-weight: bold; }
+.game-sub { font-size: 0.8em; color: rgba(255,255,255,0.5); }
+.back-to-units { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 0.9em; cursor: pointer; font-family: inherit; transition: all 0.3s; }
+.back-to-units:hover { background: rgba(255,255,255,0.2); }
+.q-card { background: rgba(255,255,255,0.08); border-radius: 20px; padding: 20px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
+.q-unit-tag { display: inline-block; padding: 3px 14px; border-radius: 20px; font-size: 0.8em; margin-bottom: 10px; background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); }
+.q-text { font-size: 1.25em; font-weight: bold; line-height: 1.6; }
+.opts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.opt-btn { background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.15); border-radius: 14px; padding: 14px 12px; color: #fff; font-size: 1em; cursor: pointer; font-family: inherit; transition: all 0.15s; text-align: center; min-height: 54px; touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; }
+.opt-btn:hover:not(.disabled):not(.correct):not(.wrong) { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.35); }
+.opt-btn.correct { background: rgba(76,175,80,0.3); border-color: #4caf50; color: #4caf50; animation: pop 0.4s; }
+.opt-btn.wrong { background: rgba(244,67,54,0.3); border-color: #f44336; color: #f44336; animation: shake 0.4s; }
+.opt-btn.disabled { opacity: 0.5; cursor: not-allowed; }
+@keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.08)} 100%{transform:scale(1)} }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+.hint-box { margin-top: 12px; padding: 10px 16px; background: rgba(255,217,61,0.1); border: 1px solid rgba(255,217,61,0.3); border-radius: 12px; font-size: 0.88em; color: #ffd93d; display: none; }
+.hint-box.show { display: block; animation: fadeIn 0.3s; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(-5px)} to{opacity:1;transform:translateY(0)} }
+.hint-btn { background: rgba(255,217,61,0.15); border: 1px solid rgba(255,217,61,0.3); color: #ffd93d; padding: 8px 16px; border-radius: 20px; font-size: 0.85em; cursor: pointer; font-family: inherit; margin-top: 10px; transition: all 0.2s; }
+.hint-btn:hover { background: rgba(255,217,61,0.25); }
+.next-btn { background: linear-gradient(135deg,#4ade80,#22c55e); border: none; color: #fff; padding: 14px 30px; border-radius: 30px; font-size: 1em; font-weight: bold; cursor: pointer; font-family: inherit; margin-top: 15px; transition: all 0.3s; display: none; }
+.next-btn.show { display: inline-block; }
+.next-btn:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(74,222,128,0.4); }
+.stats-row { display: flex; gap: 20px; margin-bottom: 15px; flex-wrap: wrap; }
+.stat-item { flex: 1; text-align: center; background: rgba(255,255,255,0.05); border-radius: 16px; padding: 15px; min-width: 100px; }
+.stat-val { font-size: 2em; font-weight: 900; }
+.stat-lbl { font-size: 0.8em; color: rgba(255,255,255,0.5); }
+.result-panel { text-align: center; display: none; margin-top: 20px; padding: 25px; background: rgba(255,255,255,0.07); border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); }
+.result-stars { font-size: 3em; margin-bottom: 15px; }
+.result-title { font-size: 1.8em; font-weight: 900; margin-bottom: 10px; }
+.result-sub { color: rgba(255,255,255,0.6); font-size: 0.95em; margin-bottom: 20px; }
+.result-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.replay-btn { background: linear-gradient(135deg,#4ade80,#22c55e); border: none; color: #fff; padding: 14px 30px; border-radius: 30px; font-size: 1em; font-weight: bold; cursor: pointer; font-family: inherit; transition: all 0.3s; }
+.replay-btn:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(74,222,128,0.4); }
+.replay-btn.secondary { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); font-weight: normal; }
+@media(max-width:768px){ .units-grid{grid-template-columns:1fr} .opts-grid{grid-template-columns:1fr} .stat-item{min-width:80px} }
+@media(max-width:480px){ .header h1{font-size:1.5em} .q-text{font-size:1.1em} }
+</style>
+</head>
+<body>
+<div class="particles" id="particles"></div>
+
+<div class="container" id="homeScreen">
+  <div class="header">
+    <h1>🔬 科学探险家</h1>
+    <p>六年级下册 · 选择单元开始闯关</p>
+  </div>
+  <div class="units-grid" id="unitsGrid"></div>
+  <a class="back-btn" href="../../">← 返回首页</a>
+</div>
+
+<div class="container" id="gameScreen">
+  <div class="game-card">
+    <div class="game-top">
+      <div class="game-info">
+        <div class="progress-ring-wrap">
+          <svg class="progress-ring" width="70" height="70">
+            <circle class="progress-ring-bg" cx="35" cy="35" r="28"/>
+            <circle class="progress-ring-fill" id="progressRing" cx="35" cy="35" r="28" stroke="#4ade80" stroke-dasharray="175.9" stroke-dashoffset="0"/>
+          </svg>
+          <span class="progress-ring-text" id="progressText">0/0</span>
+        </div>
+        <div>
+          <div class="game-title" id="gameTitle">—</div>
+          <div class="game-sub" id="gameSub">🌱 基础关</div>
+        </div>
+      </div>
+      <button class="back-to-units" onclick="backToUnits()">← 重选单元</button>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-item"><div class="stat-val" id="correctCount" style="color:#4ade80">0</div><div class="stat-lbl">答对</div></div>
+      <div class="stat-item"><div class="stat-val" id="wrongCount" style="color:#f97316">0</div><div class="stat-lbl">答错</div></div>
+      <div class="stat-item"><div class="stat-val" id="scoreDisplay" style="color:#ffd93d">0</div><div class="stat-lbl">积分</div></div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-unit-tag" id="qUnitTag"></div>
+      <div class="q-text" id="qText">—</div>
+    </div>
+
+    <div class="opts-grid" id="optsGrid"></div>
+    <div class="hint-box" id="hintBox"></div>
+    <button class="hint-btn" id="hintBtn" onclick="showHint()">💡 提示</button>
+    <div style="text-align:center"><button class="next-btn" id="nextBtn" onclick="nextQ()">下一题 →</button></div>
+  </div>
+
+  <div style="text-align:center; margin-top:20px;">
+    <div class="result-panel" id="resultPanel"></div>
+  </div>
+</div>
+
+<script src="../../data/6-2.js"></script>
+<script>
+const bank = window.QUESTION_BANK_6_2;
+const G = {
+  unit: 1, lesson: null, difficulty: 'basic',
+  questions: [], qIndex: 0,
+  correct: 0, wrong: 0, score: 0
+};
+
+const UNITS = [
+  {id:1, emoji:'💡', name:'设计与技术', color:'#4ade80', lessons:[
+    {id:1, name:'好设计', desc:'构思·制作·改进'},
+    {id:2, name:'热传递', desc:'热从高温传向低温'},
+    {id:3, name:'改造物品', desc:'变废为宝'},
+    {id:4, name:'仿生学', desc:'大自然的启发'},
+  ]},
+  {id:2, emoji:'⚡', name:'能量', color:'#60a5fa', lessons:[
+    {id:5, name:'能量的形式', desc:'光能·电能·热能·磁能'},
+    {id:6, name:'能量转换', desc:'从一种变成另一种'},
+    {id:7, name:'风能与水能', desc:'清洁可再生能源'},
+    {id:8, name:'电磁铁', desc:'电与磁的结合'},
+  ]},
+  {id:3, emoji:'🌿', name:'生物与环境', color:'#f97316', lessons:[
+    {id:9, name:'动物与环境', desc:'适应与生存'},
+    {id:10, name:'食物链', desc:'吃与被吃的关系'},
+    {id:11, name:'生态系统', desc:'生物与环境整体'},
+  ]},
+  {id:4, emoji:'🌍', name:'自然资源', color:'#c084fc', lessons:[
+    {id:12, name:'可再生与不可再生', desc:'资源的分类'},
+    {id:13, name:'水资源保护', desc:'珍惜每一滴水'},
+    {id:14, name:'空气与垃圾分类', desc:'保护环境'},
+    {id:15, name:'绿色生活', desc:'从身边做起'},
+  ]},
+];
+
+(function(){
+  const c = document.getElementById('particles');
+  for(let i=0;i<25;i++){
+    const p = document.createElement('div');
+    p.className='particle';
+    p.style.left=Math.random()*100+'%';
+    p.style.animationDelay=Math.random()*15+'s';
+    p.style.animationDuration=(10+Math.random()*10)+'s';
+    c.appendChild(p);
+  }
+})();
+
+function renderUnits(){
+  const grid = document.getElementById('unitsGrid');
+  grid.innerHTML='';
+  UNITS.forEach(unit=>{
+    const card = document.createElement('div');
+    card.className='unit-card';
+    card.innerHTML=`<div class="unit-header">
+      <span class="unit-emoji">${unit.emoji}</span>
+      <div><div class="unit-title">${unit.name}</div><div class="unit-sub">共${unit.lessons.length}课</div></div>
+    </div><div class="lessons-list">
+      ${unit.lessons.map(l=>`
+        <button class="lesson-btn" style="border-color:${unit.color}55"
+          data-unit="${unit.id}" data-lesson="${l.id}">
+          <span style="font-size:1.2em">${unit.emoji}</span>
+          <span class="lesson-name">${l.name}</span>
+          <span class="lesson-desc">${l.desc}</span>
+        </button>`).join('')}
+    </div>`;
+    grid.appendChild(card);
+  });
+}
+
+// 事件委托：所有课时按钮点击统一处理
+document.addEventListener('click', function(e){
+  const btn = e.target.closest('.lesson-btn');
+  if(!btn) return;
+  const unitId = Number(btn.dataset.unit);
+  const lessonId = Number(btn.dataset.lesson);
+  selectLesson(unitId, lessonId);
+});
+
+function selectLesson(unitId, lessonId){
+  G.unit = unitId;
+  const unitData = bank[unitId];
+  if(!unitData || !unitData.lessons){ alert('题库加载异常，请刷新重试'); return; }
+
+  // lessonId 直接作为 key 访问
+  const lessonData = unitData.lessons[lessonId];
+  if(!lessonData || !lessonData.basic || lessonData.basic.length === 0){
+    alert('本题库暂缺此课内容，请选择其他课时'); return;
+  }
+  G.questions = [...lessonData.basic].sort(() => Math.random() - 0.5);
+  G.qIndex = 0; G.correct = 0; G.wrong = 0; G.score = 0;
+  const unit = UNITS.find(u => u.id === unitId);
+  const lesson = unit.lessons.find(l => l.id === lessonId);
+  document.getElementById('homeScreen').style.display = 'none';
+  document.getElementById('gameScreen').style.display = 'block';
+  document.getElementById('gameTitle').textContent = unit.emoji + ' ' + unit.name + ' · ' + lesson.name;
+  document.getElementById('gameSub').textContent = '🌱 基础关 · 共' + G.questions.length + '题';
+  document.getElementById('resultPanel').style.display = 'none';
+  showQ();
+}
+
+function showQ(){
+  const q=G.questions[G.qIndex];
+  const total=G.questions.length;
+  const pct=G.qIndex/total*100;
+  const circ=2*Math.PI*28;
+  document.getElementById('progressRing').setAttribute('stroke-dashoffset', circ*pct/100);
+  document.getElementById('progressText').textContent=(G.qIndex+1)+'/'+total;
+  document.getElementById('qText').textContent=q.q;
+  const unit=UNITS.find(u=>u.id===G.unit);
+  document.getElementById('qUnitTag').textContent=unit.emoji+' '+unit.name;
+  document.getElementById('correctCount').textContent=G.correct;
+  document.getElementById('wrongCount').textContent=G.wrong;
+  document.getElementById('scoreDisplay').textContent=G.score;
+  document.getElementById('optsGrid').innerHTML=q.opts.map((opt,i)=>
+    `<button class="opt-btn" id="opt-${i}" onclick="ans(${i})">${opt}</button>`
+  ).join('');
+  document.getElementById('hintBox').className='hint-box';
+  document.getElementById('hintBox').textContent='💡 '+q.hint;
+  document.getElementById('hintBtn').style.display='';
+  document.getElementById('nextBtn').className='next-btn';
+}
+
+function ans(idx){
+  const q=G.questions[G.qIndex];
+  document.querySelectorAll('.opt-btn').forEach(b=>b.classList.add('disabled'));
+  if(idx===q.answer){
+    document.getElementById('opt-'+idx).classList.add('correct');
+    G.correct++; G.score+=10;
+  }else{
+    document.getElementById('opt-'+idx).classList.add('wrong');
+    document.getElementById('opt-'+q.answer).classList.add('correct');
+    G.wrong++;
+  }
+  document.getElementById('correctCount').textContent=G.correct;
+  document.getElementById('wrongCount').textContent=G.wrong;
+  document.getElementById('scoreDisplay').textContent=G.score;
+  document.getElementById('hintBtn').style.display='none';
+  setTimeout(()=>document.getElementById('hintBox').classList.add('show'),300);
+  document.getElementById('nextBtn').className='next-btn show';
+}
+
+function showHint(){ document.getElementById('hintBox').classList.add('show'); }
+
+function nextQ(){
+  G.qIndex++;
+  if(G.qIndex>=G.questions.length) showResult(); else showQ();
+}
+
+function showResult(){
+  const total=G.questions.length;
+  const pct=Math.round(G.correct/total*100);
+  const stars=pct>=90?3:pct>=70?2:pct>=50?1:0;
+  const titles=['继续努力','表现不错','很优秀','满分通关！'];
+  document.getElementById('resultPanel').style.display='block';
+  document.getElementById('resultPanel').innerHTML=`
+    <div class="result-stars">${'⭐'.repeat(stars)||'💪'}</div>
+    <div class="result-title">${titles[stars]}</div>
+    <div class="result-sub">答对 ${G.correct} / ${total} 题 · 得分 ${G.score} 分</div>
+    <div class="result-btns">
+      <button class="replay-btn" onclick="replay()">再闯一次</button>
+      <button class="replay-btn secondary" onclick="backToUnits()">返回选课</button>
+    </div>
+  `;
+  document.getElementById('nextBtn').className='next-btn';
+}
+
+function replay(){
+  G.questions.sort(()=>Math.random()-0.5);
+  G.qIndex=0; G.correct=0; G.wrong=0; G.score=0;
+  document.getElementById('resultPanel').style.display='none';
+  showQ();
+}
+
+function backToUnits(){
+  document.getElementById('homeScreen').style.display='block';
+  document.getElementById('gameScreen').style.display='none';
+}
+
+renderUnits();
+</script>
+</body>
+</html>

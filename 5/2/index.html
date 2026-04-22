@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌟 科学探险家 · 五年级科学趣味闯关</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    font-family: "微软雅黑", "PingFang SC", sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    min-height: 100vh;
+    color: #fff;
+    overflow-x: hidden;
+  }
+
+  .particles {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+  }
+  .particle {
+    position: absolute;
+    width: 6px; height: 6px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 50%;
+    animation: float 15s infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+  }
+
+  .game-container {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 12px 20px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .status-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.1em;
+  }
+  .status-icon { font-size: 1.3em; }
+  .status-value { font-weight: 700; color: #ffd700; }
+  .streak-fire { animation: pulse 1s infinite; }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+  }
+
+  .screen { display: none; animation: fadeIn 0.4s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-section { text-align: center; padding: 40px 20px; }
+  .hero-title {
+    font-size: 2.8em;
+    font-weight: 900;
+    background: linear-gradient(135deg, #ffd700, #ff6b6b, #4ecdc4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 10px;
+  }
+  .hero-subtitle { font-size: 1.2em; color: rgba(255,255,255,0.7); margin-bottom: 30px; }
+  .hero-mascot { font-size: 6em; margin: 20px 0; animation: bounce 2s infinite; }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+  }
+  .start-btn {
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    color: #1a1a2e;
+    font-size: 1.4em;
+    font-weight: 900;
+    padding: 16px 50px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 8px 30px rgba(255,215,0,0.4);
+  }
+  .start-btn:hover { transform: scale(1.08); box-shadow: 0 12px 40px rgba(255,215,0,0.6); }
+
+  .level-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-top: 20px;
+  }
+  .level-card {
+    background: rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 24px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+  }
+  .level-card:hover:not(.locked) {
+    transform: translateY(-5px);
+    border-color: var(--card-color);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  }
+  .level-card.completed { border-color: #4ecdc4; background: rgba(78,205,196,0.1); }
+  .level-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 4px;
+    background: var(--card-color);
+  }
+  .level-icon { font-size: 3em; margin-bottom: 10px; }
+  .level-name { font-size: 1.1em; font-weight: 700; margin-bottom: 6px; }
+  .level-stars { font-size: 1.4em; margin: 8px 0; }
+  .level-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8em;
+    font-weight: 700;
+  }
+  .badge-easy { background: #4caf50; color: white; }
+  .badge-locked { background: #666; color: #ccc; }
+
+  .unit-title {
+    grid-column: 1 / -1;
+    font-size: 1.4em;
+    font-weight: 900;
+    text-align: left;
+    padding: 15px 20px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    margin-top: 10px;
+  }
+  .unit-title span { margin-right: 10px; }
+
+  .quiz-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .back-btn {
+    background: rgba(255,255,255,0.1);
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: all 0.3s;
+  }
+  .back-btn:hover { background: rgba(255,255,255,0.2); }
+  .quiz-progress { font-size: 1.1em; color: rgba(255,255,255,0.8); }
+
+  .question-card {
+    background: rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .question-type {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    margin-bottom: 15px;
+  }
+  .type-choice { background: #2196f3; }
+  .type-judge { background: #ff9800; }
+  .question-text { font-size: 1.3em; line-height: 1.6; margin-bottom: 25px; }
+  .options { display: flex; flex-direction: column; gap: 12px; }
+  .option {
+    background: rgba(255,255,255,0.1);
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 12px;
+    padding: 15px 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 1.1em;
+    text-align: left;
+  }
+  .option:hover:not(.selected):not(.correct):not(.wrong) {
+    background: rgba(255,255,255,0.15);
+    border-color: #ffd700;
+  }
+  .option.correct { border-color: #4caf50; background: rgba(76,175,80,0.3); }
+  .option.wrong { border-color: #f44336; background: rgba(244,67,54,0.3); }
+  .option.disabled { pointer-events: none; opacity: 0.7; }
+
+  .btn-group { display: flex; gap: 12px; margin-top: 20px; }
+  .btn {
+    flex: 1;
+    padding: 14px 24px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1em;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    color: #1a1a2e;
+  }
+  .btn-primary:hover { transform: scale(1.02); box-shadow: 0 5px 20px rgba(255,215,0,0.4); }
+  .btn-secondary {
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border: 2px solid rgba(255,255,255,0.3);
+  }
+  .btn-secondary:hover { background: rgba(255,255,255,0.2); }
+
+  .result-card {
+    background: rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 40px;
+    text-align: center;
+    margin-top: 20px;
+  }
+  .result-icon { font-size: 5em; margin-bottom: 20px; }
+  .result-title { font-size: 2em; font-weight: 900; margin-bottom: 15px; }
+  .result-score { font-size: 3em; font-weight: 900; color: #ffd700; margin: 20px 0; }
+  .result-stats { display: flex; justify-content: center; gap: 30px; margin: 25px 0; font-size: 1.1em; }
+  .stat-item { display: flex; flex-direction: column; gap: 5px; }
+  .stat-value { font-size: 1.5em; font-weight: 700; color: #ffd700; }
+  .stat-label { color: rgba(255,255,255,0.7); }
+
+  .hint-btn {
+    background: linear-gradient(135deg, #9c27b0, #e91e63);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.95em;
+    margin-top: 15px;
+  }
+  .hint-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .hint-box {
+    background: rgba(156,39,176,0.2);
+    border: 1px solid #9c27b0;
+    border-radius: 12px;
+    padding: 15px;
+    margin-top: 15px;
+    font-size: 0.95em;
+    display: none;
+  }
+  .hint-box.show { display: block; }
+
+  .achievement-popup {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    color: #1a1a2e;
+    padding: 20px 30px;
+    border-radius: 15px;
+    font-weight: 700;
+    font-size: 1.1em;
+    z-index: 200;
+    animation: slideIn 0.5s ease;
+    box-shadow: 0 10px 40px rgba(255,215,0,0.4);
+  }
+  @keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
+  @media (max-width: 600px) {
+    .level-grid { grid-template-columns: 1fr; }
+    .hero-title { font-size: 2em; }
+    .status-bar { flex-wrap: wrap; gap: 10px; }
+    .result-stats { flex-wrap: wrap; }
+  }
+
+  .overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8);
+    z-index: 300;
+    justify-content: center;
+    align-items: center;
+  }
+  .overlay.show { display: flex; }
+  .login-box {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border-radius: 24px;
+    padding: 40px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    border: 2px solid rgba(255,255,255,0.1);
+  }
+  .login-title { font-size: 1.5em; font-weight: 900; margin-bottom: 25px; }
+  .login-input {
+    width: 100%;
+    padding: 14px 20px;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    font-size: 1.1em;
+    text-align: center;
+    margin-bottom: 15px;
+  }
+  .login-input::placeholder { color: rgba(255,255,255,0.5); }
+  .login-input:focus { outline: none; border-color: #ffd700; }
+  .login-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    color: #1a1a2e;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1em;
+    font-weight: 700;
+    cursor: pointer;
+    margin-bottom: 10px;
+    transition: all 0.3s;
+  }
+  .login-btn:hover { transform: scale(1.02); }
+  .guest-btn {
+    width: 100%;
+    padding: 14px;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 12px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .guest-btn:hover { background: rgba(255,255,255,0.2); }
+</style>
+</head>
+<body>
+
+<div class="particles" id="particles"></div>
+
+<div class="game-container">
+  <div class="status-bar">
+    <div class="status-item">
+      <span class="status-icon">👤</span>
+      <span id="userBadge">游客</span>
+    </div>
+    <div class="status-item">
+      <span class="status-icon">⭐</span>
+      <span class="status-value" id="totalPoints">0</span>
+    </div>
+    <div class="status-item">
+      <span class="status-icon streak-fire" id="streakIcon">🔥</span>
+      <span class="status-value" id="currentStreak">0</span>
+    </div>
+  </div>
+
+  <div class="screen active" id="startScreen">
+    <div class="hero-section">
+      <div class="hero-mascot">🔬</div>
+      <h1 class="hero-title">科学探险家</h1>
+      <p class="hero-subtitle">五年级下册 · 趣味闯关</p>
+      <button class="start-btn" onclick="showLoginScreen()">开始挑战</button>
+    </div>
+  </div>
+
+  <div class="screen" id="levelScreen">
+    <div class="level-grid" id="levelGrid"></div>
+  </div>
+
+  <div class="screen" id="quizScreen">
+    <div class="quiz-header">
+      <button class="back-btn" onclick="showLevelSelect()">← 返回</button>
+      <span class="quiz-progress" id="quizProgress">1/10</span>
+    </div>
+    <div class="question-card" id="questionCard">
+      <span class="question-type type-choice" id="questionType">单选题</span>
+      <p class="question-text" id="questionText">题目加载中...</p>
+      <div class="options" id="optionsContainer"></div>
+      <button class="hint-btn" id="hintBtn" onclick="showHint()">💡 提示 (3)</button>
+      <div class="hint-box" id="hintBox"></div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-secondary" id="prevBtn" onclick="prevQuestion()">← 上一题</button>
+      <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">下一题 →</button>
+    </div>
+  </div>
+
+  <div class="screen" id="resultScreen">
+    <div class="result-card">
+      <div class="result-icon" id="resultIcon">🎉</div>
+      <h2 class="result-title" id="resultTitle">恭喜完成！</h2>
+      <div class="result-score" id="resultScore">0分</div>
+      <div class="result-stats">
+        <div class="stat-item">
+          <span class="stat-value" id="correctCount">0</span>
+          <span class="stat-label">正确</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" id="accuracy">0%</span>
+          <span class="stat-label">正确率</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" id="maxStreakResult">0</span>
+          <span class="stat-label">最高连胜</span>
+        </div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-secondary" onclick="showLevelSelect()">返回关卡</button>
+        <button class="btn btn-primary" onclick="restartQuiz()">再玩一次</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="loginOverlay">
+  <div class="login-box">
+    <h2 class="login-title">🔐 输入学号登录</h2>
+    <input type="text" class="login-input" id="studentIdInput" placeholder="请输入8位学号" maxlength="8" onkeypress="if(event.key==='Enter')loginWithId()">
+    <button class="login-btn" id="loginBtn" onclick="loginWithId()">登录存档</button>
+    <button class="guest-btn" id="guestBtn" onclick="loginAsGuest()">游客试玩</button>
+  </div>
+</div>
+
+<script>
+const questionData = {
+  unit1: {
+    name: '第一单元 身边的桥梁',
+    icon: '🌉',
+    lessons: [
+      { id: 'u1l1', name: '第1课 平直的梁桥', icon: '🏗️',
+        basic: [
+          { q: '桥梁的主要作用是（    ）。', options: ['美观装饰', '方便行人和车辆通行', '拦截水流', '发电'], answer: 1, hint: '桥梁是为了方便人们跨越障碍而建造的。' },
+          { q: '桥梁必须具备一定的（    ）能力，才能让行人、车辆安全通行。', options: ['美观', '承重', '抗风', '防水'], answer: 1, hint: '想一想，桥上要承受车辆和行人的重量。' },
+          { q: '梁桥是一种常见的桥梁类型，其桥面特点是（    ）。', options: ['弯曲', '平直', '没有桥面', '靠悬索吊起'], answer: 1, hint: '梁桥的"梁"字提示了桥面的形状。' },
+          { q: '梁结构的主要作用是（    ）。', options: ['美化桥面', '增强承重能力', '连接两岸', '防止洪水'], answer: 1, hint: '梁结构可以分散重量，让桥更坚固。' },
+          { q: '在江河湖海上修建桥梁，主要是为了（    ）。', options: ['养殖水产', '方便行人和车辆通行', '观光旅游', '拦截泥沙'], answer: 1, hint: '想想我们过河时为什么需要桥。' }
+        ],
+        medium: [
+          { q: '下列哪种方法可以增强纸桥的承重能力？（    ）', options: ['增加长度', '减少宽度', '增加厚度或改变形状', '减少厚度'], answer: 2, hint: '想一想，怎样让纸更不容易弯曲折断。' },
+          { q: '桥梁在设计时，除了要考虑承重能力外，还需要考虑（    ）。', options: ['颜色', '方便通行', '造价最低', '形状奇特'], answer: 1, hint: '桥梁首先要能让人和车顺利通过。' },
+          { q: '增加纸桥厚度可以使桥面承重能力（    ）。', options: ['减弱', '不变', '更强', '消失'], answer: 2, hint: '更厚的材料通常更结实。' },
+          { q: '梁桥的结构不包括以下哪个部分？（    ）', options: ['桥面', '梁', '悬索', '桥墩'], answer: 2, hint: '梁桥不使用悬索，那是悬索桥的特点。' }
+        ],
+        hard: [
+          { q: '现代梁桥大多具有什么结构？（    ）', options: ['拱形结构', '悬索结构', '梁结构', '框架结构'], answer: 2, hint: '梁桥的命名就来自于它的主要结构。' },
+          { q: '判断：桥梁的作用只是美观装饰，方便通行不是主要目的。（    ）', options: ['√', '×'], answer: 1, hint: '想一想桥最基本的功能是什么。' },
+          { q: '判断：梁结构可以使桥的承重能力更强。（    ）', options: ['√', '×'], answer: 0, hint: '梁结构可以分散压力，增强稳定性。' }
+        ]
+      },
+      { id: 'u1l2', name: '第2课 弯弯的拱桥', icon: '🌈',
+        basic: [
+          { q: '拱桥都具有什么形状的结构？（    ）', options: ['方形', '圆形', '拱形', '三角形'], answer: 2, hint: '拱桥最大的特点就是有一个"拱"。' },
+          { q: '拱桥适宜建设在什么样的地区？（    ）', options: ['平坦开阔地区', '不方便架设大量桥墩的地区', '沙漠地区', '城市中心'], answer: 1, hint: '想想在水面宽阔或需要通船的地方，拱桥有什么优势。' },
+          { q: '拱圈底部两端的支撑部分叫做（    ）。', options: ['拱背', '拱脚', '拱顶', '桥面'], answer: 1, hint: '"脚"在最底部起支撑作用。' },
+          { q: '拱桥能够将压力（    ），使承重能力更强。', options: ['集中在一处', '分散到各个构件', '传递到水里', '消除'], answer: 1, hint: '拱形可以像拱门一样，把力量分散开。' },
+          { q: '以下哪座是著名的古代石拱桥？（    ）', options: ['港珠澳大桥', '赵州桥', '四渡河大桥', '钱塘江大桥'], answer: 1, hint: '这座桥有1400多年历史了。' }
+        ],
+        medium: [
+          { q: '相同跨度下，拱形结构的纸桥与平桥相比，承重能力（    ）。', options: ['更弱', '相同', '更强', '无法比较'], answer: 2, hint: '拱形结构可以更好地分散压力。' },
+          { q: '在要求承重能力相同的情况下，拱桥可以实现更（    ）的跨度。', options: ['小', '大', '低', '矮'], answer: 1, hint: '拱桥的一个优势就是可以实现较大的跨度。' },
+          { q: '拱座的作用是（    ）。', options: ['美观装饰', '连接桥面', '支撑拱脚', '防止洪水'], answer: 2, hint: '拱座是拱桥的根基部分。' },
+          { q: '判断：拱桥适宜建设在不方便架设大量桥墩的地区。（    ）', options: ['√', '×'], answer: 0, hint: '这就是拱桥的优势所在。' }
+        ],
+        hard: [
+          { q: '拱形结构在受到压力时，能够（    ）。', options: ['将压力向上传递', '将压力分散', '增加变形', '减少高度'], answer: 1, hint: '拱形可以把向下的压力向两边分散。' },
+          { q: '判断：相同跨度下，拱形结构比平桥承重能力更强。（    ）', options: ['√', '×'], answer: 0, hint: '这是拱桥的重要优点。' },
+          { q: '判断：拱桥的拱圈底部两端没有支撑。（    ）', options: ['√', '×'], answer: 1, hint: '拱脚是拱桥的重要支撑部分。' }
+        ]
+      },
+      { id: 'u1l3', name: '第3课 专题探究：拼接拱桥', icon: '🔧',
+        basic: [
+          { q: '下列哪种构件更容易拼接成拱形结构？（    ）', options: ['方形构件', '圆形构件', '梯形构件', '长方形构件'], answer: 2, hint: '梯形的斜边可以更好地形成弧形。' },
+          { q: '用方形构件不能直接拼成拱形，需要加入什么构件？（    ）', options: ['方形', '梯形', '三角形', '圆形'], answer: 1, hint: '想想用积木搭拱桥时怎么过渡。' },
+          { q: '拼接成的拱形结构中，哪种构件承重能力更强？（    ）', options: ['方形构件', '梯形构件', '圆形构件', '三角形构件'], answer: 2, hint: '圆形是最稳定的形状之一。' },
+          { q: '探究实验一般分为几个步骤？（    ）', options: ['三个', '四个', '五个', '六个'], answer: 1, hint: '提出问题→作出假设→制定计划→得出结论。' },
+          { q: '拱结构的主要作用是（    ）。', options: ['美观', '分散压力', '降低成本', '减轻重量'], answer: 1, hint: '拱形可以把力分散到两侧。' }
+        ],
+        medium: [
+          { q: '拼接拱桥后，我们需要做什么？（    ）', options: ['直接使用', '进行承重能力测试', '刷漆美化', '拆除重建'], answer: 1, hint: '科学实验需要用数据来验证猜想。' },
+          { q: '石拱桥受材料限制，往往使用什么构件拼接？（    ）', options: ['大块构件', '小块构件', '金属构件', '塑料构件'], answer: 1, hint: '小块更容易拼出弧形。' },
+          { q: '判断：梯形构件比方形构件更容易拼接成拱形结构。（    ）', options: ['√', '×'], answer: 0, hint: '梯形的斜边更适合形成弧度。' }
+        ],
+        hard: [
+          { q: '石拱桥中常用的拼接构件有（    ）。', options: ['只有方形', '只有圆形', '小块构件', '不需要构件'], answer: 2, hint: '小块可以灵活拼接成各种形状。' },
+          { q: '判断：方形构件可以直接拼成拱形结构。（    ）', options: ['√', '×'], answer: 1, hint: '方形边是直的，无法直接形成弧形。' },
+          { q: '判断：拱结构能起到分散压力的作用。（    ）', options: ['√', '×'], answer: 0, hint: '这是拱桥的核心原理。' }
+        ]
+      },
+      { id: 'u1l4', name: '第4课 巧用悬索', icon: '⛓️',
+        basic: [
+          { q: '悬索桥的跨度一般比较（    ）。', options: ['小', '大', '固定', '随意'], answer: 1, hint: '悬索桥可以实现非常大的跨度。' },
+          { q: '悬索桥一般建在哪里？（    ）', options: ['平原', '城市中心', '山谷中或海面上', '沙漠'], answer: 2, hint: '悬索桥适合跨越宽阔的水面或山谷。' },
+          { q: '悬索桥中，缆索需要通过什么悬挂？（    ）', options: ['桥面', '桥墩', '桥塔', '地基'], answer: 2, hint: '桥塔是悬索桥的主要支撑结构。' },
+          { q: '悬索在悬索桥中的主要作用是（    ）。', options: ['美观装饰', '连接桥面与缆索、分散受力', '增加重量', '阻挡洪水'], answer: 1, hint: '悬索是承受拉力的关键构件。' },
+          { q: '古代人们利用什么材料制作悬索？（    ）', options: ['钢筋', '藤、竹', '塑料', '玻璃'], answer: 1, hint: '古代没有钢铁，用天然材料编成绳索。' }
+        ],
+        medium: [
+          { q: '以下哪种桥适合建造在水面宽阔的地方？（    ）', options: ['梁桥', '拱桥', '悬索桥', '石桥'], answer: 2, hint: '悬索桥不需要在水中间建很多桥墩。' },
+          { q: '判断：悬索桥的缆索越粗，承重能力越强。（    ）', options: ['√', '×'], answer: 0, hint: '更粗的缆索能承受更大的拉力。' },
+          { q: '判断：古代人们只用藤蔓和竹子制作悬索。（    ）', options: ['√', '×'], answer: 1, hint: '现代悬索使用高强度钢丝制成。' }
+        ],
+        hard: [
+          { q: '我国自主设计建设的超大型悬索桥是（    ）。', options: ['南京长江大桥', '港珠澳大桥', '杭州湾跨海大桥', '三峡大坝'], answer: 1, hint: '这是连接香港、珠海、澳门的跨海大桥。' },
+          { q: '悬索桥的主要受力构件是（    ）。', options: ['桥墩', '桥面', '悬索', '桥塔'], answer: 2, hint: '悬索承受桥面的重量。' },
+          { q: '判断：悬索桥可以实现比梁桥更大的跨度。（    ）', options: ['√', '×'], answer: 0, hint: '悬索桥适合大跨度建设。' }
+        ]
+      },
+      { id: 'u1l5', name: '第5课 桥梁里的框架', icon: '🏛️',
+        basic: [
+          { q: '下列哪种形状不容易变形？（    ）', options: ['四边形', '三角形', '圆形', '平行四边形'], answer: 1, hint: '三角形是最稳定的形状。' },
+          { q: '立体框架中，什么结构能增强框架的稳固性？（    ）', options: ['四边形', '圆形', '三角形', '梯形'], answer: 2, hint: '三角形结构具有稳定性。' },
+          { q: '钱塘江大桥是由谁主持设计的？（    ）', options: ['李四光', '茅以升', '詹天佑', '华罗庚'], answer: 1, hint: '茅以升是中国著名的桥梁专家。' },
+          { q: '钱塘江大桥是我国自行设计建造的第一座什么类型的桥？（    ）', options: ['双层公路桥', '双层公路、铁路两用桥', '高速公路桥', '城市立交桥'], answer: 1, hint: '这座桥同时有公路和铁路。' },
+          { q: '电线塔主要利用什么结构搭建？（    ）', options: ['拱形结构', '框架结构', '悬索结构', '梁结构'], answer: 1, hint: '电线塔用钢材焊接成框架。' }
+        ],
+        medium: [
+          { q: '现代铁路桥梁一般都具有什么结构？（    ）', options: ['拱形结构', '框架结构', '悬索结构', '梁结构'], answer: 1, hint: '框架结构可以增强稳固性。' },
+          { q: '要使牙签塔既高又稳固，结构上要满足什么条件？（    ）', options: ['上大下小', '上重下轻', '上小下大、上轻下重', '随意搭建'], answer: 2, hint: '底部大、重心低才稳固。' },
+          { q: '判断：三角形具有稳定性。（    ）', options: ['√', '×'], answer: 0, hint: '这是三角形的基本特性。' }
+        ],
+        hard: [
+          { q: '下列哪种形状容易变形？（    ）', options: ['三角形', '四边形', '五边形', '正方形'], answer: 1, hint: '四边形的边长固定但角度可以改变。' },
+          { q: '判断：四边形不容易变形。（    ）', options: ['√', '×'], answer: 1, hint: '四边形可以拉伸成平行四边形。' },
+          { q: '立体框架中加入三角形结构后，框架会（    ）。', options: ['更容易变形', '几乎不变形', '变得更轻', '变得更重'], answer: 1, hint: '三角形可以把力分散到三个方向。' }
+        ]
+      },
+      { id: 'u1l6', name: '第6课 设计与制作：我的小桥', icon: '🔨',
+        basic: [
+          { q: '设计桥梁模型时，需要考虑的主要因素是（    ）。', options: ['颜色', '可利用的材料、桥梁的用途、制作方法', '成本最高', '越简单越好'], answer: 1, hint: '设计要考虑实用性和可行性。' },
+          { q: '制作桥梁模型时，首先应该（    ）。', options: ['直接开始制作', '进行设计', '购买材料', '参观桥梁'], answer: 1, hint: '先画设计图再动手。' },
+          { q: '桥梁从结构上可分为哪几类？（    ）', options: ['只有梁桥', '只有拱桥', '梁桥、拱桥、悬索桥、斜拉桥、框架桥等', '只有悬索桥'], answer: 2, hint: '桥梁有很多种类型。' },
+          { q: '工程是以什么为基础的系统性工作？（    ）', options: ['艺术和文学', '科学和技术', '政治和经济', '历史和地理'], answer: 1, hint: '工程需要运用科学知识。' },
+          { q: '距今已有1400多年历史的赵州桥，是一座什么类型的桥？（    ）', options: ['悬索桥', '梁桥', '石拱桥', '斜拉桥'], answer: 2, hint: '赵州桥是最著名的古代石拱桥。' }
+        ],
+        medium: [
+          { q: '港珠澳大桥全长多少千米？（    ）', options: ['45千米', '55千米', '65千米', '75千米'], answer: 2, hint: '这是一座超长的跨海大桥。' },
+          { q: '港珠澳大桥是目前世界上最长的什么大桥？（    ）', options: ['跨江大桥', '跨海大桥', '跨山谷大桥', '城市大桥'], answer: 1, hint: '连接香港、珠海、澳门三地。' },
+          { q: '判断：工程是以科学和技术为基础的系统性工作。（    ）', options: ['√', '×'], answer: 0, hint: '工程需要科学知识和技术手段。' }
+        ],
+        hard: [
+          { q: '制作桥梁模型时，需要测量什么距离是否达到50厘米？（    ）', options: ['桥面宽度', '桥墩之间的跨度', '桥的高度', '桥塔高度'], answer: 1, hint: '跨度是桥墩之间的距离。' },
+          { q: '判断：制作桥梁模型时，不需要进行设计，可以直接开始制作。（    ）', options: ['√', '×'], answer: 1, hint: '设计是制作的重要步骤。' },
+          { q: '展示桥梁模型时，需要介绍哪些方面？（    ）', options: ['只介绍颜色', '只介绍材料', '介绍类型、结构、用途等', '只介绍价格'], answer: 2, hint: '要全面介绍模型的特点。' }
+        ]
+      }
+    ]
+  },
+  unit2: {
+    name: '第二单元 微观生命世界',
+    icon: '🔬',
+    lessons: [
+      { id: 'u2l7', name: '第7课 放大镜下的生物', icon: '🔍',
+        basic: [
+          { q: '放大镜是一种（    ）透镜。', options: ['凹', '凸', '平', '棱'], answer: 1, hint: '放大镜能把物体放大。' },
+          { q: '放大镜的放大倍数与什么有关？（    ）', options: ['颜色', '口径和厚度', '形状', '材质'], answer: 1, hint: '放大镜越大、越厚，放大倍数越高。' },
+          { q: '使用放大镜时，物体应该放在（    ）。', options: ['焦点以内', '焦点与透镜之间', '焦点以外', '任意位置'], answer: 1, hint: '这样才能看到放大的像。' },
+          { q: '下列哪种工具可以观察更微小的生物？（    ）', options: ['放大镜', '显微镜', '望远镜', '眼镜'], answer: 1, hint: '显微镜放大倍数更高。' },
+          { q: '放大镜在我们的生活中有哪些应用？（    ）', options: ['只能看邮票', '只能看昆虫', '看微小生物、读书看报等', '只能用于科学实验'], answer: 2, hint: '放大镜用途很广泛。' }
+        ],
+        medium: [
+          { q: '用放大镜观察昆虫时，放大镜离昆虫越近，看到的昆虫（    ）。', options: ['越大', '越小', '不变', '消失'], answer: 1, hint: '放大镜有工作距离限制。' },
+          { q: '下列哪种是使用放大镜的正确方法？（    ）', options: ['放大镜贴着物体看', '放大镜离物体一定距离', '放大镜对着太阳看', '放大镜随意移动'], answer: 1, hint: '要在焦距范围内观察。' },
+          { q: '判断：放大镜只能放大物体，不能改变物体的像。（    ）', options: ['√', '×'], answer: 1, hint: '放大镜成的是虚像。' }
+        ],
+        hard: [
+          { q: '凸透镜的放大倍数与什么因素有关？（    ）', options: ['颜色和重量', '口径和厚度', '价格和品牌', '形状和材质'], answer: 1, hint: '透镜的参数决定放大效果。' },
+          { q: '判断：使用放大镜时，放大镜离物体越近越好。（    ）', options: ['√', '×'], answer: 1, hint: '太近会超过焦距，看不清。' },
+          { q: '用放大镜观察时，如果放大镜远离物体，看到的物体会（    ）。', options: ['变大', '变小', '不变', '消失'], answer: 1, hint: '远离到焦点外就看不到放大的像了。' }
+        ]
+      },
+      { id: 'u2l8', name: '第8课 科学观察的工具——显微镜', icon: '🔬',
+        basic: [
+          { q: '显微镜的结构中，最重要的是（    ）。', options: ['目镜', '物镜', '反光镜', '镜座'], answer: 1, hint: '物镜是接近观察物体的镜头。' },
+          { q: '使用显微镜时，眼睛应该从（    ）观察。', options: ['侧面', '上方', '下方', '任意方向'], answer: 1, hint: '要对着目镜看。' },
+          { q: '显微镜的放大倍数等于（    ）的乘积。', options: ['目镜和物镜', '目镜和反光镜', '物镜和载玻片', '目镜和载物台'], answer: 0, hint: '两个镜头组合放大。' },
+          { q: '光线弱时，应该使用（    ）反光镜。', options: ['平面', '凹面', '凸面', '平面和凹面'], answer: 1, hint: '凹面可以聚集更多光线。' },
+          { q: '玻片标本应该放在（    ）上。', options: ['目镜', '物镜', '载物台', '镜筒'], answer: 2, hint: '载物台是放置玻片的地方。' }
+        ],
+        medium: [
+          { q: '从低倍镜换成高倍镜时，视野会（    ）。', options: ['变亮', '变暗', '不变', '消失'], answer: 1, hint: '放大倍数越高，通过的光线越少。' },
+          { q: '对光时，应该用（    ）眼向目镜里看。', options: ['左', '右', '任意', '同时睁开两只'], answer: 0, hint: '习惯上用左眼观察。' },
+          { q: '需要将观察对象移到视野中央时，应该向（    ）移动玻片。', options: ['相同方向', '相反方向', '任意方向', '不动'], answer: 1, hint: '显微镜下看到的是倒像。' }
+        ],
+        hard: [
+          { q: '如果物镜上标有"40×"，目镜上标有"10×"，则放大倍数为（    ）。', options: ['50×', '400×', '4×', '4000×'], answer: 1, hint: '放大倍数 = 目镜倍数 × 物镜倍数' },
+          { q: '判断：显微镜观察时，玻片标本移动方向与视野中像移动方向相反。（    ）', options: ['√', '×'], answer: 0, hint: '因为显微镜成的是倒立的像。' },
+          { q: '使用高倍镜时，为了防止压碎玻片，应该（    ）准焦螺旋。', options: ['先逆时针旋转粗', '先顺时针旋转粗', '只调节细', '快速旋转粗'], answer: 2, hint: '高倍镜下镜头离玻片很近，只能用细准焦螺旋。' }
+        ]
+      },
+      { id: 'u2l9', name: '第9课 用显微镜来观察', icon: '👁️',
+        basic: [
+          { q: '制作洋葱表皮临时装片时，首先应该在载玻片上滴（    ）。', options: ['酒精', '清水', '碘酒', '什么都不滴'], answer: 1, hint: '细胞需要在水环境中才能存活。' },
+          { q: '撕取洋葱内表皮时，应该用（    ）。', options: ['手直接撕', '刀片切割', '镊子夹取', '剪刀剪'], answer: 2, hint: '镊子可以精确夹取薄薄的表皮。' },
+          { q: '盖盖玻片时，应该让盖玻片的一边先接触水滴，然后（    ）放下。', options: ['快速', '缓慢', '任意方式', '扔下'], answer: 1, hint: '缓慢放下可以避免产生气泡。' },
+          { q: '洋葱表皮细胞中，可以被碘酒染成棕色的结构是（    ）。', options: ['细胞壁', '细胞膜', '细胞核', '液泡'], answer: 2, hint: '细胞核里有遗传物质。' },
+          { q: '用显微镜观察时，看到的是（    ）的像。', options: ['正立', '倒立', '放大', '缩小'], answer: 1, hint: '显微镜成的是倒立的实像。' }
+        ],
+        medium: [
+          { q: '制作装片时，为了避免产生气泡，应该（    ）盖盖玻片。', options: ['垂直快速', '垂直缓慢', '倾斜快速', '倾斜缓慢'], answer: 1, hint: '倾斜盖玻片可以让它缓缓落在水面上。' },
+          { q: '洋葱表皮细胞的（    ）可以用碘酒染色观察到。', options: ['细胞壁', '细胞质', '细胞核', '叶绿体'], answer: 2, hint: '碘酒是常用的细胞核染色剂。' },
+          { q: '判断：用镊子撕取洋葱表皮时，撕取的薄膜越厚越好。（    ）', options: ['√', '×'], answer: 1, hint: '薄才能让光线透过，看清细胞结构。' }
+        ],
+        hard: [
+          { q: '制作临时装片时，染色剂应该滴在（    ）。', options: ['盖玻片上', '盖玻片边缘', '载玻片上', '物镜上'], answer: 1, hint: '从边缘滴加，染色剂会自动渗入。' },
+          { q: '判断：显微镜下观察到的物像与实际物体是上下颠倒、左右相反的。（    ）', options: ['√', '×'], answer: 0, hint: '显微镜成的是倒立的像。' },
+          { q: '在显微镜下观察，若视野中有气泡，可以（    ）来消除。', options: ['用镊子戳破', '重新制作装片', '滴加清水', '调节光源'], answer: 1, hint: '气泡会影响观察，需要重做。' }
+        ]
+      },
+      { id: 'u2l10', name: '第10课 水滴里的生命', icon: '💧',
+        basic: [
+          { q: '下列哪种生物可以用肉眼勉强看到？（    ）', options: ['草履虫', '水螅', '细菌', '病毒'], answer: 1, hint: '水螅比大多数微生物大一些。' },
+          { q: '鱼缸里的水变绿，是因为水中含有大量的（    ）。', options: ['泥土', '微生物', '色素', '藻类'], answer: 3, hint: '藻类大量繁殖会让水变绿。' },
+          { q: '下列哪种生物是单细胞藻类？（    ）', options: ['水绵', '衣藻', '细菌', '蘑菇'], answer: 1, hint: '衣藻是单细胞藻类。' },
+          { q: '衣藻细胞呈什么形状？（    ）', options: ['只有方形', '只有圆形', '卵形、椭圆形或圆形', '没有固定形状'], answer: 2, hint: '衣藻形状比较规则。' },
+          { q: '衣藻细胞的前端有什么结构，能帮助其游动？（    ）', options: ['翅膀', '鞭毛', '腿', '触手'], answer: 1, hint: '鞭毛像小鞭子一样摆动。' }
+        ],
+        medium: [
+          { q: '草履虫在显微镜下看起来像什么？（    ）', options: ['圆形', '方形', '倒转的草鞋', '直线'], answer: 2, hint: '草履虫的形状像草鞋。' },
+          { q: '下列哪种生物是单细胞生物？（    ）', options: ['水绵', '蘑菇', '衣藻', '木耳'], answer: 2, hint: '衣藻只有一个细胞。' },
+          { q: '判断：草履虫是一种单细胞原生动物。（    ）', options: ['√', '×'], answer: 0, hint: '草履虫只有一个细胞。' }
+        ],
+        hard: [
+          { q: '池塘中生活着众多微小的生物，它们个体微小，结构（    ）。', options: ['复杂', '简单', '相同', '固定'], answer: 1, hint: '单细胞生物结构简单。' },
+          { q: '判断：鱼缸里的水变绿是因为水中含有大量微生物。（    ）', options: ['√', '×'], answer: 0, hint: '主要是藻类植物。' },
+          { q: '判断：微生物都可以用肉眼看到。（    ）', options: ['√', '×'], answer: 1, hint: '大多数微生物需要显微镜才能看到。' }
+        ]
+      },
+      { id: 'u2l11', name: '第11课 发霉了', icon: '🦠',
+        basic: [
+          { q: '发霉是由于什么的大量繁殖和生长引起的？（    ）', options: ['细菌', '霉菌', '病毒', '昆虫'], answer: 1, hint: '发霉的"霉"字提示了答案。' },
+          { q: '观察发霉的物体时，应该使用什么工具？（    ）', options: ['望远镜', '放大镜或显微镜', '显微镜', '潜望镜'], answer: 1, hint: '霉菌很小但肉眼可见。' },
+          { q: '下列哪种做法不能防止霉菌生长？（    ）', options: ['保持干燥', '降低温度', '放在潮湿处', '晒干'], answer: 2, hint: '霉菌喜欢潮湿环境。' },
+          { q: '霉菌的生长繁殖需要什么样的环境？（    ）', options: ['寒冷、干燥', '温暖、潮湿、阴暗', '高温、干燥', '阳光充足'], answer: 1, hint: '想想家里什么地方容易发霉。' },
+          { q: '自然界中的微生物主要充当什么角色？（    ）', options: ['生产者', '消费者', '分解者', '光合作用者'], answer: 2, hint: '微生物分解动植物遗体。' }
+        ],
+        medium: [
+          { q: '食物、衣物发霉后，容易产生什么物质？（    ）', options: ['营养物质', '有毒物质', '水分', '维生素'], answer: 1, hint: '发霉的食物不能吃。' },
+          { q: '霉菌的颜色可能有（    ）。', options: ['只有白色', '只有黑色', '白色、青绿色、黑色等', '只有红色'], answer: 2, hint: '不同种类的霉菌颜色不同。' },
+          { q: '判断：霉菌的生长需要温暖、潮湿、阴暗的环境。（    ）', options: ['√', '×'], answer: 0, hint: '这就是为什么阴暗潮湿处容易发霉。' }
+        ],
+        hard: [
+          { q: '微生物将死亡的生物分解后，分解产生的物质能够（    ）。', options: ['消失', '被其他生物再次利用', '变成塑料', '污染环境'], answer: 1, hint: '这是自然界物质循环的一部分。' },
+          { q: '判断：发霉是由于细菌的大量繁殖和生长引起的。（    ）', options: ['√', '×'], answer: 1, hint: '细菌和霉菌是不同的微生物。' },
+          { q: '判断：放在潮湿处有利于防止霉菌生长。（    ）', options: ['√', '×'], answer: 1, hint: '潮湿正好适合霉菌生长。' }
+        ]
+      },
+      { id: 'u2l12', name: '第12课 微生物与我们', icon: '🔬',
+        basic: [
+          { q: '干酵母粉里含有什么微生物？（    ）', options: ['细菌', '霉菌', '酵母菌', '病毒'], answer: 2, hint: '酵母菌常被制成干粉保存。' },
+          { q: '酵母菌可以分解面粉中的什么物质，产生二氧化碳？（    ）', options: ['脂肪', '蛋白质', '糖类', '矿物质'], answer: 2, hint: '糖类是酵母菌的最爱。' },
+          { q: '微生物不包括以下哪一类？（    ）', options: ['真菌', '细菌', '病毒', '植物'], answer: 3, hint: '微生物是微小生物的总称。' },
+          { q: '蘑菇、木耳属于什么类型的真菌？（    ）', options: ['单细胞真菌', '多细胞大型真菌', '寄生真菌', '药用真菌'], answer: 1, hint: '蘑菇长得很大。' },
+          { q: '制作酸奶需要什么菌？（    ）', options: ['酵母菌', '乳酸菌', '霉菌', '病毒'], answer: 1, hint: '酸奶是乳类发酵的典型例子。' }
+        ],
+        medium: [
+          { q: '病毒有什么特点？（    ）', options: ['可以独立生活', '个体最小、结构最简单', '不寄生', '个体最大'], answer: 1, hint: '病毒是目前已知最小的生物。' },
+          { q: '传染病能在人与人之间或人与动物之间相互传播，这叫做（    ）。', options: ['遗传', '变异', '传染', '进化'], answer: 2, hint: '传染病的"传染"就是这个意思。' },
+          { q: '判断：蘑菇和木耳是肉眼可见的大型真菌。（    ）', options: ['√', '×'], answer: 0, hint: '它们确实属于真菌界。' }
+        ],
+        hard: [
+          { q: '痢疾杆菌可以引发（    ）。', options: ['感冒', '细菌性痢疾', '心脏病', '糖尿病'], answer: 1, hint: '痢疾是一种肠道传染病。' },
+          { q: '判断：微生物属于动物或植物中的一类。（    ）', options: ['√', '×'], answer: 1, hint: '微生物是一个独立的类群。' },
+          { q: '微生物既不属于动物也不属于（    ）。', options: ['植物', '细菌', '病毒', '真菌'], answer: 0, hint: '微生物有自己独特的分类。' }
+        ]
+      },
+      { id: 'u2l13', name: '第13课 身边的发酵食品', icon: '🍶',
+        basic: [
+          { q: '制作馒头和面包需要什么发酵技术？（    ）', options: ['乳类发酵', '谷类发酵', '豆类发酵', '蔬菜发酵'], answer: 1, hint: '馒头面包都是用面粉做的。' },
+          { q: '发酵技术能更好地保存食物，避免食物因什么而变质？（    ）', options: ['发霉', '发热', '发光', '发酵'], answer: 0, hint: '发酵本身就是一种保存方法。' },
+          { q: '发酵食品的特点是（    ）。', options: ['味道平淡', '风味独特', '没有营养', '不易消化'], answer: 1, hint: '想想酸奶、泡菜的味道。' },
+          { q: '下列哪种是豆类发酵食品？（    ）', options: ['酸奶', '馒头', '豆瓣酱', '酸菜'], answer: 2, hint: '豆子发酵制成的酱料。' },
+          { q: '制作酸笋或酸豇豆时，最后一步是什么？（    ）', options: ['清洗', '切块', '装坛密封发酵', '晒干'], answer: 2, hint: '发酵需要密封环境。' }
+        ],
+        medium: [
+          { q: '下列哪种不是谷类发酵食品？（    ）', options: ['馒头', '面包', '白酒', '酸奶'], answer: 3, hint: '酸奶是乳类发酵的。' },
+          { q: '制作发酵食品利用了什么作用？（    ）', options: ['光合作用', '发酵作用', '呼吸作用', '蒸腾作用'], answer: 1, hint: '发酵是微生物的作用。' },
+          { q: '判断：馒头、面包属于谷类发酵食品。（    ）', options: ['√', '×'], answer: 0, hint: '它们是用酵母菌发酵的。' }
+        ],
+        hard: [
+          { q: '酸奶属于什么类别的发酵食品？（    ）', options: ['谷类', '豆类', '乳类', '蔬菜类'], answer: 2, hint: '酸奶是用牛奶发酵的。' },
+          { q: '判断：发酵技术会使食物变质得更快。（    ）', options: ['√', '×'], answer: 1, hint: '发酵本身就是一种保存方法。' },
+          { q: '判断：制作酸笋时，不需要密封发酵。（    ）', options: ['√', '×'], answer: 1, hint: '酸笋需要在密封环境中发酵。' }
+        ]
+      }
+    ]
+  }
+};
+
+// ========== 装备系统 ==========
+const equipmentSystem = {
+  // 装备等级定义（按稀有度从低到高）：白→绿→蓝→紫→粉→金→橙
+  levels: {
+    common: { name: '普通的', color: '#9e9e9e', dropRate: 0.005 },
+    exquisite: { name: '精致的', color: '#4caf50', dropRate: 0.003 },
+    good: { name: '良好的', color: '#2196f3', dropRate: 0.0015 },
+    rare: { name: '稀有的', color: '#9c27b0', dropRate: 0.0008 },
+    epic: { name: '史诗级的', color: '#e91e63', dropRate: 0.0004 },
+    legendary: { name: '金色传说的', color: '#ffd700', dropRate: 0.0002 },
+    mythic: { name: '橙色神话的', color: '#ff5722', dropRate: 0.0001 }
+  },
+  
+  // 装备类型定义
+  equipTypes: [
+    { id: 'helmet', name: '头盔', icon: '🪖' },
+    { id: 'glove', name: '手套', icon: '🧤' },
+    { id: 'pants', name: '长裤', icon: '👖' },
+    { id: 'shorts', name: '短裤', icon: '🩳' },
+    { id: 'shirt', name: '衬衫', icon: '👔' },
+    { id: 'skirt', name: '裙子', icon: '👗' },
+    { id: 'plaid', name: '格子裙', icon: '🎽' },
+    { id: 'sword', name: '剑', icon: '⚔️' },
+    { id: 'bow', name: '弓箭', icon: '🏹' },
+    { id: 'staff', name: '魔法杖', icon: '🪄' },
+    { id: 'shield', name: '盾牌', icon: '🛡️' }
+  ],
+  
+  // 效果类型
+  effectTypes: [
+    { id: 'bonus', name: '积分加成' },
+    { id: 'skip', name: '跳过题目' },
+    { id: 'shield', name: '护盾' },
+    { id: 'combo', name: '连击保护' }
+  ],
+  
+  // 根据等级和类型生成装备
+  generateEquip(levelKey, typeId) {
+    const level = this.levels[levelKey];
+    const typeInfo = this.equipTypes.find(t => t.id === typeId);
+    const prefix = level.name;
+    
+    const effects = {
+      common: { value: '+1%积分', pointBonus: 0.01 },
+      exquisite: { value: '+2%积分', pointBonus: 0.02 },
+      good: { value: '+3%积分', pointBonus: 0.03 },
+      rare: { value: '+5%积分', pointBonus: 0.05 },
+      epic: { value: '+8%积分', pointBonus: 0.08 },
+      legendary: { value: '积分×2', pointBonus: 2 },
+      mythic: { value: '积分×3', pointBonus: 3 }
+    };
+    
+    return {
+      id: `${typeId}_${levelKey}`,
+      name: `${prefix}${typeInfo.name}`,
+      icon: typeInfo.icon,
+      level: levelKey,
+      levelName: level.name,
+      effect: effects[levelKey].value,
+      pointBonus: effects[levelKey].pointBonus,
+      color: level.color
+    };
+  },
+  
+  // 生成完整的装备池
+  getEquipmentPool() {
+    const pool = [];
+    for (const typeInfo of this.equipTypes) {
+      for (const levelKey of Object.keys(this.levels)) {
+        pool.push(this.generateEquip(levelKey, typeInfo.id));
+      }
+    }
+    return pool;
+  },
+  
+  totalDropRate: 0.01
+};
+
+const equipmentPool = equipmentSystem.getEquipmentPool();
+
+const gameState = {
+  studentId: null,
+  isGuest: true,
+  totalPoints: 0,
+  currentStreak: 0,
+  maxStreak: 0,
+  hintsRemaining: 3,
+  currentLesson: 0,
+  currentQuestion: 0,
+  correctCount: 0,
+  lessonProgress: {},
+  allAchievements: [
+    { id: 'first_blood', icon: '🎯', name: '首战告捷', desc: '完成第一题' },
+    { id: 'streak_2', icon: '⚡', name: '小试牛刀', desc: '达成2连胜' },
+    { id: 'streak_3', icon: '🔥', name: '三连斩', desc: '达成3连胜' },
+    { id: 'streak_5', icon: '💥', name: '五福临门', desc: '达成5连胜' },
+    { id: 'streak_7', icon: '🌟', name: '七星连珠', desc: '达成7连胜' },
+    { id: 'streak_10', icon: '👑', name: '常胜将军', desc: '达成10连胜' },
+    { id: 'unit1_master', icon: '🌉', name: '桥梁专家', desc: '完成第一单元' },
+    { id: 'unit2_master', icon: '🔬', name: '微观探索者', desc: '完成第二单元' },
+    { id: 'all_complete', icon: '🏆', name: '科学探险家', desc: '完成所有关卡' }
+  ],
+  unlockedAchievements: []
+};
+
+function createParticles() {
+  const container = document.getElementById('particles');
+  for (let i = 0; i < 30; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.animationDelay = Math.random() * 15 + 's';
+    p.style.animationDuration = (10 + Math.random() * 10) + 's';
+    container.appendChild(p);
+  }
+}
+
+function showScreen(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(screenId).classList.add('active');
+}
+
+function showLoginScreen() { document.getElementById('loginOverlay').classList.add('show'); }
+function hideLoginScreen() { document.getElementById('loginOverlay').classList.remove('show'); }
+
+function loginWithId() {
+  const id = document.getElementById('studentIdInput').value.trim();
+  if (id.length !== 8 || !/^\d+$/.test(id)) { alert('请输入正确的8位数字学号！'); return; }
+  gameState.studentId = id;
+  gameState.isGuest = false;
+  hideLoginScreen();
+  loadUserData();
+  showLevelSelect();
+}
+
+function loginAsGuest() {
+  gameState.studentId = null;
+  gameState.isGuest = true;
+  hideLoginScreen();
+  showLevelSelect();
+}
+
+function showLevelSelect() {
+  renderLevelGrid();
+  showScreen('levelScreen');
+}
+
+function renderLevelGrid() {
+  const grid = document.getElementById('levelGrid');
+  grid.innerHTML = '';
+  
+  for (const [unitKey, unit] of Object.entries(questionData)) {
+    const title = document.createElement('div');
+    title.className = 'unit-title';
+    title.innerHTML = `<span>${unit.icon}</span>${unit.name}`;
+    grid.appendChild(title);
+    
+    for (const lesson of unit.lessons) {
+      const progress = gameState.lessonProgress[lesson.id] || 0;
+      const stars = '⭐'.repeat(progress) + '☆'.repeat(3 - progress);
+      const completed = progress >= 1;
+      
+      const card = document.createElement('div');
+      card.className = `level-card ${completed ? 'completed' : ''}`;
+      card.style.setProperty('--card-color', unitKey === 'unit1' ? '#4caf50' : '#9c27b0');
+      card.onclick = () => startLesson(lesson);
+      card.innerHTML = `
+        <div class="level-icon">${lesson.icon}</div>
+        <div class="level-name">${lesson.name}</div>
+        <div class="level-stars">${stars}</div>
+        <span class="level-badge ${completed ? 'badge-easy' : 'badge-locked'}">${completed ? '已完成' : '未完成'}</span>
+      `;
+      grid.appendChild(card);
+    }
+  }
+  updateStatusBar();
+}
+
+function updateStatusBar() {
+  document.getElementById('totalPoints').textContent = gameState.totalPoints;
+  document.getElementById('currentStreak').textContent = gameState.currentStreak;
+  document.getElementById('streakIcon').style.display = gameState.currentStreak >= 2 ? 'inline' : 'none';
+  document.getElementById('userBadge').textContent = gameState.isGuest ? '🚶 游客' : `👤 ${gameState.studentId}`;
+}
+
+function startLesson(lesson) {
+  gameState.currentLesson = lesson;
+  gameState.currentQuestion = 0;
+  gameState.correctCount = 0;
+  gameState.currentStreak = 0;
+  gameState.maxStreak = 0;
+  gameState.hintsRemaining = 3;
+  
+  const allQuestions = [
+    ...lesson.basic.map(q => ({...q, difficulty: 'basic', difficultyName: '基础题'})),
+    ...lesson.medium.map(q => ({...q, difficulty: 'medium', difficultyName: '提升题'})),
+    ...lesson.hard.map(q => ({...q, difficulty: 'hard', difficultyName: '挑战题'}))
+  ];
+  
+  for (let i = allQuestions.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [allQuestions[i], allQuestions[j]] = [allQuestions[j], allQuestions[i]];
+  }
+  gameState.currentQuestions = allQuestions;
+  showScreen('quizScreen');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = gameState.currentQuestions[gameState.currentQuestion];
+  const total = gameState.currentQuestions.length;
+  
+  document.getElementById('quizProgress').textContent = `${gameState.currentQuestion + 1}/${total}`;
+  document.getElementById('questionText').textContent = q.q;
+  
+  const typeEl = document.getElementById('questionType');
+  typeEl.textContent = q.difficultyName;
+  typeEl.className = `question-type ${q.difficultyName === '基础题' ? 'type-choice' : q.difficultyName === '提升题' ? 'type-choice' : 'type-judge'}`;
+  
+  const optionsContainer = document.getElementById('optionsContainer');
+  optionsContainer.innerHTML = '';
+  
+  q.options.forEach((opt, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'option';
+    btn.textContent = opt;
+    btn.onclick = () => selectOption(idx);
+    optionsContainer.appendChild(btn);
+  });
+  
+  const hintBtn = document.getElementById('hintBtn');
+  hintBtn.textContent = `💡 提示 (${gameState.hintsRemaining})`;
+  hintBtn.disabled = gameState.hintsRemaining <= 0;
+  document.getElementById('hintBox').classList.remove('show');
+  document.getElementById('hintBox').textContent = q.hint || '暂无提示';
+  
+  document.getElementById('prevBtn').style.visibility = gameState.currentQuestion > 0 ? 'visible' : 'hidden';
+  document.getElementById('nextBtn').textContent = gameState.currentQuestion >= total - 1 ? '查看结果' : '下一题 →';
+}
+
+function selectOption(idx) {
+  const q = gameState.currentQuestions[gameState.currentQuestion];
+  const options = document.querySelectorAll('.option');
+  if (options[idx].classList.contains('disabled')) return;
+  
+  options.forEach(opt => opt.classList.add('disabled'));
+  
+  const isCorrect = idx === q.answer;
+  options[idx].classList.add(isCorrect ? 'correct' : 'wrong');
+  if (!isCorrect) options[q.answer].classList.add('correct');
+  
+  if (isCorrect) {
+    gameState.currentStreak++;
+    gameState.correctCount++;
+    if (gameState.currentStreak > gameState.maxStreak) gameState.maxStreak = gameState.currentStreak;
+    
+    let points = 10;
+    if (q.difficulty === 'medium') points = 15;
+    if (q.difficulty === 'hard') points = 20;
+    points = Math.floor(points * (1 + gameState.currentStreak * 0.1));
+    gameState.totalPoints += points;
+    checkAchievements();
+  } else {
+    gameState.currentStreak = 0;
+  }
+  
+  updateStatusBar();
+  
+  setTimeout(() => {
+    if (gameState.currentQuestion < gameState.currentQuestions.length - 1) {
+      gameState.currentQuestion++;
+      renderQuestion();
+    } else {
+      finishQuiz();
+    }
+  }, 1500);
+}
+
+function showHint() {
+  if (gameState.hintsRemaining <= 0) return;
+  gameState.hintsRemaining--;
+  const hintBox = document.getElementById('hintBox');
+  hintBox.classList.add('show');
+  document.getElementById('hintBtn').textContent = `💡 提示 (${gameState.hintsRemaining})`;
+  document.getElementById('hintBtn').disabled = gameState.hintsRemaining <= 0;
+}
+
+function finishQuiz() {
+  const total = gameState.currentQuestions.length;
+  const accuracy = Math.round((gameState.correctCount / total) * 100);
+  
+  const lessonId = gameState.currentLesson.id;
+  if (accuracy >= 60 && (!gameState.lessonProgress[lessonId] || gameState.lessonProgress[lessonId] < 3)) {
+    gameState.lessonProgress[lessonId] = Math.min(3, (gameState.lessonProgress[lessonId] || 0) + 1);
+  }
+  
+  checkUnitAchievements();
+  saveUserData();
+  
+  document.getElementById('resultIcon').textContent = accuracy >= 80 ? '🎉' : accuracy >= 60 ? '👍' : '💪';
+  document.getElementById('resultTitle').textContent = accuracy >= 80 ? '太棒了！' : accuracy >= 60 ? '不错哦！' : '继续加油！';
+  document.getElementById('resultScore').textContent = `${gameState.correctCount}/${total}`;
+  document.getElementById('correctCount').textContent = gameState.correctCount;
+  document.getElementById('accuracy').textContent = accuracy + '%';
+  document.getElementById('maxStreakResult').textContent = gameState.maxStreak;
+  
+  showScreen('resultScreen');
+}
+
+function restartQuiz() { startLesson(gameState.currentLesson); }
+function prevQuestion() { if (gameState.currentQuestion > 0) { gameState.currentQuestion--; renderQuestion(); } }
+function nextQuestion() { if (gameState.currentQuestion < gameState.currentQuestions.length - 1) { gameState.currentQuestion++; renderQuestion(); } else { finishQuiz(); } }
+
+function checkAchievements() {
+  const streaks = [{ id: 'streak_2', min: 2 }, { id: 'streak_3', min: 3 }, { id: 'streak_5', min: 5 }, { id: 'streak_7', min: 7 }, { id: 'streak_10', min: 10 }];
+  for (const s of streaks) {
+    if (gameState.maxStreak >= s.min && !gameState.unlockedAchievements.includes(s.id)) unlockAchievement(s.id);
+  }
+  if (gameState.correctCount >= 1 && !gameState.unlockedAchievements.includes('first_blood')) unlockAchievement('first_blood');
+}
+
+function checkUnitAchievements() {
+  const unit1Complete = questionData.unit1.lessons.every(l => (gameState.lessonProgress[l.id] || 0) >= 1);
+  const unit2Complete = questionData.unit2.lessons.every(l => (gameState.lessonProgress[l.id] || 0) >= 1);
+  if (unit1Complete && !gameState.unlockedAchievements.includes('unit1_master')) unlockAchievement('unit1_master');
+  if (unit2Complete && !gameState.unlockedAchievements.includes('unit2_master')) unlockAchievement('unit2_master');
+  if (unit1Complete && unit2Complete && !gameState.unlockedAchievements.includes('all_complete')) unlockAchievement('all_complete');
+}
+
+function unlockAchievement(id) {
+  if (gameState.unlockedAchievements.includes(id)) return;
+  gameState.unlockedAchievements.push(id);
+  const a = gameState.allAchievements.find(x => x.id === id);
+  const popup = document.createElement('div');
+  popup.className = 'achievement-popup';
+  popup.innerHTML = `🏆 解锁成就：${a.icon} ${a.name}`;
+  document.body.appendChild(popup);
+  setTimeout(() => popup.remove(), 3000);
+  updateStatusBar();
+  saveUserData();
+}
+
+function saveUserData() {
+  if (gameState.isGuest) return;
+  localStorage.setItem('scienceGame5_user_' + gameState.studentId, JSON.stringify({
+    totalPoints: gameState.totalPoints,
+    lessonProgress: gameState.lessonProgress,
+    unlockedAchievements: gameState.unlockedAchievements
+  }));
+}
+
+function loadUserData() {
+  if (gameState.isGuest) return;
+  const saved = localStorage.getItem('scienceGame5_user_' + gameState.studentId);
+  if (saved) {
+    const d = JSON.parse(saved);
+    gameState.totalPoints = d.totalPoints || 0;
+    gameState.lessonProgress = d.lessonProgress || {};
+    gameState.unlockedAchievements = d.unlockedAchievements || [];
+  }
+}
+
+document.getElementById('loginBtn').addEventListener('click', loginWithId);
+document.getElementById('guestBtn').addEventListener('click', loginAsGuest);
+document.getElementById('studentIdInput').addEventListener('keypress', function(e) { if (e.key === 'Enter') loginWithId(); });
+createParticles();
+</script>
+</body>
+</html>
