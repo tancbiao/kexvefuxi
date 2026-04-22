@@ -1059,14 +1059,15 @@
 // ========== 装备系统 ==========
 const equipmentSystem = {
   // 装备等级定义（按稀有度从低到高）：白→绿→蓝→紫→粉→金→橙
+  // 新规则：单课100%掉落，大概率绿白；完成单元才有机会获得红色装备
   levels: {
-    common: { name: '普通的', color: '#9e9e9e', dropRate: 0.005 },       // 白色
-    exquisite: { name: '精致的', color: '#4caf50', dropRate: 0.003 },      // 绿色
-    good: { name: '良好的', color: '#2196f3', dropRate: 0.0015 },         // 蓝色
-    rare: { name: '稀有的', color: '#9c27b0', dropRate: 0.0008 },         // 紫色
-    epic: { name: '史诗级的', color: '#e91e63', dropRate: 0.0004 },        // 粉色
-    legendary: { name: '金色传说的', color: '#ffd700', dropRate: 0.0002 },  // 金色
-    mythic: { name: '橙色神话的', color: '#ff5722', dropRate: 0.0001 }      // 橙色
+    common: { name: '普通的', color: '#9e9e9e', dropRate: 0.10 },      // 白色 10%
+    exquisite: { name: '精致的', color: '#4caf50', dropRate: 0.06 },    // 绿色 6%
+    good: { name: '良好的', color: '#2196f3', dropRate: 0.03 },        // 蓝色 3%
+    rare: { name: '稀有的', color: '#9c27b0', dropRate: 0.01 },        // 紫色 1%
+    epic: { name: '史诗级的', color: '#e91e63', dropRate: 0.005 },     // 粉色 0.5%
+    legendary: { name: '金色传说的', color: '#ffd700', dropRate: 0.002 }, // 金色 0.2%
+    mythic: { name: '橙色神话的', color: '#ff5722', dropRate: 0.001 }   // 橙色 0.1%（仅单元完成时）
   },
   
   // 装备类型定义
@@ -1270,23 +1271,37 @@ function loadUserData() {
 }
 
 // ========== 装备掉落系统 ==========
-function tryDropEquipment() {
-  if (Math.random() > equipmentSystem.totalDropRate) {
-    return null;
-  }
-  
-  // 根据概率决定装备等级
-  const rand = Math.random();
-  let cumulative = 0;
+// 新规则：单课100%掉落，大概率绿白；完成单元才有机会获得红色装备
+function tryDropEquipment(isUnitComplete = false) {
   let targetLevel = 'common';
   
-  const levelOrder = ['common', 'exquisite', 'good', 'rare', 'epic', 'legendary', 'mythic'];
-  
-  for (const level of levelOrder) {
-    cumulative += equipmentSystem.levels[level].dropRate / equipmentSystem.totalDropRate;
-    if (rand < cumulative) {
-      targetLevel = level;
-      break;
+  if (isUnitComplete) {
+    // 单元完成：所有等级都有可能，但概率递减
+    const levelOrder = ['common', 'exquisite', 'good', 'rare', 'epic', 'legendary', 'mythic'];
+    const rand = Math.random();
+    let cumulative = 0;
+    
+    for (const level of levelOrder) {
+      cumulative += equipmentSystem.levels[level].dropRate;
+      if (rand < cumulative) {
+        targetLevel = level;
+        break;
+      }
+    }
+  } else {
+    // 单课掉落：只可能是 common, exquisite, good, rare
+    const commonLevels = ['common', 'exquisite', 'good', 'rare'];
+    const weights = [0.50, 0.35, 0.12, 0.03]; // 白50%, 绿35%, 蓝12%, 紫3%
+    
+    const rand = Math.random();
+    let cumulative = 0;
+    
+    for (let i = 0; i < commonLevels.length; i++) {
+      cumulative += weights[i];
+      if (rand < cumulative) {
+        targetLevel = commonLevels[i];
+        break;
+      }
     }
   }
   
@@ -1296,7 +1311,7 @@ function tryDropEquipment() {
   
   const selectedEquip = levelEquipments[Math.floor(Math.random() * levelEquipments.length)];
   
-  // 生成唯一ID（同一装备可以多次获得）
+  // 生成唯一ID
   const equipInstance = {
     ...selectedEquip,
     instanceId: Date.now() + '_' + Math.random().toString(36).substr(2, 9)
