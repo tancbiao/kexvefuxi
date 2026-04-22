@@ -899,16 +899,10 @@
 
   <!-- 关卡选择 -->
   <div class="screen" id="levelScreen">
-    <h2 style="text-align:center; margin-bottom:10px; font-size:1.8em;">🗺️ 选择关卡</h2>
+    <h2 style="text-align:center; margin-bottom:10px; font-size:1.8em;">🗺️ 选择课程</h2>
     <p style="text-align:center; color:rgba(255,255,255,0.6); margin-bottom:20px;">
-      挑战三个难度：基础题 → 提升题 → 挑战题
+      每课包含基础题、提升题、挑战题三种难度
     </p>
-    
-    <div class="difficulty-tabs" id="difficultyTabs">
-      <div class="diff-tab tab-basic active" onclick="switchDifficulty('basic')">🌱 基础</div>
-      <div class="diff-tab tab-advance" onclick="switchDifficulty('advance')">🌿 提升</div>
-      <div class="diff-tab tab-challenge" onclick="switchDifficulty('challenge')">🔥 挑战</div>
-    </div>
 
     <div class="level-grid" id="levelGrid"></div>
   </div>
@@ -1149,11 +1143,11 @@ const gameState = {
   maxStreak: 0,
   hintsRemaining: 3,
   hintsUsed: 0,
-  currentUnit: 0,
-  currentDifficulty: 'basic',
+  currentLesson: null,  // 当前课程对象
+  currentQuestions: [], // 当前题库的题目
   currentQuestion: 0,
   correctCount: 0,
-  unitProgress: [0, 0, 0, 0], // 每个单元完成的难度级别
+  lessonProgress: {},  // 每课完成进度 { lessonId: 星星数 }
   unlockedAchievements: [],
   equipment: [], // 拥有的装备
   totalQuestionsAnswered: 0, // 累计答题数
@@ -1166,10 +1160,10 @@ const gameState = {
     { id: 'streak_10', icon: '👑', name: '常胜将军', desc: '达成10连胜' },
     { id: 'no_hint', icon: '🧠', name: '独立思考', desc: '不使用提示通关' },
     { id: 'perfect', icon: '💯', name: '满分答卷', desc: '一次通关获得满分' },
-    { id: 'plant_master', icon: '🌿', name: '植物专家', desc: '完成植物单元' },
-    { id: 'animal_master', icon: '🦁', name: '动物专家', desc: '完成动物单元' },
-    { id: 'motion_master', icon: '🚗', name: '运动达人', desc: '完成运动单元' },
-    { id: 'space_master', icon: '🌙', name: '太空探索者', desc: '完成天文单元' },
+    { id: 'unit1_master', icon: '🌿', name: '植物专家', desc: '完成第一单元' },
+    { id: 'unit2_master', icon: '🦁', name: '动物专家', desc: '完成第二单元' },
+    { id: 'unit3_master', icon: '🚗', name: '运动达人', desc: '完成第三单元' },
+    { id: 'unit4_master', icon: '🌙', name: '太空探索者', desc: '完成第四单元' },
     { id: 'all_complete', icon: '🏆', name: '科学探险家', desc: '完成所有关卡' },
     // 装备相关成就
     { id: 'first_equip', icon: '📦', name: '初识装备', desc: '获得第一件装备' },
@@ -1431,476 +1425,336 @@ function checkEquipAchievements() {
   }
 }
 
-// ========== 题库 - 按单元和难度 ==========
-const questionBank = {
-  // 第一单元：植物大观园
-  1: {
-    basic: [
-      {
-        type: 'choice',
-        text: '下列植物中，属于乔木的是？',
-        options: ['月季', '茉莉', '白兰', '狗尾草'],
-        answer: 2,
-        hint: ['乔木的特征是植株高大，有明显坚硬的主干', '月季和茉莉是灌木，狗尾草是草本', '白兰是常见的乔木']
-      },
-      {
-        type: 'choice',
-        text: '茎的质地柔软，植株低矮的植物是？',
-        options: ['乔木', '灌木', '草本植物', '藤本植物'],
-        answer: 2,
-        hint: ['注意茎的特点是"柔软"和"低矮"', '乔木和灌木的茎都是木质的', '符合这个特征的植物']
-      },
-      {
-        type: 'choice',
-        text: '葡萄依靠什么攀附生长？',
-        options: ['吸盘', '根', '卷须', '茎'],
-        answer: 2,
-        hint: ['葡萄是藤本植物，需要借助某物攀爬', '注意和爬墙虎的区别', '葡萄有卷曲的触手']
-      },
-      {
-        type: 'choice',
-        text: '水生植物的特殊结构"通气组织"有什么用？',
-        options: ['储存水分', '吸收阳光', '在水中获取氧气', '繁殖后代'],
-        answer: 2,
-        hint: ['水生植物生活在水中，需要呼吸', '这个结构帮助它们解决呼吸问题', '与获取氧气有关']
-      },
-      {
-        type: 'choice',
-        text: '爬墙虎依靠什么附着在墙上生长？',
-        options: ['卷须', '吸盘', '茎缠绕', '根'],
-        answer: 1,
-        hint: ['爬墙虎有特殊的"小吸盘"', '和葡萄的攀爬方式不同', '这个结构像吸盘一样']
-      }
-    ],
-    advance: [
-      {
-        type: 'truefalse',
-        text: '判断：银杏树属于灌木。',
-        answer: false,
-        hint: ['银杏的叶子是扇形的，很高大', '灌木是植株矮小、枝条丛生的']
-      },
-      {
-        type: 'choice',
-        text: '下列植物中，生长在水里的是？',
-        options: ['凤仙花', '荷花', '爬墙虎', '茉莉'],
-        answer: 1,
-        hint: ['注意是"生长在水里"', '荷花是典型的水生植物']
-      },
-      {
-        type: 'choice',
-        text: '按茎的特点分类，白兰和银杏属于同一类，它们是？',
-        options: ['灌木', '草本植物', '乔木', '藤本植物'],
-        answer: 2,
-        hint: ['两者都是植株高大的木本植物', '都有一个明显坚硬的主干']
-      },
-      {
-        type: 'truefalse',
-        text: '判断：葡萄和爬墙虎都是藤本植物。',
-        answer: true,
-        hint: ['藤本植物是不能直立、需要攀附的植物', '两者都需要借助外物生长']
-      },
-      {
-        type: 'choice',
-        text: '校园里的植物按照生长环境分类，可以分为哪两类？',
-        options: ['乔木和灌木', '草本和木本', '陆生和水生', '攀援和直立'],
-        answer: 2,
-        hint: ['按生长环境，主要考虑植物在哪里生长', '和植物的茎无关']
-      }
-    ],
-    challenge: [
-      {
-        type: 'sort',
-        text: '请将以下植物按照"乔木→灌木→草本→藤本"的顺序排列：',
-        items: ['狗尾草', '月季', '银杏', '葡萄'],
-        answer: [2, 1, 0, 3],
-        hint: ['银杏最高大，是乔木', '月季矮小但有茎干，是灌木', '狗尾草茎柔软，是草本', '葡萄需要攀附，是藤本']
-      },
-      {
-        type: 'match',
-        text: '请将植物与特征连线：',
-        pairs: [
-          ['乔木', '植株高大，有明显主干'],
-          ['灌木', '植株矮小，枝条丛生'],
-          ['草本植物', '茎质地柔软'],
-          ['藤本植物', '需要攀附生长']
+// ========== 题库 - 按单元和课程（新课程格式） ==========
+const questionData = {
+  unit1: {
+    name: '第一单元 植物大观园',
+    icon: '🌿',
+    lessons: [
+      { id: 'u1l1', name: '第1课 多种多样的植物', icon: '🌳',
+        basic: [
+          { q: '按照茎的特点，植物可以分为哪两大类？', options: ["陆生和水生", "木本和草本", "观赏和食用", "常绿和落叶"], answer: 1, hint: '茎的特点是分类的主要依据。' },
+          { q: '下列植物中，属于乔木的是？', options: ["月季", "茉莉", "白兰", "狗尾草"], answer: 2, hint: '乔木的特征是植株高大，有明显的主干。' },
+          { q: '茎的质地柔软、植株低矮的植物是？', options: ["乔木", "灌木", "草本植物", "藤本植物"], answer: 2, hint: '注意茎的特点是"柔软"和"低矮"。' },
+          { q: '葡萄依靠什么攀附生长？', options: ["吸盘", "根", "卷须", "茎"], answer: 2, hint: '葡萄是藤本植物，需要借助某物攀爬。' },
+          { q: '爬墙虎依靠什么附着在墙上生长？', options: ["卷须", "吸盘", "茎缠绕", "根"], answer: 1, hint: '爬墙虎有特殊的"小吸盘"。' },
         ],
-        answer: [0, 1, 2, 3],
-        hint: ['乔木→主干，草本→柔软，灌木→矮小丛生']
+        medium: [
+          { q: '按茎的特点分类，白兰和银杏属于同一类，它们是？', options: ["灌木", "草本植物", "乔木", "藤本植物"], answer: 2, hint: '两者都是植株高大的木本植物。' },
+          { q: '判断：葡萄和爬墙虎都是藤本植物。', options: ["√", "×"], answer: 0, hint: '藤本植物是不能直立、需要攀附的植物。' },
+          { q: '判断：银杏树属于灌木。', options: ["√", "×"], answer: 1, hint: '银杏的叶子是扇形的，植株高大。' },
+          { q: '校园里的植物按照生长环境分类，可以分为哪两类？', options: ["乔木和灌木", "草本和木本", "陆生和水生", "攀援和直立"], answer: 2, hint: '按生长环境，主要考虑植物在哪里生长。' },
+          { q: '水生植物的特殊结构"通气组织"有什么用？', options: ["储存水分", "吸收阳光", "在水中获取氧气", "繁殖后代"], answer: 2, hint: '水生植物生活在水中，需要呼吸。' },
+        ],
+        hard: [
+          { q: '排序：将乔木→灌木→草本→藤本排列：狗尾草、月季、银杏、葡萄', options: ["狗尾草→月季→银杏→葡萄", "银杏→月季→狗尾草→葡萄", "月季→银杏→葡萄→狗尾草", "葡萄→乔木→灌木→草本"], answer: 1, hint: '银杏最高大，是乔木；月季矮小但有茎干，是灌木。' },
+          { q: '判断：白兰和银杏的叶子脉形都是网状脉。', options: ["√", "×"], answer: 0, hint: '两者都是网状脉植物。' },
+          { q: '判断：按照茎的特点，凤仙花和狗尾草属于同一类植物。', options: ["√", "×"], answer: 0, hint: '两者茎都质地柔软，属于草本植物。' },
+        ],
       },
-      {
-        type: 'choice',
-        text: '植物大观园单元中，白兰和银杏的叶子脉形都是？',
-        options: ['平行脉', '网状脉', '弧形脉', '以上都不是'],
-        answer: 1,
-        hint: ['白兰和银杏都属于被子植物', '观察它们的叶子纹理']
+      { id: 'u1l2', name: '第2课 植物的器官', icon: '🌸',
+        basic: [
+          { q: '植物的根、茎、叶属于什么器官？', options: ["繁殖器官", "营养器官", "保护器官", "运动器官"], answer: 1, hint: '这些器官负责制造和储存营养。' },
+          { q: '植物的六大器官中，哪些是繁殖器官？', options: ["根、茎、叶", "花、果实、种子", "根和茎", "叶和花"], answer: 1, hint: '繁殖器官与产生后代有关。' },
+          { q: '植物进行光合作用的主要器官是？', options: ["根", "茎", "叶", "花"], answer: 2, hint: '光合作用需要叶绿体，主要在叶中进行。' },
+          { q: '植物的根主要功能是什么？', options: ["进行光合作用", "吸收水分和无机盐", "繁殖后代", "美化环境"], answer: 1, hint: '根扎在土壤里，吸收养分。' },
+          { q: '植物的茎有什么作用？', options: ["只起支撑作用", "输送水分和养分，支撑植物", "只输送养分", "繁殖作用"], answer: 1, hint: '茎像水管一样连接根和叶。' },
+        ],
+        medium: [
+          { q: '判断：所有植物的根都生长在土壤里。', options: ["√", "×"], answer: 1, hint: '有些植物的根生长在水里或空气中。' },
+          { q: '植物的叶片上有很多小孔，这些小孔叫做什么？', options: ["根毛", "气孔", "叶脉", "保卫细胞"], answer: 1, hint: '这些小孔与植物的呼吸和蒸腾有关。' },
+          { q: '判断：根冠的作用是保护根尖的分生区。', options: ["√", "×"], answer: 0, hint: '根冠像帽子一样保护根尖。' },
+          { q: '植物的蒸腾作用主要通过哪个器官进行？', options: ["根", "茎", "叶", "花"], answer: 2, hint: '叶片上有气孔，蒸腾作用主要在这里发生。' },
+          { q: '判断：植物的六大器官分为营养器官和繁殖器官两类。', options: ["√", "×"], answer: 0, hint: '根、茎、叶是营养器官；花、果实、种子是繁殖器官。' },
+        ],
+        hard: [
+          { q: '判断：根尖的分生区细胞具有分裂能力，能不断产生新细胞。', options: ["√", "×"], answer: 0, hint: '分生区的细胞具有分裂能力。' },
+          { q: '请将植物器官与其主要功能连线：根→？', options: ["制造有机物", "吸收水分和无机盐", "输送水分", "繁殖"], answer: 1, hint: '根主要从土壤中吸收养分。' },
+          { q: '判断：叶片的栅栏层和海绵层都含有叶绿体，能进行光合作用。', options: ["√", "×"], answer: 0, hint: '两者都含叶绿体，是光合作用的主要场所。' },
+        ],
       },
-      {
-        type: 'truefalse',
-        text: '判断：所有水生植物都是草本植物。',
-        answer: false,
-        hint: ['水生植物是指生长环境，不是茎的特点']
+      { id: 'u1l3', name: '第3课 植物的繁殖', icon: '🌿',
+        basic: [
+          { q: '植物通过什么繁殖后代？', options: ["根", "种子", "茎", "叶"], answer: 1, hint: '种子是植物的繁殖体。' },
+          { q: '一朵花中，承担繁殖功能的主要部分是？', options: ["花瓣", "雄蕊和雌蕊", "花萼", "花托"], answer: 1, hint: '雄蕊和雌蕊与产生种子有关。' },
+          { q: '花粉落在雌蕊的柱头上，会发生什么？', options: ["长出新芽", "萌发形成花粉管", "变成花瓣", "枯萎"], answer: 1, hint: '这是受精过程的开始。' },
+          { q: '受精后，子房发育成什么？', options: ["种子", "果实", "花瓣", "茎"], answer: 1, hint: '子房保护并滋养胚胎。' },
+          { q: '植物的种子由哪两部分组成？', options: ["果皮和种皮", "种皮和胚", "胚和胚乳", "胚芽和胚根"], answer: 1, hint: '种皮保护种子，胚是新的植物体。' },
+        ],
+        medium: [
+          { q: '判断：所有植物都必须经过传粉才能结出果实。', options: ["√", "×"], answer: 0, hint: '没有传粉就没有受精，也就没有果实。' },
+          { q: '下列哪种方式不属于植物的无性繁殖？', options: ["扦插", "嫁接", "种子繁殖", "压条"], answer: 2, hint: '种子繁殖是有性繁殖。' },
+          { q: '判断：种子的胚包括胚根、胚芽、胚轴和子叶。', options: ["√", "×"], answer: 0, hint: '这四个部分是胚的基本结构。' },
+          { q: '果实传播种子的方式多种多样，以下哪种不是常见的传播方式？', options: ["风力传播", "动物传播", "水力传播", "人工传播"], answer: 3, hint: '前三者是自然传播方式。' },
+          { q: '判断：豌豆是自花传粉植物。', options: ["√", "×"], answer: 0, hint: '豌豆花的结构适合自花传粉。' },
+        ],
+        hard: [
+          { q: '判断：种子萌发时，首先突破种皮的是胚根。', options: ["√", "×"], answer: 0, hint: '胚根先长出来，向下生长形成根。' },
+          { q: '请排列种子萌发的正确顺序：①胚芽生长 ②吸收水分 ③胚根突破种皮 ④胚轴伸长', options: ["①②③④", "②③①④", "②③④①", "③②④①"], answer: 1, hint: '先吸水，再突破种皮，然后各部分生长。' },
+          { q: '判断：植物的有性繁殖必须经过开花、传粉、受精、结果四个阶段。', options: ["√", "×"], answer: 0, hint: '这是有性繁殖的基本过程。' },
+        ],
       },
-      {
-        type: 'choice',
-        text: '植物分类中，"九里香"属于哪一类？',
-        options: ['乔木', '灌木', '草本植物', '藤本植物'],
-        answer: 1,
-        hint: ['九里香是常见的园林植物', '它和月季、茉莉是同一类']
-      }
     ]
   },
-  // 第二单元：动物的需求
-  2: {
-    basic: [
-      {
-        type: 'choice',
-        text: '只吃植物的动物叫做什么？',
-        options: ['肉食性动物', '植食性动物', '杂食性动物', '腐食性动物'],
-        answer: 1,
-        hint: ['只吃"植物"，注意"植"这个字', '和人类杂食不同']
-      },
-      {
-        type: 'choice',
-        text: '人体的消化器官中，吸收营养的主要场所是？',
-        options: ['口腔', '胃', '小肠', '大肠'],
-        answer: 2,
-        hint: ['小肠是消化系统中最长的器官', '营养物质在这里被吸收']
-      },
-      {
-        type: 'choice',
-        text: '鱼用什么器官呼吸？',
-        options: ['肺', '鳃', '皮肤', '气管'],
-        answer: 1,
-        hint: ['鱼生活在水中', '鱼鳃可以吸收水中的氧气']
-      },
-      {
-        type: 'choice',
-        text: '六大营养中，不需要消化就能被吸收的是？',
-        options: ['蛋白质', '脂肪', '水分', '糖类'],
-        answer: 2,
-        hint: ['水是人体需要的营养物质', '水可以直接被身体利用']
-      },
-      {
-        type: 'choice',
-        text: '血液在体内流动的动力来自哪个器官？',
-        options: ['肺', '胃', '心脏', '肝脏'],
-        answer: 2,
-        hint: ['心脏是人体的"泵"', '它推动血液在全身流动']
-      }
-    ],
-    advance: [
-      {
-        type: 'choice',
-        text: '蚯蚓依靠什么器官呼吸？',
-        options: ['鳃', '肺', '皮肤', '气管'],
-        answer: 2,
-        hint: ['蚯蚓生活在土壤中', '它的皮肤需要保持湿润才能呼吸']
-      },
-      {
-        type: 'choice',
-        text: '下列动物中，属于哺乳动物的是？',
-        options: ['鱼', '鸟', '鲸', '青蛙'],
-        answer: 2,
-        hint: ['鲸虽然生活在水中，但是哺乳动物', '它是胎生、用肺呼吸的']
-      },
-      {
-        type: 'truefalse',
-        text: '判断：鲸是用鳃呼吸的鱼类。',
-        answer: false,
-        hint: ['鲸虽然生活在水里', '但它是哺乳动物，用肺呼吸']
-      },
-      {
-        type: 'choice',
-        text: '鱼的背鳍主要作用是？',
-        options: ['提供前进动力', '保持平衡', '协助转向', '调节方向'],
-        answer: 1,
-        hint: ['背鳍位于鱼的背部', '它帮助鱼不左右翻滚']
-      },
-      {
-        type: 'choice',
-        text: '消化道的正确顺序是？',
-        options: ['口腔→胃→食道→小肠→大肠', '口腔→食道→胃→小肠→大肠', '口腔→食道→小肠→胃→大肠', '口腔→胃→食道→大肠→小肠'],
-        answer: 1,
-        hint: ['食物先入口腔，然后通过食道到胃', '食物在胃里消化后进入小肠']
-      }
-    ],
-    challenge: [
-      {
-        type: 'sort',
-        text: '请将食物经过消化道的顺序排列：',
-        items: ['胃', '口腔', '食道', '小肠', '大肠'],
-        answer: [1, 2, 0, 3, 4],
-        hint: ['食物最先进入口腔', '然后依次是食道、胃、小肠、大肠']
-      },
-      {
-        type: 'match',
-        text: '请将动物与呼吸器官连线：',
-        pairs: [
-          ['鱼', '鳃'],
-          ['鸟', '肺'],
-          ['蚯蚓', '皮肤'],
-          ['鲸', '肺']
+  unit2: {
+    name: '第二单元 动物的需求',
+    icon: '🦁',
+    lessons: [
+      { id: 'u2l1', name: '第4课 动物需要什么', icon: '🐰',
+        basic: [
+          { q: '动物生存需要的基本条件包括？', options: ["阳光和水", "食物和水", "空气和土壤", "温度和风力"], answer: 1, hint: '动物和植物一样需要水和营养。' },
+          { q: '动物获取食物的方式有哪两种？', options: ["自己制造和从外界获取", "种植和捕猎", "飞行和奔跑", "水中和陆地"], answer: 0, hint: '动物不能像植物那样自己制造食物。' },
+          { q: '下列哪种动物是恒温动物？', options: ["鱼", "蛇", "兔子", "青蛙"], answer: 2, hint: '恒温动物的体温恒定，不随环境变化。' },
+          { q: '动物需要呼吸，主要是因为？', options: ["闻气味", "获取氧气分解有机物", "保持湿润", "感知方向"], answer: 1, hint: '呼吸为生命活动提供能量。' },
+          { q: '动物对环境的适应方式多种多样，以下不属于适应行为的是？', options: ["候鸟迁徙", "北极熊冬眠", "蛇在阳光下晒太阳", "砍伐森林"], answer: 3, hint: '前三者都是动物对环境的适应。' },
         ],
-        answer: [0, 2, 1, 3],
-        hint: ['鱼→鳃，鸟→肺，蚯蚓→皮肤']
+        medium: [
+          { q: '判断：所有动物都是通过吃其他生物来获取食物的。', options: ["√", "×"], answer: 1, hint: '草食动物吃植物，肉食动物吃动物。' },
+          { q: '动物的运动方式多样，下列不属于动物运动方式的是？', options: ["飞行", "游泳", "跳跃", "光合作用"], answer: 3, hint: '光合作用是植物特有的。' },
+          { q: '判断：动物的行为都是为了适应环境而进化的结果。', options: ["√", "×"], answer: 0, hint: '动物行为是长期自然选择的结果。' },
+          { q: '下列哪项不是动物的基本需求？', options: ["食物", "水", "阳光", "同伴"], answer: 3, hint: '前三项是生存的基本条件。' },
+          { q: '动物对温度的适应方式有多种，下面属于降温行为的是？', options: ["蛇晒太阳", "狗吐舌头", "鸟迁徙", "青蛙冬眠"], answer: 1, hint: '吐舌头是狗通过舌头上的水分蒸发散热。' },
+        ],
+        hard: [
+          { q: '判断：哺乳动物都是胎生哺乳的。', options: ["√", "×"], answer: 0, hint: '胎生和哺乳是哺乳动物的特征。' },
+          { q: '请将动物类群与其特征连线：哺乳动物→？', options: ["体温恒定、胎生哺乳", "体温不恒定、卵生", "体温恒定、卵生", "水中生活、鳃呼吸"], answer: 0, hint: '哺乳动物最高等，体温恒定且胎生。' },
+          { q: '判断：动物的行为可以分为先天性行为和学习行为两大类。', options: ["√", "×"], answer: 0, hint: '先天性行为是本能，后天性行为是学习来的。' },
+        ],
       },
-      {
-        type: 'choice',
-        text: '杂食性动物的特点是？',
-        options: ['只吃植物', '只吃动物', '既吃植物也吃动物', '吃腐败的食物'],
-        answer: 2,
-        hint: ['"杂"意味着多样化', '包括植物和动物两类食物']
+      { id: 'u2l2', name: '第5课 动物与环境', icon: '🌍',
+        basic: [
+          { q: '动物与环境的关系是？', options: ["动物可以随意改变环境", "动物依赖环境生存", "动物与环境无关", "环境依赖动物"], answer: 1, hint: '环境为动物提供食物和栖息地。' },
+          { q: '生物对环境的适应是？', options: ["暂时的", "永恒不变的", "长期的", "随意的"], answer: 2, hint: '适应是长期进化的结果。' },
+          { q: '下列哪种动物具有保护色？', options: ["孔雀", "北极熊", "斑马", "青蛙"], answer: 1, hint: '保护色帮助动物融入环境。' },
+          { q: '动物适应环境的方式包括？', options: ["只有一种", "多种多样", "只有保护色", "只有伪装"], answer: 1, hint: '不同动物有不同适应方式。' },
+          { q: '下列哪项是动物对寒冷环境的适应？', options: ["蛇冬眠", "蝉鸣叫", "蝴蝶飞舞", "兔子奔跑"], answer: 0, hint: '冬眠可以减少能量消耗。' },
+        ],
+        medium: [
+          { q: '判断：所有动物都能主动改变自己的生活环境。', options: ["√", "×"], answer: 1, hint: '动物主要适应环境，而不是改变环境。' },
+          { q: '下列不属于动物对干旱环境适应的是？', options: ["骆驼储存脂肪", "仙人掌储存水", "松鼠存粮", "蛇的夏眠"], answer: 1, hint: '仙人掌是植物，不是动物。' },
+          { q: '判断：动物的保护色是为了让捕食者更容易发现它们。', options: ["√", "×"], answer: 1, hint: '保护色是为了隐藏自己。' },
+          { q: '动物的保护色、警戒色和拟态都是为了？', options: ["吸引配偶", "躲避天敌或捕食", "获取食物", "繁殖后代"], answer: 1, hint: '这些特征都与生存有关。' },
+          { q: '判断：候鸟迁徙是为了寻找更适宜的生存环境。', options: ["√", "×"], answer: 0, hint: '迁徙是为了躲避寒冷和寻找食物。' },
+        ],
+        hard: [
+          { q: '判断：警戒色动物通常具有鲜艳的颜色和特殊图案，以警告捕食者。', options: ["√", "×"], answer: 0, hint: '警戒色是一种防御策略。' },
+          { q: '请将适应类型与其例子连线：保护色→？', options: ["胡蜂的黄黑色条纹", "北极狐的白色毛", "枯叶蝶像枯叶", "竹节虫像竹枝"], answer: 1, hint: '保护色帮助融入环境。' },
+          { q: '判断：拟态是指一种生物模拟另一种生物的形态。', options: ["√", "×"], answer: 0, hint: '拟态是一种生物模拟另一种生物。' },
+        ],
       },
-      {
-        type: 'truefalse',
-        text: '判断：鱼的心脏一心房一心室，比哺乳动物简单。',
-        answer: true,
-        hint: ['鱼是较为低等的脊椎动物', '哺乳动物心脏更复杂']
+      { id: 'u2l3', name: '第6课 人类与动物', icon: '👨‍👩‍👧',
+        basic: [
+          { q: '人类与动物的关系是？', options: ["对立的", "互不相关的", "密切相关的", "敌对的"], answer: 2, hint: '人类和动物共享地球环境。' },
+          { q: '动物对人类的价值不包括？', options: ["提供食物", "帮助劳动", "美化环境", "制造污染"], answer: 3, hint: '前三项都是动物的正面价值。' },
+          { q: '下列哪种动物是人类的帮手？', options: ["猫抓老鼠", "狗看家", "蚊子传播疾病", "老鼠偷吃粮食"], answer: 1, hint: '狗可以帮助看家和导盲。' },
+          { q: '我们应该怎样对待动物？', options: ["任意捕杀", "保护并善待", "置之不理", "圈养所有动物"], answer: 1, hint: '动物是人类的朋友。' },
+          { q: '保护动物的主要措施不包括？', options: ["建立自然保护区", "禁止偷猎", "人工养殖后放归", "保护动物栖息地"], answer: 2, hint: '人工养殖放归要看情况。' },
+        ],
+        medium: [
+          { q: '判断：所有动物都对人类有益。', options: ["√", "×"], answer: 1, hint: '有些动物可能对人类有害，如蚊子。' },
+          { q: '下列哪种行为有助于保护野生动物？', options: ["购买野生动物制品", "食用野生动物", "参与野生动物保护活动", "捕捉野生动物饲养"], answer: 2, hint: '保护活动有助于动物生存。' },
+          { q: '判断：宠物也是动物，我们不应该随便遗弃。', options: ["√", "×"], answer: 0, hint: '遗弃宠物是不负责任的行为。' },
+          { q: '我国建立了许多自然保护区，主要目的是？', options: ["发展旅游", "保护野生动物和它们的栖息地", "开发资源", "展示成果"], answer: 1, hint: '自然保护区为动物提供家园。' },
+          { q: '判断：动物保护与人类发展是矛盾的。', options: ["√", "×"], answer: 1, hint: '保护动物也是保护人类自己。' },
+        ],
+        hard: [
+          { q: '判断：动物福利是指动物如何适应环境、与环境互动的状态。', options: ["√", "×"], answer: 0, hint: '动物福利关注动物的生存状态。' },
+          { q: '请将动物保护措施与其目的连线：建立自然保护区→？', options: ["研究动物习性", "保护动物栖息地", "人工繁殖", "展览观赏"], answer: 1, hint: '自然保护区为动物提供自然家园。' },
+          { q: '判断：每个人都应该为保护动物贡献自己的力量。', options: ["√", "×"], answer: 0, hint: '保护动物是全人类的责任。' },
+        ],
       },
-      {
-        type: 'choice',
-        text: '动物运动的目的是？',
-        options: ['只有玩耍', '只有睡觉', '寻找食物和逃避敌害', '没有特定目的'],
-        answer: 2,
-        hint: ['动物运动是为了生存', '两个重要目的：觅食和避险']
-      }
     ]
   },
-  // 第三单元：运动和力
-  3: {
-    basic: [
-      {
-        type: 'choice',
-        text: '判断物体是否在运动，需要选择什么？',
-        options: ['时间', '参照物', '速度', '距离'],
-        answer: 1,
-        hint: ['运动是相对的，需要一个比较的标准', '这个"标准"就是参照物']
-      },
-      {
-        type: 'choice',
-        text: '力的单位是什么？',
-        options: ['千克', '米', '牛顿', '秒'],
-        answer: 2,
-        hint: ['这是一种力的专门单位', '纪念科学家牛顿']
-      },
-      {
-        type: 'choice',
-        text: '接触面越光滑，摩擦力会怎样？',
-        options: ['越大', '越小', '不变', '先大后小'],
-        answer: 1,
-        hint: ['光滑意味着阻力小', '摩擦力与接触面的粗糙程度有关']
-      },
-      {
-        type: 'choice',
-        text: '轮子在地面上滚动的运动方式是？',
-        options: ['滑动', '滚动', '振动', '转动'],
-        answer: 1,
-        hint: ['轮子是在地面上转着向前', '和滑动不同']
-      },
-      {
-        type: 'choice',
-        text: '测量力的大小的工具叫什么？',
-        options: ['温度计', '天平', '测力计', '量筒'],
-        answer: 2,
-        hint: ['这是一种专门测力的工具', '和测重量有关']
-      }
-    ],
-    advance: [
-      {
-        type: 'choice',
-        text: '橡皮筋缠绕圈数越多，弹力越怎么样？',
-        options: ['越小', '越大', '不变', '先大后小'],
-        answer: 1,
-        hint: ['想一想弹弓，越多圈弹力越大', '弹力和形变程度有关']
-      },
-      {
-        type: 'choice',
-        text: '一天中，什么时候影子最长？',
-        options: ['早上', '中午', '傍晚', '无法确定'],
-        answer: 0,
-        hint: ['太阳高度角影响影子长度', '太阳低的时候影子长']
-      },
-      {
-        type: 'truefalse',
-        text: '判断：风帆正对风向时，风力对小车的作用效果最好。',
-        answer: true,
-        hint: ['风帆迎风时能接收到最大的风力']
-      },
-      {
-        type: 'choice',
-        text: '下列哪种情况是为了增大摩擦力？',
-        options: ['轴承加润滑油', '轮胎做成花纹', '雪橇用光滑底面', '轮滑鞋用滚轮'],
-        answer: 1,
-        hint: ['增大摩擦力需要增加接触面的粗糙程度', '花纹能增加摩擦']
-      },
-      {
-        type: 'choice',
-        text: '钟摆的摆动属于哪种运动方式？',
-        options: ['滑动', '滚动', '振动', '转动'],
-        answer: 2,
-        hint: ['钟摆是来回往复的运动', '类似弹簧的伸缩']
-      }
-    ],
-    challenge: [
-      {
-        type: 'sort',
-        text: '请按影子从长到短的顺序排列（不考虑天气）：',
-        items: ['傍晚', '中午', '早上'],
-        answer: [0, 2, 1],
-        hint: ['早上和傍晚太阳低，影子长', '中午太阳高，影子短']
-      },
-      {
-        type: 'match',
-        text: '请将力的类型与特征连线：',
-        pairs: [
-          ['弹力', '来自弹性物体形变'],
-          ['风力', '来自流动的空气'],
-          ['摩擦力', '接触面运动时产生'],
-          ['重力', '地球吸引产生']
+  unit3: {
+    name: '第三单元 运动和力',
+    icon: '🚗',
+    lessons: [
+      { id: 'u3l1', name: '第7课 运动的描述', icon: '⚡',
+        basic: [
+          { q: '一个物体相对于另一个物体的位置变化叫做？', options: ["静止", "运动", "振动", "旋转"], answer: 1, hint: '位置变化是判断运动的依据。' },
+          { q: '描述一个物体的运动时，需要选择什么？', options: ["任意物体", "参照物", "运动方向", "速度大小"], answer: 1, hint: '运动是相对的，需要参照。' },
+          { q: '我们说"月亮在云中穿行"，这里选择的参照物是？', options: ["月亮", "云", "观察者", "太阳"], answer: 1, hint: '云在动，说明我们以云为参照物。' },
+          { q: '物体的运动按路径分类，可以分为？', options: ["快和慢", "直线和曲线", "持续和间歇", "主动和被动"], answer: 1, hint: '路径决定了运动的形状。' },
+          { q: '判断：同一物体的运动，选择不同的参照物，描述一定相同。', options: ["√", "×"], answer: 1, hint: '选择不同参照物，描述可能不同。' },
         ],
-        answer: [0, 1, 2, 3],
-        hint: ['每种力都有不同的来源']
+        medium: [
+          { q: '判断：地球同步卫星相对于地面是静止的。', options: ["√", "×"], answer: 0, hint: '同步卫星与地球自转速度相同。' },
+          { q: '在空中飞行的飞机相对于下列哪个物体是运动的？', options: ["同向飞行的鸟", "机场的候机楼", "顺风飘的云", "机舱内的乘客"], answer: 1, hint: '飞机相对机场位置在变化。' },
+          { q: '物体的运动速度与什么有关？', options: ["只有路程", "只有时间", "路程和时间", "物体颜色"], answer: 2, hint: '速度=路程÷时间。' },
+          { q: '判断：匀速直线运动是指物体沿直线运动，速度保持不变。', options: ["√", "×"], answer: 0, hint: '匀速直线运动的定义。' },
+          { q: '百米赛跑中，运动员做的是什么运动？', options: ["静止", "匀速直线运动", "变速运动", "曲线运动"], answer: 2, hint: '运动员起跑加速，终点减速。' },
+        ],
+        hard: [
+          { q: '判断：坐在行驶的火车上的人，相对于车厢是静止的，相对于地面是运动的。', options: ["√", "×"], answer: 0, hint: '运动是相对的，取决于参照物。' },
+          { q: '甲乙两车从同一地点同向行驶，甲车速度60km/h，乙车速度80km/h，以乙车为参照物，甲车是？', options: ["静止", "向后运动", "向前运动但比乙车慢", "无法判断"], answer: 2, hint: '甲车比乙车慢，相对乙车向后。' },
+          { q: '判断：变速运动物体的平均速度等于总路程除以总时间。', options: ["√", "×"], answer: 0, hint: '平均速度的定义。' },
+        ],
       },
-      {
-        type: 'choice',
-        text: '比较运动快慢的方法中，"相同时间比较距离"相当于什么？',
-        options: ['速度', '时间', '质量', '力'],
-        answer: 0,
-        hint: ['速度 = 距离 ÷ 时间', '相同时间，距离越长说明速度越快']
+      { id: 'u3l2', name: '第8课 运动的快慢', icon: '🏃',
+        basic: [
+          { q: '速度的国际单位是？', options: ["米", "秒", "米/秒", "千克"], answer: 2, hint: '速度描述物体运动的快慢。' },
+          { q: '物体做匀速直线运动时，速度与什么无关？', options: ["路程", "时间", "路程和时间", "物体质量"], answer: 3, hint: '匀速运动速度是定值。' },
+          { q: '甲物体5秒运动50米，乙物体10秒运动100米，谁更快？', options: ["甲", "乙", "一样快", "无法比较"], answer: 2, hint: '甲速度=10m/s，乙速度=10m/s。' },
+          { q: '日常表达速度的单位还有？', options: ["米/秒", "千米/时", "秒/米", "时/千米"], answer: 1, hint: '交通中常用千米/时。' },
+          { q: '判断：速度越大，物体运动越快。', options: ["√", "×"], answer: 0, hint: '速度就是描述物体运动快慢的。' },
+        ],
+        medium: [
+          { q: '判断：1米/秒等于3.6千米/时。', options: ["√", "×"], answer: 0, hint: '这是速度单位的换算关系。' },
+          { q: '一辆汽车以72千米/时的速度行驶，它每秒行驶多少米？', options: ["10米", "20米", "36米", "72米"], answer: 1, hint: '72km/h = 72÷3.6 = 20m/s。' },
+          { q: '判断：平均速度能够精确描述物体在某时刻的运动快慢。', options: ["√", "×"], answer: 1, hint: '平均速度描述整体，瞬时速度描述时刻。' },
+          { q: '小明跑100米用时15秒，小刚跑200米用时25秒，谁跑得快？', options: ["小明", "小刚", "一样快", "无法判断"], answer: 1, hint: '小明速度约6.7m/s，小刚速度8m/s。' },
+          { q: '下列哪种动物的速度最快？', options: ["猎豹（112km/h）", "海豚（50km/h）", "骆驼（16km/h）", "兔子（56km/h）"], answer: 0, hint: '猎豹是跑得最快的陆地动物。' },
+        ],
+        hard: [
+          { q: '判断：汽车速度计显示的是瞬时速度。', options: ["√", "×"], answer: 0, hint: '速度计显示的是当前时刻的速度。' },
+          { q: '小明从家到学校，前半程用时10分钟，后半程用时15分钟，小明上学的平均速度与？', options: ["前半程速度有关", "后半程速度有关", "前后速度都有关", "无关"], answer: 2, hint: '平均速度需要总路程除总时间。' },
+          { q: '判断：做变速直线运动的物体，在各段路程的速度一定不同。', options: ["√", "×"], answer: 1, hint: '可能有一段恰好等于平均速度。' },
+        ],
       },
-      {
-        type: 'truefalse',
-        text: '判断：参照物只能选择静止的物体。',
-        answer: false,
-        hint: ['运动和静止是相对的', '任何物体都可以作为参照物']
+      { id: 'u3l3', name: '第9课 力和运动', icon: '💪',
+        basic: [
+          { q: '力的作用效果是？', options: ["只能改变形状", "只能改变运动状态", "改变形状或运动状态", "使物体静止"], answer: 2, hint: '力可以使物体发生形变或运动状态变化。' },
+          { q: '力的单位是？', options: ["米", "千克", "牛顿", "焦耳"], answer: 2, hint: '力的单位用科学家名字命名。' },
+          { q: '物体在平衡力作用下做什么运动？', options: ["一定静止", "一定做匀速直线运动", "运动状态不断改变", "可能静止或匀速直线运动"], answer: 3, hint: '平衡力相互抵消，效果为零。' },
+          { q: '牛顿第一定律又叫做？', options: ["惯性定律", "作用力定律", "反作用力定律", "万有引力定律"], answer: 0, hint: '牛顿第一定律描述惯性的本质。' },
+          { q: '判断：有力作用在物体上，物体一定运动。', options: ["√", "×"], answer: 1, hint: '平衡力作用下物体可以静止。' },
+        ],
+        medium: [
+          { q: '判断：物体的惯性只与质量有关，质量越大，惯性越大。', options: ["√", "×"], answer: 0, hint: '质量是惯性的唯一量度。' },
+          { q: '静止在桌面上的书，受到的力有？', options: ["只有重力", "重力和支持力", "只有支持力", "没有力"], answer: 1, hint: '重力向下，支持力向上，二力平衡。' },
+          { q: '判断：力的三要素是大小、方向和作用点。', options: ["√", "×"], answer: 0, hint: '这三个要素决定力的作用效果。' },
+          { q: '汽车突然刹车时，乘客会向前倾，这是因为？', options: ["受到向前的力", "具有惯性", "受到重力的作用", "失去重力"], answer: 1, hint: '惯性使乘客保持原来的运动状态。' },
+          { q: '判断：物体间力的作用是相互的。', options: ["√", "×"], answer: 0, hint: '力的作用是相互的，甲对乙有力的同时乙对甲也有力。' },
+        ],
+        hard: [
+          { q: '判断：一切物体在没有受到外力作用时，总保持匀速直线运动状态或静止状态。', options: ["√", "×"], answer: 0, hint: '这就是牛顿第一定律的内容。' },
+          { q: '一物体在光滑水平面上受平衡力作用，它将？', options: ["静止", "做匀速直线运动", "加速运动", "减速运动"], answer: 1, hint: '光滑意味着没有摩擦力。' },
+          { q: '判断：相互作用力一定是同种性质的力。', options: ["√", "×"], answer: 1, hint: '相互作用力可以是不同性质的，如重力和弹力。' },
+        ],
       },
-      {
-        type: 'choice',
-        text: '减小摩擦力的方法不包括？',
-        options: ['加润滑油', '使接触面更光滑', '增加接触面粗糙程度', '使用滚轮'],
-        answer: 2,
-        hint: ['减小摩擦力需要让接触面更光滑', '增加粗糙程度是增大摩擦力']
-      }
     ]
   },
-  // 第四单元：太阳、地球和月球
-  4: {
-    basic: [
-      {
-        type: 'choice',
-        text: '太阳每天从哪个方向升起？',
-        options: ['西方', '南方', '东方', '北方'],
-        answer: 2,
-        hint: ['我们常说"太阳从东边升起"', '太阳升起的位置']
-      },
-      {
-        type: 'choice',
-        text: '月球是地球的什么？',
-        options: ['行星', '恒星', '卫星', '彗星'],
-        answer: 2,
-        hint: ['月球围绕地球转动', '它是我们地球的"邻居"']
-      },
-      {
-        type: 'choice',
-        text: '月光的来源是什么？',
-        options: ['月球自己发光', '反射的太阳光', '星星的光', '大气折射'],
-        answer: 1,
-        hint: ['月球本身不发光', '它像镜子一样反射太阳光']
-      },
-      {
-        type: 'choice',
-        text: '地球的形状是？',
-        options: ['平面', '正方形', '球体', '圆柱体'],
-        answer: 2,
-        hint: ['地球仪是什么形状的？', '它是一个接近球体的椭球形']
-      },
-      {
-        type: 'choice',
-        text: '环形山主要分布在哪个天体上？',
-        options: ['地球', '太阳', '月球', '火星'],
-        answer: 2,
-        hint: ['月球表面有很多坑', '这些坑就是环形山']
-      }
-    ],
-    advance: [
-      {
-        type: 'choice',
-        text: '环形山的主要形成原因是？',
-        options: ['风吹', '水冲', '陨石撞击', '植物生长'],
-        answer: 2,
-        hint: ['月球没有大气保护', '太空中的岩石会撞击月球表面']
-      },
-      {
-        type: 'choice',
-        text: '一天中，什么时候影子最短？',
-        options: ['早上', '中午', '傍晚', '夜里'],
-        answer: 1,
-        hint: ['太阳高度最高时影子最短', '这时候太阳在头顶上方']
-      },
-      {
-        type: 'truefalse',
-        text: '判断：月相变化是因为月球本身在发光和变暗。',
-        answer: false,
-        hint: ['月球本身不发光', '月相是因为地球、月球、太阳位置变化造成的']
-      },
-      {
-        type: 'choice',
-        text: '地球内部结构从外到内的正确顺序是？',
-        options: ['地核→地幔→地壳', '地壳→地幔→地核', '地幔→地壳→地核', '地壳→地核→地幔'],
-        answer: 1,
-        hint: ['像鸡蛋的结构：蛋壳→蛋白→蛋黄', '地壳在最外面，地核在最里面']
-      },
-      {
-        type: 'choice',
-        text: '月相变化的周期大约是？',
-        options: ['一周', '一个月', '一年', '一天'],
-        answer: 1,
-        hint: ['月有阴晴圆缺', '这个变化大约需要一个月']
-      }
-    ],
-    challenge: [
-      {
-        type: 'sort',
-        text: '请按月相变化的顺序排列：',
-        items: ['满月', '新月', '上弦月'],
-        answer: [1, 2, 0],
-        hint: ['新月是看不见月亮的', '上弦月是右边亮', '满月是整个都亮']
-      },
-      {
-        type: 'match',
-        text: '请将天体与其特点连线：',
-        pairs: [
-          ['太阳', '能发光发热'],
-          ['地球', '有生命存在的星球'],
-          ['月球', '地球的卫星'],
-          ['月球', '本身不发光']
+  unit4: {
+    name: '第四单元 太阳地球月球',
+    icon: '🌙',
+    lessons: [
+      { id: 'u4l1', name: '第10课 太阳和太阳系', icon: '☀️',
+        basic: [
+          { q: '太阳是一颗什么星？', options: ["行星", "恒星", "卫星", "彗星"], answer: 1, hint: '太阳能够自己发光发热。' },
+          { q: '太阳系中最大的行星是？', options: ["地球", "木星", "土星", "火星"], answer: 1, hint: '木星的体积是地球的1000多倍。' },
+          { q: '地球在太阳系中处于什么位置？', options: ["最靠近太阳", "第三位", "第五位", "最远离太阳"], answer: 1, hint: '水星、金星、地球是前三颗。' },
+          { q: '太阳的能量来源于什么？', options: ["化学反应", "核聚变", "燃烧", "地热"], answer: 1, hint: '太阳内部进行着剧烈的核聚变。' },
+          { q: '判断：太阳的光和热对地球上的生命至关重要。', options: ["√", "×"], answer: 0, hint: '没有太阳，地球将一片黑暗和寒冷。' },
         ],
-        answer: [0, 1, 2, 3],
-        hint: ['太阳是恒星，地球是行星，月球是卫星']
+        medium: [
+          { q: '判断：太阳系中只有8颗行星。', options: ["√", "×"], answer: 0, hint: '冥王星已被降级为矮行星。' },
+          { q: '下列天体中，不属于太阳系的是？', options: ["地球", "月球", "织女星", "火星"], answer: 2, hint: '织女星是一颗恒星，不在太阳系。' },
+          { q: '判断：太阳系中行星的轨道都是椭圆形的。', options: ["√", "×"], answer: 0, hint: '行星轨道接近圆形，但严格说是椭圆。' },
+          { q: '地球距离太阳大约多远？', options: ["38万千米", "150万千米", "1.5亿千米", "15亿千米"], answer: 2, hint: '光从太阳到地球约需8分钟。' },
+          { q: '太阳系八大行星中，属于巨行星的是？', options: ["水星、金星", "火星", "木星、土星", "天王星、海王星"], answer: 2, hint: '巨行星体积、质量都很大。' },
+        ],
+        hard: [
+          { q: '判断：太阳内部发生的核聚变是把轻原子核合成重原子核的过程。', options: ["√", "×"], answer: 0, hint: '核聚变释放巨大能量。' },
+          { q: '请将太阳系行星按距离太阳由近到远排序：地球、冥王星、金星', options: ["金星→地球→冥王星", "地球→金星→冥王星", "冥王星→金星→地球", "金星→冥王星→地球"], answer: 0, hint: '金星是第二颗，地球是第三颗。' },
+          { q: '判断：太阳系中所有行星的自转方向都与公转方向相同。', options: ["√", "×"], answer: 1, hint: '金星和天王星自转方向不同。' },
+        ],
       },
-      {
-        type: 'choice',
-        text: '"上弦月右半亮，下弦月左半亮"这个规律描述的是？',
-        options: ['太阳', '地球', '月球', '星星'],
-        answer: 2,
-        hint: ['这是关于月相的口诀', '月亮的不同形状']
+      { id: 'u4l2', name: '第11课 地球和月球', icon: '🌍',
+        basic: [
+          { q: '地球的形状是？', options: ["平面", "球体", "长方体", "圆柱体"], answer: 1, hint: '地球是一个两极稍扁、赤道略鼓的球体。' },
+          { q: '地球的卫星是？', options: ["太阳", "火星", "月球", "人造卫星"], answer: 2, hint: '月球是地球唯一的天然卫星。' },
+          { q: '月球表面有什么特点？', options: ["有很多水", "有大气层", "布满了环形山", "有森林"], answer: 2, hint: '环形山是月球最显著的特征。' },
+          { q: '月球上没有生命的主要原因是什么？', options: ["温度适宜", "没有水和空气", "有太多植物", "重力太大"], answer: 1, hint: '没有大气和水，生命无法存活。' },
+          { q: '判断：月球本身不发光，我们看到的光是反射的太阳光。', options: ["√", "×"], answer: 0, hint: '月球是反射太阳光的。' },
+        ],
+        medium: [
+          { q: '判断：月球绕地球公转的周期约为27.3天。', options: ["√", "×"], answer: 0, hint: '这个周期称为恒星月。' },
+          { q: '下列哪项不是月球的特点？', options: ["表面有环形山", "表面有大气", "没有液态水", "引力约为地球的1/6"], answer: 1, hint: '月球几乎没有大气层。' },
+          { q: '判断：月相变化是由于月球绕地球公转造成的。', options: ["√", "×"], answer: 0, hint: '月相变化是视觉现象，本质是月球位置变化。' },
+          { q: '地球自转一周大约需要多长时间？', options: ["24小时", "30天", "365天", "一年"], answer: 0, hint: '地球自转产生昼夜交替。' },
+          { q: '月球对地球最重要的影响是什么？', options: ["提供光和热", "产生潮汐现象", "调节地球温度", "保护地球"], answer: 1, hint: '月球的引力引起地球的潮汐。' },
+        ],
+        hard: [
+          { q: '判断：月球永远以同一面朝向地球。', options: ["√", "×"], answer: 0, hint: '这是由于月球自转周期等于公转周期。' },
+          { q: '请将月相按时间顺序排列：满月→？→新月', options: ["上弦月", "下弦月", "蛾眉月", "凸月"], answer: 1, hint: '满月后渐亏，先是下弦月。' },
+          { q: '判断：地球上的潮汐现象主要是由月球的引力引起的。', options: ["√", "×"], answer: 0, hint: '太阳也有影响，但月球是主因。' },
+        ],
       },
-      {
-        type: 'truefalse',
-        text: '判断：五大地形包括丘陵、山地、高原、平原、盆地。',
-        answer: true,
-        hint: ['这些都是地球表面的地形类型']
+      { id: 'u4l3', name: '第12课 日食和月食', icon: '🌑',
+        basic: [
+          { q: '日食形成的原因是？', options: ["地球挡住太阳光", "月球挡住太阳光", "太阳变暗", "大气折射"], answer: 1, hint: '日食发生在新月期间。' },
+          { q: '月食形成的原因是？', options: ["月球进入地球影子", "地球进入月球影子", "太阳光被遮挡", "大气层变厚"], answer: 0, hint: '月食发生在满月期间。' },
+          { q: '日食发生时，以下三个天体的位置顺序是？', options: ["太阳-地球-月球", "地球-太阳-月球", "太阳-月球-地球", "月球-地球-太阳"], answer: 2, hint: '月球在中间，挡住太阳光。' },
+          { q: '日食不可能发生在中国农历的哪一天？', options: ["初一", "十五", "初七", "三十"], answer: 1, hint: '日食发生在新月期间。' },
+          { q: '判断：月食时我们看到的是地球的影子遮住了月球。', options: ["√", "×"], answer: 0, hint: '地球影子遮住了月球。' },
+        ],
+        medium: [
+          { q: '判断：日环食发生时，月球完全在太阳前方。', options: ["√", "×"], answer: 1, hint: '日环食时月球离地球较远，看起来较小。' },
+          { q: '发生月食时，在月球上可以看到什么现象？', options: ["日食", "星星闪烁", "流星雨", "极光"], answer: 0, hint: '在月球上看，地球遮住了太阳。' },
+          { q: '判断：日食和月食都可以用肉眼直接观看。', options: ["√", "×"], answer: 1, hint: '日食不能直接观看，会伤眼睛。' },
+          { q: '日全食发生时，我们能看到太阳的什么？', options: ["光球层", "日冕", "太阳风", "太阳黑子"], answer: 1, hint: '日冕是太阳大气的最外层。' },
+          { q: '月食持续时间比日食长的原因是？', options: ["地球比月球大", "月球公转速度慢", "地球阴影大", "以上都对"], answer: 3, hint: '地球大、阴影大、月球慢，所以时间长。' },
+        ],
+        hard: [
+          { q: '判断：沙罗周期约为18年，是日食和月食重复出现的周期。', options: ["√", "×"], answer: 0, hint: '每隔一个沙罗周期，同类日食或月食会再次发生。' },
+          { q: '请排列：①月球进入地球本影 ②月食开始 ③月球完全在地球本影中 ④月食结束', options: ["①②③④", "②①③④", "①②④③", "②①④③"], answer: 1, hint: '月食过程是渐进的。' },
+          { q: '判断：月偏食时，月球只有一部分进入地球本影。', options: ["√", "×"], answer: 0, hint: '月偏食是月球部分进入地球本影。' },
+        ],
       },
-      {
-        type: 'choice',
-        text: '日晷是根据什么原理发明的？',
-        options: ['月相变化', '太阳影子变化', '星星位置', '温度变化'],
-        answer: 1,
-        hint: ['日晷是一种古老的计时工具', '它利用了太阳照射下影子的变化']
-      }
     ]
-  }
+  },
 };
+
+// ========== 题目格式兼容层 ==========
+// 将新格式 {q, options, answer, hint} 转换为旧格式 {text, options, answer, hint}
+function convertQuestion(q) {
+  const text = q.q;
+  // 判断题自动转换
+  if (q.options.length === 2 && q.options[0] === "√" && q.options[1] === "×") {
+    return {
+      type: 'truefalse',
+      text: text,
+      options: ['正确', '错误'],
+      answer: q.answer === 0 ? true : false,
+      hint: Array.isArray(q.hint) ? q.hint : [q.hint]
+    };
+  }
+  // 选择题
+  return {
+    type: 'choice',
+    text: text,
+    options: q.options,
+    answer: q.answer,
+    hint: Array.isArray(q.hint) ? q.hint : [q.hint]
+  };
+}
+
+// 获取当前课程的题目（混合所有难度）
+function getLessonQuestions(lesson) {
+  const allQuestions = [];
+  const difficulties = ['basic', 'medium', 'hard'];
+  const diffNames = { basic: '基础题', medium: '提升题', hard: '挑战题' };
+  
+  for (const diff of difficulties) {
+    if (lesson[diff]) {
+      for (const q of lesson[diff]) {
+        allQuestions.push({
+          ...convertQuestion(q),
+          difficulty: diff,
+          difficultyName: diffNames[diff]
+        });
+      }
+    }
+  }
+  
+  // 打乱顺序
+  for (let i = allQuestions.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [allQuestions[i], allQuestions[j]] = [allQuestions[j], allQuestions[i]];
+  }
+  
+  return allQuestions;
+}
 
 // ========== 初始化 ==========
 function init() {
@@ -2009,63 +1863,94 @@ function switchDifficulty(diff) {
 // ========== 渲染关卡 ==========
 function renderLevelGrid() {
   const grid = document.getElementById('levelGrid');
-  if (!grid) return; // 防御性检查
-
-  const units = [
-    { name: '植物大观园', icon: '🌿', color: '#4caf50' },
-    { name: '动物的需求', icon: '🦁', color: '#f44336' },
-    { name: '运动和力', icon: '🚗', color: '#ff9800' },
-    { name: '太阳地球月球', icon: '🌙', color: '#2196f3' }
-  ];
-
-  const difficultyNames = { basic: '基础', advance: '提升', challenge: '挑战' };
-  const difficultyBadges = { basic: 'badge-easy', advance: 'badge-medium', challenge: 'badge-hard' };
-  const difficultyDescs = {
-    basic: '5道基础题，贴近课本知识',
-    advance: '5道提升题，需要思考分析',
-    challenge: '3道综合题，包含排序和连线'
-  };
-
-  const currentDiffIndex = { basic: 0, advance: 1, challenge: 2 }[gameState.currentDifficulty];
+  grid.innerHTML = '';
   
-  grid.innerHTML = units.map((unit, index) => {
-    const isUnlocked = index === 0 || gameState.unitProgress[index - 1] >= currentDiffIndex;
-    const isCompleted = gameState.unitProgress[index] > currentDiffIndex;
-    const stars = '★'.repeat(gameState.unitProgress[index]) + '☆'.repeat(2 - gameState.unitProgress[index]);
+  for (const [unitKey, unit] of Object.entries(questionData)) {
+    const title = document.createElement('div');
+    title.className = 'unit-title';
+    title.innerHTML = `<span>${unit.icon}</span>${unit.name}`;
+    grid.appendChild(title);
     
-    return `
-      <div class="level-card unit-${index + 1} ${!isUnlocked ? 'locked' : ''} ${isCompleted ? 'completed' : ''}" 
-           onclick="${isUnlocked ? `startQuiz(${index + 1})` : ''}">
-        ${!isUnlocked ? '<div class="lock-icon">🔒</div>' : ''}
-        <div class="level-icon">${unit.icon}</div>
-        <div class="level-name">${unit.name}</div>
-        <div class="level-desc">${difficultyDescs[gameState.currentDifficulty]}</div>
+    for (const lesson of unit.lessons) {
+      const progress = gameState.lessonProgress[lesson.id] || 0;
+      const stars = '⭐'.repeat(progress) + '☆'.repeat(3 - progress);
+      const completed = progress >= 1;
+      
+      const card = document.createElement('div');
+      card.className = `level-card ${completed ? 'completed' : ''}`;
+      card.style.setProperty('--card-color', unitKey === 'unit1' ? '#4caf50' : unitKey === 'unit2' ? '#f44336' : unitKey === 'unit3' ? '#ff9800' : '#2196f3');
+      card.onclick = () => startLesson(lesson);
+      card.innerHTML = `
+        <div class="level-icon">${lesson.icon}</div>
+        <div class="level-name">${lesson.name}</div>
         <div class="level-stars">${stars}</div>
-        <span class="level-badge ${difficultyBadges[gameState.currentDifficulty]}">
-          ${difficultyNames[gameState.currentDifficulty]}
-        </span>
-      </div>
-    `;
-  }).join('');
+        <span class="level-badge ${completed ? 'badge-easy' : 'badge-locked'}">${completed ? '已完成' : '未完成'}</span>
+      `;
+      grid.appendChild(card);
+    }
+  }
+  updateStatusBar();
 }
 
-// ========== 开始答题 ==========
-function startQuiz(unit) {
-  gameState.currentUnit = unit;
+// ========== 开始课程（新课程格式） ==========
+function startLesson(lesson) {
+  gameState.currentLesson = lesson;
   gameState.currentQuestion = 0;
   gameState.correctCount = 0;
-  gameState.hintsUsed = 0;
-  gameState.maxStreak = 0;
   gameState.currentStreak = 0;
+  gameState.maxStreak = 0;
   gameState.hintsRemaining = 3;
   
+  // 混合所有难度的题目
+  gameState.currentQuestions = getLessonQuestions(lesson);
+  
   showScreen('quizScreen');
-  loadQuestion();
+  renderQuestion();
 }
 
-function loadQuestion() {
-  const questions = questionBank[gameState.currentUnit][gameState.currentDifficulty];
-  const q = questions[gameState.currentQuestion];
+// ========== 渲染题目（新格式） ==========
+function renderQuestion() {
+  const q = gameState.currentQuestions[gameState.currentQuestion];
+  const total = gameState.currentQuestions.length;
+  
+  document.getElementById('currentQ').textContent = gameState.currentQuestion + 1;
+  document.getElementById('totalQ').textContent = total;
+  document.getElementById('progressFill').style.width = ((gameState.currentQuestion) / total * 100) + '%';
+  document.getElementById('hintLeft').textContent = gameState.hintsRemaining;
+  document.getElementById('hintBtn').disabled = false;
+  document.getElementById('hintContent').classList.remove('show');
+  document.getElementById('nextBtn').classList.remove('show');
+  
+  const typeNames = { choice: '选择题', truefalse: '判断题' };
+  const typeClasses = { choice: 'type-choice', truefalse: 'type-truefalse' };
+  
+  document.getElementById('questionType').className = 'question-type ' + (typeClasses[q.type] || 'type-choice');
+  document.getElementById('questionType').textContent = q.difficultyName || '选择题';
+  document.getElementById('questionText').textContent = q.text;
+  document.getElementById('questionImage').textContent = '';
+  
+  const container = document.getElementById('optionsContainer');
+  
+  if (q.type === 'truefalse') {
+    container.innerHTML = `
+      <div class="tf-buttons">
+        <button class="tf-btn tf-true" onclick="selectOption(0)">✅ 正确</button>
+        <button class="tf-btn tf-false" onclick="selectOption(1)">❌ 错误</button>
+      </div>
+    `;
+  } else {
+    container.innerHTML = `
+      <div class="options-grid">
+        ${q.options.map((opt, i) => `
+          <button class="option-btn" onclick="selectOption(${i})">
+            <span class="option-letter">${String.fromCharCode(65 + i)}</span>
+            <span class="option-text">${opt}</span>
+          </button>
+        `).join('')}
+      </div>
+    `;
+  }
+}
   
   document.getElementById('currentQ').textContent = gameState.currentQuestion + 1;
   document.getElementById('totalQ').textContent = questions.length;
@@ -2250,11 +2135,11 @@ function selectMatch(el) {
 
 // ========== 选择选项 ==========
 function selectOption(index) {
-  const questions = questionBank[gameState.currentUnit][gameState.currentDifficulty];
-  const q = questions[gameState.currentQuestion];
+  const q = gameState.currentQuestions[gameState.currentQuestion];
   
+  // 判断题和选择题的处理
   if (q.type === 'sort') {
-    return;
+    return; // 排序题不处理点击选项
   }
   
   let isCorrect;
@@ -2407,19 +2292,18 @@ function closeFeedback() {
 function showHint() {
   if (gameState.hintsRemaining <= 0) return;
   
-  const questions = questionBank[gameState.currentUnit][gameState.currentDifficulty];
-  const q = questions[gameState.currentQuestion];
+  const q = gameState.currentQuestions[gameState.currentQuestion];
   const level = 3 - gameState.hintsRemaining; // 0, 1, 2
   
   const hintContent = document.getElementById('hintContent');
+  const hintText = Array.isArray(q.hint) ? q.hint[level] : q.hint;
   hintContent.innerHTML = `
     <div class="hint-level">💡 提示 ${level + 1}/3</div>
-    <div>${q.hint[level]}</div>
+    <div>${hintText || '暂无提示'}</div>
   `;
   hintContent.classList.add('show');
   
   gameState.hintsRemaining--;
-  gameState.hintsUsed++;
   document.getElementById('hintLeft').textContent = gameState.hintsRemaining;
   
   if (gameState.hintsRemaining <= 0) {
@@ -2429,25 +2313,24 @@ function showHint() {
 
 // ========== 下一题 ==========
 function nextQuestion() {
-  const questions = questionBank[gameState.currentUnit][gameState.currentDifficulty];
   gameState.currentQuestion++;
   
-  if (gameState.currentQuestion >= questions.length) {
+  if (gameState.currentQuestion >= gameState.currentQuestions.length) {
     finishQuiz();
   } else {
-    loadQuestion();
+    renderQuestion();
   }
 }
 
 // ========== 完成测验 ==========
 function finishQuiz() {
-  const questions = questionBank[gameState.currentUnit][gameState.currentDifficulty];
-  const score = Math.round(gameState.correctCount / questions.length * 100);
+  const total = gameState.currentQuestions.length;
+  const accuracy = Math.round((gameState.correctCount / total) * 100);
   
-  // 更新单元进度
-  const diffIndex = { basic: 0, advance: 1, challenge: 2 }[gameState.currentDifficulty];
-  if (gameState.unitProgress[gameState.currentUnit - 1] <= diffIndex) {
-    gameState.unitProgress[gameState.currentUnit - 1] = diffIndex + 1;
+  // 更新课程进度
+  const lessonId = gameState.currentLesson.id;
+  if (accuracy >= 60 && (!gameState.lessonProgress[lessonId] || gameState.lessonProgress[lessonId] < 3)) {
+    gameState.lessonProgress[lessonId] = Math.min(3, (gameState.lessonProgress[lessonId] || 0) + 1);
   }
   
   // 检查成就
@@ -2455,29 +2338,24 @@ function finishQuiz() {
   checkEquipAchievements();
   
   // 装备掉落：每完成一课100%掉落
-  if (score >= 60) {
-    tryDropEquipment(false); // 普通掉落（单课）
+  if (accuracy >= 60) {
+    tryDropEquipment(false);
   }
   
   saveUserData();
   
-  // 显示结果后切回基础难度，方便下次选关
-  gameState.currentDifficulty = 'basic';
   showScreen('resultScreen');
-  
-  const unitNames = ['植物大观园', '动物的需求', '运动和力', '太阳地球月球'];
-  const unitIcons = ['🌿', '🦁', '🚗', '🌙'];
   
   let mascot = '🎉';
   let message = '继续保持，探索更多科学奥秘！';
   
-  if (score >= 90) {
+  if (accuracy >= 90) {
     mascot = '🏆';
     message = '太厉害了！你是真正的科学小达人！';
-  } else if (score >= 70) {
+  } else if (accuracy >= 70) {
     mascot = '⭐';
     message = '不错的成绩！再接再厉！';
-  } else if (score >= 50) {
+  } else if (accuracy >= 50) {
     mascot = '💪';
     message = '有进步空间，多复习一定能更好！';
   } else {
@@ -2486,25 +2364,15 @@ function finishQuiz() {
   }
   
   document.getElementById('resultMascot').textContent = mascot;
-  document.getElementById('resultTitle').textContent = unitIcons[gameState.currentUnit - 1] + ' ' + unitNames[gameState.currentUnit - 1] + ' 完成！';
-  document.getElementById('resultScore').textContent = score;
-  document.getElementById('statCorrect').textContent = gameState.correctCount + '/' + questions.length;
+  document.getElementById('resultTitle').textContent = gameState.currentLesson.name + ' 完成！';
+  document.getElementById('resultScore').textContent = accuracy + '%';
+  document.getElementById('statCorrect').textContent = gameState.correctCount + '/' + total;
   document.getElementById('statHints').textContent = gameState.hintsUsed;
   document.getElementById('statStreak').textContent = gameState.maxStreak;
   
-  const stars = score >= 90 ? '⭐⭐⭐' : score >= 70 ? '⭐⭐' : score >= 50 ? '⭐' : '☆';
+  const stars = accuracy >= 90 ? '⭐⭐⭐' : accuracy >= 70 ? '⭐⭐' : accuracy >= 50 ? '⭐' : '☆';
   document.getElementById('resultStars').textContent = stars;
   document.getElementById('resultMessage').textContent = message;
-  
-  // 检查是否解锁新成就
-  const newAchievement = checkNewAchievements();
-  if (newAchievement) {
-    document.getElementById('achievementUnlock').style.display = 'block';
-    document.getElementById('unlockIcon').textContent = newAchievement.icon;
-    document.getElementById('unlockName').textContent = newAchievement.name;
-  } else {
-    document.getElementById('achievementUnlock').style.display = 'none';
-  }
 }
 
 // ========== 成就系统 ==========
@@ -2535,20 +2403,57 @@ function checkAchievements() {
     unlockAchievement('streak_10');
   }
   
-  // 独立思考
-  if (gameState.hintsUsed === 0 && !gameState.unlockedAchievements.includes('no_hint')) {
-    // 需要完成整个关卡才算
+  // 独立思考（不使用提示通关）
+  const accuracy = gameState.correctCount / gameState.currentQuestions.length;
+  if (gameState.hintsUsed === 0 && accuracy >= 1 && !gameState.unlockedAchievements.includes('no_hint')) {
+    unlockAchievement('no_hint');
   }
   
-  // 单元大师
-  const unitAchievements = ['plant_master', 'animal_master', 'motion_master', 'space_master'];
-  const unitIndex = gameState.currentUnit - 1;
-  if (gameState.unitProgress[unitIndex] >= 3 && !gameState.unlockedAchievements.includes(unitAchievements[unitIndex])) {
-    unlockAchievement(unitAchievements[unitIndex]);
+  // 满分答卷
+  if (accuracy >= 1 && !gameState.unlockedAchievements.includes('perfect')) {
+    unlockAchievement('perfect');
+  }
+  
+  // 检查单元完成情况
+  checkUnitAchievements();
+}
+
+// 检查单元成就
+function checkUnitAchievements() {
+  const completedLessons = Object.keys(gameState.lessonProgress).filter(id => gameState.lessonProgress[id] >= 1);
+  
+  // 统计每个单元完成的课程数
+  const unitLessonCounts = { unit1: 0, unit2: 0, unit3: 0, unit4: 0 };
+  for (const [lessonId, progress] of Object.entries(gameState.lessonProgress)) {
+    if (progress >= 1) {
+      const unitKey = lessonId.substring(0, 3); // u1l1 -> u1l
+      const unit = unitKey + 'x'; // u1l -> u1
+      if (unitLessonCounts[unit] !== undefined) {
+        unitLessonCounts[unit]++;
+      }
+    }
+  }
+  
+  // 单元成就
+  const unitTotalLessons = { unit1: 3, unit2: 3, unit3: 3, unit4: 3 }; // 每个单元的课程数
+  
+  if (unitLessonCounts.unit1 >= unitTotalLessons.unit1 && !gameState.unlockedAchievements.includes('unit1_master')) {
+    unlockAchievement('unit1_master');
+  }
+  if (unitLessonCounts.unit2 >= unitTotalLessons.unit2 && !gameState.unlockedAchievements.includes('unit2_master')) {
+    unlockAchievement('unit2_master');
+  }
+  if (unitLessonCounts.unit3 >= unitTotalLessons.unit3 && !gameState.unlockedAchievements.includes('unit3_master')) {
+    unlockAchievement('unit3_master');
+  }
+  if (unitLessonCounts.unit4 >= unitTotalLessons.unit4 && !gameState.unlockedAchievements.includes('unit4_master')) {
+    unlockAchievement('unit4_master');
   }
   
   // 全通关
-  if (gameState.unitProgress.every(p => p >= 3) && !gameState.unlockedAchievements.includes('all_complete')) {
+  const totalLessons = unitTotalLessons.unit1 + unitTotalLessons.unit2 + unitTotalLessons.unit3 + unitTotalLessons.unit4;
+  const totalCompleted = Object.values(unitLessonCounts).reduce((a, b) => a + b, 0);
+  if (totalCompleted >= totalLessons && !gameState.unlockedAchievements.includes('all_complete')) {
     unlockAchievement('all_complete');
   }
 }
