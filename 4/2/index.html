@@ -286,7 +286,8 @@
     border-color: #f44336;
     animation: shake 0.5s;
   }
-  .option-btn.disabled { cursor: default; opacity: 0.7; }
+  .option-btn.disabled { cursor: default; opacity: 0.7; pointer-events: none; }
+  .tf-btn.disabled { pointer-events: none; }
   @keyframes correctPulse {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.02); }
@@ -1146,6 +1147,7 @@ const gameState = {
   currentLesson: null,  // 当前课程对象
   currentQuestions: [], // 当前题库的题目
   currentQuestion: 0,
+  answered: false, // 当前题是否已作答（防止重复点击）
   correctCount: 0,
   lessonProgress: {},  // 每课完成进度 { lessonId: 星星数 }
   unlockedAchievements: [],
@@ -1246,6 +1248,7 @@ function saveUserData() {
     unlockedAchievements: gameState.unlockedAchievements,
     unitProgress: gameState.unitProgress,
     equipment: gameState.equipment,
+    equipDropped: gameState.equipDropped || {},
     totalQuestionsAnswered: gameState.totalQuestionsAnswered
   };
   localStorage.setItem(saveKey, JSON.stringify(data));
@@ -1260,6 +1263,7 @@ function loadUserData() {
     gameState.unlockedAchievements = data.unlockedAchievements || [];
     gameState.unitProgress = data.unitProgress || [0, 0, 0, 0];
     gameState.equipment = data.equipment || [];
+    gameState.equipDropped = data.equipDropped || {};
     gameState.totalQuestionsAnswered = data.totalQuestionsAnswered || 0;
   }
 }
@@ -2327,6 +2331,10 @@ function selectMatch(el) {
 function selectOption(index) {
   const q = gameState.currentQuestions[gameState.currentQuestion];
   
+  // 防止重复点击：如果当前题已作答则忽略
+  if (gameState.answered) return;
+  gameState.answered = true;
+  
   // 判断题和选择题的处理
   if (q.type === 'sort') {
     return; // 排序题不处理点击选项
@@ -2412,14 +2420,6 @@ function checkAnswer(isCorrect) {
     
     showFeedback(true, points, q);
     checkAchievements();
-    
-    // 尝试装备掉落（答对后才有机会）
-    setTimeout(() => {
-      const droppedEquip = tryDropEquipment();
-      if (droppedEquip) {
-        showDropPopup(droppedEquip);
-      }
-    }, 500);
   } else {
     gameState.currentStreak = 0;
     
@@ -2502,6 +2502,7 @@ function showHint() {
 // ========== 下一题 ==========
 function nextQuestion() {
   gameState.currentQuestion++;
+  gameState.answered = false; // 重置答题状态
   
   if (gameState.currentQuestion >= gameState.currentQuestions.length) {
     finishQuiz();
@@ -2525,9 +2526,17 @@ function finishQuiz() {
   checkAchievements();
   checkEquipAchievements();
   
-  // 装备掉落：每完成一课100%掉落
+  // 装备掉落：每课首次通过(≥60%)才100%掉落，防止刷装备
   if (accuracy >= 60) {
-    tryDropEquipment(false);
+    const dropKey = `${lessonId}_dropped`;
+    if (!gameState.equipDropped) gameState.equipDropped = {};
+    if (!gameState.equipDropped[dropKey]) {
+      gameState.equipDropped[dropKey] = true;
+      const droppedEquip = tryDropEquipment(false);
+      if (droppedEquip) {
+        showDropPopup(droppedEquip);
+      }
+    }
   }
   
   saveUserData();

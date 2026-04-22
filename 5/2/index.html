@@ -1138,10 +1138,16 @@ function finishQuiz() {
   
   checkUnitAchievements();
   
-  // 装备掉落：每完成一课100%掉落
+  // 装备掉落：每课每个难度首次通过(≥60%)才100%掉落，防止刷装备
   if (accuracy >= 60) {
-    tryDropEquip(false); // 普通掉落（单课）
-    checkEquipAchievements(); // 检查装备成就
+    const difficulty = gameState.currentDifficulty || 'basic';
+    const dropKey = `${lessonId}_${difficulty}_dropped`;
+    if (!gameState.equipDropped) gameState.equipDropped = {};
+    if (!gameState.equipDropped[dropKey]) {
+      gameState.equipDropped[dropKey] = true;
+      tryDropEquip(false); // dropEquip内部会自动弹窗
+      checkEquipAchievements();
+    }
   }
   
   saveUserData();
@@ -1333,7 +1339,8 @@ function saveUserData() {
     totalPoints: gameState.totalPoints,
     lessonProgress: gameState.lessonProgress,
     unlockedAchievements: gameState.unlockedAchievements,
-    equipment: gameState.equipment
+    equipment: gameState.equipment,
+    equipDropped: gameState.equipDropped || {}
   }));
 }
 
@@ -1346,6 +1353,7 @@ function loadUserData() {
     gameState.lessonProgress = d.lessonProgress || {};
     gameState.unlockedAchievements = d.unlockedAchievements || [];
     gameState.equipment = d.equipment || [];
+    gameState.equipDropped = d.equipDropped || {};
   }
 }
 
