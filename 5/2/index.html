@@ -922,15 +922,25 @@ const gameState = {
   lessonProgress: {},
   equipment: [], // 装备背包
   allAchievements: [
+    // 基础成就
     { id: 'first_blood', icon: '🎯', name: '首战告捷', desc: '完成第一题' },
     { id: 'streak_2', icon: '⚡', name: '小试牛刀', desc: '达成2连胜' },
     { id: 'streak_3', icon: '🔥', name: '三连斩', desc: '达成3连胜' },
     { id: 'streak_5', icon: '💥', name: '五福临门', desc: '达成5连胜' },
     { id: 'streak_7', icon: '🌟', name: '七星连珠', desc: '达成7连胜' },
     { id: 'streak_10', icon: '👑', name: '常胜将军', desc: '达成10连胜' },
+    { id: 'no_hint', icon: '🧠', name: '独立思考', desc: '不使用提示通关' },
+    { id: 'perfect', icon: '💯', name: '满分答卷', desc: '一次通关获得满分' },
+    // 单元成就
     { id: 'unit1_master', icon: '🌉', name: '桥梁专家', desc: '完成第一单元' },
     { id: 'unit2_master', icon: '🔬', name: '微观探索者', desc: '完成第二单元' },
-    { id: 'all_complete', icon: '🏆', name: '科学探险家', desc: '完成所有关卡' }
+    { id: 'all_complete', icon: '🏆', name: '科学探险家', desc: '完成所有关卡' },
+    // 装备成就
+    { id: 'first_equip', icon: '📦', name: '初识装备', desc: '获得第一件装备' },
+    { id: 'equip_10', icon: '🎒', name: '收藏家', desc: '收集10件装备' },
+    { id: 'equip_blue_white', icon: '🌤️', name: '蓝天白云', desc: '同时拥有蓝色和白色装备' },
+    { id: 'equip_rainbow', icon: '🌈', name: '彩虹收集', desc: '集齐所有颜色装备' },
+    { id: 'equip_mythic', icon: '🌟', name: '欧皇', desc: '获得神话装备' }
   ],
   unlockedAchievements: []
 };
@@ -1131,6 +1141,7 @@ function finishQuiz() {
   // 装备掉落：每完成一课100%掉落
   if (accuracy >= 60) {
     tryDropEquip(false); // 普通掉落（单课）
+    checkEquipAchievements(); // 检查装备成就
   }
   
   saveUserData();
@@ -1263,12 +1274,46 @@ function checkAchievements() {
   if (gameState.correctCount >= 1 && !gameState.unlockedAchievements.includes('first_blood')) unlockAchievement('first_blood');
 }
 
+
 function checkUnitAchievements() {
   const unit1Complete = questionData.unit1.lessons.every(l => (gameState.lessonProgress[l.id] || 0) >= 1);
   const unit2Complete = questionData.unit2.lessons.every(l => (gameState.lessonProgress[l.id] || 0) >= 1);
   if (unit1Complete && !gameState.unlockedAchievements.includes('unit1_master')) unlockAchievement('unit1_master');
   if (unit2Complete && !gameState.unlockedAchievements.includes('unit2_master')) unlockAchievement('unit2_master');
   if (unit1Complete && unit2Complete && !gameState.unlockedAchievements.includes('all_complete')) unlockAchievement('all_complete');
+}
+
+// ========== 装备成就检查 ==========
+function checkEquipAchievements() {
+  const counts = { common: 0, exquisite: 0, good: 0, rare: 0, epic: 0, legendary: 0, mythic: 0 };
+  if (!gameState.equipment) gameState.equipment = [];
+  gameState.equipment.forEach(e => counts[e.level]++);
+  
+  // 初识装备
+  if (gameState.equipment.length >= 1 && !gameState.unlockedAchievements.includes('first_equip')) {
+    unlockAchievement('first_equip');
+  }
+  
+  // 收藏家
+  if (gameState.equipment.length >= 10 && !gameState.unlockedAchievements.includes('equip_10')) {
+    unlockAchievement('equip_10');
+  }
+  
+  // 蓝天白云：同时拥有蓝色和白色装备
+  if (counts.rare > 0 && counts.common > 0 && !gameState.unlockedAchievements.includes('equip_blue_white')) {
+    unlockAchievement('equip_blue_white');
+  }
+  
+  // 彩虹收集：集齐所有颜色装备
+  const allLevels = ['common', 'exquisite', 'good', 'rare', 'epic', 'legendary', 'mythic'];
+  if (allLevels.every(l => counts[l] > 0) && !gameState.unlockedAchievements.includes('equip_rainbow')) {
+    unlockAchievement('equip_rainbow');
+  }
+  
+  // 欧皇：获得神话装备
+  if (counts.mythic > 0 && !gameState.unlockedAchievements.includes('equip_mythic')) {
+    unlockAchievement('equip_mythic');
+  }
 }
 
 
