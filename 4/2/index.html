@@ -2453,6 +2453,12 @@ function finishQuiz() {
   // 检查成就
   checkAchievements();
   checkEquipAchievements();
+  
+  // 装备掉落：每完成一课100%掉落
+  if (score >= 60) {
+    tryDropEquipment(false); // 普通掉落（单课）
+  }
+  
   saveUserData();
   
   // 显示结果后切回基础难度，方便下次选关
