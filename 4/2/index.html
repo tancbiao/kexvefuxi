@@ -1921,45 +1921,7 @@ function renderQuestion() {
   document.getElementById('hintContent').classList.remove('show');
   document.getElementById('nextBtn').classList.remove('show');
   
-  const typeNames = { choice: '选择题', truefalse: '判断题' };
-  const typeClasses = { choice: 'type-choice', truefalse: 'type-truefalse' };
-  
-  document.getElementById('questionType').className = 'question-type ' + (typeClasses[q.type] || 'type-choice');
-  document.getElementById('questionType').textContent = q.difficultyName || '选择题';
-  document.getElementById('questionText').textContent = q.text;
-  document.getElementById('questionImage').textContent = '';
-  
-  const container = document.getElementById('optionsContainer');
-  
-  if (q.type === 'truefalse') {
-    container.innerHTML = `
-      <div class="tf-buttons">
-        <button class="tf-btn tf-true" onclick="selectOption(0)">✅ 正确</button>
-        <button class="tf-btn tf-false" onclick="selectOption(1)">❌ 错误</button>
-      </div>
-    `;
-  } else {
-    container.innerHTML = `
-      <div class="options-grid">
-        ${q.options.map((opt, i) => `
-          <button class="option-btn" onclick="selectOption(${i})">
-            <span class="option-letter">${String.fromCharCode(65 + i)}</span>
-            <span class="option-text">${opt}</span>
-          </button>
-        `).join('')}
-      </div>
-    `;
-  }
-}
-  
-  document.getElementById('currentQ').textContent = gameState.currentQuestion + 1;
-  document.getElementById('totalQ').textContent = questions.length;
-  document.getElementById('progressFill').style.width = ((gameState.currentQuestion) / questions.length * 100) + '%';
-  document.getElementById('hintLeft').textContent = gameState.hintsRemaining;
-  document.getElementById('hintBtn').disabled = false;
-  document.getElementById('hintContent').classList.remove('show');
-  document.getElementById('nextBtn').classList.remove('show');
-  
+  // 处理所有题型 - 使用 switch 统一处理
   const typeNames = { choice: '单选题', truefalse: '判断题', sort: '排序题', match: '连连看' };
   const typeClasses = { choice: 'type-choice', truefalse: 'type-truefalse', sort: 'type-sort', match: 'type-match' };
   
@@ -1993,7 +1955,7 @@ function renderQuestion() {
       `;
       break;
       
-    case 'sort':
+    case 'sort': {
       const shuffledItems = [...q.items.keys()].sort(() => Math.random() - 0.5);
       container.innerHTML = `
         <div class="sort-list" id="sortList">
@@ -2039,8 +2001,9 @@ function renderQuestion() {
         });
       });
       break;
-      
-    case 'match':
+    }
+    
+    case 'match': {
       const leftPairs = q.pairs.map((p, i) => ({ id: i, text: p[0], side: 'left' }));
       const rightPairs = q.pairs.map((p, i) => ({ id: i, text: p[1], side: 'right' }));
       // 打乱右边
@@ -2069,6 +2032,7 @@ function renderQuestion() {
       `;
       gameState.matchSelections = { left: null, right: null };
       break;
+    }
   }
 }
 
