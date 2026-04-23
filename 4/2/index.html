@@ -2320,13 +2320,13 @@ function getTierClass(tier) {
 
 function calcAchievementBonuses() {
   let totalPointsMul = 1;
-  let totalDropBonus = 0;
+  let totalDropBonus = 1; // 改用乘法：基础1，+5%就是×1.05
   let totalHintExtra = 0;
   gameState.unlockedAchievements.forEach(id => {
     const a = gameState.allAchievements.find(x => x.id === id);
     if (a && a.bonus) {
       if (a.bonus.pointsMul) totalPointsMul *= a.bonus.pointsMul;
-      if (a.bonus.dropBonus) totalDropBonus += a.bonus.dropBonus;
+      if (a.bonus.dropBonus) totalDropBonus *= (1 + a.bonus.dropBonus);
       if (a.bonus.hintExtra) totalHintExtra += a.bonus.hintExtra;
     }
   });
