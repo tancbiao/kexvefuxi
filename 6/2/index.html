@@ -1665,20 +1665,94 @@ function unlockAchievement(id) {
   saveUserData();
 }
 
+// ========== JSONBin 云同步配置 ==========
+const CLOUD_CONFIG = {
+  apiKey: '$2a$10$yr0o7UKkD0A0MIDTRvEibeRdyRNfZdtg5VnVaDwJVM2eg9Ce8ej.m',
+  collectionId: '69e9771aaaba8821972a04b6',
+  apiUrl: 'https://api.jsonbin.io/v3'
+};
+
+// 保存到云端（按学号分开存储）
+async function saveToCloud(studentId, data) {
+  if (!studentId || studentId === 'guest') return;
+  try {
+    const recordKey = 'grade6_' + studentId;
+    const url = CLOUD_CONFIG.apiUrl + '/c/' + CLOUD_CONFIG.collectionId + '/records/' + recordKey;
+    await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-ACCESS-KEY': CLOUD_CONFIG.apiKey
+      },
+      body: JSON.stringify(data)
+    });
+    console.log('云端同步成功:', recordKey);
+  } catch (e) {
+    console.error('云端同步失败:', e);
+  }
+}
+
+// 从云端加载（只加载当前学号的数据）
+async function loadFromCloud(studentId) {
+  if (!studentId || studentId === 'guest') return null;
+  try {
+    const recordKey = 'grade6_' + studentId;
+    const url = CLOUD_CONFIG.apiUrl + '/c/' + CLOUD_CONFIG.collectionId + '/records/' + recordKey;
+    const response = await fetch(url, {
+      headers: { 'X-ACCESS-KEY': CLOUD_CONFIG.apiKey }
+    });
+    if (response.ok) {
+      const result = await response.json();
+      console.log('从云端加载成功:', recordKey);
+      return result.record;
+    }
+  } catch (e) {
+    console.error('从云端加载失败:', e);
+  }
+  return null;
+}
+
 function saveUserData() {
   if (gameState.isGuest) return;
-  localStorage.setItem('scienceGame5_user_' + gameState.studentId, JSON.stringify({
+  const data = {
     totalPoints: gameState.totalPoints,
     lessonProgress: gameState.lessonProgress,
     unlockedAchievements: gameState.unlockedAchievements,
     equipment: gameState.equipment,
     equipDropped: gameState.equipDropped || {}
-  }));
+  };
+  localStorage.setItem('scienceGame5_user_' + gameState.studentId, JSON.stringify(data));
+  // 同时云同步
+  saveToCloud(gameState.studentId, data);
 }
 
 function loadUserData() {
   if (gameState.isGuest) return;
-  const saved = localStorage.getItem('scienceGame5_user_' + gameState.studentId);
+  const saveKey = 'scienceGame5_user_' + gameState.studentId;
+  const saved = localStorage.getItem(saveKey);
+  
+  // 先尝试从云端加载（异步，不阻塞）
+  loadFromCloud(gameState.studentId).then(cloudData => {
+    if (cloudData) {
+      // 云端数据比本地新，合并使用
+      const localData = saved ? JSON.parse(saved) : null;
+      if (!localData || (cloudData.totalQuestionsAnswered || 0) > (localData.totalQuestionsAnswered || 0)) {
+        gameState.totalPoints = cloudData.totalPoints || 0;
+        gameState.lessonProgress = cloudData.lessonProgress || {};
+        gameState.unlockedAchievements = cloudData.unlockedAchievements || [];
+        gameState.equipment = cloudData.equipment || [];
+        gameState.equipDropped = cloudData.equipDropped || {};
+        // 更新本地
+        localStorage.setItem(saveKey, JSON.stringify(cloudData));
+        updateUI();
+        console.log('使用云端存档');
+      } else {
+        console.log('使用本地存档（更新于云端之后）');
+      }
+    }
+  });
+  
+  // 同步加载本地数据作为初始值
   if (saved) {
     const d = JSON.parse(saved);
     gameState.totalPoints = d.totalPoints || 0;
