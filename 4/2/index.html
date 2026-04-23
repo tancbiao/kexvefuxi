@@ -2762,6 +2762,7 @@ function checkAnswer(isCorrect) {
     if (achBonus.totalPointsMul > 1) points = Math.floor(points * achBonus.totalPointsMul);
     
     gameState.totalPoints += points;
+    updateStatusBar(); // 立即更新顶部积分显示
     
     showFeedback(true, points, q);
     checkAchievements();
