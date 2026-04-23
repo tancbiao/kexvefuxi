@@ -1204,13 +1204,27 @@ const gameState = {
     // 单元成就
     { id: 'unit1_master', icon: '🌉', name: '桥梁专家', desc: '完成第一单元' },
     { id: 'unit2_master', icon: '🔬', name: '微观探索者', desc: '完成第二单元' },
+    { id: 'unit3_master', icon: '🌋', name: '地质探险家', desc: '完成第三单元' },
+    { id: 'unit4_master', icon: '🚀', name: '宇宙旅行者', desc: '完成第四单元' },
     { id: 'all_complete', icon: '🏆', name: '科学探险家', desc: '完成所有关卡' },
     // 装备成就
     { id: 'first_equip', icon: '📦', name: '初识装备', desc: '获得第一件装备' },
     { id: 'equip_10', icon: '🎒', name: '收藏家', desc: '收集10件装备' },
-    { id: 'equip_blue_white', icon: '🌤️', name: '蓝天白云', desc: '同时拥有蓝色和白色装备' },
+    { id: 'equip_blue_white', icon: '🌤️', name: '蓝天白云', desc: '同时拥有2件白色和2件蓝色装备' },
+    { id: 'equip_sword_shield', icon: '⚔️🛡️', name: '我的刀盾', desc: '同时拥有剑和盾牌' },
     { id: 'equip_rainbow', icon: '🌈', name: '彩虹收集', desc: '集齐所有颜色装备' },
-    { id: 'equip_mythic', icon: '🌟', name: '欧皇', desc: '获得神话装备' }
+    { id: 'equip_mythic', icon: '🌟', name: '欧皇', desc: '获得神话装备' },
+    // 趣味梗成就
+    { id: 'fast_correct', icon: '🚀', name: '闪电侠', desc: '3秒内答对一题' },
+    { id: 'wrong_start', icon: '🤦', name: '开门黑', desc: '第一题就答错了' },
+    { id: 'comeback', icon: '🐂', name: '逆风翻盘', desc: '前半错3题以上但最终满分通关' },
+    { id: 'equip_helmet_first', icon: '🪖', name: '安全第一', desc: '获得的第一件装备是头盔' },
+    { id: 'all_shirt_set', icon: '👔👗', name: '穿搭达人', desc: '同时拥有衬衫和裙子' },
+    { id: 'equip_bow_staff', icon: '🏹🪄', name: '法师猎人', desc: '同时拥有弓箭和魔法杖' },
+    { id: 'hint_user', icon: '💡', name: '提示依赖', desc: '一课中使用了3次以上提示' },
+    { id: 'quick_perfect', icon: '⏱️', name: '极速通关', desc: '30秒内满分完成一课' },
+    { id: 'no_wrong_3', icon: '🧊', name: '冷面杀手', desc: '连续3课零失误通关' },
+    { id: 'wrong_again', icon: '😭', name: '同一个坑', desc: '同一道题连续答错2次' }
   ],
   unlockedAchievements: []
 };
@@ -1302,6 +1316,11 @@ function startLesson(lesson) {
   gameState.currentStreak = 0;
   gameState.maxStreak = 0;
   gameState.hintsRemaining = 3;
+  gameState.lessonStartTime = Date.now();
+  gameState.hintUsedCount = 0;
+  gameState.firstHalfWrong = 0;
+  gameState.prevWrongId = null;
+  gameState.consecutivePerfectLessons = (gameState.consecutivePerfectLessons || 0);
   
   const allQuestions = [
     ...lesson.basic.map(q => ({...q, difficulty: 'basic', difficultyName: '基础题'})),
@@ -1321,6 +1340,8 @@ function startLesson(lesson) {
 function renderQuestion() {
   const q = gameState.currentQuestions[gameState.currentQuestion];
   const total = gameState.currentQuestions.length;
+
+  gameState.questionStartTime = Date.now();
   
   document.getElementById('quizProgress').textContent = `${gameState.currentQuestion + 1}/${total}`;
   document.getElementById('questionText').textContent = q.q;
@@ -1354,18 +1375,27 @@ function selectOption(idx) {
   const q = gameState.currentQuestions[gameState.currentQuestion];
   const options = document.querySelectorAll('.option');
   if (options[idx].classList.contains('disabled')) return;
-  
+
   options.forEach(opt => opt.classList.add('disabled'));
-  
+
   const isCorrect = idx === q.answer;
   options[idx].classList.add(isCorrect ? 'correct' : 'wrong');
   if (!isCorrect) options[q.answer].classList.add('correct');
-  
+
+  const total = gameState.currentQuestions.length;
+  const half = Math.floor(total / 2);
+
   if (isCorrect) {
     gameState.currentStreak++;
     gameState.correctCount++;
     if (gameState.currentStreak > gameState.maxStreak) gameState.maxStreak = gameState.currentStreak;
-    
+
+    // 闪电侠：3秒内答对
+    if (gameState.questionStartTime && (Date.now() - gameState.questionStartTime) < 3000
+        && !gameState.unlockedAchievements.includes('fast_correct')) {
+      unlockAchievement('fast_correct');
+    }
+
     let points = 10;
     if (q.difficulty === 'medium') points = 15;
     if (q.difficulty === 'hard') points = 20;
@@ -1374,6 +1404,18 @@ function selectOption(idx) {
     checkAchievements();
   } else {
     gameState.currentStreak = 0;
+    // 开门黑：第一题就答错
+    if (gameState.currentQuestion === 0 && !gameState.unlockedAchievements.includes('wrong_start')) {
+      unlockAchievement('wrong_start');
+    }
+    // 逆风翻盘追踪：前半错题计数
+    if (gameState.currentQuestion < half) gameState.firstHalfWrong = (gameState.firstHalfWrong || 0) + 1;
+    // 同一个坑追踪
+    const qId = q.q.substring(0, 20);
+    if (gameState.prevWrongId === qId && !gameState.unlockedAchievements.includes('wrong_again')) {
+      unlockAchievement('wrong_again');
+    }
+    gameState.prevWrongId = qId;
   }
   
   updateStatusBar();
@@ -1391,6 +1433,11 @@ function selectOption(idx) {
 function showHint() {
   if (gameState.hintsRemaining <= 0) return;
   gameState.hintsRemaining--;
+  gameState.hintUsedCount = (gameState.hintUsedCount || 0) + 1;
+  // 提示依赖：一课用3次以上提示
+  if (gameState.hintUsedCount >= 3 && !gameState.unlockedAchievements.includes('hint_user')) {
+    unlockAchievement('hint_user');
+  }
   const hintBox = document.getElementById('hintBox');
   hintBox.classList.add('show');
   document.getElementById('hintBtn').textContent = `💡 提示 (${gameState.hintsRemaining})`;
@@ -1407,6 +1454,42 @@ function finishQuiz() {
   }
   
   checkUnitAchievements();
+
+  // 趣味成就检查
+  const isPerfect = accuracy === 100;
+  const elapsed = gameState.lessonStartTime ? (Date.now() - gameState.lessonStartTime) / 1000 : 999;
+
+  // 极速通关：30秒内满分
+  if (isPerfect && elapsed <= 30 && !gameState.unlockedAchievements.includes('quick_perfect')) {
+    unlockAchievement('quick_perfect');
+  }
+
+  // 逆风翻盘：前半错3题以上但最终满分
+  if (isPerfect && (gameState.firstHalfWrong || 0) >= 3 && !gameState.unlockedAchievements.includes('comeback')) {
+    unlockAchievement('comeback');
+  }
+
+  // 冷面杀手：连续3课零失误
+  if (isPerfect) {
+    gameState.consecutivePerfectLessons = (gameState.consecutivePerfectLessons || 0) + 1;
+    if (gameState.consecutivePerfectLessons >= 3 && !gameState.unlockedAchievements.includes('no_wrong_3')) {
+      unlockAchievement('no_wrong_3');
+    }
+  } else {
+    gameState.consecutivePerfectLessons = 0;
+  }
+
+  // 安全第一：第一件装备是头盔
+  if (!gameState.unlockedAchievements.includes('equip_helmet_first') && gameState.equipment && gameState.equipment.length > 0) {
+    // 仅在刚获得第一件装备时检查（equipDropped总量=1）
+    const droppedCount = gameState.equipDropped ? Object.keys(gameState.equipDropped).length : 0;
+    if (droppedCount <= 1) {
+      const lastEquip = gameState.equipment[gameState.equipment.length - 1];
+      if (lastEquip && lastEquip.id && lastEquip.id.startsWith('helmet')) {
+        unlockAchievement('equip_helmet_first');
+      }
+    }
+  }
   
   // 装备掉落：每课每个难度首次通过(≥60%)才100%掉落，防止刷装备
   if (accuracy >= 60) {
@@ -1560,18 +1643,26 @@ function checkAchievements() {
 
 
 function checkUnitAchievements() {
-  const unit1Complete = questionData.unit1.lessons.every(l => (gameState.lessonProgress[l.id] || 0) >= 1);
-  const unit2Complete = questionData.unit2.lessons.every(l => (gameState.lessonProgress[l.id] || 0) >= 1);
-  if (unit1Complete && !gameState.unlockedAchievements.includes('unit1_master')) unlockAchievement('unit1_master');
-  if (unit2Complete && !gameState.unlockedAchievements.includes('unit2_master')) unlockAchievement('unit2_master');
-  if (unit1Complete && unit2Complete && !gameState.unlockedAchievements.includes('all_complete')) unlockAchievement('all_complete');
+  const u1 = questionData.unit1.lessons.every(l => (gameState.lessonProgress[l.id] || 0) >= 1);
+  const u2 = questionData.unit2.lessons.every(l => (gameState.lessonProgress[l.id] || 0) >= 1);
+  const u3 = questionData.unit3 && questionData.unit3.lessons.every(l => (gameState.lessonProgress[l.id] || 0) >= 1);
+  const u4 = questionData.unit4 && questionData.unit4.lessons.every(l => (gameState.lessonProgress[l.id] || 0) >= 1);
+  if (u1 && !gameState.unlockedAchievements.includes('unit1_master')) unlockAchievement('unit1_master');
+  if (u2 && !gameState.unlockedAchievements.includes('unit2_master')) unlockAchievement('unit2_master');
+  if (u3 && !gameState.unlockedAchievements.includes('unit3_master')) unlockAchievement('unit3_master');
+  if (u4 && !gameState.unlockedAchievements.includes('unit4_master')) unlockAchievement('unit4_master');
+  if (u1 && u2 && u3 && u4 && !gameState.unlockedAchievements.includes('all_complete')) unlockAchievement('all_complete');
 }
 
 // ========== 装备成就检查 ==========
 function checkEquipAchievements() {
   const counts = { common: 0, exquisite: 0, good: 0, rare: 0, epic: 0, legendary: 0, mythic: 0 };
+  const typeIds = {};
   if (!gameState.equipment) gameState.equipment = [];
-  gameState.equipment.forEach(e => counts[e.level]++);
+  gameState.equipment.forEach(e => {
+    counts[e.level]++;
+    typeIds[e.id.split('_')[0]] = true;
+  });
   
   // 初识装备
   if (gameState.equipment.length >= 1 && !gameState.unlockedAchievements.includes('first_equip')) {
@@ -1583,9 +1674,24 @@ function checkEquipAchievements() {
     unlockAchievement('equip_10');
   }
   
-  // 蓝天白云：同时拥有蓝色和白色装备
-  if (counts.rare > 0 && counts.common > 0 && !gameState.unlockedAchievements.includes('equip_blue_white')) {
+  // 蓝天白云：拥有2件白色 + 2件蓝色
+  if (counts.common >= 2 && counts.good >= 2 && !gameState.unlockedAchievements.includes('equip_blue_white')) {
     unlockAchievement('equip_blue_white');
+  }
+  
+  // 我的刀盾：同时拥有剑和盾牌
+  if (typeIds.sword && typeIds.shield && !gameState.unlockedAchievements.includes('equip_sword_shield')) {
+    unlockAchievement('equip_sword_shield');
+  }
+  
+  // 穿搭达人：同时拥有衬衫和裙子
+  if (typeIds.shirt && typeIds.skirt && !gameState.unlockedAchievements.includes('all_shirt_set')) {
+    unlockAchievement('all_shirt_set');
+  }
+  
+  // 法师猎人：同时拥有弓箭和魔法杖
+  if (typeIds.bow && typeIds.staff && !gameState.unlockedAchievements.includes('equip_bow_staff')) {
+    unlockAchievement('equip_bow_staff');
   }
   
   // 彩虹收集：集齐所有颜色装备

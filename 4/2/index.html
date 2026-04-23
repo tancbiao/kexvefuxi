@@ -1170,9 +1170,21 @@ const gameState = {
     // 装备相关成就
     { id: 'first_equip', icon: '📦', name: '初识装备', desc: '获得第一件装备' },
     { id: 'equip_10', icon: '🎒', name: '收藏家', desc: '收集10件装备' },
-    { id: 'equip_blue_white', icon: '🌤️', name: '蓝天白云', desc: '同时拥有蓝色和白色装备' },
+    { id: 'equip_blue_white', icon: '🌤️', name: '蓝天白云', desc: '同时拥有2件白色和2件蓝色装备' },
+    { id: 'equip_sword_shield', icon: '⚔️🛡️', name: '我的刀盾', desc: '同时拥有剑和盾牌' },
     { id: 'equip_rainbow', icon: '🌈', name: '彩虹收集', desc: '集齐所有颜色装备' },
-    { id: 'equip_mythic', icon: '🌟', name: '欧皇', desc: '获得神话装备' }
+    { id: 'equip_mythic', icon: '🌟', name: '欧皇', desc: '获得神话装备' },
+    // 趣味梗成就
+    { id: 'fast_correct', icon: '🚀', name: '闪电侠', desc: '3秒内答对一题' },
+    { id: 'wrong_start', icon: '🤦', name: '开门黑', desc: '第一题就答错了' },
+    { id: 'comeback', icon: '🐂', name: '逆风翻盘', desc: '前半错3题以上但最终满分通关' },
+    { id: 'equip_helmet_first', icon: '🪖', name: '安全第一', desc: '获得的第一件装备是头盔' },
+    { id: 'all_shirt_set', icon: '👔👗', name: '穿搭达人', desc: '同时拥有衬衫和裙子' },
+    { id: 'equip_bow_staff', icon: '🏹🪄', name: '法师猎人', desc: '同时拥有弓箭和魔法杖' },
+    { id: 'hint_user', icon: '💡', name: '提示依赖', desc: '一课中使用了3次以上提示' },
+    { id: 'quick_perfect', icon: '⏱️', name: '极速通关', desc: '30秒内满分完成一课' },
+    { id: 'no_wrong_3', icon: '🧊', name: '冷面杀手', desc: '连续3课零失误通关' },
+    { id: 'wrong_again', icon: '😭', name: '同一个坑', desc: '同一道题连续答错2次' }
   ]
 };
 
@@ -1377,13 +1389,14 @@ function showBackpack() {
   // 检查装备成就进度
   const equipAchievements = [
     { id: 'equip_rainbow', check: () => Object.values(counts).every(c => c > 0) },
-    { id: 'equip_blue_white', check: () => counts.rare > 0 && counts.common > 0 },
+    { id: 'equip_blue_white', check: () => counts.common >= 2 && counts.good >= 2 },
+    { id: 'equip_sword_shield', check: () => typeIds.sword && typeIds.shield },
     { id: 'equip_mythic', check: () => counts.mythic > 0 }
   ];
   const unlockedCount = gameState.unlockedAchievements.filter(a => 
-    ['equip_rainbow', 'equip_blue_white', 'equip_mythic'].includes(a)
+    ['equip_rainbow', 'equip_blue_white', 'equip_sword_shield', 'equip_mythic'].includes(a)
   ).length;
-  document.getElementById('equipAchievementCount').textContent = `${unlockedCount}/3`;
+  document.getElementById('equipAchievementCount').textContent = `${unlockedCount}/4`;
   
   // 渲染装备列表
   if (gameState.equipment.length === 0) {
@@ -1411,28 +1424,38 @@ function closeBackpack() {
 // ========== 装备成就检查 ==========
 function checkEquipAchievements() {
   const counts = { common: 0, good: 0, rare: 0, epic: 0, legendary: 0, mythic: 0 };
-  gameState.equipment.forEach(e => counts[e.level]++);
-  
+  const typeIds = {};
+  if (!gameState.equipment) gameState.equipment = [];
+  gameState.equipment.forEach(e => {
+    counts[e.level]++;
+    typeIds[e.id.split('_')[0]] = true;
+  });
+
   // 初识装备
   if (gameState.equipment.length >= 1 && !gameState.unlockedAchievements.includes('first_equip')) {
     unlockAchievement('first_equip');
   }
-  
+
   // 收藏家
   if (gameState.equipment.length >= 10 && !gameState.unlockedAchievements.includes('equip_10')) {
     unlockAchievement('equip_10');
   }
-  
-  // 蓝天白云
-  if (counts.rare > 0 && counts.common > 0 && !gameState.unlockedAchievements.includes('equip_blue_white')) {
+
+  // 蓝天白云：2件白色 + 2件蓝色
+  if (counts.common >= 2 && counts.good >= 2 && !gameState.unlockedAchievements.includes('equip_blue_white')) {
     unlockAchievement('equip_blue_white');
   }
-  
+
+  // 我的刀盾
+  if (typeIds.sword && typeIds.shield && !gameState.unlockedAchievements.includes('equip_sword_shield')) {
+    unlockAchievement('equip_sword_shield');
+  }
+
   // 彩虹收集
   if (Object.values(counts).every(c => c > 0) && !gameState.unlockedAchievements.includes('equip_rainbow')) {
     unlockAchievement('equip_rainbow');
   }
-  
+
   // 欧皇
   if (counts.mythic > 0 && !gameState.unlockedAchievements.includes('equip_mythic')) {
     unlockAchievement('equip_mythic');
