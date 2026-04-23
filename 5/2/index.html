@@ -114,6 +114,59 @@
   .achievement-badge.locked { opacity: 0.4; filter: grayscale(1); }
   .achievement-badge:hover { transform: scale(1.05); }
   
+  /* ========== 成就殿堂弹窗 ========== */
+  .achievement-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85); display: none; justify-content: center;
+    align-items: center; z-index: 2000; animation: fadeIn 0.3s;
+  }
+  .achievement-overlay.show { display: flex; }
+  .achievement-card {
+    background: rgba(20,20,40,0.95); backdrop-filter: blur(20px);
+    border-radius: 24px; padding: 30px; max-width: 650px;
+    width: 90%; max-height: 80vh; overflow-y: auto; animation: popIn 0.4s;
+  }
+  .achievement-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .achievement-card-title { font-size: 1.5em; font-weight: 900; }
+  .achievement-close {
+    background: rgba(255,255,255,0.1); border: none; color: #fff;
+    width: 36px; height: 36px; border-radius: 50%;
+    cursor: pointer; font-size: 1.2em; transition: all 0.3s;
+  }
+  .achievement-close:hover { background: rgba(255,255,255,0.2); }
+  .achievement-stats { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+  .achievement-stat { background: rgba(255,255,255,0.08); border-radius: 12px; padding: 12px 18px; display: flex; align-items: center; gap: 10px; }
+  .achievement-stat-icon { font-size: 1.5em; }
+  .achievement-stat-info { text-align: left; }
+  .achievement-stat-label { font-size: 0.75em; color: rgba(255,255,255,0.5); }
+  .achievement-stat-value { font-size: 1.2em; font-weight: 700; }
+  .achievement-tier-filter { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .tier-btn {
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+    color: #fff; padding: 6px 14px; border-radius: 20px; cursor: pointer;
+    font-size: 0.85em; transition: all 0.3s;
+  }
+  .tier-btn.active, .tier-btn:hover { background: rgba(255,215,0,0.3); border-color: #ffd700; }
+  .achievement-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+  .ach-item {
+    background: rgba(255,255,255,0.06); border-radius: 16px; padding: 16px;
+    text-align: center; border: 2px solid transparent; transition: all 0.3s;
+  }
+  .ach-item:hover { transform: scale(1.03); }
+  .ach-item.unlocked { border-color: #ffd700; background: rgba(255,215,0,0.08); }
+  .ach-item.locked { opacity: 0.4; filter: grayscale(0.8); }
+  .ach-item.tier-common.unlocked { border-color: #9e9e9e; }
+  .ach-item.tier-rare.unlocked { border-color: #9c27b0; background: rgba(156,39,176,0.08); }
+  .ach-item.tier-epic.unlocked { border-color: #e91e63; background: rgba(233,30,99,0.08); }
+  .ach-item.tier-legendary.unlocked { border-color: #ffd700; background: rgba(255,215,0,0.1); }
+  .ach-item.tier-mythic.unlocked { border-color: #ff5722; background: rgba(255,87,34,0.1); box-shadow: 0 0 20px rgba(255,87,34,0.3); }
+  .ach-icon { font-size: 2.2em; margin-bottom: 6px; }
+  .ach-name { font-weight: 700; font-size: 0.95em; margin-bottom: 4px; }
+  .ach-tier { font-size: 0.7em; margin-bottom: 4px; }
+  .ach-desc { font-size: 0.8em; color: rgba(255,255,255,0.6); margin-bottom: 6px; }
+  .ach-bonus { font-size: 0.75em; color: #4caf50; }
+  .ach-locked-text { font-size: 0.8em; color: rgba(255,255,255,0.3); font-style: italic; }
+  
   /* ========== 成就解锁动画 ========== */
   .achievement-unlock {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -500,7 +553,7 @@
     
     <!-- 成就预览 -->
     <div class="achievements-section">
-      <div class="achievements-title">🏅 成就预览（点击查看）</div>
+      <div class="achievements-title" style="cursor:pointer;" onclick="showAchievements()">🏅 成就殿堂（点击查看）</div>
       <div class="achievements-grid" id="achievementPreview"></div>
     </div>
   </div>
@@ -1192,39 +1245,41 @@ const gameState = {
   lessonProgress: {},
   equipment: [], // 装备背包
   allAchievements: [
-    // 基础成就
-    { id: 'first_blood', icon: '🎯', name: '首战告捷', desc: '完成第一题' },
-    { id: 'streak_2', icon: '⚡', name: '小试牛刀', desc: '达成2连胜' },
-    { id: 'streak_3', icon: '🔥', name: '三连斩', desc: '达成3连胜' },
-    { id: 'streak_5', icon: '💥', name: '五福临门', desc: '达成5连胜' },
-    { id: 'streak_7', icon: '🌟', name: '七星连珠', desc: '达成7连胜' },
-    { id: 'streak_10', icon: '👑', name: '常胜将军', desc: '达成10连胜' },
-    { id: 'no_hint', icon: '🧠', name: '独立思考', desc: '不使用提示通关' },
-    { id: 'perfect', icon: '💯', name: '满分答卷', desc: '一次通关获得满分' },
-    // 单元成就
-    { id: 'unit1_master', icon: '🌉', name: '桥梁专家', desc: '完成第一单元' },
-    { id: 'unit2_master', icon: '🔬', name: '微观探索者', desc: '完成第二单元' },
-    { id: 'unit3_master', icon: '🌋', name: '地质探险家', desc: '完成第三单元' },
-    { id: 'unit4_master', icon: '🚀', name: '宇宙旅行者', desc: '完成第四单元' },
-    { id: 'all_complete', icon: '🏆', name: '科学探险家', desc: '完成所有关卡' },
-    // 装备成就
-    { id: 'first_equip', icon: '📦', name: '初识装备', desc: '获得第一件装备' },
-    { id: 'equip_10', icon: '🎒', name: '收藏家', desc: '收集10件装备' },
-    { id: 'equip_blue_white', icon: '🌤️', name: '蓝天白云', desc: '同时拥有2件白色和2件蓝色装备' },
-    { id: 'equip_sword_shield', icon: '⚔️🛡️', name: '我的刀盾', desc: '同时拥有剑和盾牌' },
-    { id: 'equip_rainbow', icon: '🌈', name: '彩虹收集', desc: '集齐所有颜色装备' },
-    { id: 'equip_mythic', icon: '🌟', name: '欧皇', desc: '获得神话装备' },
-    // 趣味梗成就
-    { id: 'fast_correct', icon: '🚀', name: '闪电侠', desc: '3秒内答对一题' },
-    { id: 'wrong_start', icon: '🤦', name: '开门黑', desc: '第一题就答错了' },
-    { id: 'comeback', icon: '🐂', name: '逆风翻盘', desc: '前半错3题以上但最终满分通关' },
-    { id: 'equip_helmet_first', icon: '🪖', name: '安全第一', desc: '获得的第一件装备是头盔' },
-    { id: 'all_shirt_set', icon: '👔👗', name: '穿搭达人', desc: '同时拥有衬衫和裙子' },
-    { id: 'equip_bow_staff', icon: '🏹🪄', name: '法师猎人', desc: '同时拥有弓箭和魔法杖' },
-    { id: 'hint_user', icon: '💡', name: '提示依赖', desc: '一课中使用了3次以上提示' },
-    { id: 'quick_perfect', icon: '⏱️', name: '极速通关', desc: '30秒内满分完成一课' },
-    { id: 'no_wrong_3', icon: '🧊', name: '冷面杀手', desc: '连续3课零失误通关' },
-    { id: 'wrong_again', icon: '😭', name: '同一个坑', desc: '同一道题连续答错2次' }
+    // ⭐普通成就
+    { id: 'first_blood', icon: '🎯', name: '首战告捷', desc: '完成第一题', tier: '⭐', bonus: { pointsMul: 1.05 } },
+    { id: 'streak_2', icon: '⚡', name: '小试牛刀', desc: '达成2连胜', tier: '⭐', bonus: { pointsMul: 1.05 } },
+    { id: 'wrong_start', icon: '🤦', name: '开门黑', desc: '第一题就答错了', tier: '⭐', bonus: { hintExtra: 1 } },
+    { id: 'hint_user', icon: '💡', name: '提示依赖', desc: '一课中使用了3次以上提示', tier: '⭐', bonus: { hintExtra: 1 } },
+    { id: 'wrong_again', icon: '😭', name: '同一个坑', desc: '同一道题连续答错2次', tier: '⭐', bonus: {} },
+    // ⭐⭐稀有成就
+    { id: 'streak_3', icon: '🔥', name: '三连斩', desc: '达成3连胜', tier: '⭐⭐', bonus: { pointsMul: 1.10 } },
+    { id: 'no_hint', icon: '🧠', name: '独立思考', desc: '不使用提示通关', tier: '⭐⭐', bonus: { pointsMul: 1.10, hintExtra: 1 } },
+    { id: 'fast_correct', icon: '🚀', name: '闪电侠', desc: '3秒内答对一题', tier: '⭐⭐', bonus: { pointsMul: 1.08 } },
+    { id: 'equip_helmet_first', icon: '🪖', name: '安全第一', desc: '获得的第一件装备是头盔', tier: '⭐⭐', bonus: { dropBonus: 0.05 } },
+    { id: 'first_equip', icon: '📦', name: '初识装备', desc: '获得第一件装备', tier: '⭐⭐', bonus: { dropBonus: 0.03 } },
+    { id: 'all_shirt_set', icon: '👔👗', name: '穿搭达人', desc: '同时拥有衬衫和裙子', tier: '⭐⭐', bonus: { pointsMul: 1.08 } },
+    { id: 'equip_bow_staff', icon: '🏹🪄', name: '法师猎人', desc: '同时拥有弓箭和魔法杖', tier: '⭐⭐', bonus: { pointsMul: 1.08 } },
+    // ⭐⭐⭐史诗成就
+    { id: 'streak_5', icon: '💥', name: '五福临门', desc: '达成5连胜', tier: '⭐⭐⭐', bonus: { pointsMul: 1.15, dropBonus: 0.05 } },
+    { id: 'perfect', icon: '💯', name: '满分答卷', desc: '一次通关获得满分', tier: '⭐⭐⭐', bonus: { pointsMul: 1.15 } },
+    { id: 'comeback', icon: '🐂', name: '逆风翻盘', desc: '前半错3题以上但最终满分通关', tier: '⭐⭐⭐', bonus: { pointsMul: 1.15, dropBonus: 0.08 } },
+    { id: 'quick_perfect', icon: '⏱️', name: '极速通关', desc: '30秒内满分完成一课', tier: '⭐⭐⭐', bonus: { pointsMul: 1.18, dropBonus: 0.05 } },
+    { id: 'no_wrong_3', icon: '🧊', name: '冷面杀手', desc: '连续3课零失误通关', tier: '⭐⭐⭐', bonus: { pointsMul: 1.15, hintExtra: 2 } },
+    { id: 'equip_10', icon: '🎒', name: '收藏家', desc: '收集10件装备', tier: '⭐⭐⭐', bonus: { dropBonus: 0.10 } },
+    { id: 'equip_sword_shield', icon: '⚔️🛡️', name: '我的刀盾', desc: '同时拥有剑和盾牌', tier: '⭐⭐⭐', bonus: { pointsMul: 1.10, dropBonus: 0.05 } },
+    { id: 'equip_blue_white', icon: '🌤️', name: '蓝天白云', desc: '同时拥有2件白色和2件蓝色装备', tier: '⭐⭐⭐', bonus: { pointsMul: 1.10 } },
+    // ⭐⭐⭐史诗·单元成就
+    { id: 'unit1_master', icon: '🌉', name: '桥梁专家', desc: '完成第一单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
+    { id: 'unit2_master', icon: '🔬', name: '微观探索者', desc: '完成第二单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
+    { id: 'unit3_master', icon: '🌋', name: '地质探险家', desc: '完成第三单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
+    { id: 'unit4_master', icon: '🚀', name: '宇宙旅行者', desc: '完成第四单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
+    // 👑传说成就
+    { id: 'streak_7', icon: '🌟', name: '七星连珠', desc: '达成7连胜', tier: '👑', bonus: { pointsMul: 1.25, dropBonus: 0.15, hintExtra: 2 } },
+    { id: 'equip_rainbow', icon: '🌈', name: '彩虹收集', desc: '集齐所有颜色装备', tier: '👑', bonus: { pointsMul: 1.25, dropBonus: 0.20 } },
+    { id: 'equip_mythic', icon: '🌟', name: '欧皇', desc: '获得神话装备', tier: '👑', bonus: { pointsMul: 1.30, dropBonus: 0.15 } },
+    // 🏆神话成就
+    { id: 'streak_10', icon: '👑', name: '常胜将军', desc: '达成10连胜', tier: '🏆', bonus: { pointsMul: 1.40, dropBonus: 0.25, hintExtra: 3 } },
+    { id: 'all_complete', icon: '🏆', name: '科学探险家', desc: '完成所有关卡', tier: '🏆', bonus: { pointsMul: 1.50, dropBonus: 0.30, hintExtra: 3 } },
   ],
   unlockedAchievements: []
 };
@@ -1316,11 +1371,17 @@ function startLesson(lesson) {
   gameState.currentStreak = 0;
   gameState.maxStreak = 0;
   gameState.hintsRemaining = 3;
+  // 成就提示加成
+  const achBonuses = calcAchievementBonuses();
+  gameState.hintsRemaining += (achBonuses.totalHintExtra || 0);
   gameState.lessonStartTime = Date.now();
   gameState.hintUsedCount = 0;
   gameState.firstHalfWrong = 0;
   gameState.prevWrongId = null;
   gameState.consecutivePerfectLessons = (gameState.consecutivePerfectLessons || 0);
+  // 检查是否重新刷题（已获得过星星）
+  const lessonId = lesson.id;
+  gameState.isReplay = (gameState.lessonProgress && gameState.lessonProgress[lessonId] && gameState.lessonProgress[lessonId] >= 1);
   
   const allQuestions = [
     ...lesson.basic.map(q => ({...q, difficulty: 'basic', difficultyName: '基础题'})),
@@ -1400,6 +1461,11 @@ function selectOption(idx) {
     if (q.difficulty === 'medium') points = 15;
     if (q.difficulty === 'hard') points = 20;
     points = Math.floor(points * (1 + gameState.currentStreak * 0.1));
+    // 重新刷题只给50%积分
+    if (gameState.isReplay) points = Math.floor(points * 0.5);
+    // 成就积分加成
+    const achBonus = calcAchievementBonuses();
+    if (achBonus.totalPointsMul > 1) points = Math.floor(points * achBonus.totalPointsMul);
     gameState.totalPoints += points;
     checkAchievements();
   } else {
@@ -1817,9 +1883,143 @@ function renderAchievementPreview() {
   document.getElementById('achievementCount').textContent = gameState.unlockedAchievements.length;
 }
 
+// ========== 成就殿堂弹窗 ==========
+let achievementFilter = 'all';
+
+function getAchievementBonusText(bonus) {
+  if (!bonus || Object.keys(bonus).length === 0) return '<span style="color:rgba(255,255,255,0.3)">无加成</span>';
+  const parts = [];
+  if (bonus.pointsMul) parts.push(`积分×${bonus.pointsMul}`);
+  if (bonus.dropBonus) parts.push(`掉率+${Math.round(bonus.dropBonus * 100)}%`);
+  if (bonus.hintExtra) parts.push(`提示+${bonus.hintExtra}`);
+  return parts.join(' | ');
+}
+
+function getTierClass(tier) {
+  if (tier === '⭐') return 'tier-common';
+  if (tier === '⭐⭐') return 'tier-rare';
+  if (tier === '⭐⭐⭐') return 'tier-epic';
+  if (tier === '👑') return 'tier-legendary';
+  if (tier === '🏆') return 'tier-mythic';
+  return '';
+}
+
+function calcAchievementBonuses() {
+  let totalPointsMul = 1;
+  let totalDropBonus = 0;
+  let totalHintExtra = 0;
+  gameState.unlockedAchievements.forEach(id => {
+    const a = gameState.allAchievements.find(x => x.id === id);
+    if (a && a.bonus) {
+      if (a.bonus.pointsMul) totalPointsMul *= a.bonus.pointsMul;
+      if (a.bonus.dropBonus) totalDropBonus += a.bonus.dropBonus;
+      if (a.bonus.hintExtra) totalHintExtra += a.bonus.hintExtra;
+    }
+  });
+  return { totalPointsMul, totalDropBonus, totalHintExtra };
+}
+
+function renderAchievementGrid() {
+  const grid = document.getElementById('achievementGrid');
+  const bonuses = calcAchievementBonuses();
+  
+  // 更新统计
+  document.getElementById('achUnlockedCount').textContent = `${gameState.unlockedAchievements.length}/${gameState.allAchievements.length}`;
+  document.getElementById('achPointsBonus').textContent = `×${bonuses.totalPointsMul.toFixed(2)}`;
+  document.getElementById('achDropBonus').textContent = `+${Math.round(bonuses.totalDropBonus * 100)}%`;
+  
+  // 过滤成就
+  let achievements = gameState.allAchievements;
+  if (achievementFilter === 'unlocked') {
+    achievements = achievements.filter(a => gameState.unlockedAchievements.includes(a.id));
+  } else if (achievementFilter !== 'all') {
+    achievements = achievements.filter(a => a.tier === achievementFilter);
+  }
+  
+  // 按难度排序
+  const tierOrder = { '⭐': 0, '⭐⭐': 1, '⭐⭐⭐': 2, '👑': 3, '🏆': 4 };
+  achievements.sort((a, b) => (tierOrder[a.tier] || 0) - (tierOrder[b.tier] || 0));
+  
+  grid.innerHTML = achievements.map(a => {
+    const unlocked = gameState.unlockedAchievements.includes(a.id);
+    const tierCls = getTierClass(a.tier);
+    return `<div class="ach-item ${unlocked ? 'unlocked ' + tierCls : 'locked'}">
+      <div class="ach-icon">${unlocked ? a.icon : '🔒'}</div>
+      <div class="ach-name">${unlocked ? a.name : '???'}</div>
+      <div class="ach-tier">${a.tier}</div>
+      <div class="ach-desc">${a.desc}</div>
+      ${unlocked ? `<div class="ach-bonus">${getAchievementBonusText(a.bonus)}</div>` : '<div class="ach-locked-text">未解锁</div>'}
+    </div>`;
+  }).join('');
+}
+
+function showAchievements() {
+  renderAchievementGrid();
+  document.getElementById('achievementOverlay').classList.add('show');
+}
+
+function closeAchievements() {
+  document.getElementById('achievementOverlay').classList.remove('show');
+}
+
+function filterAchievements(filter) {
+  achievementFilter = filter;
+  document.querySelectorAll('.tier-btn').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+  renderAchievementGrid();
+}
+
+// 点击遮罩关闭成就弹窗
+document.addEventListener('click', function(e) {
+  if (e.target.classList.contains('achievement-overlay')) closeAchievements();
+});
+
 // 初始化时渲染成就预览
 setTimeout(renderAchievementPreview, 100);
 </script>
+
+<!-- 成就殿堂弹窗 -->
+<div class="achievement-overlay" id="achievementOverlay">
+  <div class="achievement-card">
+    <div class="achievement-header">
+      <div class="achievement-card-title">🏅 成就殿堂</div>
+      <button class="achievement-close" onclick="closeAchievements()">✕</button>
+    </div>
+    <div class="achievement-stats">
+      <div class="achievement-stat">
+        <div class="achievement-stat-icon">🏆</div>
+        <div class="achievement-stat-info">
+          <div class="achievement-stat-label">已解锁</div>
+          <div class="achievement-stat-value" id="achUnlockedCount">0/30</div>
+        </div>
+      </div>
+      <div class="achievement-stat">
+        <div class="achievement-stat-icon">⚡</div>
+        <div class="achievement-stat-info">
+          <div class="achievement-stat-label">总积分加成</div>
+          <div class="achievement-stat-value" id="achPointsBonus">+0%</div>
+        </div>
+      </div>
+      <div class="achievement-stat">
+        <div class="achievement-stat-icon">🎁</div>
+        <div class="achievement-stat-info">
+          <div class="achievement-stat-label">掉率加成</div>
+          <div class="achievement-stat-value" id="achDropBonus">+0%</div>
+        </div>
+      </div>
+    </div>
+    <div class="achievement-tier-filter">
+      <button class="tier-btn active" onclick="filterAchievements('all')">全部</button>
+      <button class="tier-btn" onclick="filterAchievements('unlocked')">已解锁</button>
+      <button class="tier-btn" onclick="filterAchievements('⭐')">⭐普通</button>
+      <button class="tier-btn" onclick="filterAchievements('⭐⭐')">⭐⭐稀有</button>
+      <button class="tier-btn" onclick="filterAchievements('⭐⭐⭐')">⭐⭐⭐史诗</button>
+      <button class="tier-btn" onclick="filterAchievements('👑')">👑传说</button>
+      <button class="tier-btn" onclick="filterAchievements('🏆')">🏆神话</button>
+    </div>
+    <div class="achievement-grid" id="achievementGrid"></div>
+  </div>
+</div>
 
 <!-- 背包弹窗 -->
 <div class="backpack-overlay" id="backpackOverlay">

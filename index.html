@@ -64,6 +64,60 @@
     margin-bottom: 40px;
   }
 
+  /* 成就展示区 */
+  .achievement-bar {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+    padding: 16px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .achievement-badge {
+    font-size: 28px;
+    position: relative;
+    cursor: default;
+    opacity: 0.3;
+    filter: grayscale(100%);
+    transition: all 0.3s;
+  }
+  .achievement-badge.unlocked {
+    opacity: 1;
+    filter: grayscale(0%);
+  }
+  .achievement-badge:hover .tooltip {
+    display: block;
+  }
+  .achievement-badge .tooltip {
+    display: none;
+    position: absolute;
+    bottom: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.9);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 100;
+    white-space: normal;
+    text-align: center;
+    width: 150px;
+  }
+  .achievement-stats {
+    font-size: 14px;
+    color: rgba(255,255,255,0.6);
+    margin-top: 10px;
+  }
+  .achievement-stats span {
+    color: #ffd700;
+    font-weight: bold;
+  }
+
   .mode-tabs {
     display: flex;
     justify-content: center;
@@ -220,6 +274,11 @@
   <h1>科学趣味闯关</h1>
   <p class="subtitle">选择你的年级，开始复习之旅</p>
 
+  <!-- 成就展示区 -->
+  <div class="achievement-bar" id="achievementBar">
+    <div class="achievement-stats">正在加载成就...</div>
+  </div>
+
   <!-- 模式切换 -->
   <div class="mode-tabs">
     <button class="mode-tab active" onclick="switchMode('solo')">单人闯关</button>
@@ -315,7 +374,7 @@
     <div class="semester-title">📕 六年级 · 选择学期</div>
     <div class="semester-grid">
       <a class="semester-btn locked" href="#"><div class="sem-icon">🌸</div><div class="sem-name">上学期</div><div class="sem-desc">施工中</div></a>
-      <a class="semester-btn" href="6/2/"><div class="sem-icon">🍂</div><div class="sem-name">下学期</div><div class="sem-desc">六年级下册科学 · 粤教版</div></a>
+      <a class="semester-btn" href="6/2/"><div class="sem-icon">🍂</div><div class="sem-name">下学期</div><div class="sem-desc">六年级下册科学 · 4单元23课</div></a>
     </div>
   </div>
 
@@ -326,6 +385,72 @@
 </div>
 
 <script>
+  // 成就图标定义
+  const ALL_ACHIEVEMENTS = [
+    { id: 'first_correct', icon: '🎯', name: '首战告捷', desc: '答对第一道题' },
+    { id: 'streak_2', icon: '⚡', name: '小试牛刀', desc: '获得2连胜' },
+    { id: 'streak_3', icon: '🔥', name: '三连斩', desc: '获得3连胜' },
+    { id: 'streak_5', icon: '💥', name: '五福临门', desc: '获得5连胜' },
+    { id: 'streak_7', icon: '🌟', name: '七星连珠', desc: '获得7连胜' },
+    { id: 'streak_10', icon: '👑', name: '常胜将军', desc: '获得10连胜' },
+    { id: 'unit1_master', icon: '🌿', name: '植物学家', desc: '完成第一单元' },
+    { id: 'unit2_master', icon: '🐾', name: '动物专家', desc: '完成第二单元' },
+    { id: 'unit3_master', icon: '🚀', name: '力学达人', desc: '完成第三单元' },
+    { id: 'unit4_master', icon: '🌙', name: '天文探索者', desc: '完成第四单元' },
+    { id: 'first_perfect', icon: '💎', name: '满分达人', desc: '首次满分通关' },
+    { id: 'first_battle', icon: '⚔️', name: '初出茅庐', desc: '赢得第一场对战' }
+  ];
+
+  // 从各年级localStorage收集成就
+  function loadAchievements() {
+    const unlockedIds = new Set();
+    const grades = [4, 5, 6];
+    
+    grades.forEach(grade => {
+      // 尝试各年级的下册
+      ['scienceGame_user_'].forEach(prefix => {
+        // 遍历可能的学号（简化处理，只检查是否有任何存档）
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.includes('scienceGame_user_')) {
+            try {
+              const data = JSON.parse(localStorage.getItem(key));
+              if (data && data.unlockedAchievements) {
+                data.unlockedAchievements.forEach(id => unlockedIds.add(id));
+              }
+            } catch(e) {}
+          }
+        }
+      });
+    });
+    
+    return Array.from(unlockedIds);
+  }
+
+  // 渲染成就展示
+  function renderAchievements() {
+    const container = document.getElementById('achievementBar');
+    const unlockedIds = loadAchievements();
+    
+    if (unlockedIds.length === 0) {
+      container.innerHTML = '<div class="achievement-stats">开始游戏解锁成就！</div>';
+      return;
+    }
+    
+    let html = '';
+    ALL_ACHIEVEMENTS.forEach(a => {
+      const unlocked = unlockedIds.includes(a.id);
+      html += `
+        <div class="achievement-badge ${unlocked ? 'unlocked' : ''}">
+          ${a.icon}
+          <div class="tooltip">${a.name}<br><small>${a.desc}</small></div>
+        </div>
+      `;
+    });
+    html += `<div class="achievement-stats">已解锁 <span>${unlockedIds.length}</span> / ${ALL_ACHIEVEMENTS.length} 个成就</div>`;
+    container.innerHTML = html;
+  }
+
   // 粒子背景
   const particleContainer = document.getElementById('particles');
   for (let i = 0; i < 30; i++) {
@@ -336,6 +461,9 @@
     p.style.animationDuration = (10 + Math.random() * 10) + 's';
     particleContainer.appendChild(p);
   }
+
+  // 页面加载时渲染成就
+  renderAchievements();
 
   function showGrades() {
     document.getElementById('gradePanel').style.display = '';

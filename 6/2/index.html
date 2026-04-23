@@ -3,312 +3,1950 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>科学探险家 · 六年级下册</title>
+<title>🌟 科学探险家 · 六年级科学趣味闯关</title>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: "微软雅黑","PingFang SC",sans-serif; background: linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%); min-height: 100vh; color: #fff; overflow-x: hidden; }
-.particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; overflow: hidden; }
-.particle { position: absolute; width: 6px; height: 6px; background: rgba(255,255,255,0.3); border-radius: 50%; animation: float 15s infinite; }
-@keyframes float { 0%,100% { transform: translateY(100vh) rotate(0deg); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; } }
-.container { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 20px 15px; }
-.header { text-align: center; margin-bottom: 30px; padding: 30px 20px; background: rgba(255,255,255,0.05); border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); }
-.header h1 { font-size: 2em; margin-bottom: 10px; background: linear-gradient(90deg,#60a5fa,#a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-.header p { color: rgba(255,255,255,0.6); font-size: 0.95em; }
-.units-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 20px; margin-bottom: 30px; }
-.unit-card { border-radius: 20px; padding: 20px; border: 2px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); transition: all 0.3s; cursor: pointer; }
-.unit-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.3); border-color: rgba(255,255,255,0.3); }
-.unit-header { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
-.unit-emoji { font-size: 2.5em; }
-.unit-title { font-size: 1.2em; font-weight: bold; }
-.unit-sub { font-size: 0.8em; color: rgba(255,255,255,0.5); }
-.lessons-list { display: flex; flex-direction: column; gap: 8px; }
-.lesson-btn { padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; cursor: pointer; font-family: inherit; font-size: 0.9em; text-align: left; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
-.lesson-btn:hover { background: rgba(255,255,255,0.12); transform: scale(1.02); }
-.lesson-name { font-weight: bold; }
-.lesson-desc { font-size: 0.8em; opacity: 0.65; margin-left: auto; }
-.back-btn { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.7); padding: 12px 24px; border-radius: 30px; font-size: 0.9em; cursor: pointer; font-family: inherit; transition: all 0.3s; text-decoration: none; }
-.back-btn:hover { background: rgba(255,255,255,0.2); color: #fff; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    font-family: "微软雅黑", "PingFang SC", sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    min-height: 100vh;
+    color: #fff;
+    overflow-x: hidden;
+  }
 
-#gameScreen { display: none; }
-.game-card { background: rgba(255,255,255,0.07); border-radius: 24px; padding: 25px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); }
-.game-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-.game-info { display: flex; align-items: center; gap: 15px; }
-.progress-ring-wrap { position: relative; width: 70px; height: 70px; }
-.progress-ring { transform: rotate(-90deg); transform-origin: 50% 50%; }
-.progress-ring-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 6; }
-.progress-ring-fill { fill: none; stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 0.3s; }
-.progress-ring-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 1.1em; font-weight: bold; }
-.game-title { font-size: 1.1em; font-weight: bold; }
-.game-sub { font-size: 0.8em; color: rgba(255,255,255,0.5); }
-.back-to-units { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 0.9em; cursor: pointer; font-family: inherit; transition: all 0.3s; }
-.back-to-units:hover { background: rgba(255,255,255,0.2); }
-.q-card { background: rgba(255,255,255,0.08); border-radius: 20px; padding: 20px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
-.q-unit-tag { display: inline-block; padding: 3px 14px; border-radius: 20px; font-size: 0.8em; margin-bottom: 10px; background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); }
-.q-text { font-size: 1.25em; font-weight: bold; line-height: 1.6; }
-.opts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.opt-btn { background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.15); border-radius: 14px; padding: 14px 12px; color: #fff; font-size: 1em; cursor: pointer; font-family: inherit; transition: all 0.15s; text-align: center; min-height: 54px; touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; }
-.opt-btn:hover:not(.disabled):not(.correct):not(.wrong) { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.35); }
-.opt-btn.correct { background: rgba(76,175,80,0.3); border-color: #4caf50; color: #4caf50; animation: pop 0.4s; }
-.opt-btn.wrong { background: rgba(244,67,54,0.3); border-color: #f44336; color: #f44336; animation: shake 0.4s; }
-.opt-btn.disabled { opacity: 0.5; cursor: not-allowed; }
-@keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.08)} 100%{transform:scale(1)} }
-@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
-.hint-box { margin-top: 12px; padding: 10px 16px; background: rgba(255,217,61,0.1); border: 1px solid rgba(255,217,61,0.3); border-radius: 12px; font-size: 0.88em; color: #ffd93d; display: none; }
-.hint-box.show { display: block; animation: fadeIn 0.3s; }
-@keyframes fadeIn { from{opacity:0;transform:translateY(-5px)} to{opacity:1;transform:translateY(0)} }
-.hint-btn { background: rgba(255,217,61,0.15); border: 1px solid rgba(255,217,61,0.3); color: #ffd93d; padding: 8px 16px; border-radius: 20px; font-size: 0.85em; cursor: pointer; font-family: inherit; margin-top: 10px; transition: all 0.2s; }
-.hint-btn:hover { background: rgba(255,217,61,0.25); }
-.next-btn { background: linear-gradient(135deg,#4ade80,#22c55e); border: none; color: #fff; padding: 14px 30px; border-radius: 30px; font-size: 1em; font-weight: bold; cursor: pointer; font-family: inherit; margin-top: 15px; transition: all 0.3s; display: none; }
-.next-btn.show { display: inline-block; }
-.next-btn:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(74,222,128,0.4); }
-.stats-row { display: flex; gap: 20px; margin-bottom: 15px; flex-wrap: wrap; }
-.stat-item { flex: 1; text-align: center; background: rgba(255,255,255,0.05); border-radius: 16px; padding: 15px; min-width: 100px; }
-.stat-val { font-size: 2em; font-weight: 900; }
-.stat-lbl { font-size: 0.8em; color: rgba(255,255,255,0.5); }
-.result-panel { text-align: center; display: none; margin-top: 20px; padding: 25px; background: rgba(255,255,255,0.07); border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); }
-.result-stars { font-size: 3em; margin-bottom: 15px; }
-.result-title { font-size: 1.8em; font-weight: 900; margin-bottom: 10px; }
-.result-sub { color: rgba(255,255,255,0.6); font-size: 0.95em; margin-bottom: 20px; }
-.result-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-.replay-btn { background: linear-gradient(135deg,#4ade80,#22c55e); border: none; color: #fff; padding: 14px 30px; border-radius: 30px; font-size: 1em; font-weight: bold; cursor: pointer; font-family: inherit; transition: all 0.3s; }
-.replay-btn:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(74,222,128,0.4); }
-.replay-btn.secondary { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); font-weight: normal; }
-@media(max-width:768px){ .units-grid{grid-template-columns:1fr} .opts-grid{grid-template-columns:1fr} .stat-item{min-width:80px} }
-@media(max-width:480px){ .header h1{font-size:1.5em} .q-text{font-size:1.1em} }
+  .particles {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+  }
+  .particle {
+    position: absolute;
+    width: 6px; height: 6px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 50%;
+    animation: float 15s infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+  }
+
+  .game-container {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 12px 20px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .status-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.1em;
+  }
+  .status-icon { font-size: 1.3em; }
+  .status-value { font-weight: 700; color: #ffd700; }
+  .streak-fire { animation: pulse 1s infinite; }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+  }
+
+  .screen { display: none; animation: fadeIn 0.4s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-section { text-align: center; padding: 40px 20px; }
+  .hero-title {
+    font-size: 2.8em;
+    font-weight: 900;
+    background: linear-gradient(135deg, #ffd700, #ff6b6b, #4ecdc4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 10px;
+  }
+  .hero-subtitle { font-size: 1.2em; color: rgba(255,255,255,0.7); margin-bottom: 30px; }
+  .hero-mascot { font-size: 6em; margin: 20px 0; animation: bounce 2s infinite; }
+  
+  /* ========== 成就预览 ========== */
+  .achievements-section {
+    margin-top: 30px;
+    padding: 20px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 16px;
+  }
+  .achievements-title { font-size: 1.1em; font-weight: 700; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+  .achievements-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+  .achievement-badge {
+    background: rgba(255,255,255,0.1);
+    padding: 10px 15px;
+    border-radius: 12px;
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .achievement-badge.unlocked { background: linear-gradient(135deg, #ffd700, #ff8c00); border-color: #ffd700; color: #1a1a2e; }
+  .achievement-badge.locked { opacity: 0.4; filter: grayscale(1); }
+  .achievement-badge:hover { transform: scale(1.05); }
+  
+  /* ========== 成就殿堂弹窗 ========== */
+  .achievement-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85); display: none; justify-content: center;
+    align-items: center; z-index: 2000; animation: fadeIn 0.3s;
+  }
+  .achievement-overlay.show { display: flex; }
+  .achievement-card {
+    background: rgba(20,20,40,0.95); backdrop-filter: blur(20px);
+    border-radius: 24px; padding: 30px; max-width: 650px;
+    width: 90%; max-height: 80vh; overflow-y: auto; animation: popIn 0.4s;
+  }
+  .achievement-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .achievement-card-title { font-size: 1.5em; font-weight: 900; }
+  .achievement-close {
+    background: rgba(255,255,255,0.1); border: none; color: #fff;
+    width: 36px; height: 36px; border-radius: 50%;
+    cursor: pointer; font-size: 1.2em; transition: all 0.3s;
+  }
+  .achievement-close:hover { background: rgba(255,255,255,0.2); }
+  .achievement-stats { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+  .achievement-stat { background: rgba(255,255,255,0.08); border-radius: 12px; padding: 12px 18px; display: flex; align-items: center; gap: 10px; }
+  .achievement-stat-icon { font-size: 1.5em; }
+  .achievement-stat-info { text-align: left; }
+  .achievement-stat-label { font-size: 0.75em; color: rgba(255,255,255,0.5); }
+  .achievement-stat-value { font-size: 1.2em; font-weight: 700; }
+  .achievement-tier-filter { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .tier-btn {
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+    color: #fff; padding: 6px 14px; border-radius: 20px; cursor: pointer;
+    font-size: 0.85em; transition: all 0.3s;
+  }
+  .tier-btn.active, .tier-btn:hover { background: rgba(255,215,0,0.3); border-color: #ffd700; }
+  .achievement-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+  .ach-item {
+    background: rgba(255,255,255,0.06); border-radius: 16px; padding: 16px;
+    text-align: center; border: 2px solid transparent; transition: all 0.3s;
+  }
+  .ach-item:hover { transform: scale(1.03); }
+  .ach-item.unlocked { border-color: #ffd700; background: rgba(255,215,0,0.08); }
+  .ach-item.locked { opacity: 0.4; filter: grayscale(0.8); }
+  .ach-item.tier-common.unlocked { border-color: #9e9e9e; }
+  .ach-item.tier-rare.unlocked { border-color: #9c27b0; background: rgba(156,39,176,0.08); }
+  .ach-item.tier-epic.unlocked { border-color: #e91e63; background: rgba(233,30,99,0.08); }
+  .ach-item.tier-legendary.unlocked { border-color: #ffd700; background: rgba(255,215,0,0.1); }
+  .ach-item.tier-mythic.unlocked { border-color: #ff5722; background: rgba(255,87,34,0.1); box-shadow: 0 0 20px rgba(255,87,34,0.3); }
+  .ach-icon { font-size: 2.2em; margin-bottom: 6px; }
+  .ach-name { font-weight: 700; font-size: 0.95em; margin-bottom: 4px; }
+  .ach-tier { font-size: 0.7em; margin-bottom: 4px; }
+  .ach-desc { font-size: 0.8em; color: rgba(255,255,255,0.6); margin-bottom: 6px; }
+  .ach-bonus { font-size: 0.75em; color: #4caf50; }
+  .ach-locked-text { font-size: 0.8em; color: rgba(255,255,255,0.3); font-style: italic; }
+  
+  /* ========== 成就解锁动画 ========== */
+  .achievement-unlock {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8);
+    display: none; justify-content: center; align-items: center;
+    z-index: 9999;
+    animation: fadeIn 0.3s;
+  }
+  .achievement-unlock.show { display: flex; }
+  .achievement-unlock .title { font-weight: 900; font-size: 1.2em; margin-bottom: 10px; }
+  .achievement-unlock .icon { font-size: 3em; margin: 15px 0; animation: bounce 0.5s; }
+  .achievement-unlock .name { font-weight: 700; color: #ffd700; }
+  
+  /* ========== 背包弹窗 ========== */
+  .backpack-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85);
+    display: none; justify-content: center; align-items: center;
+    z-index: 2000;
+    animation: fadeIn 0.3s;
+  }
+  .backpack-overlay.show { display: flex; }
+  .backpack-card {
+    background: rgba(20,20,40,0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    padding: 30px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: popIn 0.4s;
+  }
+  .backpack-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .backpack-title { font-size: 1.5em; font-weight: 900; }
+  .backpack-close {
+    background: rgba(255,255,255,0.1); border: none; color: #fff;
+    width: 36px; height: 36px; border-radius: 50%;
+    cursor: pointer; font-size: 1.2em; transition: all 0.3s;
+  }
+  .backpack-close:hover { background: rgba(255,255,255,0.2); }
+  .backpack-stats { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
+  .backpack-stat { background: rgba(255,255,255,0.08); border-radius: 12px; padding: 12px 20px; display: flex; align-items: center; gap: 10px; }
+  .backpack-stat-icon { font-size: 1.5em; }
+  .backpack-stat-info { text-align: left; }
+  .backpack-stat-label { font-size: 0.75em; color: rgba(255,255,255,0.5); }
+  .backpack-stat-value { font-size: 1.2em; font-weight: 700; }
+  .backpack-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .equip-item { background: rgba(255,255,255,0.06); border-radius: 16px; padding: 16px; text-align: center; border: 2px solid transparent; transition: all 0.3s; cursor: pointer; }
+  .equip-item:hover { transform: scale(1.05); }
+  .equip-item.common { border-color: #9e9e9e; }
+  .equip-item.exquisite { border-color: #4caf50; }
+  .equip-item.good { border-color: #2196f3; }
+  .equip-item.rare { border-color: #9c27b0; }
+  .equip-item.epic { border-color: #e91e63; }
+  .equip-item.legendary { border-color: #ffd700; }
+  .equip-item.mythic { border-color: #ff5722; }
+  .equip-icon { font-size: 2.5em; margin-bottom: 8px; }
+  .equip-name { font-weight: 700; font-size: 0.95em; margin-bottom: 4px; }
+  .equip-level { font-size: 0.75em; padding: 2px 10px; border-radius: 10px; display: inline-block; margin-bottom: 6px; }
+  .equip-level.common { background: #9e9e9e; }
+  .equip-level.exquisite { background: #4caf50; }
+  .equip-level.good { background: #2196f3; }
+  .equip-level.rare { background: #9c27b0; }
+  .equip-level.epic { background: #e91e63; }
+  .equip-level.legendary { background: #ffd700; color: #1a1a2e; }
+  .equip-level.mythic { background: #ff5722; }
+  .equip-effect { font-size: 0.8em; color: rgba(255,255,255,0.6); }
+  .equip-empty { text-align: center; padding: 40px; color: rgba(255,255,255,0.5); }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+  }
+  .start-btn {
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    color: #1a1a2e;
+    font-size: 1.4em;
+    font-weight: 900;
+    padding: 16px 50px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 8px 30px rgba(255,215,0,0.4);
+  }
+  .start-btn:hover { transform: scale(1.08); box-shadow: 0 12px 40px rgba(255,215,0,0.6); }
+
+  .level-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-top: 20px;
+  }
+  .level-card {
+    background: rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 24px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+  }
+  .level-card:hover:not(.locked) {
+    transform: translateY(-5px);
+    border-color: var(--card-color);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  }
+  .level-card.completed { border-color: #4ecdc4; background: rgba(78,205,196,0.1); }
+  .level-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 4px;
+    background: var(--card-color);
+  }
+  .level-icon { font-size: 3em; margin-bottom: 10px; }
+  .level-name { font-size: 1.1em; font-weight: 700; margin-bottom: 6px; }
+  .level-stars { font-size: 1.4em; margin: 8px 0; }
+  .level-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8em;
+    font-weight: 700;
+  }
+  .badge-easy { background: #4caf50; color: white; }
+  .badge-locked { background: #666; color: #ccc; }
+
+  .unit-title {
+    grid-column: 1 / -1;
+    font-size: 1.4em;
+    font-weight: 900;
+    text-align: left;
+    padding: 15px 20px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    margin-top: 10px;
+  }
+  .unit-title span { margin-right: 10px; }
+
+  .quiz-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .back-btn {
+    background: rgba(255,255,255,0.1);
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: all 0.3s;
+  }
+  .back-btn:hover { background: rgba(255,255,255,0.2); }
+  .quiz-progress { font-size: 1.1em; color: rgba(255,255,255,0.8); }
+
+  .question-card {
+    background: rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .question-type {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    margin-bottom: 15px;
+  }
+  .type-choice { background: #2196f3; }
+  .type-judge { background: #ff9800; }
+  .question-text { font-size: 1.3em; line-height: 1.6; margin-bottom: 25px; }
+  .options { display: flex; flex-direction: column; gap: 12px; }
+  .option {
+    background: rgba(255,255,255,0.1);
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 12px;
+    padding: 15px 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 1.1em;
+    text-align: left;
+  }
+  .option:hover:not(.selected):not(.correct):not(.wrong) {
+    background: rgba(255,255,255,0.15);
+    border-color: #ffd700;
+  }
+  .option.correct { border-color: #4caf50; background: rgba(76,175,80,0.3); }
+  .option.wrong { border-color: #f44336; background: rgba(244,67,54,0.3); }
+  .option.disabled { pointer-events: none; opacity: 0.7; }
+
+  .btn-group { display: flex; gap: 12px; margin-top: 20px; }
+  .btn {
+    flex: 1;
+    padding: 14px 24px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1em;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    color: #1a1a2e;
+  }
+  .btn-primary:hover { transform: scale(1.02); box-shadow: 0 5px 20px rgba(255,215,0,0.4); }
+  .btn-secondary {
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border: 2px solid rgba(255,255,255,0.3);
+  }
+  .btn-secondary:hover { background: rgba(255,255,255,0.2); }
+
+  .result-card {
+    background: rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 40px;
+    text-align: center;
+    margin-top: 20px;
+  }
+  .result-icon { font-size: 5em; margin-bottom: 20px; }
+  .result-title { font-size: 2em; font-weight: 900; margin-bottom: 15px; }
+  .result-score { font-size: 3em; font-weight: 900; color: #ffd700; margin: 20px 0; }
+  .result-stats { display: flex; justify-content: center; gap: 30px; margin: 25px 0; font-size: 1.1em; }
+  .stat-item { display: flex; flex-direction: column; gap: 5px; }
+  .stat-value { font-size: 1.5em; font-weight: 700; color: #ffd700; }
+  .stat-label { color: rgba(255,255,255,0.7); }
+
+  .hint-btn {
+    background: linear-gradient(135deg, #9c27b0, #e91e63);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.95em;
+    margin-top: 15px;
+  }
+  .hint-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .hint-box {
+    background: rgba(156,39,176,0.2);
+    border: 1px solid #9c27b0;
+    border-radius: 12px;
+    padding: 15px;
+    margin-top: 15px;
+    font-size: 0.95em;
+    display: none;
+  }
+  .hint-box.show { display: block; }
+
+  .achievement-popup {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    color: #1a1a2e;
+    padding: 20px 30px;
+    border-radius: 15px;
+    font-weight: 700;
+    font-size: 1.1em;
+    z-index: 200;
+    animation: slideIn 0.5s ease;
+    box-shadow: 0 10px 40px rgba(255,215,0,0.4);
+  }
+  @keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
+  @media (max-width: 600px) {
+    .level-grid { grid-template-columns: 1fr; }
+    .hero-title { font-size: 2em; }
+    .status-bar { flex-wrap: wrap; gap: 10px; }
+    .result-stats { flex-wrap: wrap; }
+  }
+
+  .overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8);
+    z-index: 300;
+    justify-content: center;
+    align-items: center;
+  }
+  .overlay.show { display: flex; }
+  .login-box {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border-radius: 24px;
+    padding: 40px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    border: 2px solid rgba(255,255,255,0.1);
+  }
+  .login-title { font-size: 1.5em; font-weight: 900; margin-bottom: 25px; }
+  .login-input {
+    width: 100%;
+    padding: 14px 20px;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    font-size: 1.1em;
+    text-align: center;
+    margin-bottom: 15px;
+  }
+  .login-input::placeholder { color: rgba(255,255,255,0.5); }
+  .login-input:focus { outline: none; border-color: #ffd700; }
+  .login-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    color: #1a1a2e;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1em;
+    font-weight: 700;
+    cursor: pointer;
+    margin-bottom: 10px;
+    transition: all 0.3s;
+  }
+  .login-btn:hover { transform: scale(1.02); }
+  .guest-btn {
+    width: 100%;
+    padding: 14px;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 12px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .guest-btn:hover { background: rgba(255,255,255,0.2); }
 </style>
 </head>
 <body>
+
 <div class="particles" id="particles"></div>
 
-<div class="container" id="homeScreen">
-  <div class="header">
-    <h1>🔬 科学探险家</h1>
-    <p>六年级下册 · 选择单元开始闯关</p>
+<div class="game-container">
+  <div class="status-bar">
+    <div class="status-item">
+      <span class="status-icon">👤</span>
+      <span id="userBadge">游客</span>
+    </div>
+    <div class="status-item">
+      <span class="status-icon">⭐</span>
+      <span>积分: <span class="status-value" id="totalPoints">0</span></span>
+    </div>
+    <div class="status-item">
+      <span class="status-icon streak-fire" id="streakIcon">🔥</span>
+      <span>连击: <span class="status-value" id="currentStreak">0</span></span>
+    </div>
+    <div class="status-item">
+      <span class="status-icon">🏆</span>
+      <span>成就: <span class="status-value" id="achievementCount">0</span></span>
+    </div>
+    <div class="status-item" id="backpackBtn" style="cursor:pointer;" onclick="showBackpack()">
+      <span class="status-icon">🎒</span>
+      <span>背包</span>
+    </div>
   </div>
-  <div class="units-grid" id="unitsGrid"></div>
-  <a class="back-btn" href="../../">← 返回首页</a>
-</div>
 
-<div class="container" id="gameScreen">
-  <div class="game-card">
-    <div class="game-top">
-      <div class="game-info">
-        <div class="progress-ring-wrap">
-          <svg class="progress-ring" width="70" height="70">
-            <circle class="progress-ring-bg" cx="35" cy="35" r="28"/>
-            <circle class="progress-ring-fill" id="progressRing" cx="35" cy="35" r="28" stroke="#4ade80" stroke-dasharray="175.9" stroke-dashoffset="0"/>
-          </svg>
-          <span class="progress-ring-text" id="progressText">0/0</span>
+  <div class="screen active" id="startScreen">
+    <div class="hero-section">
+      <div class="hero-mascot">🔬</div>
+      <h1 class="hero-title">科学探险家</h1>
+      <p class="hero-subtitle">六年级下册 · 趣味闯关</p>
+      <p style="color: rgba(255,255,255,0.6); margin: 15px 0; font-size: 0.95em;">
+        粤教粤科版 · 四单元23课 · 趣味答题 · 成就解锁
+      </p>
+      <button class="start-btn" onclick="showLoginScreen()">🚀 开始挑战</button>
+    </div>
+    
+    <!-- 成就预览 -->
+    <div class="achievements-section">
+      <div class="achievements-title" style="cursor:pointer;" onclick="showAchievements()">🏅 成就殿堂（点击查看）</div>
+      <div class="achievements-grid" id="achievementPreview"></div>
+    </div>
+  </div>
+
+  <div class="screen" id="levelScreen">
+    <div class="level-grid" id="levelGrid"></div>
+  </div>
+
+  <div class="screen" id="quizScreen">
+    <div class="quiz-header">
+      <button class="back-btn" onclick="showLevelSelect()">← 返回</button>
+      <span class="quiz-progress" id="quizProgress">1/10</span>
+    </div>
+    <div class="question-card" id="questionCard">
+      <span class="question-type type-choice" id="questionType">单选题</span>
+      <p class="question-text" id="questionText">题目加载中...</p>
+      <div class="options" id="optionsContainer"></div>
+      <button class="hint-btn" id="hintBtn" onclick="showHint()">💡 提示 (3)</button>
+      <div class="hint-box" id="hintBox"></div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-secondary" id="prevBtn" onclick="prevQuestion()">← 上一题</button>
+      <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">下一题 →</button>
+    </div>
+  </div>
+
+  <div class="screen" id="resultScreen">
+    <div class="result-card">
+      <div class="result-icon" id="resultIcon">🎉</div>
+      <h2 class="result-title" id="resultTitle">恭喜完成！</h2>
+      <div class="result-score" id="resultScore">0分</div>
+      <div class="result-stats">
+        <div class="stat-item">
+          <span class="stat-value" id="correctCount">0</span>
+          <span class="stat-label">正确</span>
         </div>
-        <div>
-          <div class="game-title" id="gameTitle">—</div>
-          <div class="game-sub" id="gameSub">🌱 基础关</div>
+        <div class="stat-item">
+          <span class="stat-value" id="accuracy">0%</span>
+          <span class="stat-label">正确率</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" id="maxStreakResult">0</span>
+          <span class="stat-label">最高连胜</span>
         </div>
       </div>
-      <button class="back-to-units" onclick="backToUnits()">← 重选单元</button>
+      <div class="btn-group">
+        <button class="btn btn-secondary" onclick="showLevelSelect()">返回关卡</button>
+        <button class="btn btn-primary" onclick="restartQuiz()">再玩一次</button>
+      </div>
     </div>
-
-    <div class="stats-row">
-      <div class="stat-item"><div class="stat-val" id="correctCount" style="color:#4ade80">0</div><div class="stat-lbl">答对</div></div>
-      <div class="stat-item"><div class="stat-val" id="wrongCount" style="color:#f97316">0</div><div class="stat-lbl">答错</div></div>
-      <div class="stat-item"><div class="stat-val" id="scoreDisplay" style="color:#ffd93d">0</div><div class="stat-lbl">积分</div></div>
-    </div>
-
-    <div class="q-card">
-      <div class="q-unit-tag" id="qUnitTag"></div>
-      <div class="q-text" id="qText">—</div>
-    </div>
-
-    <div class="opts-grid" id="optsGrid"></div>
-    <div class="hint-box" id="hintBox"></div>
-    <button class="hint-btn" id="hintBtn" onclick="showHint()">💡 提示</button>
-    <div style="text-align:center"><button class="next-btn" id="nextBtn" onclick="nextQ()">下一题 →</button></div>
-  </div>
-
-  <div style="text-align:center; margin-top:20px;">
-    <div class="result-panel" id="resultPanel"></div>
   </div>
 </div>
 
-<script src="../../data/6-2.js"></script>
+<div class="overlay" id="loginOverlay">
+  <div class="login-box">
+    <h2 class="login-title">🔐 输入学号登录</h2>
+    <input type="text" class="login-input" id="studentIdInput" placeholder="请输入8位学号" maxlength="8" onkeypress="if(event.key==='Enter')loginWithId()">
+    <button class="login-btn" id="loginBtn" onclick="loginWithId()">登录存档</button>
+    <button class="guest-btn" id="guestBtn" onclick="loginAsGuest()">游客试玩</button>
+  </div>
+</div>
+
 <script>
-const bank = window.QUESTION_BANK_6_2;
-const G = {
-  unit: 1, lesson: null, difficulty: 'basic',
-  questions: [], qIndex: 0,
-  correct: 0, wrong: 0, score: 0
+// ========== 六年级下册题库（23课×3难度）==========
+// 基于六年级下册知识点（教师版）生成
+const questionData = {
+  unit1: {
+    name: '第一单元 小小设计师',
+    icon: '🎨',
+    lessons: [
+      { id: 'u1l1', name: '巧妙的设计', icon: '💡',
+        basic: [
+          { q: "一个好的设计，一般要经过哪些主要环节？", options: ["只需要制作", "构思、制作、改进", "购买、试用、评价", "想象、打印、出售"], answer: 1, hint: "好的设计需要先构思方案，再动手制作，最后不断改进完善。" },
+          { q: "下列哪种物品是利用巧妙设计的原理发明的？", options: ["指甲钳", "石头", "树枝", "水坑"], answer: 0, hint: "指甲钳利用了省力杠杆原理。" },
+          { q: "回形针的结构特点是什么？", options: ["结构复杂，材料多样", "结构简单，材料单一", "体积巨大", "需要电力驱动"], answer: 1, hint: "回形针结构简单，金属丝具有良好的韧性。" },
+          { q: "回形针内外环之间产生什么力来夹紧纸张？", options: ["引力", "磁力", "弹力", "摩擦力"], answer: 2, hint: "回形针内外环之间产生弹力，可夹紧纸张。" },
+        ],
+        medium: [
+          { q: "设计师了解使用者需求的方法不包括以下哪项？", options: ["观察", "调查", "猜测", "亲身体验"], answer: 2, hint: "设计师通过观察、调查和亲身体验来了解用户需求，不是靠猜测。" },
+          { q: "百叶窗利用了什么原理来实现调节光线和通风的功能？", options: ["反射原理", "叶片可折叠，多角度调节", "颜色变化", "温度感应"], answer: 1, hint: "百叶窗的叶片可折叠，多角度调节，实现调节光线和通风。" },
+          { q: "圆珠笔写字时利用了什么原理？", options: ["弹性原理", "圆珠滚动带墨水", "气压原理", "热胀冷缩"], answer: 1, hint: "圆珠笔的圆珠滚动带出墨水来写字。" },
+        ],
+        hard: [
+          { q: "衣架的两边设计成凹槽形状，主要目的是什么？", options: ["减轻重量", "方便挂领带", "凹槽防滑落", "增加美观"], answer: 2, hint: "衣架两边凹槽设计可以防止衣物滑落。" },
+          { q: "衣架的三角形边框结构有什么好处？", options: ["好看", "牢固、撑开、节省材料", "容易折叠", "方便运输"], answer: 1, hint: "三角形结构牢固，能撑开衣物，同时节省材料。" },
+        ],
+      },
+      { id: 'u1l2', name: '不一样的饮水瓶', icon: '🧴',
+        basic: [
+          { q: "选用饮水瓶时需要考虑哪些因素？", options: ["只需要考虑颜色", "材质、瓶身形状、容量、用途、价格", "只看品牌", "只看大小"], answer: 1, hint: "选用饮水瓶要综合考虑多方面因素。" },
+          { q: "饮水瓶按材料可以分为哪几类？", options: ["大瓶和小瓶", "塑料水瓶、不锈钢水瓶等", "圆形和方形", "有盖和无盖"], answer: 1, hint: "饮水瓶按材料可分为塑料水瓶、不锈钢水瓶等。" },
+          { q: "饮水瓶按功能可以分为哪几类？", options: ["男款和女款", "保温水瓶、运动水瓶等", "透明和不透明", "有图案和无图案"], answer: 1, hint: "饮水瓶按功能可分为保温水瓶、运动水瓶等。" },
+        ],
+        medium: [
+          { q: "设计师了解产品需求的方法主要有哪些？", options: ["只看广告", "观察、调查、亲身体验", "只问家人", "上网搜索"], answer: 1, hint: "设计师会通过观察、调查和亲身体验多种方法了解需求。" },
+          { q: "以下哪种情况最适合用保温水瓶？", options: ["夏天喝水", "冬天外出需要喝热水", "运动时喝水", "在家喝水"], answer: 1, hint: "保温水瓶适合冬天外出时保持水温。" },
+          { q: "运动水瓶和普通水瓶在设计上最大的区别是什么？", options: ["颜色不同", "运动水瓶更注重便携和防漏", "材质不同", "价格不同"], answer: 1, hint: "运动水瓶需要考虑运动场景下的便携性和防漏性。" },
+        ],
+        hard: [
+          { q: "如果让你为小学生设计一款饮水瓶，你认为以下哪个因素最需要优先考虑？", options: ["外观时尚", "材质安全、容量适中、便于携带", "价格最便宜", "体积最大"], answer: 1, hint: "为小学生设计饮水瓶，安全性和实用性最为重要。" },
+        ],
+      },
+      { id: 'u1l3', name: '我的保温饭盒', icon: '🍱',
+        basic: [
+          { q: "热传递的方向是怎样的？", options: ["从低温到高温", "从高温到低温", "随机传递", "不会传递"], answer: 1, hint: "热传递总是从温度高的地方传递到温度低的地方。" },
+          { q: "以下哪种材料的导热性能最好？", options: ["木头", "铁", "塑料", "棉布"], answer: 1, hint: "金属（铁）的导热性能最好。" },
+          { q: "以下哪种材料的保温效果最好？", options: ["钢丝球", "棉布", "铁片", "铝片"], answer: 1, hint: "棉布导热慢，保温效果好。" },
+          { q: "热传递可能发生在哪些情况中？", options: ["只能在物体与环境之间", "只能在物体与物体之间", "物体与环境、物体与物体之间、同一物体的不同部分之间", "不会发生热传递"], answer: 2, hint: "热传递有三种情况：物体与环境、物体与物体、同一物体的不同部分。" },
+        ],
+        medium: [
+          { q: "关于导热性和保温性的关系，以下说法正确的是？", options: ["导热好的材料保温也好", "导热差的材料保温也差", "导热差的材料保温性好", "两者没有关系"], answer: 2, hint: "导热性能差的材料不容易传热，因此保温效果好。" },
+          { q: "探究导热性能的实验中，放在水槽热水上后，哪种材料上的黄油融化最快？", options: ["木片", "铁片", "塑料片", "棉布"], answer: 1, hint: "铁的导热性能好，铁片上的黄油融化得最快。" },
+          { q: "探究保温性能的实验中，填满什么材料的烧杯中水温降得最快？", options: ["棉布", "报纸", "钢丝球", "棉花"], answer: 2, hint: "钢丝球导热快，保温性能差，水温降得快。" },
+        ],
+        hard: [
+          { q: "影响材料保温性能的因素可能有哪些？", options: ["只有材料的颜色", "材料本身的物质组成、松紧程度、包裹方式等", "只有材料的厚度", "只有材料的价格"], answer: 1, hint: "影响保温性能的因素包括材料的物质组成、松紧程度和包裹方式等。" },
+          { q: "冬天锅的把手一般采用塑料制成，这是因为塑料具有什么特点？", options: ["导热快", "导热慢，不容易传热", "颜色好看", "价格便宜"], answer: 1, hint: "塑料导热性能差，不容易把手的热传到手上，防止烫伤。" },
+          { q: "如果要做保温实验，以下哪种组合对比最科学？", options: ["用不同厚度的棉布", "用相同厚度不同材质的材料（如棉布和钢丝球）", "用不同颜色的材料", "用不同形状的容器"], answer: 1, hint: "对比实验应只改变一个变量，保持其他条件相同。" },
+        ],
+      },
+      { id: 'u1l4', name: '多功能物品', icon: '🔧',
+        basic: [
+          { q: "铅笔加橡皮的组合属于什么设计思路？", options: ["一物多用", "单功能设计", "装饰设计", "环保设计"], answer: 0, hint: "铅笔+橡皮将两种功能合为一体，属于一物多用。" },
+          { q: "羊角锤的V形口设计用于什么功能？", options: ["钉钉子", "拔钉子", "测量长度", "切割材料"], answer: 1, hint: "羊角锤的V形口可以用来拔钉子。" },
+          { q: "设计多功能物品需要考虑的因素不包括？", options: ["需求和功能", "材料选择", "天气变化", "产品结构"], answer: 2, hint: "设计多功能物品时主要考虑需求、材料、制作方法和产品结构。" },
+        ],
+        medium: [
+          { q: "设计是一个什么样的过程？", options: ["一步完成的过程", "从实际需求出发，根据现有资源和技术不断细化、调整的过程", "完全靠想象的过程", "只能由专业人士完成的过程"], answer: 1, hint: "设计是从实际需求出发，根据资源和技术不断细化和调整的过程。" },
+          { q: "下列哪个是多功能物品？", options: ["普通杯子", "羊角锤", "单一颜色的纸张", "一枝铅笔"], answer: 1, hint: "羊角锤既可以钉钉子，也可以拔钉子，是多功能物品。" },
+          { q: "多功能刀具的设计思路是什么？", options: ["只能切菜", "组合不同功能工具", "只能开罐头", "只能锯木头"], answer: 1, hint: "多功能刀具将多种不同功能工具组合在一起。" },
+        ],
+        hard: [
+          { q: "如果让你设计一款多功能文具，你会优先考虑什么？", options: ["外观华丽", "满足多种学习需求，使用方便", "价格最高", "体积最大"], answer: 1, hint: "多功能文具应优先满足使用需求和使用方便性。" },
+          { q: "多功能物品设计中最容易遇到的问题是什么？", options: ["颜色不搭配", "功能过多导致每个功能都不够出色", "价格太便宜", "体积太小"], answer: 1, hint: "多功能物品要平衡各个功能的表现，避免功能过多而不精。" },
+        ],
+      },
+      { id: 'u1l5', name: '鸡蛋包装盒', icon: '🥚',
+        basic: [
+          { q: "鸡蛋包装盒设计的主要目的是什么？", options: ["美观", "解决运输过程中容易破损的问题", "增加重量", "方便煮鸡蛋"], answer: 1, hint: "鸡蛋包装盒的设计目的是解决运输过程中易破损的问题。" },
+          { q: "鸡蛋包装盒的材料通常需要具备什么特点？", options: ["坚硬无比", "柔软有弹性，能减轻碰撞力", "透明", "导电"], answer: 1, hint: "包装材料需要柔软有弹性来减轻碰撞力。" },
+          { q: "鸡蛋包装盒的共同特点是什么？", options: ["材料坚硬如铁", "固定每个鸡蛋，互相隔开，避免碰撞", "全部用塑料", "体积越小越好"], answer: 1, hint: "包装盒通过固定和隔开来避免鸡蛋之间的碰撞。" },
+        ],
+        medium: [
+          { q: "鸡蛋包装盒的设计以什么为主？", options: ["外观", "功能需求", "颜色", "品牌"], answer: 1, hint: "鸡蛋包装盒设计以功能需求为主。" },
+          { q: "好的鸡蛋包装盒还需要兼顾哪些方面？", options: ["只需要防震", "材料易得性、成本、环保", "只需要好看", "只需要便宜"], answer: 1, hint: "好的设计在满足功能需求的同时还要兼顾材料、成本和环保。" },
+          { q: "测试鸡蛋包装盒通常使用什么方法？", options: ["用火烧", "模拟运输或人工搬运", "用水泡", "用手捏"], answer: 1, hint: "通过模拟运输或人工搬运来测试包装盒的保护效果。" },
+        ],
+        hard: [
+          { q: "鸡蛋包装盒用纸浆制作比用塑料制作有什么优势？", options: ["更重", "成本低、易取材、可反复使用、环保可降解", "更透明", "更硬"], answer: 1, hint: "纸浆材料成本低、易取材、可反复使用且环保可降解。" },
+          { q: "为什么鸡蛋包装盒要设计成每个鸡蛋单独固定？", options: ["为了好看", "避免鸡蛋之间互相碰撞导致破损", "为了节省空间", "为了方便数数量"], answer: 1, hint: "将每个鸡蛋固定并隔开，可以有效避免碰撞破损。" },
+        ],
+      },
+      { id: 'u1l6', name: '巧改废弃物', icon: '♻️',
+        basic: [
+          { q: "改造废弃物的常见方法有哪些？", options: ["只能扔掉", "改变形状、添加结构、组合纸盒等", "只能焚烧", "只能埋入地下"], answer: 1, hint: "改造方法包括改变形状、添加结构和组合纸盒等。" },
+          { q: "评价改造废弃物作品的维度不包括？", options: ["实用性", "创新性", "天气", "外观"], answer: 2, hint: "评价维度包括实用性、成本、外观、创新性和制作难易程度。" },
+          { q: "将废旧纸盒改造成收纳盒，主要运用了什么改造方法？", options: ["焚烧", "改变形状", "添加结构", "组合纸盒"], answer: 2, hint: "给纸盒添加隔板等结构来做成收纳盒。" },
+        ],
+        medium: [
+          { q: "评价废弃物改造作品的完整评价维度有哪些？", options: ["只看外观", "实用性、成本、外观、创新性、制作难易程度", "只看成本", "只看材料"], answer: 1, hint: "完整的评价应从实用性、成本、外观、创新性和制作难易程度等方面综合考量。" },
+          { q: "将多个小纸盒组合成一个大收纳架，这属于什么改造方法？", options: ["改变形状", "添加结构", "组合纸盒", "以上都不是"], answer: 2, hint: "将多个纸盒组合在一起属于组合纸盒的改造方法。" },
+          { q: "巧改废弃物有什么意义？", options: ["浪费更多资源", "减少废弃物污染，培养创新思维", "增加垃圾量", "没有任何意义"], answer: 1, hint: "巧改废弃物既能减少污染，又能培养创新思维。" },
+        ],
+        hard: [
+          { q: "如果用废弃塑料瓶制作花盆，需要做哪些改造？", options: ["什么都不用改", "剪开瓶口、打排水孔", "只需要涂颜色", "只需要贴标签"], answer: 1, hint: "需要剪开瓶口方便种植，并打排水孔防止积水。" },
+          { q: "废弃物改造中'创新性'主要体现在哪方面？", options: ["材料越贵越好", "改造思路独特，赋予新功能", "体积越大越好", "颜色越鲜艳越好"], answer: 1, hint: "创新性体现在改造思路独特，能赋予废弃物全新的功能。" },
+        ],
+      },
+      { id: 'u1l7', name: '大自然的启示', icon: '🌿',
+        basic: [
+          { q: "尼龙搭扣的发明是受了哪种植物的启发？", options: ["苍耳", "牛蒡", "玫瑰", "向日葵"], answer: 1, hint: "尼龙搭扣是受牛蒡果实（不是苍耳）的启发发明的。" },
+          { q: "牛蒡果实能黏附在动物身上的原因是什么？", options: ["有粘液", "表面刺末端有微小倒钩结构", "有香味", "颜色鲜艳"], answer: 1, hint: "牛蒡果实表面刺末端有微小倒钩结构。" },
+          { q: "飞机的发明受到了哪种生物的启发？", options: ["鸟类", "鱼类", "昆虫", "蛇"], answer: 0, hint: "飞机的流线型身体和翅膀设计受到了鸟类的启发。" },
+          { q: "雷达的发明受到了哪种生物的启发？", options: ["鸟类", "蝙蝠", "蝴蝶", "蜜蜂"], answer: 1, hint: "蝙蝠利用超声波探测，雷达的发明受到了蝙蝠的启发。" },
+        ],
+        medium: [
+          { q: "牛蒡果实的倒钩为什么能反复粘贴？", options: ["倒钩是永久的", "倒钩有弹性，被拉伸后恢复原状", "使用特殊胶水", "利用磁力"], answer: 1, hint: "倒钩有弹性，被拉伸后能恢复原状，可以反复粘贴。" },
+          { q: "仿生设计的正确步骤是什么？", options: ["直接模仿外观", "观察生物现象→发现原理→迁移原理→模仿设计并制作", "随便想象", "只看图片模仿"], answer: 1, hint: "仿生设计需要先观察现象，发现原理，再迁移原理到设计中。" },
+          { q: "建筑物采用拱形曲面设计是受了什么的启发？", options: ["鸟巢", "鸡蛋壳", "蜂巢", "蜘蛛网"], answer: 1, hint: "鸡蛋壳的拱形曲面结构牢固且省材料，启发了建筑设计。" },
+        ],
+        hard: [
+          { q: "壁虎能在光滑墙面爬行，利用了什么原理？", options: ["吸盘", "四肢细毛的吸附力", "胶水", "磁力"], answer: 1, hint: "壁虎四肢的细毛产生了强大的吸附力。" },
+          { q: "下列哪个不属于仿生学设计的实例？", options: ["飞机（仿鸟类）", "雷达（仿蝙蝠）", "砖头（仿石头）", "黏附材料（仿壁虎）"], answer: 2, hint: "砖头是对天然材料的使用，不是仿生学设计。" },
+          { q: "苍耳/牛蒡的倒钩能勾住毛发/织物纤维，是因为纤维有什么结构？", options: ["光滑表面", "环状结构", "磁性", "弹性"], answer: 1, hint: "毛发和织物纤维有环状结构，与倒钩勾扣在一起。" },
+        ],
+      },
+    ]
+  },
+  unit2: {
+    name: '第二单元 能量',
+    icon: '⚡',
+    lessons: [
+      { id: 'u2l1', name: '游乐场里的能量', icon: '🎢',
+        basic: [
+          { q: "动能属于什么形式的能量？", options: ["热能", "机械能", "电能", "化学能"], answer: 1, hint: "动能属于机械能，是能量的一种表现形式。" },
+          { q: "过山车和旋转木马使用的能量来源是什么？", options: ["热能", "水能", "电能", "核能"], answer: 2, hint: "过山车和旋转木马由电力驱动。" },
+          { q: "热气球利用了什么形式的能量？", options: ["电能", "热能", "水能", "磁能"], answer: 1, hint: "热气球利用热空气上升的原理，使用的是热能。" },
+          { q: "我们吃的食物中蕴含的是什么形式的能量？", options: ["电能", "化学能", "热能", "光能"], answer: 1, hint: "食物中蕴含的是化学能，维持生命活动。" },
+        ],
+        medium: [
+          { q: "以下哪种不属于能量的形式？", options: ["风能", "水能", "冷能", "核能"], answer: 2, hint: "冷能不是能量的一种形式，能量包括动能、声能、光能等。" },
+          { q: "喇叭工作时主要涉及什么能量形式？", options: ["光能", "热能", "声能", "磁能"], answer: 2, hint: "喇叭发出声音，涉及声能。" },
+          { q: "太阳光给我们带来了什么形式的能量？", options: ["声能", "电能", "光能", "热能"], answer: 2, hint: "太阳光带来的是光能。" },
+        ],
+        hard: [
+          { q: "激流冲浪利用了什么形式的能量？", options: ["风能", "水能", "电能", "核能"], answer: 1, hint: "激流冲浪利用水流的动能，属于水能。" },
+          { q: "以下关于能量的说法，正确的是？", options: ["能量只有一种形式", "世间万物的运作都需要能量", "能量不能从一种形式转换为另一种形式", "能量会凭空消失"], answer: 1, hint: "世间万物的运作都需要能量来驱动。" },
+          { q: "燃烧的火焰涉及什么能量形式？", options: ["只有热能", "只有光能", "热能和光能", "只有声能"], answer: 2, hint: "燃烧的火焰同时产生热能和光能。" },
+        ],
+      },
+      { id: 'u2l2', name: '能量的转换', icon: '🔄',
+        basic: [
+          { q: "能量是否可以相互转换？", options: ["不可以", "可以", "只能单向转换", "只能转换一次"], answer: 1, hint: "能量可以从一种形式转换成另一种形式。" },
+          { q: "风力发电是将什么能转换为什么能？", options: ["太阳能→电能", "风能→电能", "热能→电能", "化学能→电能"], answer: 1, hint: "风力发电是将风能转换为电能。" },
+          { q: "用熨斗熨衣服时，电能主要转换为什么能？", options: ["光能", "声能", "热能", "磁能"], answer: 2, hint: "熨斗将电能转换为热能来熨烫衣服。" },
+          { q: "电视机工作时，电能转换为什么能？", options: ["只有光能", "只有声能", "光能和声能", "热能"], answer: 2, hint: "电视机将电能同时转换为光能和声能。" },
+        ],
+        medium: [
+          { q: "太阳能热水器是将太阳能转换为什么能？", options: ["电能", "热能", "声能", "磁能"], answer: 1, hint: "太阳能热水器将太阳能转换为热能。" },
+          { q: "钻木取火是将什么能转换为什么能？", options: ["电能→热能", "机械能→热能", "化学能→热能", "光能→热能"], answer: 1, hint: "钻木取火利用摩擦产生热量，是机械能转换为热能。" },
+          { q: "水果电池是将什么能转换为什么能？", options: ["热能→电能", "化学能→电能", "光能→电能", "机械能→电能"], answer: 1, hint: "水果中的化学物质产生电流，是化学能转换为电能。" },
+        ],
+        hard: [
+          { q: "以下哪种能量转换过程是不正确的？", options: ["风能→电能（风力发电）", "太阳能→电能（太阳能发电）", "电能→风能（电风扇）", "声能→电能（电视机）"], answer: 3, hint: "电视机是电能转换为声能和光能，不是声能转换为电能。" },
+          { q: "电磁铁工作时涉及什么能量转换？", options: ["电能→光能", "电能→磁能", "热能→磁能", "化学能→磁能"], answer: 1, hint: "电磁铁通电后产生磁性，是电能转换为磁能。" },
+          { q: "发光的灯泡将电能转换为什么能？", options: ["只有光能", "只有热能", "光能和热能", "声能和光能"], answer: 2, hint: "灯泡发光的同时也会发热，所以电能转换为光能和热能。" },
+        ],
+      },
+      { id: 'u2l3', name: '转动的风车', icon: '🌬️',
+        basic: [
+          { q: "风能可以转换成什么能？", options: ["电能", "机械能", "热能", "化学能"], answer: 1, hint: "风能可以转换成机械能，比如推动风车转动。" },
+          { q: "风能有什么特点？", options: ["污染大", "清洁、可再生", "不可再生", "价格昂贵"], answer: 1, hint: "风能是清洁的可再生能源。" },
+          { q: "风能小吊车实验中，风速越大，提起的回形针数量会怎样？", options: ["越少", "越多", "不变", "先多后少"], answer: 1, hint: "风越大，风能越大，提起的重物就越多。" },
+        ],
+        medium: [
+          { q: "风能在古代有哪些应用？", options: ["发电", "帆船航行、风车磨面", "炼钢", "制造塑料"], answer: 1, hint: "古代人利用风能进行帆船航行和风车磨面。" },
+          { q: "以下关于风能的说法，错误的是？", options: ["风能可以用来发电", "风能是可再生能源", "风能不会造成任何危害", "龙卷风能造成严重破坏"], answer: 2, hint: "龙卷风是风能的一种极端表现，能掀翻车辆、摧毁建筑物。" },
+          { q: "风能小吊车实验中，风扇风速从1挡调到3挡，观察到什么现象？", options: ["提起的回形针不变", "提起的回形针增多", "提起的回形针减少", "吊车停止工作"], answer: 1, hint: "风速越大，风能越大，提起的回形针越多。" },
+        ],
+        hard: [
+          { q: "为什么说风能是可再生能源？", options: ["风永远不停", "风是由大气运动产生的，自然界持续产生", "风能储存在电池里", "风能可以人为制造"], answer: 1, hint: "风是由大气运动产生的，只要有大气运动就会持续产生风。" },
+          { q: "风能小吊车实验的结论说明了什么规律？", options: ["风速与时间无关", "风越大风能越大", "风能与温度有关", "风能与季节有关"], answer: 1, hint: "实验结论是风越大，风能越大，提起的重物越多。" },
+        ],
+      },
+      { id: 'u2l4', name: '电能的来源', icon: '🔋',
+        basic: [
+          { q: "手压式手电筒是将什么能转换为电能？", options: ["热能", "机械能", "光能", "化学能"], answer: 1, hint: "手压式手电筒通过按压产生电能，是机械能转换为电能。" },
+          { q: "电池是将什么能转换为电能？", options: ["机械能", "化学能", "热能", "光能"], answer: 1, hint: "电池内部发生化学反应，将化学能转换为电能。" },
+          { q: "水力发电站是将什么能转换为电能？", options: ["热能", "水（流）能", "核能", "风能"], answer: 1, hint: "水力发电站利用水流的能量来发电。" },
+        ],
+        medium: [
+          { q: "手摇式发电机快速转动时灯泡会更亮，这说明什么？", options: ["发电与转速无关", "机械能越大，转换的电能越大", "灯泡质量好", "导线粗"], answer: 1, hint: "快速转动产生更大的机械能，转换为更大的电能。" },
+          { q: "太阳能发电站是将什么能转换为电能？", options: ["风能", "太阳能", "水能", "热能"], answer: 1, hint: "太阳能发电站利用太阳能光伏板发电。" },
+          { q: "核能发电站是将什么能转换为电能？", options: ["化学能", "核能", "风能", "水能"], answer: 1, hint: "核能发电站利用核反应产生的能量来发电。" },
+        ],
+        hard: [
+          { q: "水果电池实验中需要注意什么？", options: ["水果可以食用", "做实验的水果不能食用", "可以用干电池代替水果", "不需要导线"], answer: 1, hint: "做水果电池实验时，水果接触了金属片，不能食用。" },
+          { q: "手摇式发电机慢速转动时灯泡暗，快速转动时灯泡亮，这个现象说明了什么原理？", options: ["灯泡好坏不同", "机械能大小影响转换的电能大小", "转速与亮度无关", "发电机有故障"], answer: 1, hint: "机械能越大，转换的电能越大，灯泡越亮。" },
+          { q: "火力发电站是将什么能转换为电能？", options: ["风能", "热能（通过燃烧煤炭等）", "水能", "核能"], answer: 1, hint: "火力发电站通过燃烧煤炭等产生热能来发电。" },
+        ],
+      },
+      { id: 'u2l5', name: '神奇的电磁铁', icon: '🧲',
+        basic: [
+          { q: "电磁铁的构造由哪两部分组成？", options: ["磁铁和铜片", "铁芯和线圈", "电池和灯泡", "木块和铁丝"], answer: 1, hint: "电磁铁由铁芯和线圈组成。" },
+          { q: "电磁铁通电时会怎样？", options: ["没有磁性", "有磁性", "磁性不变", "发出声音"], answer: 1, hint: "电磁铁通电时有磁性，断电时磁性消失。" },
+          { q: "电磁铁与磁铁最大的区别是什么？", options: ["颜色不同", "电磁铁的磁力和磁极方向可以控制", "大小不同", "价格不同"], answer: 1, hint: "电磁铁的磁力大小和磁极方向可以控制和改变。" },
+          { q: "电磁铁将什么能转换为什么能？", options: ["机械能→电能", "电能→磁能", "热能→磁能", "化学能→磁能"], answer: 1, hint: "电磁铁通电后将电能转换为磁能。" },
+        ],
+        medium: [
+          { q: "影响电磁铁磁力大小的因素有哪些？", options: ["只有线圈匝数", "线圈匝数和电池个数", "只有电池个数", "只有铁钉大小"], answer: 1, hint: "线圈匝数越多、电池个数越多，电磁铁磁力越大。" },
+          { q: "探究电磁铁磁力与电池个数关系的实验中，应该保持不变的因素是什么？", options: ["电池个数", "线圈匝数", "回形针数量", "铁钉颜色"], answer: 1, hint: "该实验只改变电池个数，其他条件保持不变。" },
+          { q: "磁悬浮列车利用了什么原理？", options: ["弹簧原理", "电磁铁使车身悬浮，减小摩擦力", "气球原理", "杠杆原理"], answer: 1, hint: "磁悬浮列车利用电磁铁使车身悬浮，减小摩擦力。" },
+        ],
+        hard: [
+          { q: "在探究电磁铁磁力与线圈匝数关系的实验中，实验结论是什么？", options: ["匝数越多磁力越小", "匝数越多磁力越大", "匝数与磁力无关", "匝数越少磁力越大"], answer: 1, hint: "其他条件不变，线圈匝数越多，电磁铁磁力越大。" },
+          { q: "电磁铁有哪些应用？", options: ["只有电磁起重机", "电磁起重机、电动机、电铃、磁悬浮列车", "只有电铃", "只有电动机"], answer: 1, hint: "电磁铁广泛应用于电磁起重机、电动机、电铃和磁悬浮列车等。" },
+          { q: "电磁铁断电后会怎样？", options: ["磁性增强", "磁性消失", "磁性不变", "磁极反转"], answer: 1, hint: "电磁铁通电时有磁性，断电时磁性消失。" },
+        ],
+      },
+    ]
+  },
+  unit3: {
+    name: '第三单元 生物与环境',
+    icon: '🦢',
+    lessons: [
+      { id: 'u3l1', name: '丹顶鹤生活在哪里', icon: '🦩',
+        basic: [
+          { q: "地球上的生物需要在什么条件下才能正常生活？", options: ["任何环境都可以", "适宜的环境中", "只有陆地上", "只有水中"], answer: 1, hint: "地球上的生物需要在适宜的环境中才能正常生活。" },
+          { q: "丹顶鹤适应湿地生活，它的身体特点是什么？", options: ["颈短、嘴短、腿短", "颈长、嘴长、腿长", "翅膀大、尾巴长", "身体肥大"], answer: 1, hint: "丹顶鹤颈长、嘴长、腿长，这些特点适应湿地生活。" },
+          { q: "绿头鸭的足有什么特点？适合什么环境？", options: ["长腿，适合陆地", "蹼足，适合水中", "爪足，适合树上", "短腿，适合沙漠"], answer: 1, hint: "绿头鸭有蹼足，适合在水中生活。" },
+          { q: "白鹭的长腿适合在什么环境中生活？", options: ["深水", "浅水和湿地", "沙漠", "森林"], answer: 1, hint: "白鹭的长腿适合在浅水和湿地中行走觅食。" },
+        ],
+        medium: [
+          { q: "食肉鸟类的喙通常有什么特点？", options: ["短而细", "大且坚硬，末端有弯钩", "扁平宽大", "细长如针"], answer: 1, hint: "食肉鸟类的喙大且坚硬，末端有弯钩，方便撕咬猎物。" },
+          { q: "食虫鸟类的喙通常有什么特点？", options: ["大且坚硬", "短而直", "长而弯", "扁平"], answer: 1, hint: "食虫鸟类的喙短而直，便于啄食昆虫。" },
+          { q: "普通鸊鷉有什么类型的足？", options: ["长腿", "瓣蹼足", "爪足", "蹄足"], answer: 1, hint: "普通鸊鷉有瓣蹼足，适合在水中活动。" },
+        ],
+        hard: [
+          { q: "如果将丹顶鹤放到沙漠中，它可能会面临什么困难？", options: ["没有困难", "缺乏水源和食物，身体结构不适应干燥环境", "会被其他动物攻击", "温度太高会冻死"], answer: 1, hint: "丹顶鹤的身体结构适应湿地环境，沙漠缺乏水源和食物。" },
+          { q: "食坚果的鸟类喙有什么特点？", options: ["柔软细小", "坚硬带钩", "扁平宽大", "短而直"], answer: 1, hint: "食坚果的鸟类喙坚硬带钩，可以啄开坚硬的果壳。" },
+        ],
+      },
+      { id: 'u3l2', name: '生物生存的环境', icon: '🌍',
+        basic: [
+          { q: "影响生物生存的环境因素有哪些？", options: ["只有阳光", "阳光、温度、空气、土壤", "只有温度", "只有水分"], answer: 1, hint: "不同环境因素包括阳光、温度、空气和土壤等。" },
+          { q: "丹顶鹤选择湿地环境生活的原因不包括？", options: ["大量水源", "开阔环境", "高楼大厦", "高大水生植物提供隐蔽场所"], answer: 2, hint: "丹顶鹤选择湿地是因为有水源、开阔空间和隐蔽场所，不是高楼大厦。" },
+          { q: "以下哪种不属于生态环境的类型？", options: ["湿地", "草原", "教室", "沙漠"], answer: 2, hint: "生态环境包括湿地、草原、森林、沙漠等自然类型，教室不是自然生态环境。" },
+        ],
+        medium: [
+          { q: "湿地为丹顶鹤提供了哪些生存条件？", options: ["只提供食物", "水源、食物、开阔空间和隐蔽场所", "只提供水源", "只提供隐蔽场所"], answer: 1, hint: "湿地为丹顶鹤提供了水源、食物、开阔空间和隐蔽场所等多种条件。" },
+          { q: "生态环境中的开阔环境对丹顶鹤有什么作用？", options: ["没有作用", "适合群体生活", "防止被晒伤", "方便飞行训练"], answer: 1, hint: "开阔环境适合丹顶鹤的群体生活方式。" },
+          { q: "以下哪个是草原生物的栖息地？", options: ["深海", "草原", "极地冰川", "火山口"], answer: 1, hint: "草原是许多生物的栖息地类型之一。" },
+        ],
+        hard: [
+          { q: "高大水生植物对丹顶鹤的生存有什么重要作用？", options: ["提供食物", "提供隐蔽场所，防敌害", "提供水源", "调节温度"], answer: 1, hint: "高大水生植物为丹顶鹤提供隐蔽场所，帮助防敌害。" },
+          { q: "如果某个湿地的水源被污染，会对丹顶鹤造成什么影响？", options: ["没有影响", "食物减少，生存受到威胁", "丹顶鹤会迁到城市", "丹顶鹤会适应污染"], answer: 1, hint: "水源污染会导致食物减少，严重影响丹顶鹤的生存。" },
+        ],
+      },
+      { id: 'u3l3', name: '动物对环境的适应', icon: '🦗',
+        basic: [
+          { q: "鼠妇（潮虫）喜欢什么样的环境？", options: ["明亮的环境", "阴暗的环境", "高温的环境", "干燥的环境"], answer: 1, hint: "实验证明鼠妇更喜欢生活在阴暗的环境中。" },
+          { q: "什么是保护色？", options: ["动物身上的花纹", "身体颜色与环境色彩近似，有利于生存", "动物冬天换毛", "动物的身体伪装"], answer: 1, hint: "保护色是身体颜色与环境色彩近似，有利于生存。" },
+          { q: "草地蝗虫通常是什么颜色？", options: ["蓝色", "绿色", "紫色", "红色"], answer: 1, hint: "草地蝗虫身体为绿色，与草地环境色彩相近，属于保护色。" },
+        ],
+        medium: [
+          { q: "当季节变化时，动物可能会有哪些适应行为？", options: ["没有任何变化", "迁徙、换羽、换毛", "立刻死亡", "改变食性为吃石头"], answer: 1, hint: "季节变化时动物会迁徙、换羽或换毛来适应环境。" },
+          { q: "候鸟和留鸟的区别是什么？", options: ["体型不同", "候鸟随季节迁徙，留鸟通常不迁徙", "食性不同", "颜色不同"], answer: 1, hint: "候鸟会随季节变化迁徙，而留鸟通常不迁徙。" },
+          { q: "以下哪种动物属于候鸟？", options: ["伯劳", "家燕", "麻雀", "喜鹊"], answer: 1, hint: "家燕是候鸟，会随季节变化迁徙。" },
+        ],
+        hard: [
+          { q: "保护色实验中，在黄色卡纸上找黄色蝗虫比在绿色卡纸上找所用的时间更长，这说明了什么？", options: ["黄色蝗虫跑得更快", "动物身体颜色与环境色彩相似有利于生存", "绿色蝗虫更聪明", "实验有误"], answer: 1, hint: "这个实验证明了保护色的作用——与环境色彩相似的动物更不容易被发现。" },
+          { q: "环境发生急剧变化时，动物可能会采取什么适应行为？", options: ["没有任何反应", "冬眠或夏眠", "继续正常活动", "快速进化"], answer: 1, hint: "环境急剧变化时，动物可能会通过冬眠或夏眠来适应。" },
+          { q: "伯劳通常属于什么类型的鸟？", options: ["候鸟", "留鸟", "都可能是", "都不是"], answer: 1, hint: "伯劳是留鸟，通常不随季节迁徙。" },
+        ],
+      },
+      { id: 'u3l4', name: '生物间的食物关系', icon: '🔗',
+        basic: [
+          { q: "什么是食物链？", options: ["食物的制作过程", "生物之间吃与被吃的关系", "食物的运输路线", "食物的价格变化"], answer: 1, hint: "食物链是指生物之间吃与被吃的关系。" },
+          { q: "食物链通常从什么开始？", options: ["大型肉食动物", "绿色植物（生产者）", "小型昆虫", "微生物"], answer: 1, hint: "食物链从绿色植物（生产者）开始。" },
+          { q: "食物链通常到什么结束？", options: ["绿色植物", "大型肉食性动物（消费者）", "微生物", "太阳"], answer: 1, hint: "食物链到大型肉食性动物（消费者）结束。" },
+          { q: "以下哪个是正确的食物链表示？", options: ["鹰→蛇→老鼠→草", "草→老鼠→蛇→鹰", "蛇→鹰→草→老鼠", "老鼠→草→蛇→鹰"], answer: 1, hint: "食物链从植物开始到肉食动物结束，箭头表示被吃的关系。" },
+        ],
+        medium: [
+          { q: "多条食物链交错相连构成了什么？", options: ["食物树", "食物网", "食物圈", "食物链"], answer: 1, hint: "多条食物链交错相连构成了复杂的网状关系，叫食物网。" },
+          { q: "在食物链'草→蝉→螳螂→黄雀'中，谁是生产者？", options: ["蝉", "螳螂", "草", "黄雀"], answer: 2, hint: "草是绿色植物，是这条食物链中的生产者。" },
+          { q: "食物链中的箭头'→'表示什么含义？", options: ["表示方向", "表示被吃的关系", "表示大小", "表示速度"], answer: 1, hint: "食物链中箭头表示被谁吃的关系，指向消费者。" },
+        ],
+        hard: [
+          { q: "如果食物链中的绿色植物大量减少，最可能发生什么？", options: ["动物会更快繁殖", "食物链中的动物会因食物不足而减少", "没有影响", "动物会改变食性为吃石头"], answer: 1, hint: "绿色植物是食物链的起点，减少会影响整个食物链。" },
+          { q: "食物链'植物→兔→狼'中，如果狼被人类大量捕杀，最可能发生什么？", options: ["兔子数量减少", "兔子大量繁殖，草被大量啃食", "植物长得更好", "没有变化"], answer: 1, hint: "狼减少后兔子失去天敌，数量大增，草会被大量啃食。" },
+        ],
+      },
+      { id: 'u3l5', name: '食物网中的生物', icon: '🕸️',
+        basic: [
+          { q: "食物网是由什么构成的？", options: ["一条食物链", "多条食物链交错相连", "一个食物链加一个食物链", "只有植物"], answer: 1, hint: "食物网是由多条食物链交错相连构成的复杂网状关系。" },
+          { q: "如果食物网中蛇大量减少，会产生什么连锁反应？", options: ["没有影响", "鼠兔大量繁殖，草被吃光", "鹰的数量增多", "草会疯长"], answer: 1, hint: "蛇减少→鼠兔失去天敌大量繁殖→草被吃光→鼠兔饿死→蛇和鹰减少。" },
+          { q: "如果食物网中草大量减少，最严重的后果是什么？", options: ["动物搬到别处", "植被破坏，荒漠化，生物无法生存", "动物会吃别的食物", "草会重新长出来"], answer: 1, hint: "草是食物链的基础，大量减少会导致生态失衡甚至荒漠化。" },
+        ],
+        medium: [
+          { q: "食物网中某种生物灭绝可能造成什么后果？", options: ["对其他生物没有影响", "生态失衡，造成灾难性后果", "只有一种动物受影响", "食物网会自动修复"], answer: 1, hint: "生物灭绝会破坏食物网的平衡，造成灾难性后果。" },
+          { q: "如果鹰大量减少，食物网中会发生什么？", options: ["所有动物都减少", "蛇增多、鼠兔减少、蛇被饿死、青草疯长", "草会减少", "没有变化"], answer: 1, hint: "鹰减少导致蛇增多，鼠兔减少，然后蛇被饿死，青草疯长。" },
+          { q: "如果鼠兔大量减少，食物网中可能发生什么？", options: ["生态系统更稳定", "蛇被饿死，青草疯长可能引发火灾", "鹰数量增加", "草被吃光"], answer: 1, hint: "鼠兔减少→蛇失去食物被饿死→青草疯长→可能引发火灾。" },
+        ],
+        hard: [
+          { q: "在食物网'草→鼠兔→蛇→鹰'中，如果同时大量捕杀蛇和鹰，最可能发生什么？", options: ["生态更和谐", "鼠兔爆发性增长，草被严重啃食后荒漠化", "鼠兔会自己控制数量", "蛇和鹰会重新出现"], answer: 1, hint: "同时失去蛇和鹰两个天敌，鼠兔会爆发性增长，严重破坏植被。" },
+          { q: "保护食物网中每一种生物的重要性是什么？", options: ["为了好看", "维持生态平衡，防止灾难性后果", "为了科学研究", "为了旅游"], answer: 1, hint: "食物网中每种生物都有其作用，保护它们可以维持生态平衡。" },
+        ],
+      },
+      { id: 'u3l6', name: '生态瓶的秘密', icon: '🌊',
+        basic: [
+          { q: "什么是生态系统？", options: ["一个大型容器", "生物与它们生活的环境形成统一的整体", "一种科学仪器", "一个食物链"], answer: 1, hint: "生态系统是生物与它们生活的环境形成统一的整体。" },
+          { q: "生态系统的组成包括哪两部分？", options: ["动物和植物", "生物成分和非生物成分", "水和空气", "阳光和土壤"], answer: 1, hint: "生态系统由生物成分和非生物成分（无机环境）组成。" },
+          { q: "地球上最大的生态系统是什么？", options: ["海洋", "生物圈", "森林", "草原"], answer: 1, hint: "生物圈是地球上最大的生态系统。" },
+          { q: "生态系统中的非生物成分包括哪些？", options: ["只有水", "水、阳光、土壤、空气等", "只有空气", "只有土壤"], answer: 1, hint: "非生物成分包括水、阳光、土壤、空气等无机环境。" },
+        ],
+        medium: [
+          { q: "制作生态瓶时，为什么要合理选择动植物的类型和数量？", options: ["为了好看", "使生态系统保持稳定", "为了节省材料", "为了方便观察"], answer: 1, hint: "合理选择动植物的类型和数量，才能使生态系统保持稳定。" },
+          { q: "生态瓶中的生物部分可能包括什么？", options: ["只有鱼", "小鱼、小虾、田螺、水草等", "只有水草", "只有微生物"], answer: 1, hint: "生态瓶中可以有鱼、虾、田螺等多种生物。" },
+          { q: "生态系统的范围可以怎样？", options: ["只能很大", "可大可小，如池塘、树林、草原等", "只能很小", "大小固定不变"], answer: 1, hint: "生态系统的范围可大可小，从一个小水塘到整个生物圈。" },
+        ],
+        hard: [
+          { q: "生态瓶中的各种生物之间存在什么关系？", options: ["互不影响", "相互影响、相互制约", "只有竞争关系", "只有合作关系"], answer: 1, hint: "生态瓶中各种生物之间存在着相互影响、相互制约的关系。" },
+          { q: "如果生态瓶中放入过多的鱼类，最可能发生什么？", options: ["鱼会更健康", "水草被吃光，水质恶化，生态系统崩溃", "生态系统更稳定", "没有变化"], answer: 1, hint: "过多的鱼会吃掉水草和浮游生物，破坏生态平衡。" },
+          { q: "制作生态瓶后应该放在什么地方？", options: ["黑暗的柜子里", "朝阳的窗台上", "冰箱里", "地下室"], answer: 1, hint: "生态瓶需要阳光来进行光合作用，应放在朝阳的窗台上。" },
+        ],
+      },
+    ]
+  },
+  unit4: {
+    name: '第四单元 资源与环境',
+    icon: '🌱',
+    lessons: [
+      { id: 'u4l1', name: '地球上的自然资源', icon: '🌍',
+        basic: [
+          { q: "地球表面陆地和海洋的面积比例大约是多少？", options: ["陆地50%，海洋50%", "陆地29%，海洋71%", "陆地71%，海洋29%", "陆地10%，海洋90%"], answer: 1, hint: "地球表面陆地约占29%，海洋约占71%。" },
+          { q: "以下哪种属于不可再生资源？", options: ["太阳能", "煤炭", "水", "风"], answer: 1, hint: "煤炭是经过漫长地质变化形成的，使用后蕴藏量减少，属于不可再生资源。" },
+          { q: "以下哪种属于可再生资源？", options: ["石油", "天然气", "太阳能", "煤炭"], answer: 2, hint: "太阳能可以在短时间内再生，属于可再生资源。" },
+          { q: "煤炭是怎样形成的？", options: ["动物骨骼变化", "植物堆积后被沙土掩埋，经地热压力形成", "矿物结晶", "火山喷发产生"], answer: 1, hint: "煤炭是植物死亡→堆积→被掩埋→经地热和高温高压变化形成。" },
+        ],
+        medium: [
+          { q: "可再生资源和不可再生资源的主要区别是什么？", options: ["颜色不同", "可再生资源能短时间再生，不可再生资源需要漫长时间", "重量不同", "分布不同"], answer: 1, hint: "可再生资源短时间内能再生或再循环，不可再生资源需要漫长时间形成。" },
+          { q: "科学调查的正确步骤是什么？", options: ["直接写报告", "明确目的→制订方案→如实记录→整理分析→形成报告", "随便观察", "只查资料"], answer: 1, hint: "科学调查需要按照明确的步骤进行。" },
+          { q: "人类利用规模最大的能源是什么？", options: ["太阳能", "煤炭、石油、天然气", "风能", "水能"], answer: 1, hint: "煤炭、石油、天然气是人类利用规模最大的能源。" },
+        ],
+        hard: [
+          { q: "石油和天然气属于什么类型的资源？我们应该怎样使用它们？", options: ["可再生资源，随意使用", "不可再生资源，节约使用", "可再生资源，节约使用", "不可再生资源，随意使用"], answer: 1, hint: "石油和天然气是不可再生资源，应该节约使用。" },
+          { q: "海洋资源包括哪些？", options: ["只有鱼类", "生物资源、矿产资源、海水化学资源、空间资源和能源", "只有石油", "只有盐"], answer: 1, hint: "海洋资源非常丰富，包括生物、矿产、化学、空间和能源等多种类型。" },
+        ],
+      },
+      { id: 'u4l2', name: '保护水资源', icon: '💧',
+        basic: [
+          { q: "狭义的水资源是指什么？", options: ["地球上所有的水", "陆地上的淡水资源", "海水", "冰川"], answer: 1, hint: "狭义的水资源指陆地上的淡水资源。" },
+          { q: "人类可直接利用的水资源包括什么？", options: ["所有淡水", "河流、淡水湖泊、浅层地下水", "海水", "冰川"], answer: 1, hint: "人类可直接利用的水资源主要是河流、淡水湖泊和浅层地下水。" },
+          { q: "以下哪个不是水体污染的原因？", options: ["工业废水排放", "使用清洁能源", "过量使用农药化肥", "生活污水排放"], answer: 1, hint: "使用清洁能源不会造成水体污染。" },
+        ],
+        medium: [
+          { q: "城市污水处理的一般过程是什么？", options: ["直接排放", "沉淀→生物处理→化学处理→污泥处理", "只过滤一次", "加消毒粉即可"], answer: 1, hint: "污水处理需要经过沉淀、生物处理、化学处理和污泥处理等多个步骤。" },
+          { q: "净水的方法有哪些？", options: ["只有煮沸", "沉淀、过滤（沙、棉、活性炭等）", "只加化学药品", "只靠阳光照射"], answer: 1, hint: "净水方法包括沉淀和过滤，过滤可使用沙、棉、活性炭等材料。" },
+          { q: "'水变清了不一定干净'这句话对吗？为什么？", options: ["不对，清澈的水一定干净", "对，水中可能有肉眼看不见的有害物质", "不对，水变清就是干净了", "看情况"], answer: 1, hint: "过滤只能去除杂质，不能去除溶解的有害物质和微生物。" },
+        ],
+        hard: [
+          { q: "简易滤水装置中小石头、沙、活性炭和棉分别起什么作用？", options: ["都起相同作用", "小石头和沙过滤大颗粒，活性炭吸附杂质，棉过滤细小颗粒", "只有棉起作用", "只有活性炭起作用"], answer: 1, hint: "不同材料在过滤中起到不同作用，层层过滤效果更好。" },
+          { q: "保护水资源我们可以做些什么？", options: ["什么都做不了", "污水处理后再排放、少用有害物质、节约用水", "只靠政府", "只靠科学家"], answer: 1, hint: "保护水资源需要每个人的努力，包括污水处理、减少污染和节约用水。" },
+        ],
+      },
+      { id: 'u4l3', name: '守护蓝天', icon: '🌤️',
+        basic: [
+          { q: "以下哪种不是空气污染的来源？", options: ["工厂废气", "汽车尾气", "焚烧秸秆", "种植花草"], answer: 3, hint: "种植花草不会造成空气污染。" },
+          { q: "焚烧秸秆会产生哪些有害物质？", options: ["只有二氧化碳", "一氧化碳、二氧化硫、氮氧化物、悬浮颗粒", "只有水蒸气", "只有氧气"], answer: 1, hint: "焚烧秸秆会产生多种有害气体和悬浮颗粒。" },
+          { q: "以下哪种措施有助于防治空气污染？", options: ["多开汽车", "绿色出行，减少排放", "多烧秸秆", "砍伐树木"], answer: 1, hint: "绿色出行可以减少汽车尾气排放，有助于防治空气污染。" },
+        ],
+        medium: [
+          { q: "防治空气污染的措施包括哪些？", options: ["只有一个措施", "绿色出行、绿化造林、合理规划工厂选址、改变燃料构成等", "只需要关工厂", "只需要种树"], answer: 1, hint: "防治空气污染需要多方面的综合措施。" },
+          { q: "焚烧秸秆对环境有哪些危害？", options: ["只有一点烟", "环境空气质量恶化、危害人体健康", "没有任何危害", "只有噪音"], answer: 1, hint: "焚烧秸秆会产生有害气体和颗粒物，造成空气污染和健康危害。" },
+          { q: "探究秸秆燃烧实验中，观察到瓶内壁纸巾变黑说明什么？", options: ["纸巾被水弄脏了", "燃烧产生了烟尘颗粒等污染物", "瓶子没有洗干净", "实验失败了"], answer: 1, hint: "纸巾变黑说明燃烧产生了烟尘颗粒等污染物。" },
+        ],
+        hard: [
+          { q: "绿化造林为什么能帮助防治空气污染？", options: ["只是好看", "植物能吸收二氧化碳和有害气体，释放氧气，提高空气自净能力", "植物会吸收所有污染物", "绿化和空气污染无关"], answer: 1, hint: "植物通过光合作用吸收二氧化碳，还能吸附部分有害气体和粉尘。" },
+          { q: "秸秆燃烧实验中，用手扇动瓶内气体闻到刺激性气味说明了什么？", options: ["气体是香的", "燃烧产生了有害气体，造成空气污染", "瓶子质量不好", "实验操作有误"], answer: 1, hint: "刺激性气味说明秸秆燃烧产生了有害气体，确实会污染空气。" },
+        ],
+      },
+      { id: 'u4l4', name: '生物资源的合理利用', icon: '🐝',
+        basic: [
+          { q: "设立休渔期的意义是什么？", options: ["让渔民休息", "保护渔业资源，促进资源可持续利用", "鱼类不需要捕捞", "省钱"], answer: 1, hint: "休渔期让鱼类有时间繁殖生长，保护渔业资源。" },
+          { q: "以下哪项属于生物资源？", options: ["石油", "渔业资源", "煤炭", "铁矿"], answer: 1, hint: "生物资源包括渔业资源、牧业资源和林业资源等。" },
+          { q: "生物资源过度开发会造成什么后果？", options: ["资源更丰富", "资源枯竭，破坏生态环境", "没有影响", "资源自动恢复"], answer: 1, hint: "过度开发会导致资源枯竭和生态环境破坏。" },
+        ],
+        medium: [
+          { q: "屠呦呦从黄花蒿中分离出什么物质来治疗疟疾？", options: ["维生素", "青蒿素", "抗生素", "蛋白质"], answer: 1, hint: "屠呦呦从黄花蒿中分离出青蒿素治疗疟疾，2015年获诺贝尔奖。" },
+          { q: "保护生物资源的方法有哪些？", options: ["只有一个方法", "建立保护区、提高保护意识、完善法律法规、合理规划", "不需要保护", "只要立法就够了"], answer: 1, hint: "保护生物资源需要多方面综合措施。" },
+          { q: "人类利用生物资源的方式中，'行'方面利用了什么？", options: ["棉花", "驯化动物（马、驴、牛、骆驼、鹿）", "水稻", "木材"], answer: 1, hint: "古代人驯化动物用于交通出行，如马、驴、牛、骆驼等。" },
+        ],
+        hard: [
+          { q: "如果对渔业资源过度开发不设立休渔期，可能会发生什么？", options: ["鱼类数量会更多", "鱼类数量急剧减少甚至灭绝，渔业崩溃", "没有影响", "鱼类会进化得更快"], answer: 1, hint: "过度捕捞会导致鱼类数量急剧减少，甚至灭绝。" },
+          { q: "木材属于人类利用生物资源的哪个方面？", options: ["衣", "食", "住", "行"], answer: 2, hint: "木材用于建房子和做家具，属于'住'方面。" },
+        ],
+      },
+      { id: 'u4l5', name: '我的绿色生活', icon: '♻️',
+        basic: [
+          { q: "生活垃圾一般分为哪四类？", options: ["大、中、小、微", "可回收物、厨余垃圾、有害垃圾、其他垃圾", "干垃圾、湿垃圾、软垃圾、硬垃圾", "有机、无机、液体、固体"], answer: 1, hint: "生活垃圾分类为可回收物、厨余垃圾、有害垃圾和其他垃圾。" },
+          { q: "以下哪种属于可回收物？", options: ["剩菜", "废纸、塑料、玻璃、金属", "废电池", "砖瓦陶瓷"], answer: 1, hint: "废纸、塑料、玻璃、金属和布料属于可回收物。" },
+          { q: "以下哪种属于有害垃圾？", options: ["果皮", "废电池、废灯管、过期药品", "旧衣服", "报纸"], answer: 1, hint: "废电池、废灯管、水银温度计和过期药品属于有害垃圾。" },
+        ],
+        medium: [
+          { q: "一次性用品有什么危害？", options: ["没有危害", "废弃后不易腐烂降解，污染环境", "使用方便，没有坏处", "只有好处"], answer: 1, hint: "一次性用品废弃后不易腐烂降解，会造成环境污染。" },
+          { q: "厨余垃圾应该如何处理？", options: ["直接扔掉", "堆肥处理", "回收再利用", "焚烧"], answer: 1, hint: "厨余垃圾如剩菜、菜叶等可以进行堆肥处理。" },
+          { q: "绿色生活的核心理念是什么？", options: ["消费更多", "节能、低碳、环保，减少资源消耗和废弃物", "追求时尚", "使用更多一次性用品"], answer: 1, hint: "绿色生活的核心是节能、低碳、环保，减少资源消耗和废弃物。" },
+        ],
+        hard: [
+          { q: "垃圾分类的意义是什么？", options: ["只是形式主义", "提高回收利用率，节约资源，减少污染", "没有任何意义", "只为了罚款"], answer: 1, hint: "垃圾分类可以提高回收利用率，节约资源并减少环境污染。" },
+          { q: "生态文明理念的核心是什么？", options: ["开发更多资源", "尊重自然、顺应自然、保护自然", "征服自然", "向自然索取更多"], answer: 1, hint: "生态文明理念强调尊重自然、顺应自然、保护自然。" },
+          { q: "'绿水青山就是金山银山'这句话表达了什么含义？", options: ["山里有金银矿", "保护好生态环境就是保护财富和发展", "只要有山就有钱", "不需要保护环境"], answer: 1, hint: "这句话强调了保护生态环境对可持续发展的重要性。" },
+        ],
+      },
+    ]
+  }
+};
+// ========== 装备系统 ==========
+const equipmentSystem = {
+  // 装备等级定义（按稀有度从低到高）：白→绿→蓝→紫→粉→金→橙
+  // 新规则：单课100%掉落，大概率绿白；完成单元才有机会获得红色装备
+  levels: {
+    common: { name: '普通的', color: '#9e9e9e', dropRate: 0.10 },      // 白色 10%
+    exquisite: { name: '精致的', color: '#4caf50', dropRate: 0.06 },    // 绿色 6%
+    good: { name: '良好的', color: '#2196f3', dropRate: 0.03 },        // 蓝色 3%
+    rare: { name: '稀有的', color: '#9c27b0', dropRate: 0.01 },        // 紫色 1%
+    epic: { name: '史诗级的', color: '#e91e63', dropRate: 0.005 },     // 粉色 0.5%
+    legendary: { name: '金色传说的', color: '#ffd700', dropRate: 0.002 }, // 金色 0.2%
+    mythic: { name: '橙色神话的', color: '#ff5722', dropRate: 0.001 }   // 橙色 0.1%（仅单元完成时）
+  },
+  
+  // 装备类型定义
+  equipTypes: [
+    { id: 'helmet', name: '头盔', icon: '🪖' },
+    { id: 'glove', name: '手套', icon: '🧤' },
+    { id: 'pants', name: '长裤', icon: '👖' },
+    { id: 'shorts', name: '短裤', icon: '🩳' },
+    { id: 'shirt', name: '衬衫', icon: '👔' },
+    { id: 'skirt', name: '裙子', icon: '👗' },
+    { id: 'plaid', name: '格子裙', icon: '🎽' },
+    { id: 'sword', name: '剑', icon: '⚔️' },
+    { id: 'bow', name: '弓箭', icon: '🏹' },
+    { id: 'staff', name: '魔法杖', icon: '🪄' },
+    { id: 'shield', name: '盾牌', icon: '🛡️' }
+  ],
+  
+  // 效果类型
+  effectTypes: [
+    { id: 'bonus', name: '积分加成' },
+    { id: 'skip', name: '跳过题目' },
+    { id: 'shield', name: '护盾' },
+    { id: 'combo', name: '连击保护' }
+  ],
+  
+  // 根据等级和类型生成装备
+  generateEquip(levelKey, typeId) {
+    const level = this.levels[levelKey];
+    const typeInfo = this.equipTypes.find(t => t.id === typeId);
+    const prefix = level.name;
+    
+    const effects = {
+      common: { value: '+1%积分', pointBonus: 0.01 },
+      exquisite: { value: '+2%积分', pointBonus: 0.02 },
+      good: { value: '+3%积分', pointBonus: 0.03 },
+      rare: { value: '+5%积分', pointBonus: 0.05 },
+      epic: { value: '+8%积分', pointBonus: 0.08 },
+      legendary: { value: '积分×2', pointBonus: 2 },
+      mythic: { value: '积分×3', pointBonus: 3 }
+    };
+    
+    return {
+      id: `${typeId}_${levelKey}`,
+      name: `${prefix}${typeInfo.name}`,
+      icon: typeInfo.icon,
+      level: levelKey,
+      levelName: level.name,
+      effect: effects[levelKey].value,
+      pointBonus: effects[levelKey].pointBonus,
+      color: level.color
+    };
+  },
+  
+  // 生成完整的装备池
+  getEquipmentPool() {
+    const pool = [];
+    for (const typeInfo of this.equipTypes) {
+      for (const levelKey of Object.keys(this.levels)) {
+        pool.push(this.generateEquip(levelKey, typeInfo.id));
+      }
+    }
+    return pool;
+  },
+  
+  totalDropRate: 0.01
 };
 
-const UNITS = [
-  {id:1, emoji:'💡', name:'设计与技术', color:'#4ade80', lessons:[
-    {id:1, name:'好设计', desc:'构思·制作·改进'},
-    {id:2, name:'热传递', desc:'热从高温传向低温'},
-    {id:3, name:'改造物品', desc:'变废为宝'},
-    {id:4, name:'仿生学', desc:'大自然的启发'},
-  ]},
-  {id:2, emoji:'⚡', name:'能量', color:'#60a5fa', lessons:[
-    {id:5, name:'能量的形式', desc:'光能·电能·热能·磁能'},
-    {id:6, name:'能量转换', desc:'从一种变成另一种'},
-    {id:7, name:'风能与水能', desc:'清洁可再生能源'},
-    {id:8, name:'电磁铁', desc:'电与磁的结合'},
-  ]},
-  {id:3, emoji:'🌿', name:'生物与环境', color:'#f97316', lessons:[
-    {id:9, name:'动物与环境', desc:'适应与生存'},
-    {id:10, name:'食物链', desc:'吃与被吃的关系'},
-    {id:11, name:'生态系统', desc:'生物与环境整体'},
-  ]},
-  {id:4, emoji:'🌍', name:'自然资源', color:'#c084fc', lessons:[
-    {id:12, name:'可再生与不可再生', desc:'资源的分类'},
-    {id:13, name:'水资源保护', desc:'珍惜每一滴水'},
-    {id:14, name:'空气与垃圾分类', desc:'保护环境'},
-    {id:15, name:'绿色生活', desc:'从身边做起'},
-  ]},
-];
+const equipmentPool = equipmentSystem.getEquipmentPool();
 
-(function(){
-  const c = document.getElementById('particles');
-  for(let i=0;i<25;i++){
+const gameState = {
+  studentId: null,
+  isGuest: true,
+  totalPoints: 0,
+  currentStreak: 0,
+  maxStreak: 0,
+  hintsRemaining: 3,
+  currentLesson: 0,
+  currentQuestion: 0,
+  correctCount: 0,
+  lessonProgress: {},
+  equipment: [], // 装备背包
+  allAchievements: [
+    // ⭐普通成就
+    { id: 'first_blood', icon: '🎯', name: '首战告捷', desc: '完成第一题', tier: '⭐', bonus: { pointsMul: 1.05 } },
+    { id: 'streak_2', icon: '⚡', name: '小试牛刀', desc: '达成2连胜', tier: '⭐', bonus: { pointsMul: 1.05 } },
+    { id: 'wrong_start', icon: '🤦', name: '开门黑', desc: '第一题就答错了', tier: '⭐', bonus: { hintExtra: 1 } },
+    { id: 'hint_user', icon: '💡', name: '提示依赖', desc: '一课中使用了3次以上提示', tier: '⭐', bonus: { hintExtra: 1 } },
+    { id: 'wrong_again', icon: '😭', name: '同一个坑', desc: '同一道题连续答错2次', tier: '⭐', bonus: {} },
+    // ⭐⭐稀有成就
+    { id: 'streak_3', icon: '🔥', name: '三连斩', desc: '达成3连胜', tier: '⭐⭐', bonus: { pointsMul: 1.10 } },
+    { id: 'no_hint', icon: '🧠', name: '独立思考', desc: '不使用提示通关', tier: '⭐⭐', bonus: { pointsMul: 1.10, hintExtra: 1 } },
+    { id: 'fast_correct', icon: '🚀', name: '闪电侠', desc: '3秒内答对一题', tier: '⭐⭐', bonus: { pointsMul: 1.08 } },
+    { id: 'equip_helmet_first', icon: '🪖', name: '安全第一', desc: '获得的第一件装备是头盔', tier: '⭐⭐', bonus: { dropBonus: 0.05 } },
+    { id: 'first_equip', icon: '📦', name: '初识装备', desc: '获得第一件装备', tier: '⭐⭐', bonus: { dropBonus: 0.03 } },
+    { id: 'all_shirt_set', icon: '👔👗', name: '穿搭达人', desc: '同时拥有衬衫和裙子', tier: '⭐⭐', bonus: { pointsMul: 1.08 } },
+    { id: 'equip_bow_staff', icon: '🏹🪄', name: '法师猎人', desc: '同时拥有弓箭和魔法杖', tier: '⭐⭐', bonus: { pointsMul: 1.08 } },
+    // ⭐⭐⭐史诗成就
+    { id: 'streak_5', icon: '💥', name: '五福临门', desc: '达成5连胜', tier: '⭐⭐⭐', bonus: { pointsMul: 1.15, dropBonus: 0.05 } },
+    { id: 'perfect', icon: '💯', name: '满分答卷', desc: '一次通关获得满分', tier: '⭐⭐⭐', bonus: { pointsMul: 1.15 } },
+    { id: 'comeback', icon: '🐂', name: '逆风翻盘', desc: '前半错3题以上但最终满分通关', tier: '⭐⭐⭐', bonus: { pointsMul: 1.15, dropBonus: 0.08 } },
+    { id: 'quick_perfect', icon: '⏱️', name: '极速通关', desc: '30秒内满分完成一课', tier: '⭐⭐⭐', bonus: { pointsMul: 1.18, dropBonus: 0.05 } },
+    { id: 'no_wrong_3', icon: '🧊', name: '冷面杀手', desc: '连续3课零失误通关', tier: '⭐⭐⭐', bonus: { pointsMul: 1.15, hintExtra: 2 } },
+    { id: 'equip_10', icon: '🎒', name: '收藏家', desc: '收集10件装备', tier: '⭐⭐⭐', bonus: { dropBonus: 0.10 } },
+    { id: 'equip_sword_shield', icon: '⚔️🛡️', name: '我的刀盾', desc: '同时拥有剑和盾牌', tier: '⭐⭐⭐', bonus: { pointsMul: 1.10, dropBonus: 0.05 } },
+    { id: 'equip_blue_white', icon: '🌤️', name: '蓝天白云', desc: '同时拥有2件白色和2件蓝色装备', tier: '⭐⭐⭐', bonus: { pointsMul: 1.10 } },
+    // ⭐⭐⭐史诗·单元成就
+    { id: 'unit1_master', icon: '🎨', name: '设计达人', desc: '完成第一单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
+    { id: 'unit2_master', icon: '⚡', name: '能量达人', desc: '完成第二单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
+    { id: 'unit3_master', icon: '🦢', name: '生态达人', desc: '完成第三单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
+    { id: 'unit4_master', icon: '🌱', name: '环保达人', desc: '完成第四单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
+    { id: 'unit3_master', icon: '🌋', name: '地质探险家', desc: '完成第三单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
+    { id: 'unit4_master', icon: '🚀', name: '宇宙旅行者', desc: '完成第四单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
+    // 👑传说成就
+    { id: 'streak_7', icon: '🌟', name: '七星连珠', desc: '达成7连胜', tier: '👑', bonus: { pointsMul: 1.25, dropBonus: 0.15, hintExtra: 2 } },
+    { id: 'equip_rainbow', icon: '🌈', name: '彩虹收集', desc: '集齐所有颜色装备', tier: '👑', bonus: { pointsMul: 1.25, dropBonus: 0.20 } },
+    { id: 'equip_mythic', icon: '🌟', name: '欧皇', desc: '获得神话装备', tier: '👑', bonus: { pointsMul: 1.30, dropBonus: 0.15 } },
+    // 🏆神话成就
+    { id: 'streak_10', icon: '👑', name: '常胜将军', desc: '达成10连胜', tier: '🏆', bonus: { pointsMul: 1.40, dropBonus: 0.25, hintExtra: 3 } },
+    { id: 'all_complete', icon: '🏆', name: '科学探险家', desc: '完成所有关卡', tier: '🏆', bonus: { pointsMul: 1.50, dropBonus: 0.30, hintExtra: 3 } },
+  ],
+  unlockedAchievements: []
+};
+
+function createParticles() {
+  const container = document.getElementById('particles');
+  for (let i = 0; i < 30; i++) {
     const p = document.createElement('div');
-    p.className='particle';
-    p.style.left=Math.random()*100+'%';
-    p.style.animationDelay=Math.random()*15+'s';
-    p.style.animationDuration=(10+Math.random()*10)+'s';
-    c.appendChild(p);
+    p.className = 'particle';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.animationDelay = Math.random() * 15 + 's';
+    p.style.animationDuration = (10 + Math.random() * 10) + 's';
+    container.appendChild(p);
   }
-})();
+}
 
-function renderUnits(){
-  const grid = document.getElementById('unitsGrid');
-  grid.innerHTML='';
-  UNITS.forEach(unit=>{
-    const card = document.createElement('div');
-    card.className='unit-card';
-    card.innerHTML=`<div class="unit-header">
-      <span class="unit-emoji">${unit.emoji}</span>
-      <div><div class="unit-title">${unit.name}</div><div class="unit-sub">共${unit.lessons.length}课</div></div>
-    </div><div class="lessons-list">
-      ${unit.lessons.map(l=>`
-        <button class="lesson-btn" style="border-color:${unit.color}55"
-          data-unit="${unit.id}" data-lesson="${l.id}">
-          <span style="font-size:1.2em">${unit.emoji}</span>
-          <span class="lesson-name">${l.name}</span>
-          <span class="lesson-desc">${l.desc}</span>
-        </button>`).join('')}
-    </div>`;
-    grid.appendChild(card);
+function showScreen(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(screenId).classList.add('active');
+}
+
+function showLoginScreen() { document.getElementById('loginOverlay').classList.add('show'); }
+function hideLoginScreen() { document.getElementById('loginOverlay').classList.remove('show'); }
+
+function loginWithId() {
+  const id = document.getElementById('studentIdInput').value.trim();
+  if (id.length !== 8 || !/^\d+$/.test(id)) { alert('请输入正确的8位数字学号！'); return; }
+  gameState.studentId = id;
+  gameState.isGuest = false;
+  hideLoginScreen();
+  loadUserData();
+  showLevelSelect();
+}
+
+function loginAsGuest() {
+  gameState.studentId = null;
+  gameState.isGuest = true;
+  hideLoginScreen();
+  showLevelSelect();
+}
+
+function showLevelSelect() {
+  renderLevelGrid();
+  showScreen('levelScreen');
+}
+
+function renderLevelGrid() {
+  const grid = document.getElementById('levelGrid');
+  grid.innerHTML = '';
+  
+  for (const [unitKey, unit] of Object.entries(questionData)) {
+    const title = document.createElement('div');
+    title.className = 'unit-title';
+    title.innerHTML = `<span>${unit.icon}</span>${unit.name}`;
+    grid.appendChild(title);
+    
+    for (const lesson of unit.lessons) {
+      const progress = gameState.lessonProgress[lesson.id] || 0;
+      const stars = '⭐'.repeat(progress) + '☆'.repeat(3 - progress);
+      const completed = progress >= 1;
+      
+      const card = document.createElement('div');
+      card.className = `level-card ${completed ? 'completed' : ''}`;
+      card.style.setProperty('--card-color', unitKey === 'unit1' ? '#4caf50' : unitKey === 'unit2' ? '#f59e0b' : unitKey === 'unit3' ? '#3b82f6' : '#10b981');
+      card.onclick = () => startLesson(lesson);
+      card.innerHTML = `
+        <div class="level-icon">${lesson.icon}</div>
+        <div class="level-name">${lesson.name}</div>
+        <div class="level-stars">${stars}</div>
+        <span class="level-badge ${completed ? 'badge-easy' : 'badge-locked'}">${completed ? '已完成' : '未完成'}</span>
+      `;
+      grid.appendChild(card);
+    }
+  }
+  updateStatusBar();
+}
+
+function updateStatusBar() {
+  document.getElementById('totalPoints').textContent = gameState.totalPoints;
+  document.getElementById('currentStreak').textContent = gameState.currentStreak;
+  document.getElementById('streakIcon').style.display = gameState.currentStreak >= 2 ? 'inline' : 'none';
+  document.getElementById('userBadge').textContent = gameState.isGuest ? '🚶 游客' : `👤 ${gameState.studentId}`;
+}
+
+function startLesson(lesson) {
+  gameState.currentLesson = lesson;
+  gameState.currentQuestion = 0;
+  gameState.correctCount = 0;
+  gameState.currentStreak = 0;
+  gameState.maxStreak = 0;
+  gameState.hintsRemaining = 3;
+  // 成就提示加成
+  const achBonuses = calcAchievementBonuses();
+  gameState.hintsRemaining += (achBonuses.totalHintExtra || 0);
+  gameState.lessonStartTime = Date.now();
+  gameState.hintUsedCount = 0;
+  gameState.firstHalfWrong = 0;
+  gameState.prevWrongId = null;
+  gameState.consecutivePerfectLessons = (gameState.consecutivePerfectLessons || 0);
+  // 检查是否重新刷题（已获得过星星）
+  const lessonId = lesson.id;
+  gameState.isReplay = (gameState.lessonProgress && gameState.lessonProgress[lessonId] && gameState.lessonProgress[lessonId] >= 1);
+  
+  const allQuestions = [
+    ...lesson.basic.map(q => ({...q, difficulty: 'basic', difficultyName: '基础题'})),
+    ...lesson.medium.map(q => ({...q, difficulty: 'medium', difficultyName: '提升题'})),
+    ...lesson.hard.map(q => ({...q, difficulty: 'hard', difficultyName: '挑战题'}))
+  ];
+  
+  for (let i = allQuestions.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [allQuestions[i], allQuestions[j]] = [allQuestions[j], allQuestions[i]];
+  }
+  gameState.currentQuestions = allQuestions;
+  showScreen('quizScreen');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = gameState.currentQuestions[gameState.currentQuestion];
+  const total = gameState.currentQuestions.length;
+
+  gameState.questionStartTime = Date.now();
+  
+  document.getElementById('quizProgress').textContent = `${gameState.currentQuestion + 1}/${total}`;
+  document.getElementById('questionText').textContent = q.q;
+  
+  const typeEl = document.getElementById('questionType');
+  typeEl.textContent = q.difficultyName;
+  typeEl.className = `question-type ${q.difficultyName === '基础题' ? 'type-choice' : q.difficultyName === '提升题' ? 'type-choice' : 'type-judge'}`;
+  
+  const optionsContainer = document.getElementById('optionsContainer');
+  optionsContainer.innerHTML = '';
+  
+  q.options.forEach((opt, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'option';
+    btn.textContent = opt;
+    btn.onclick = () => selectOption(idx);
+    optionsContainer.appendChild(btn);
   });
+  
+  const hintBtn = document.getElementById('hintBtn');
+  hintBtn.textContent = `💡 提示 (${gameState.hintsRemaining})`;
+  hintBtn.disabled = gameState.hintsRemaining <= 0;
+  document.getElementById('hintBox').classList.remove('show');
+  document.getElementById('hintBox').textContent = q.hint || '暂无提示';
+  
+  document.getElementById('prevBtn').style.visibility = gameState.currentQuestion > 0 ? 'visible' : 'hidden';
+  document.getElementById('nextBtn').textContent = gameState.currentQuestion >= total - 1 ? '查看结果' : '下一题 →';
 }
 
-// 事件委托：所有课时按钮点击统一处理
-document.addEventListener('click', function(e){
-  const btn = e.target.closest('.lesson-btn');
-  if(!btn) return;
-  const unitId = Number(btn.dataset.unit);
-  const lessonId = Number(btn.dataset.lesson);
-  selectLesson(unitId, lessonId);
-});
+function selectOption(idx) {
+  const q = gameState.currentQuestions[gameState.currentQuestion];
+  const options = document.querySelectorAll('.option');
+  if (options[idx].classList.contains('disabled')) return;
 
-function selectLesson(unitId, lessonId){
-  G.unit = unitId;
-  const unitData = bank[unitId];
-  if(!unitData || !unitData.lessons){ alert('题库加载异常，请刷新重试'); return; }
+  options.forEach(opt => opt.classList.add('disabled'));
 
-  // lessonId 直接作为 key 访问
-  const lessonData = unitData.lessons[lessonId];
-  if(!lessonData || !lessonData.basic || lessonData.basic.length === 0){
-    alert('本题库暂缺此课内容，请选择其他课时'); return;
+  const isCorrect = idx === q.answer;
+  options[idx].classList.add(isCorrect ? 'correct' : 'wrong');
+  if (!isCorrect) options[q.answer].classList.add('correct');
+
+  const total = gameState.currentQuestions.length;
+  const half = Math.floor(total / 2);
+
+  if (isCorrect) {
+    gameState.currentStreak++;
+    gameState.correctCount++;
+    if (gameState.currentStreak > gameState.maxStreak) gameState.maxStreak = gameState.currentStreak;
+
+    // 闪电侠：3秒内答对
+    if (gameState.questionStartTime && (Date.now() - gameState.questionStartTime) < 3000
+        && !gameState.unlockedAchievements.includes('fast_correct')) {
+      unlockAchievement('fast_correct');
+    }
+
+    let points = 10;
+    if (q.difficulty === 'medium') points = 15;
+    if (q.difficulty === 'hard') points = 20;
+    points = Math.floor(points * (1 + gameState.currentStreak * 0.1));
+    // 重新刷题只给50%积分
+    if (gameState.isReplay) points = Math.floor(points * 0.5);
+    // 成就积分加成
+    const achBonus = calcAchievementBonuses();
+    if (achBonus.totalPointsMul > 1) points = Math.floor(points * achBonus.totalPointsMul);
+    gameState.totalPoints += points;
+    checkAchievements();
+  } else {
+    gameState.currentStreak = 0;
+    // 开门黑：第一题就答错
+    if (gameState.currentQuestion === 0 && !gameState.unlockedAchievements.includes('wrong_start')) {
+      unlockAchievement('wrong_start');
+    }
+    // 逆风翻盘追踪：前半错题计数
+    if (gameState.currentQuestion < half) gameState.firstHalfWrong = (gameState.firstHalfWrong || 0) + 1;
+    // 同一个坑追踪
+    const qId = q.q.substring(0, 20);
+    if (gameState.prevWrongId === qId && !gameState.unlockedAchievements.includes('wrong_again')) {
+      unlockAchievement('wrong_again');
+    }
+    gameState.prevWrongId = qId;
   }
-  G.questions = [...lessonData.basic].sort(() => Math.random() - 0.5);
-  G.qIndex = 0; G.correct = 0; G.wrong = 0; G.score = 0;
-  const unit = UNITS.find(u => u.id === unitId);
-  const lesson = unit.lessons.find(l => l.id === lessonId);
-  document.getElementById('homeScreen').style.display = 'none';
-  document.getElementById('gameScreen').style.display = 'block';
-  document.getElementById('gameTitle').textContent = unit.emoji + ' ' + unit.name + ' · ' + lesson.name;
-  document.getElementById('gameSub').textContent = '🌱 基础关 · 共' + G.questions.length + '题';
-  document.getElementById('resultPanel').style.display = 'none';
-  showQ();
+  
+  updateStatusBar();
+  
+  setTimeout(() => {
+    if (gameState.currentQuestion < gameState.currentQuestions.length - 1) {
+      gameState.currentQuestion++;
+      renderQuestion();
+    } else {
+      finishQuiz();
+    }
+  }, 1500);
 }
 
-function showQ(){
-  const q=G.questions[G.qIndex];
-  const total=G.questions.length;
-  const pct=G.qIndex/total*100;
-  const circ=2*Math.PI*28;
-  document.getElementById('progressRing').setAttribute('stroke-dashoffset', circ*pct/100);
-  document.getElementById('progressText').textContent=(G.qIndex+1)+'/'+total;
-  document.getElementById('qText').textContent=q.q;
-  const unit=UNITS.find(u=>u.id===G.unit);
-  document.getElementById('qUnitTag').textContent=unit.emoji+' '+unit.name;
-  document.getElementById('correctCount').textContent=G.correct;
-  document.getElementById('wrongCount').textContent=G.wrong;
-  document.getElementById('scoreDisplay').textContent=G.score;
-  document.getElementById('optsGrid').innerHTML=q.opts.map((opt,i)=>
-    `<button class="opt-btn" id="opt-${i}" onclick="ans(${i})">${opt}</button>`
-  ).join('');
-  document.getElementById('hintBox').className='hint-box';
-  document.getElementById('hintBox').textContent='💡 '+q.hint;
-  document.getElementById('hintBtn').style.display='';
-  document.getElementById('nextBtn').className='next-btn';
-}
-
-function ans(idx){
-  const q=G.questions[G.qIndex];
-  document.querySelectorAll('.opt-btn').forEach(b=>b.classList.add('disabled'));
-  if(idx===q.answer){
-    document.getElementById('opt-'+idx).classList.add('correct');
-    G.correct++; G.score+=10;
-  }else{
-    document.getElementById('opt-'+idx).classList.add('wrong');
-    document.getElementById('opt-'+q.answer).classList.add('correct');
-    G.wrong++;
+function showHint() {
+  if (gameState.hintsRemaining <= 0) return;
+  gameState.hintsRemaining--;
+  gameState.hintUsedCount = (gameState.hintUsedCount || 0) + 1;
+  // 提示依赖：一课用3次以上提示
+  if (gameState.hintUsedCount >= 3 && !gameState.unlockedAchievements.includes('hint_user')) {
+    unlockAchievement('hint_user');
   }
-  document.getElementById('correctCount').textContent=G.correct;
-  document.getElementById('wrongCount').textContent=G.wrong;
-  document.getElementById('scoreDisplay').textContent=G.score;
-  document.getElementById('hintBtn').style.display='none';
-  setTimeout(()=>document.getElementById('hintBox').classList.add('show'),300);
-  document.getElementById('nextBtn').className='next-btn show';
+  const hintBox = document.getElementById('hintBox');
+  hintBox.classList.add('show');
+  document.getElementById('hintBtn').textContent = `💡 提示 (${gameState.hintsRemaining})`;
+  document.getElementById('hintBtn').disabled = gameState.hintsRemaining <= 0;
 }
 
-function showHint(){ document.getElementById('hintBox').classList.add('show'); }
+function finishQuiz() {
+  const total = gameState.currentQuestions.length;
+  const accuracy = Math.round((gameState.correctCount / total) * 100);
+  
+  const lessonId = gameState.currentLesson.id;
+  if (accuracy >= 60 && (!gameState.lessonProgress[lessonId] || gameState.lessonProgress[lessonId] < 3)) {
+    gameState.lessonProgress[lessonId] = Math.min(3, (gameState.lessonProgress[lessonId] || 0) + 1);
+  }
+  
+  checkUnitAchievements();
 
-function nextQ(){
-  G.qIndex++;
-  if(G.qIndex>=G.questions.length) showResult(); else showQ();
+  // 趣味成就检查
+  const isPerfect = accuracy === 100;
+  const elapsed = gameState.lessonStartTime ? (Date.now() - gameState.lessonStartTime) / 1000 : 999;
+
+  // 极速通关：30秒内满分
+  if (isPerfect && elapsed <= 30 && !gameState.unlockedAchievements.includes('quick_perfect')) {
+    unlockAchievement('quick_perfect');
+  }
+
+  // 逆风翻盘：前半错3题以上但最终满分
+  if (isPerfect && (gameState.firstHalfWrong || 0) >= 3 && !gameState.unlockedAchievements.includes('comeback')) {
+    unlockAchievement('comeback');
+  }
+
+  // 冷面杀手：连续3课零失误
+  if (isPerfect) {
+    gameState.consecutivePerfectLessons = (gameState.consecutivePerfectLessons || 0) + 1;
+    if (gameState.consecutivePerfectLessons >= 3 && !gameState.unlockedAchievements.includes('no_wrong_3')) {
+      unlockAchievement('no_wrong_3');
+    }
+  } else {
+    gameState.consecutivePerfectLessons = 0;
+  }
+
+  // 安全第一：第一件装备是头盔
+  if (!gameState.unlockedAchievements.includes('equip_helmet_first') && gameState.equipment && gameState.equipment.length > 0) {
+    // 仅在刚获得第一件装备时检查（equipDropped总量=1）
+    const droppedCount = gameState.equipDropped ? Object.keys(gameState.equipDropped).length : 0;
+    if (droppedCount <= 1) {
+      const lastEquip = gameState.equipment[gameState.equipment.length - 1];
+      if (lastEquip && lastEquip.id && lastEquip.id.startsWith('helmet')) {
+        unlockAchievement('equip_helmet_first');
+      }
+    }
+  }
+  
+  // 装备掉落：每课每个难度首次通过(≥60%)才100%掉落，防止刷装备
+  if (accuracy >= 60) {
+    const difficulty = gameState.currentDifficulty || 'basic';
+    const dropKey = `${lessonId}_${difficulty}_dropped`;
+    if (!gameState.equipDropped) gameState.equipDropped = {};
+    if (!gameState.equipDropped[dropKey]) {
+      gameState.equipDropped[dropKey] = true;
+      tryDropEquip(false); // dropEquip内部会自动弹窗
+      checkEquipAchievements();
+    }
+  }
+  
+  saveUserData();
+  
+  document.getElementById('resultIcon').textContent = accuracy >= 80 ? '🎉' : accuracy >= 60 ? '👍' : '💪';
+  document.getElementById('resultTitle').textContent = accuracy >= 80 ? '太棒了！' : accuracy >= 60 ? '不错哦！' : '继续加油！';
+  document.getElementById('resultScore').textContent = `${gameState.correctCount}/${total}`;
+  document.getElementById('correctCount').textContent = gameState.correctCount;
+  document.getElementById('accuracy').textContent = accuracy + '%';
+  document.getElementById('maxStreakResult').textContent = gameState.maxStreak;
+  
+  showScreen('resultScreen');
 }
 
-function showResult(){
-  const total=G.questions.length;
-  const pct=Math.round(G.correct/total*100);
-  const stars=pct>=90?3:pct>=70?2:pct>=50?1:0;
-  const titles=['继续努力','表现不错','很优秀','满分通关！'];
-  document.getElementById('resultPanel').style.display='block';
-  document.getElementById('resultPanel').innerHTML=`
-    <div class="result-stars">${'⭐'.repeat(stars)||'💪'}</div>
-    <div class="result-title">${titles[stars]}</div>
-    <div class="result-sub">答对 ${G.correct} / ${total} 题 · 得分 ${G.score} 分</div>
-    <div class="result-btns">
-      <button class="replay-btn" onclick="replay()">再闯一次</button>
-      <button class="replay-btn secondary" onclick="backToUnits()">返回选课</button>
+// 装备掉落函数
+// streakRatio = maxStreak / totalQuestions（0~1），连击率越高品质越好
+// 全对（ratio=1）必爆蓝以上：蓝90% 紫9% 粉0.9% 金0.09% 橙0.01%
+function tryDropEquip(isUnitComplete) {
+  const totalQ = gameState.currentQuestions ? gameState.currentQuestions.length : 10;
+  const streak = gameState.maxStreak || 0;
+  const ratio = totalQ > 0 ? streak / totalQ : 0; // 0~1
+
+  let targetLevel;
+
+  if (ratio >= 1) {
+    // 全对：必爆蓝以上
+    // 蓝65% 紫30% 粉4.9% 金0.09% 橙0.01%（每项均高于80~99%档）
+    const r = Math.random() * 100;
+    if (r < 65)         targetLevel = 'good';
+    else if (r < 95)    targetLevel = 'rare';
+    else if (r < 99.9)  targetLevel = 'epic';
+    else if (r < 99.99) targetLevel = 'legendary';
+    else                targetLevel = 'mythic';
+
+  } else if (ratio >= 0.8) {
+    // 80%~99% 连击率：白0% 绿20% 蓝50% 紫25.9% 粉4.1%（无金橙）
+    const r = Math.random() * 100;
+    if (r < 20)      targetLevel = 'exquisite';
+    else if (r < 70) targetLevel = 'good';
+    else if (r < 95.9) targetLevel = 'rare';
+    else             targetLevel = 'epic';
+
+  } else if (ratio >= 0.5) {
+    // 50%~79%：正常偏好，蓝色有机会
+    // 白15% 绿40% 蓝30% 紫12% 粉3%
+    const r = Math.random() * 100;
+    if (r < 15)      targetLevel = 'common';
+    else if (r < 55) targetLevel = 'exquisite';
+    else if (r < 85) targetLevel = 'good';
+    else if (r < 97) targetLevel = 'rare';
+    else             targetLevel = 'epic';
+
+  } else {
+    // 低连击（<50%）：基础概率，白绿为主
+    // 白50% 绿35% 蓝12% 紫3%
+    const r = Math.random() * 100;
+    if (r < 50)      targetLevel = 'common';
+    else if (r < 85) targetLevel = 'exquisite';
+    else if (r < 97) targetLevel = 'good';
+    else             targetLevel = 'rare';
+  }
+
+  dropEquip(targetLevel);
+}
+
+function dropEquip(levelKey) {
+  const typeInfo = equipmentSystem.equipTypes[Math.floor(Math.random() * equipmentSystem.equipTypes.length)];
+  const equip = equipmentSystem.generateEquip(levelKey, typeInfo.id);
+  
+  // 添加到背包
+  if (!gameState.equipment) gameState.equipment = [];
+  
+  // 检查是否已拥有同样装备
+  const exists = gameState.equipment.find(e => e.id === equip.id);
+  if (!exists) {
+    gameState.equipment.push(equip);
+    
+    // 显示掉落动画
+    showEquipDrop(equip);
+  }
+}
+
+function showEquipDrop(equip) {
+  const overlay = document.createElement('div');
+  overlay.className = 'equip-drop-overlay';
+  overlay.innerHTML = `
+    <div class="equip-drop-card">
+      <div class="equip-drop-title">🎁 获得新装备！</div>
+      <div class="equip-drop-icon">${equip.icon}</div>
+      <div class="equip-drop-name" style="color: ${equip.color}">${equip.name}</div>
+      <div class="equip-drop-effect">${equip.effect}</div>
     </div>
   `;
-  document.getElementById('nextBtn').className='next-btn';
+  document.body.appendChild(overlay);
+  
+  // 添加样式
+  if (!document.getElementById('equipDropStyle')) {
+    const style = document.createElement('style');
+    style.id = 'equipDropStyle';
+    style.textContent = `
+      .equip-drop-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center;
+        z-index: 9999; animation: fadeIn 0.3s;
+      }
+      .equip-drop-card {
+        background: linear-gradient(135deg, #2a2a4a, #1a1a2e);
+        border-radius: 20px; padding: 40px; text-align: center;
+        border: 3px solid gold; animation: bounceIn 0.5s;
+      }
+      .equip-drop-title { font-size: 1.5em; margin-bottom: 20px; }
+      .equip-drop-icon { font-size: 4em; margin: 20px 0; }
+      .equip-drop-name { font-size: 1.5em; font-weight: bold; margin: 10px 0; }
+      .equip-drop-effect { color: #aaa; margin-top: 10px; }
+      @keyframes bounceIn {
+        0% { transform: scale(0); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  
+  // 点击关闭
+  overlay.addEventListener('click', () => overlay.remove());
+  setTimeout(() => overlay.remove(), 5000);
 }
 
-function replay(){
-  G.questions.sort(()=>Math.random()-0.5);
-  G.qIndex=0; G.correct=0; G.wrong=0; G.score=0;
-  document.getElementById('resultPanel').style.display='none';
-  showQ();
+function restartQuiz() { startLesson(gameState.currentLesson); }
+function prevQuestion() { if (gameState.currentQuestion > 0) { gameState.currentQuestion--; renderQuestion(); } }
+function nextQuestion() { if (gameState.currentQuestion < gameState.currentQuestions.length - 1) { gameState.currentQuestion++; renderQuestion(); } else { finishQuiz(); } }
+
+function checkAchievements() {
+  const streaks = [{ id: 'streak_2', min: 2 }, { id: 'streak_3', min: 3 }, { id: 'streak_5', min: 5 }, { id: 'streak_7', min: 7 }, { id: 'streak_10', min: 10 }];
+  for (const s of streaks) {
+    if (gameState.maxStreak >= s.min && !gameState.unlockedAchievements.includes(s.id)) unlockAchievement(s.id);
+  }
+  if (gameState.correctCount >= 1 && !gameState.unlockedAchievements.includes('first_blood')) unlockAchievement('first_blood');
 }
 
-function backToUnits(){
-  document.getElementById('homeScreen').style.display='block';
-  document.getElementById('gameScreen').style.display='none';
+
+function checkUnitAchievements() {
+  const u1 = questionData.unit1.lessons.every(l => (gameState.lessonProgress[l.id] || 0) >= 1);
+  const u2 = questionData.unit2.lessons.every(l => (gameState.lessonProgress[l.id] || 0) >= 1);
+  const u3 = questionData.unit3 && questionData.unit3.lessons.every(l => (gameState.lessonProgress[l.id] || 0) >= 1);
+  const u4 = questionData.unit4 && questionData.unit4.lessons.every(l => (gameState.lessonProgress[l.id] || 0) >= 1);
+  if (u1 && !gameState.unlockedAchievements.includes('unit1_master')) unlockAchievement('unit1_master');
+  if (u2 && !gameState.unlockedAchievements.includes('unit2_master')) unlockAchievement('unit2_master');
+  if (u3 && !gameState.unlockedAchievements.includes('unit3_master')) unlockAchievement('unit3_master');
+  if (u4 && !gameState.unlockedAchievements.includes('unit4_master')) unlockAchievement('unit4_master');
+  if (u1 && u2 && u3 && u4 && !gameState.unlockedAchievements.includes('all_complete')) unlockAchievement('all_complete');
 }
 
-renderUnits();
+// ========== 装备成就检查 ==========
+function checkEquipAchievements() {
+  const counts = { common: 0, exquisite: 0, good: 0, rare: 0, epic: 0, legendary: 0, mythic: 0 };
+  const typeIds = {};
+  if (!gameState.equipment) gameState.equipment = [];
+  gameState.equipment.forEach(e => {
+    counts[e.level]++;
+    typeIds[e.id.split('_')[0]] = true;
+  });
+  
+  // 初识装备
+  if (gameState.equipment.length >= 1 && !gameState.unlockedAchievements.includes('first_equip')) {
+    unlockAchievement('first_equip');
+  }
+  
+  // 收藏家
+  if (gameState.equipment.length >= 10 && !gameState.unlockedAchievements.includes('equip_10')) {
+    unlockAchievement('equip_10');
+  }
+  
+  // 蓝天白云：拥有2件白色 + 2件蓝色
+  if (counts.common >= 2 && counts.good >= 2 && !gameState.unlockedAchievements.includes('equip_blue_white')) {
+    unlockAchievement('equip_blue_white');
+  }
+  
+  // 我的刀盾：同时拥有剑和盾牌
+  if (typeIds.sword && typeIds.shield && !gameState.unlockedAchievements.includes('equip_sword_shield')) {
+    unlockAchievement('equip_sword_shield');
+  }
+  
+  // 穿搭达人：同时拥有衬衫和裙子
+  if (typeIds.shirt && typeIds.skirt && !gameState.unlockedAchievements.includes('all_shirt_set')) {
+    unlockAchievement('all_shirt_set');
+  }
+  
+  // 法师猎人：同时拥有弓箭和魔法杖
+  if (typeIds.bow && typeIds.staff && !gameState.unlockedAchievements.includes('equip_bow_staff')) {
+    unlockAchievement('equip_bow_staff');
+  }
+  
+  // 彩虹收集：集齐所有颜色装备
+  const allLevels = ['common', 'exquisite', 'good', 'rare', 'epic', 'legendary', 'mythic'];
+  if (allLevels.every(l => counts[l] > 0) && !gameState.unlockedAchievements.includes('equip_rainbow')) {
+    unlockAchievement('equip_rainbow');
+  }
+  
+  // 欧皇：获得神话装备
+  if (counts.mythic > 0 && !gameState.unlockedAchievements.includes('equip_mythic')) {
+    unlockAchievement('equip_mythic');
+  }
+}
+
+
+function unlockAchievement(id) {
+  if (gameState.unlockedAchievements.includes(id)) return;
+  gameState.unlockedAchievements.push(id);
+  const a = gameState.allAchievements.find(x => x.id === id);
+  showAchievementUnlock(a);
+  updateStatusBar();
+  renderAchievementPreview();
+  saveUserData();
+}
+
+function saveUserData() {
+  if (gameState.isGuest) return;
+  localStorage.setItem('scienceGame5_user_' + gameState.studentId, JSON.stringify({
+    totalPoints: gameState.totalPoints,
+    lessonProgress: gameState.lessonProgress,
+    unlockedAchievements: gameState.unlockedAchievements,
+    equipment: gameState.equipment,
+    equipDropped: gameState.equipDropped || {}
+  }));
+}
+
+function loadUserData() {
+  if (gameState.isGuest) return;
+  const saved = localStorage.getItem('scienceGame5_user_' + gameState.studentId);
+  if (saved) {
+    const d = JSON.parse(saved);
+    gameState.totalPoints = d.totalPoints || 0;
+    gameState.lessonProgress = d.lessonProgress || {};
+    gameState.unlockedAchievements = d.unlockedAchievements || [];
+    gameState.equipment = d.equipment || [];
+    gameState.equipDropped = d.equipDropped || {};
+  }
+}
+
+document.getElementById('loginBtn').addEventListener('click', loginWithId);
+document.getElementById('guestBtn').addEventListener('click', loginAsGuest);
+document.getElementById('studentIdInput').addEventListener('keypress', function(e) { if (e.key === 'Enter') loginWithId(); });
+createParticles();
+
+// ========== 成就解锁动画 ==========
+function showAchievementUnlock(achievement) {
+  const el = document.getElementById('achievementUnlock');
+  document.getElementById('unlockIcon').textContent = achievement.icon;
+  document.getElementById('unlockName').textContent = achievement.name;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ========== 背包系统 ==========
+function showBackpack() {
+  const overlay = document.getElementById('backpackOverlay');
+  const grid = document.getElementById('backpackGrid');
+  
+  // 更新统计
+  document.getElementById('equipCount').textContent = gameState.equipment ? gameState.equipment.length : 0;
+  
+  // 统计各等级装备
+  const counts = { common: 0, exquisite: 0, good: 0, rare: 0, epic: 0, legendary: 0, mythic: 0 };
+  if (gameState.equipment) {
+    gameState.equipment.forEach(e => counts[e.level]++);
+  }
+  document.getElementById('count-common').textContent = counts.common;
+  document.getElementById('count-exquisite').textContent = counts.exquisite;
+  document.getElementById('count-good').textContent = counts.good;
+  document.getElementById('count-rare').textContent = counts.rare;
+  document.getElementById('count-epic').textContent = counts.epic;
+  document.getElementById('count-legendary').textContent = counts.legendary;
+  document.getElementById('count-mythic').textContent = counts.mythic;
+  
+  // 渲染装备列表
+  if (!gameState.equipment || gameState.equipment.length === 0) {
+    grid.innerHTML = '<div class="equip-empty">🎒 背包空空如也<br>完成练习即可获得装备</div>';
+  } else {
+    grid.innerHTML = gameState.equipment.map(equip => `
+      <div class="equip-item ${equip.level}">
+        <div class="equip-icon">${equip.icon}</div>
+        <div class="equip-name">${equip.name}</div>
+        <span class="equip-level ${equip.level}">${equip.levelName}</span>
+        <div class="equip-effect">${equip.effect}</div>
+      </div>
+    `).join('');
+  }
+  
+  overlay.classList.add('show');
+}
+
+function closeBackpack() {
+  document.getElementById('backpackOverlay').classList.remove('show');
+}
+
+// 点击遮罩关闭
+document.addEventListener('click', function(e) {
+  if (e.target.classList.contains('backpack-overlay')) closeBackpack();
+});
+
+// ========== 成就预览 ==========
+function renderAchievementPreview() {
+  const container = document.getElementById('achievementPreview');
+  if (!container) return;
+  
+  container.innerHTML = gameState.allAchievements.map(a => {
+    const unlocked = gameState.unlockedAchievements.includes(a.id);
+    return `<div class="achievement-badge ${unlocked ? 'unlocked' : 'locked'}" title="${a.desc}">
+      ${a.icon} ${a.name}
+    </div>`;
+  }).join('');
+  
+  document.getElementById('achievementCount').textContent = gameState.unlockedAchievements.length;
+}
+
+// ========== 成就殿堂弹窗 ==========
+let achievementFilter = 'all';
+
+function getAchievementBonusText(bonus) {
+  if (!bonus || Object.keys(bonus).length === 0) return '<span style="color:rgba(255,255,255,0.3)">无加成</span>';
+  const parts = [];
+  if (bonus.pointsMul) parts.push(`积分×${bonus.pointsMul}`);
+  if (bonus.dropBonus) parts.push(`掉率+${Math.round(bonus.dropBonus * 100)}%`);
+  if (bonus.hintExtra) parts.push(`提示+${bonus.hintExtra}`);
+  return parts.join(' | ');
+}
+
+function getTierClass(tier) {
+  if (tier === '⭐') return 'tier-common';
+  if (tier === '⭐⭐') return 'tier-rare';
+  if (tier === '⭐⭐⭐') return 'tier-epic';
+  if (tier === '👑') return 'tier-legendary';
+  if (tier === '🏆') return 'tier-mythic';
+  return '';
+}
+
+function calcAchievementBonuses() {
+  let totalPointsMul = 1;
+  let totalDropBonus = 0;
+  let totalHintExtra = 0;
+  gameState.unlockedAchievements.forEach(id => {
+    const a = gameState.allAchievements.find(x => x.id === id);
+    if (a && a.bonus) {
+      if (a.bonus.pointsMul) totalPointsMul *= a.bonus.pointsMul;
+      if (a.bonus.dropBonus) totalDropBonus += a.bonus.dropBonus;
+      if (a.bonus.hintExtra) totalHintExtra += a.bonus.hintExtra;
+    }
+  });
+  return { totalPointsMul, totalDropBonus, totalHintExtra };
+}
+
+function renderAchievementGrid() {
+  const grid = document.getElementById('achievementGrid');
+  const bonuses = calcAchievementBonuses();
+  
+  // 更新统计
+  document.getElementById('achUnlockedCount').textContent = `${gameState.unlockedAchievements.length}/${gameState.allAchievements.length}`;
+  document.getElementById('achPointsBonus').textContent = `×${bonuses.totalPointsMul.toFixed(2)}`;
+  document.getElementById('achDropBonus').textContent = `+${Math.round(bonuses.totalDropBonus * 100)}%`;
+  
+  // 过滤成就
+  let achievements = gameState.allAchievements;
+  if (achievementFilter === 'unlocked') {
+    achievements = achievements.filter(a => gameState.unlockedAchievements.includes(a.id));
+  } else if (achievementFilter !== 'all') {
+    achievements = achievements.filter(a => a.tier === achievementFilter);
+  }
+  
+  // 按难度排序
+  const tierOrder = { '⭐': 0, '⭐⭐': 1, '⭐⭐⭐': 2, '👑': 3, '🏆': 4 };
+  achievements.sort((a, b) => (tierOrder[a.tier] || 0) - (tierOrder[b.tier] || 0));
+  
+  grid.innerHTML = achievements.map(a => {
+    const unlocked = gameState.unlockedAchievements.includes(a.id);
+    const tierCls = getTierClass(a.tier);
+    return `<div class="ach-item ${unlocked ? 'unlocked ' + tierCls : 'locked'}">
+      <div class="ach-icon">${unlocked ? a.icon : '🔒'}</div>
+      <div class="ach-name">${unlocked ? a.name : '???'}</div>
+      <div class="ach-tier">${a.tier}</div>
+      <div class="ach-desc">${a.desc}</div>
+      ${unlocked ? `<div class="ach-bonus">${getAchievementBonusText(a.bonus)}</div>` : '<div class="ach-locked-text">未解锁</div>'}
+    </div>`;
+  }).join('');
+}
+
+function showAchievements() {
+  renderAchievementGrid();
+  document.getElementById('achievementOverlay').classList.add('show');
+}
+
+function closeAchievements() {
+  document.getElementById('achievementOverlay').classList.remove('show');
+}
+
+function filterAchievements(filter) {
+  achievementFilter = filter;
+  document.querySelectorAll('.tier-btn').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+  renderAchievementGrid();
+}
+
+// 点击遮罩关闭成就弹窗
+document.addEventListener('click', function(e) {
+  if (e.target.classList.contains('achievement-overlay')) closeAchievements();
+});
+
+// 初始化时渲染成就预览
+setTimeout(renderAchievementPreview, 100);
 </script>
+
+<!-- 成就殿堂弹窗 -->
+<div class="achievement-overlay" id="achievementOverlay">
+  <div class="achievement-card">
+    <div class="achievement-header">
+      <div class="achievement-card-title">🏅 成就殿堂</div>
+      <button class="achievement-close" onclick="closeAchievements()">✕</button>
+    </div>
+    <div class="achievement-stats">
+      <div class="achievement-stat">
+        <div class="achievement-stat-icon">🏆</div>
+        <div class="achievement-stat-info">
+          <div class="achievement-stat-label">已解锁</div>
+          <div class="achievement-stat-value" id="achUnlockedCount">0/30</div>
+        </div>
+      </div>
+      <div class="achievement-stat">
+        <div class="achievement-stat-icon">⚡</div>
+        <div class="achievement-stat-info">
+          <div class="achievement-stat-label">总积分加成</div>
+          <div class="achievement-stat-value" id="achPointsBonus">+0%</div>
+        </div>
+      </div>
+      <div class="achievement-stat">
+        <div class="achievement-stat-icon">🎁</div>
+        <div class="achievement-stat-info">
+          <div class="achievement-stat-label">掉率加成</div>
+          <div class="achievement-stat-value" id="achDropBonus">+0%</div>
+        </div>
+      </div>
+    </div>
+    <div class="achievement-tier-filter">
+      <button class="tier-btn active" onclick="filterAchievements('all')">全部</button>
+      <button class="tier-btn" onclick="filterAchievements('unlocked')">已解锁</button>
+      <button class="tier-btn" onclick="filterAchievements('⭐')">⭐普通</button>
+      <button class="tier-btn" onclick="filterAchievements('⭐⭐')">⭐⭐稀有</button>
+      <button class="tier-btn" onclick="filterAchievements('⭐⭐⭐')">⭐⭐⭐史诗</button>
+      <button class="tier-btn" onclick="filterAchievements('👑')">👑传说</button>
+      <button class="tier-btn" onclick="filterAchievements('🏆')">🏆神话</button>
+    </div>
+    <div class="achievement-grid" id="achievementGrid"></div>
+  </div>
+</div>
+
+<!-- 背包弹窗 -->
+<div class="backpack-overlay" id="backpackOverlay">
+  <div class="backpack-card">
+    <div class="backpack-header">
+      <div class="backpack-title">🎒 我的背包</div>
+      <button class="backpack-close" onclick="closeBackpack()">✕</button>
+    </div>
+    <div class="backpack-stats">
+      <div class="backpack-stat">
+        <div class="backpack-stat-icon">📦</div>
+        <div class="backpack-stat-info">
+          <div class="backpack-stat-label">装备数量</div>
+          <div class="backpack-stat-value" id="equipCount">0</div>
+        </div>
+      </div>
+      <div class="backpack-stat">
+        <div class="backpack-stat-icon">⭐</div>
+        <div class="backpack-stat-info">
+          <div class="backpack-stat-label">收集成就</div>
+          <div class="backpack-stat-value" id="equipAchievementCount">0/5</div>
+        </div>
+      </div>
+    </div>
+    <div class="equip-count" style="flex-wrap:wrap;gap:8px;">
+      <span style="color:#9e9e9e;">⚪ 普通 <span id="count-common">0</span></span>
+      <span style="color:#4caf50;">🟢 精致 <span id="count-exquisite">0</span></span>
+      <span style="color:#2196f3;">🔵 良好 <span id="count-good">0</span></span>
+      <span style="color:#9c27b0;">🟣 稀有 <span id="count-rare">0</span></span>
+      <span style="color:#e91e63;">💗 史诗 <span id="count-epic">0</span></span>
+      <span style="color:#ffd700;">🟡 传说 <span id="count-legendary">0</span></span>
+      <span style="color:#ff5722;">🟠 神话 <span id="count-mythic">0</span></span>
+    </div>
+    <div class="backpack-grid" id="backpackGrid">
+      <div class="equip-empty">🎒 背包空空如也<br>完成练习即可获得装备</div>
+    </div>
+  </div>
+</div>
+
+<!-- 成就解锁动画 -->
+<div class="achievement-unlock" id="achievementUnlock">
+  <div class="title">🎊 成就解锁！</div>
+  <div class="icon" id="unlockIcon">🏆</div>
+  <div class="name" id="unlockName">成就名称</div>
+</div>
+</body>
 </body>
 </html>

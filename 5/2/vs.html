@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>科学大对战 · 六年级下册</title>
+<title>科学大对战 · 五年级下册</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -653,7 +653,7 @@
 <div class="screen-overlay" id="startScreen">
   <div class="screen-logo">⚔️</div>
   <div class="screen-title">科学大对战</div>
-  <div class="screen-subtitle">六年级下册 · 双人实时对战<br>同一道题，谁先答对谁得分！</div>
+  <div class="screen-subtitle">五年级下册 · 双人实时对战<br>同一道题，谁先答对谁得分！</div>
 
   <!-- 学号输入 -->
   <div class="id-inputs">
@@ -710,16 +710,10 @@
         <span class="scope-icon">🌟</span>全册书
       </button>
       <button class="scope-btn" id="scope-1" onclick="setScope(1, this)">
-        <span class="scope-icon">🎨</span>小小设计师
+        <span class="scope-icon">🌉</span>身边的桥梁
       </button>
       <button class="scope-btn" id="scope-2" onclick="setScope(2, this)">
-        <span class="scope-icon">⚡</span>能量
-      </button>
-      <button class="scope-btn" id="scope-3" onclick="setScope(3, this)">
-        <span class="scope-icon">🦢</span>生物与环境
-      </button>
-      <button class="scope-btn" id="scope-4" onclick="setScope(4, this)">
-        <span class="scope-icon">🌱</span>资源与环境
+        <span class="scope-icon">🔬</span>微观生命世界
       </button>
     </div>
   </div>
@@ -837,7 +831,7 @@
   </div>
 </div>
 
-<script src="../../data/6-2.js"></script>
+<script src="../../data/5-2.js"></script>
 <script>
 // ========== 常量 ==========
 const TOTAL_QUESTIONS = 12;
@@ -845,7 +839,7 @@ const TIME_PER_QUESTION = 12;
 const POINTS_CORRECT = 10;
 const POINTS_SPEED = 5;
 const SPEED_BONUS_THRESHOLD = 6;
-const STORAGE_KEY = 'kexvefuxi_6_vs';
+const STORAGE_KEY = 'kexvefuxi_5_vs';
 
 // ========== 成就定义 ==========
 const ALL_ACHIEVEMENTS = [
@@ -859,10 +853,8 @@ const ALL_ACHIEVEMENTS = [
   { id: 'veteran', icon: '🎖️', name: '身经百战', desc: '累计对战10局' },
   { id: 'champion', icon: '👑', name: '常胜将军', desc: '累计获胜5局' },
   { id: 'high_roller', icon: '💎', name: '豪赌客', desc: '以100分分值赢下对战' },
-  { id: 'unit1_master', icon: '🎨', name: '设计达人', desc: '在设计单元取得胜利' },
-  { id: 'unit2_master', icon: '⚡', name: '能量达人', desc: '在能量单元取得胜利' },
-  { id: 'unit3_master', icon: '🦢', name: '生态达人', desc: '在生物与环境单元取得胜利' },
-  { id: 'unit4_master', icon: '🌱', name: '环保达人', desc: '在资源与环境单元取得胜利' }
+  { id: 'unit1_master', icon: '🌉', name: '桥梁专家', desc: '在桥梁单元取得胜利' },
+  { id: 'unit2_master', icon: '🔬', name: '微观探索者', desc: '在微观生命世界取得胜利' }
 ];
 
 // ========== 游戏状态 ==========
@@ -944,12 +936,8 @@ function getBetValue() {
 // ========== 范围选择 ==========
 const SCOPE_MAP = {
   'all':  { label: '🌟 全册书', color: '#ffd93d' },
-  3:      { label: '🌋 地球奥秘', color: '#ff6b6b' },
-  4:      { label: '🌍 宇宙探索', color: '#4ecdc4' },
-  1:      { label: '🎨 小小设计师', color: '#4ade80' },
-  2:      { label: '⚡ 能量', color: '#fbbf24' },
-  3:      { label: '🦢 生物与环境', color: '#60a5fa' },
-  4:      { label: '🌱 资源与环境', color: '#34d399' }
+  1:      { label: '🌉 身边的桥梁', color: '#4ade80' },
+  2:      { label: '🔬 微观生命世界', color: '#c084fc' }
 };
 
 function setScope(val, btn) {
@@ -974,7 +962,7 @@ function init() {
 
 // ========== 生成题目列表 ==========
 function genList() {
-  const bank = window.QUESTION_BANK_6_2;
+  const bank = window.QUESTION_BANK_5_2;
   if (!bank) { alert('题库加载失败，请刷新页面'); return []; }
 
   const scope = G.scope;
@@ -1067,8 +1055,8 @@ function startRound() {
   const q = G.qList[G.qIndex];
   document.getElementById('progressText').textContent = '第 ' + (G.qIndex+1) + ' / ' + Math.min(TOTAL_QUESTIONS, G.qList.length) + ' 题';
 
-  const unitNames = { 1: '小小设计师', 2: '能量', 3: '生物与环境', 4: '资源与环境' };
-  const scopeEmoji = { 1: '🎨', 2: '⚡', 3: '🦢', 4: '🌱' };
+  const unitNames = { 1: '身边的桥梁', 2: '微观生命世界' };
+  const scopeEmoji = { 1: '🌉', 2: '🔬' };
   const scopeText = G.scope === 'all'
     ? '📖 全册书'
     : (scopeEmoji[q.unit] + ' ' + unitNames[q.unit]);
@@ -1378,8 +1366,6 @@ function checkAndUnlockAchievements(record, player, isWinner, isDraw) {
   // 单元成就
   if (isWinner && G.scope === 1) tryUnlock('unit1_master');
   if (isWinner && G.scope === 2) tryUnlock('unit2_master');
-  if (isWinner && G.scope === 3) tryUnlock('unit3_master');
-  if (isWinner && G.scope === 4) tryUnlock('unit4_master');
 
   // 弹出新成就
   if (newAch.length > 0) {
