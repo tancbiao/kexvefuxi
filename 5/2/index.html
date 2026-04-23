@@ -1452,15 +1452,12 @@ function tryDropEquip(isUnitComplete) {
     else               targetLevel = 'mythic';     // 橙 0.01%
 
   } else if (ratio >= 0.8) {
-    // 80%~99% 连击率：有机会蓝以上，白/绿概率大幅压缩
-    // 白0% 绿20% 蓝50% 紫25% 粉4% 金0.9% 橙0.1%
+    // 80%~99% 连击率：白0% 绿20% 蓝50% 紫25.9% 粉4.1%（无金橙）
     const r = Math.random() * 100;
-    if (r < 20)        targetLevel = 'exquisite';
-    else if (r < 70)   targetLevel = 'good';
-    else if (r < 95)   targetLevel = 'rare';
-    else if (r < 99)   targetLevel = 'epic';
-    else if (r < 99.9) targetLevel = 'legendary';
-    else               targetLevel = 'mythic';
+    if (r < 20)      targetLevel = 'exquisite';
+    else if (r < 70) targetLevel = 'good';
+    else if (r < 95.9) targetLevel = 'rare';
+    else             targetLevel = 'epic';
 
   } else if (ratio >= 0.5) {
     // 50%~79%：正常偏好，蓝色有机会
