@@ -1271,36 +1271,47 @@ function loadUserData() {
 // ========== 装备掉落系统 ==========
 // 新规则：单课100%掉落，大概率绿白；完成单元才有机会获得红色装备
 function tryDropEquipment(isUnitComplete = false) {
-  let targetLevel = 'common';
-  
-  if (isUnitComplete) {
-    // 单元完成：所有等级都有可能，但概率递减
-    const levelOrder = ['common', 'exquisite', 'good', 'rare', 'epic', 'legendary', 'mythic'];
-    const rand = Math.random();
-    let cumulative = 0;
-    
-    for (const level of levelOrder) {
-      cumulative += equipmentSystem.levels[level].dropRate;
-      if (rand < cumulative) {
-        targetLevel = level;
-        break;
-      }
-    }
+  const totalQ = gameState.currentQuestions ? gameState.currentQuestions.length : 10;
+  const streak = gameState.maxStreak || 0;
+  const ratio = totalQ > 0 ? streak / totalQ : 0; // 0~1
+
+  let targetLevel;
+
+  if (ratio >= 1) {
+    // 全对：必爆蓝以上
+    const r = Math.random() * 100;
+    if (r < 90)         targetLevel = 'good';
+    else if (r < 99)    targetLevel = 'rare';
+    else if (r < 99.9)  targetLevel = 'epic';
+    else if (r < 99.99) targetLevel = 'legendary';
+    else                targetLevel = 'mythic';
+
+  } else if (ratio >= 0.8) {
+    // 80~99%：白0% 绿20% 蓝50% 紫25% 粉4% 金0.9% 橙0.1%
+    const r = Math.random() * 100;
+    if (r < 20)        targetLevel = 'exquisite';
+    else if (r < 70)   targetLevel = 'good';
+    else if (r < 95)   targetLevel = 'rare';
+    else if (r < 99)   targetLevel = 'epic';
+    else if (r < 99.9) targetLevel = 'legendary';
+    else               targetLevel = 'mythic';
+
+  } else if (ratio >= 0.5) {
+    // 50~79%：白15% 绿40% 蓝30% 紫12% 粉3%
+    const r = Math.random() * 100;
+    if (r < 15)      targetLevel = 'common';
+    else if (r < 55) targetLevel = 'exquisite';
+    else if (r < 85) targetLevel = 'good';
+    else if (r < 97) targetLevel = 'rare';
+    else             targetLevel = 'epic';
+
   } else {
-    // 单课掉落：只可能是 common, exquisite, good, rare
-    const commonLevels = ['common', 'exquisite', 'good', 'rare'];
-    const weights = [0.50, 0.35, 0.12, 0.03]; // 白50%, 绿35%, 蓝12%, 紫3%
-    
-    const rand = Math.random();
-    let cumulative = 0;
-    
-    for (let i = 0; i < commonLevels.length; i++) {
-      cumulative += weights[i];
-      if (rand < cumulative) {
-        targetLevel = commonLevels[i];
-        break;
-      }
-    }
+    // <50%：白50% 绿35% 蓝12% 紫3%
+    const r = Math.random() * 100;
+    if (r < 50)      targetLevel = 'common';
+    else if (r < 85) targetLevel = 'exquisite';
+    else if (r < 97) targetLevel = 'good';
+    else             targetLevel = 'rare';
   }
   
   // 从对应等级的装备池中随机选择
