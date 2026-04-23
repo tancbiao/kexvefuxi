@@ -1288,6 +1288,20 @@ const gameState = {
   ]
 };
 
+// 重置游戏状态（登录时调用，确保账号独立）
+function resetGameState() {
+  gameState.currentStreak = 0;
+  gameState.maxStreak = 0;
+  gameState.hintsRemaining = 3;
+  gameState.hintsUsed = 0;
+  gameState.currentLesson = null;
+  gameState.currentQuestions = [];
+  gameState.currentQuestion = 0;
+  gameState.answered = false;
+  gameState.correctCount = 0;
+  // 积分、成就、装备、进度 - 这些从存档加载，不重置
+}
+
 // ========== 登录系统 ==========
 function showLoginScreen() {
   const overlay = document.getElementById('loginOverlay');
@@ -1313,11 +1327,14 @@ function loginWithId() {
   // 保存学号到localStorage，下次自动填充
   localStorage.setItem('scienceGame_lastStudentId', id);
   
+  // 重置游戏状态，确保每个学号独立
+  resetGameState();
+  
   gameState.studentId = id;
   gameState.isGuest = false;
   hideLoginScreen();
   
-  // 尝试加载存档
+  // 加载该学号的存档
   loadUserData();
   updateUserBadge();
   updateStatusBar();
