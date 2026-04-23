@@ -1365,16 +1365,16 @@ document.addEventListener('DOMContentLoaded', function() {
 // ========== JSONBin 云同步配置 ==========
 const CLOUD_CONFIG = {
   apiKey: '$2a$10$yr0o7UKkD0A0MIDTRvEibeRdyRNfZdtg5VnVaDwJVM2eg9Ce8ej.m',
-  binId: '69e9771aaaba8821972a04b6',
+  collectionId: '69e9771aaaba8821972a04b6',
   apiUrl: 'https://api.jsonbin.io/v3'
 };
 
-// 保存到云端
+// 保存到云端（按学号分开存储）
 async function saveToCloud(studentId, data) {
   if (!studentId || studentId === 'guest') return; // 游客不云同步
   try {
-    const recordKey = 'science_' + studentId;
-    const url = CLOUD_CONFIG.apiUrl + '/b/' + CLOUD_CONFIG.binId + '/record/' + recordKey;
+    const recordKey = 'grade4_' + studentId; // 确保每个学号独立
+    const url = CLOUD_CONFIG.apiUrl + '/c/' + CLOUD_CONFIG.collectionId + '/records/' + recordKey;
     await fetch(url, {
       method: 'PUT',
       headers: {
@@ -1383,24 +1383,24 @@ async function saveToCloud(studentId, data) {
       },
       body: JSON.stringify(data)
     });
-    console.log('云端同步成功');
+    console.log('云端同步成功:', recordKey);
   } catch (e) {
     console.log('云端同步失败:', e.message);
   }
 }
 
-// 从云端加载
+// 从云端加载（只加载当前学号的数据）
 async function loadFromCloud(studentId) {
   if (!studentId || studentId === 'guest') return null;
   try {
-    const recordKey = 'science_' + studentId;
-    const url = CLOUD_CONFIG.apiUrl + '/b/' + CLOUD_CONFIG.binId + '/record/' + recordKey;
+    const recordKey = 'grade4_' + studentId;
+    const url = CLOUD_CONFIG.apiUrl + '/c/' + CLOUD_CONFIG.collectionId + '/records/' + recordKey;
     const response = await fetch(url, {
       headers: { 'X-ACCESS-KEY': CLOUD_CONFIG.apiKey }
     });
     if (response.ok) {
       const result = await response.json();
-      console.log('从云端加载成功');
+      console.log('从云端加载成功:', recordKey);
       return result.record;
     }
   } catch (e) {
