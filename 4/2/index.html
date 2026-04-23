@@ -1279,8 +1279,9 @@ function tryDropEquipment(isUnitComplete = false) {
 
   if (ratio >= 1) {
     // 全对：必爆蓝以上
+    // 蓝70% 紫29% 粉0.9% 金0.09% 橙0.01%
     const r = Math.random() * 100;
-    if (r < 90)         targetLevel = 'good';
+    if (r < 70)         targetLevel = 'good';
     else if (r < 99)    targetLevel = 'rare';
     else if (r < 99.9)  targetLevel = 'epic';
     else if (r < 99.99) targetLevel = 'legendary';

@@ -1444,12 +1444,13 @@ function tryDropEquip(isUnitComplete) {
 
   if (ratio >= 1) {
     // 全对：必爆蓝以上
+    // 蓝70% 紫29% 粉0.9% 金0.09% 橙0.01%
     const r = Math.random() * 100;
-    if (r < 90)        targetLevel = 'good';       // 蓝 90%
-    else if (r < 99)   targetLevel = 'rare';       // 紫 9%
-    else if (r < 99.9) targetLevel = 'epic';       // 粉 0.9%
-    else if (r < 99.99)targetLevel = 'legendary';  // 金 0.09%
-    else               targetLevel = 'mythic';     // 橙 0.01%
+    if (r < 70)         targetLevel = 'good';
+    else if (r < 99)    targetLevel = 'rare';
+    else if (r < 99.9)  targetLevel = 'epic';
+    else if (r < 99.99) targetLevel = 'legendary';
+    else                targetLevel = 'mythic';
 
   } else if (ratio >= 0.8) {
     // 80%~99% 连击率：白0% 绿20% 蓝50% 紫25.9% 粉4.1%（无金橙）
