@@ -569,6 +569,7 @@
   #equip-bottom{ bottom: 0; z-index: 2; }
   #equip-face  { bottom: 90px; z-index: 5; }
   #equip-eyes  { bottom: 100px; z-index: 6; }
+  #equip-shoes { bottom: 0; z-index: 1; }
   .char-toggle-btn {
     position: fixed;
     bottom: 20px; left: 20px;
@@ -2610,9 +2611,10 @@ const EQUIP_DATA = {
   bottom: { label: '裤裙', folder: '裤裙', ids: ['1060077','1060103','1060600','1061031','1061047','1061070','1061077','1061150','1061208','1062117','1062203','1062294'] },
   cape: { label: '披风', folder: '披风', ids: ['1100033','1102065','1102167','1102275','1102310'] },
   face: { label: '脸饰', folder: '脸饰', ids: ['1010006','1011015','1012054','1012147','1012222','1012300','1012395','1012397','1012458'] },
-  eyes: { label: '眼饰', folder: '眼饰', ids: ['1020001','1020213','1022058','1022310'] }
+  eyes: { label: '眼饰', folder: '眼饰', ids: ['1020001','1020213','1022058','1022310'] },
+  shoes: { label: '鞋子', folder: '鞋子', ids: ['1070038','1070098','1070113','1070139','1070147','1071026','1071095','1071122','1071149','1072109','1072148','1072221','1072222','1072237','1072322'] }
 };
-const equipped = { hat: null, top: null, bottom: null, cape: null, face: null, eyes: null };
+const equipped = { hat: null, top: null, bottom: null, cape: null, face: null, eyes: null, shoes: null };
 function getIconUrl(folder, id) {
   return `https://raw.githubusercontent.com/tancbiao/kexvefuxi/main/maplestory_sprites/${folder}/${id}_icon.png`;
 }
@@ -2782,6 +2784,7 @@ document.addEventListener('touchend', () => { isDragging = false; });
     <img class="char-equip" id="equip-cape" src="" style="display:none">
     <img class="char-equip" id="equip-face" src="" style="display:none">
     <img class="char-equip" id="equip-eyes" src="" style="display:none">
+    <img class="char-equip" id="equip-shoes" src="" style="display:none">
   </div>
   <button class="char-toggle-btn" onclick="toggleCharPanel()">💪 换装</button>
   <div class="char-panel" id="charPanel" style="display:none">
@@ -2808,6 +2811,10 @@ document.addEventListener('touchend', () => { isDragging = false; });
     <div class="char-panel-section">
       <div class="char-panel-title">👓 眼饰</div>
       <div class="char-panel-items" id="items-eyes"></div>
+    </div>
+    <div class="char-panel-section">
+      <div class="char-panel-title">👞 鞋子</div>
+      <div class="char-panel-items" id="items-shoes"></div>
     </div>
   </div>
 

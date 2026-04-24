@@ -579,6 +579,7 @@
   #equip-bottom{ bottom: 0; z-index: 2; }
   #equip-face  { bottom: 90px; z-index: 5; }
   #equip-eyes  { bottom: 100px; z-index: 6; }
+  #equip-shoes { bottom: 0; z-index: 1; }
 
   .char-toggle-btn {
     position: fixed;
@@ -2836,10 +2837,15 @@ const EQUIP_DATA = {
     label: '眼饰',
     folder: '眼饰',
     ids: ['1020001','1020213','1022058','1022310']
+  },
+  shoes: {
+    label: '鞋子',
+    folder: '鞋子',
+    ids: ['1070038','1070098','1070113','1070139','1070147','1071026','1071095','1071122','1071149','1072109','1072148','1072221','1072222','1072237','1072322']
   }
 };
 
-const equipped = { hat: null, top: null, bottom: null, cape: null, face: null, eyes: null };
+const equipped = { hat: null, top: null, bottom: null, cape: null, face: null, eyes: null, shoes: null };
 
 function getIconUrl(folder, id) {
   return `https://raw.githubusercontent.com/tancbiao/kexvefuxi/main/maplestory_sprites/${folder}/${id}_icon.png`;
@@ -3021,6 +3027,7 @@ document.addEventListener('touchend', () => { isDragging = false; });
     <img class="char-equip" id="equip-cape" src="" style="display:none">
     <img class="char-equip" id="equip-face" src="" style="display:none">
     <img class="char-equip" id="equip-eyes" src="" style="display:none">
+    <img class="char-equip" id="equip-shoes" src="" style="display:none">
   </div>
   <button class="char-toggle-btn" id="charToggleBtn" onclick="toggleCharPanel()">💪 换装</button>
   <div class="char-panel" id="charPanel" style="display:none">
@@ -3047,6 +3054,10 @@ document.addEventListener('touchend', () => { isDragging = false; });
     <div class="char-panel-section">
       <div class="char-panel-title">👓 眼饰</div>
       <div class="char-panel-items" id="items-eyes"></div>
+    </div>
+    <div class="char-panel-section">
+      <div class="char-panel-title">👞 鞋子</div>
+      <div class="char-panel-items" id="items-shoes"></div>
     </div>
   </div>
 
