@@ -1510,14 +1510,14 @@ function showEquipDrop(equip) {
       <div class="equip-drop-icon">${equip.icon}</div>
       <div class="equip-drop-name" style="color: ${equip.color}">${equip.name}</div>
       <div class="equip-drop-effect">${equip.effect}</div>
-      ${equip.desc ? \`<div class="equip-drop-desc" style="color:#888;font-size:0.8em;margin-top:6px">\${equip.desc}</div>\` : \`\`}
+      ${equip.desc ? `<div class="equip-drop-desc" style="color:#888;font-size:0.8em;margin-top:6px">\${equip.desc}</div>` : ``}
     </div>
   `;
   document.body.appendChild(overlay);
   if (!document.getElementById('equipDropStyle')) {
     const style = document.createElement('style');
     style.id = 'equipDropStyle';
-    style.textContent = \`
+    style.textContent = `
       .equip-drop-overlay {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center;
@@ -1537,7 +1537,7 @@ function showEquipDrop(equip) {
         50% { transform: scale(1.1); }
         100% { transform: scale(1); }
       }
-    \`;
+    `;
     document.head.appendChild(style);
   }
   overlay.addEventListener('click', () => overlay.remove());
