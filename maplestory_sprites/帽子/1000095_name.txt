@@ -1,0 +1,5 @@
+{
+  "id": 1000095,
+  "name": "Floral Bandana",
+  "description": "#cPlay Mini-games with this equipped# to obtain additional rewards."
+}

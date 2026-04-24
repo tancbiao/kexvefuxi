@@ -1,0 +1,5 @@
+{
+  "id": 1062203,
+  "name": "Otherworldly Slacks",
+  "description": "A pair of pants. Designed by the China MapleStory player Xiaoyu."
+}

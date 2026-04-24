@@ -1,0 +1,5 @@
+{
+  "id": 1071149,
+  "name": "Light Steps",
+  "description": "A pair of shoes (F) from the Romance Fantasy set which won a Silver Hand Award for its design."
+}

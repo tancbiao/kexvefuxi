@@ -1,0 +1,5 @@
+{
+  "id": 1051679,
+  "name": "Joyful Birthday",
+  "description": "Outfit (F) of the Golden Hand Item, Happy Birthday Set."
+}

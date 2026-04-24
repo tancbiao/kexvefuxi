@@ -1,0 +1,5 @@
+{
+  "id": 1051333,
+  "name": "Miracle Dress",
+  "description": "Twinkling hearts and starlight will follow you in this neato-keen outfit!"
+}

@@ -1,0 +1,5 @@
+{
+  "id": 1042367,
+  "name": "Devil Bear T-Shirt",
+  "description": "A Devil Bear T-Shirt. Designed by the China MapleStory player Acco."
+}

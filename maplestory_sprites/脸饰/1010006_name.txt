@@ -1,0 +1,5 @@
+{
+  "id": 1010006,
+  "name": "Yakuza Scar",
+  "description": ""
+}

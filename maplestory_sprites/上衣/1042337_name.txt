@@ -1,0 +1,5 @@
+{
+  "id": 1042337,
+  "name": "Teddy Picnic Shirt",
+  "description": "An item designed by Xiaoshu. Real adventurers cover themselves in adorable bears, it\u0027s a fact."
+}
