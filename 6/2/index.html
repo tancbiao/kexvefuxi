@@ -1434,7 +1434,7 @@ function renderQuestion() {
   });
   
   const hintBtn = document.getElementById('hintBtn');
-  hintBtn.textContent = `<img src="../../icons/lightbulb.svg" class="icon-24"> 提示 (${gameState.hintsRemaining})`;
+  document.getElementById('hintBtn').innerHTML = `<img src="../../icons/lightbulb.svg" class="icon-24"> 提示 (${gameState.hintsRemaining})`;
   hintBtn.disabled = gameState.hintsRemaining <= 0;
   document.getElementById('hintBox').classList.remove('show');
   document.getElementById('hintBox').textContent = q.hint || '暂无提示';
@@ -2414,7 +2414,7 @@ createParticles();
 // ========== 成就解锁动画 ==========
 function showAchievementUnlock(achievement) {
   const el = document.getElementById('achievementUnlock');
-  document.getElementById('unlockIcon').textContent = achievement.icon;
+  document.getElementById('unlockIcon').innerHTML = achievement.icon;
   document.getElementById('unlockName').textContent = achievement.name;
   el.classList.add('show');
   setTimeout(() => el.classList.remove('show'), 3000);
