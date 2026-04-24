@@ -2139,7 +2139,7 @@ function recordWrongQuestion(q, correctAnswer) {
 }
 
 function getCurrentLessonName() {
-  const bank = window.QUESTION_BANK_5_2;
+  const bank = questionData;
   if (!bank || !gameState.currentUnit || !gameState.currentLesson) return '未知课程';
   const unit = bank[gameState.currentUnit];
   if (!unit || !unit.lessons) return '未知课程';
@@ -2424,7 +2424,7 @@ function renderWrongQuestionList() {
   document.getElementById('wrongLessonCount').textContent = lessons.length;
 
   const unitSelect = document.getElementById('wrongFilterUnit');
-  const bank = window.QUESTION_BANK_5_2;
+  const bank = questionData;
 
   if (bank && unitSelect.options.length <= 1) {
     for (const unitId in bank) {
@@ -2507,7 +2507,7 @@ function practiceWrongQuestions() {
   const selected = shuffled.slice(0, Math.min(10, shuffled.length));
 
   const questions = selected.map(w => {
-    const bank = window.QUESTION_BANK_5_2;
+    const bank = questionData;
     let originalQ = null;
 
     if (bank) {
