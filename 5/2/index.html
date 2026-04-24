@@ -1177,7 +1177,8 @@ const equipmentSystem = {
     { id: 'sword', name: '剑', icon: '⚔️' },
     { id: 'bow', name: '弓箭', icon: '🏹' },
     { id: 'staff', name: '魔法杖', icon: '🪄' },
-    { id: 'shield', name: '盾牌', icon: '🛡️' }
+    { id: 'shield', name: '盾牌', icon: '🛡️' },
+    { id: 'cup', name: '水杯', icon: '🥛' }
   ],
   
   // 效果类型
@@ -1230,7 +1231,21 @@ const equipmentSystem = {
   totalDropRate: 0.01
 };
 
-const equipmentPool = equipmentSystem.getEquipmentPool();
+// 谭老师的愤怒水杯：专属金色传说，条件触发发放
+const tanTeacherCup = {
+  id: 'cup_tanTeacherCup',
+  name: '谭老师的愤怒水杯',
+  icon: '🥛',
+  level: 'legendary',
+  levelName: '金色传说的',
+  effect: '金色传说获得概率+1%，史诗获得概率+5%',
+  pointBonus: 0,
+  color: '#ffd700',
+  desc: '保持安静'
+};
+
+// 完整的装备池 = 系统生成 + 专属装备
+const equipmentPool = [...equipmentSystem.getEquipmentPool(), tanTeacherCup];
 
 const gameState = {
   studentId: null,
@@ -1275,6 +1290,7 @@ const gameState = {
     { id: 'unit3_master', icon: '🌋', name: '地质探险家', desc: '完成第三单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
     { id: 'unit4_master', icon: '🚀', name: '宇宙旅行者', desc: '完成第四单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
     // 👑传说成就
+    { id: 'equip_tan_cup', icon: '🥛', name: '谭老师的愤怒水杯', desc: '集齐10件装备仍未获得金色传说', tier: '👑', bonus: {} },
     { id: 'streak_7', icon: '🌟', name: '七星连珠', desc: '达成7连胜', tier: '👑', bonus: { pointsMul: 1.25, dropBonus: 0.15, hintExtra: 2 } },
     { id: 'equip_rainbow', icon: '🌈', name: '彩虹收集', desc: '集齐所有颜色装备', tier: '👑', bonus: { pointsMul: 1.25, dropBonus: 0.20 } },
     { id: 'equip_mythic', icon: '🌟', name: '欧皇', desc: '获得神话装备', tier: '👑', bonus: { pointsMul: 1.30, dropBonus: 0.15 } },
@@ -1593,44 +1609,72 @@ function tryDropEquip(isUnitComplete) {
   const streak = gameState.maxStreak || 0;
   const ratio = totalQ > 0 ? streak / totalQ : 0; // 0~1
 
+  // 谭老师的愤怒水杯效果：检测是否已拥有
+  const hasTanCup = gameState.equipment && gameState.equipment.some(e => e.id === 'cup_tanTeacherCup');
+  const applyCupBonus = hasTanCup;
+
   let targetLevel;
 
   if (ratio >= 1) {
-    // 全对：必爆蓝以上
-    // 蓝65% 紫30% 粉4.9% 金0.09% 橙0.01%（每项均高于80~99%档）
     const r = Math.random() * 100;
-    if (r < 65)         targetLevel = 'good';
-    else if (r < 95)    targetLevel = 'rare';
-    else if (r < 99.9)  targetLevel = 'epic';
-    else if (r < 99.99) targetLevel = 'legendary';
-    else                targetLevel = 'mythic';
-
+    if (applyCupBonus) {
+      // 有水杯：蓝60% 紫33% 粉6% 金1.8% 橙0.2%
+      if (r < 60)         targetLevel = 'good';
+      else if (r < 93)    targetLevel = 'rare';
+      else if (r < 99)    targetLevel = 'epic';
+      else if (r < 99.98) targetLevel = 'legendary';
+      else                targetLevel = 'mythic';
+    } else {
+      if (r < 65)         targetLevel = 'good';
+      else if (r < 95)    targetLevel = 'rare';
+      else if (r < 99.9)  targetLevel = 'epic';
+      else if (r < 99.99) targetLevel = 'legendary';
+      else                targetLevel = 'mythic';
+    }
   } else if (ratio >= 0.8) {
-    // 80%~99% 连击率：白0% 绿20% 蓝50% 紫25.9% 粉4.1%（无金橙）
     const r = Math.random() * 100;
-    if (r < 20)      targetLevel = 'exquisite';
-    else if (r < 70) targetLevel = 'good';
-    else if (r < 95.9) targetLevel = 'rare';
-    else             targetLevel = 'epic';
-
+    if (applyCupBonus) {
+      // 有水杯：绿15% 蓝50% 紫30% 粉5%
+      if (r < 15)      targetLevel = 'exquisite';
+      else if (r < 65) targetLevel = 'good';
+      else if (r < 95) targetLevel = 'rare';
+      else             targetLevel = 'epic';
+    } else {
+      if (r < 20)      targetLevel = 'exquisite';
+      else if (r < 70) targetLevel = 'good';
+      else if (r < 95.9) targetLevel = 'rare';
+      else             targetLevel = 'epic';
+    }
   } else if (ratio >= 0.5) {
-    // 50%~79%：正常偏好，蓝色有机会
-    // 白15% 绿40% 蓝30% 紫12% 粉3%
     const r = Math.random() * 100;
-    if (r < 15)      targetLevel = 'common';
-    else if (r < 55) targetLevel = 'exquisite';
-    else if (r < 85) targetLevel = 'good';
-    else if (r < 97) targetLevel = 'rare';
-    else             targetLevel = 'epic';
-
+    if (applyCupBonus) {
+      // 有水杯：白10% 绿35% 蓝33% 紫18% 粉4%
+      if (r < 10)      targetLevel = 'common';
+      else if (r < 45) targetLevel = 'exquisite';
+      else if (r < 78) targetLevel = 'good';
+      else if (r < 96) targetLevel = 'rare';
+      else             targetLevel = 'epic';
+    } else {
+      if (r < 15)      targetLevel = 'common';
+      else if (r < 55) targetLevel = 'exquisite';
+      else if (r < 85) targetLevel = 'good';
+      else if (r < 97) targetLevel = 'rare';
+      else             targetLevel = 'epic';
+    }
   } else {
-    // 低连击（<50%）：基础概率，白绿为主
-    // 白50% 绿35% 蓝12% 紫3%
     const r = Math.random() * 100;
-    if (r < 50)      targetLevel = 'common';
-    else if (r < 85) targetLevel = 'exquisite';
-    else if (r < 97) targetLevel = 'good';
-    else             targetLevel = 'rare';
+    if (applyCupBonus) {
+      // 有水杯：白45% 绿35% 蓝15% 紫5%
+      if (r < 45)      targetLevel = 'common';
+      else if (r < 80) targetLevel = 'exquisite';
+      else if (r < 95) targetLevel = 'good';
+      else             targetLevel = 'rare';
+    } else {
+      if (r < 50)      targetLevel = 'common';
+      else if (r < 85) targetLevel = 'exquisite';
+      else if (r < 97) targetLevel = 'good';
+      else             targetLevel = 'rare';
+    }
   }
 
   dropEquip(targetLevel);
@@ -1662,6 +1706,7 @@ function showEquipDrop(equip) {
       <div class="equip-drop-icon">${equip.icon}</div>
       <div class="equip-drop-name" style="color: ${equip.color}">${equip.name}</div>
       <div class="equip-drop-effect">${equip.effect}</div>
+      ${equip.desc ? `<div class="equip-drop-desc" style="color:#888;font-size:0.8em;margin-top:6px">${equip.desc}</div>` : ``}
     </div>
   `;
   document.body.appendChild(overlay);
@@ -1685,6 +1730,7 @@ function showEquipDrop(equip) {
       .equip-drop-icon { font-size: 4em; margin: 20px 0; }
       .equip-drop-name { font-size: 1.5em; font-weight: bold; margin: 10px 0; }
       .equip-drop-effect { color: #aaa; margin-top: 10px; }
+      .equip-drop-desc { font-style: italic; }
       @keyframes bounceIn {
         0% { transform: scale(0); }
         50% { transform: scale(1.1); }
@@ -1773,6 +1819,25 @@ function checkEquipAchievements() {
   // 欧皇：获得神话装备
   if (counts.mythic > 0 && !gameState.unlockedAchievements.includes('equip_mythic')) {
     unlockAchievement('equip_mythic');
+  }
+
+  // 谭老师的愤怒水杯：>=10件装备但未拥有金色传说
+  if (gameState.equipment.length >= 10 && !gameState.unlockedAchievements.includes('equip_tan_cup')
+      && counts.legendary === 0) {
+    const cup = {
+      id: 'cup_tanTeacherCup',
+      name: '谭老师的愤怒水杯',
+      icon: '🥛',
+      level: 'legendary',
+      levelName: '金色传说的',
+      effect: '金色传说获得概率+1%，史诗获得概率+5%',
+      pointBonus: 0,
+      color: '#ffd700',
+      desc: '保持安静'
+    };
+    gameState.equipment.push(cup);
+    unlockAchievement('equip_tan_cup');
+    showEquipDrop(cup);
   }
 }
 
