@@ -263,6 +263,83 @@
     font-size: 0.85em;
   }
   .footer a { color: rgba(0,212,255,0.6); text-decoration: none; }
+
+
+  /* 更新日志面板 */
+  .update-log {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 220px;
+    background: rgba(0,0,0,0.7);
+    border: 1px solid rgba(0,212,255,0.3);
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 0.8em;
+    z-index: 100;
+  }
+  .update-log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .update-version {
+    background: linear-gradient(90deg, #00d4ff, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: bold;
+    font-size: 1.1em;
+  }
+  .update-log-toggle {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.5);
+    cursor: pointer;
+    font-size: 1.2em;
+  }
+  .update-content {
+    color: rgba(255,255,255,0.7);
+    line-height: 1.6;
+  }
+  .update-item {
+    margin-bottom: 6px;
+    padding-left: 12px;
+    position: relative;
+  }
+  .update-item::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #00d4ff;
+  }
+
+  /* 可拖动 Q 版人物 */
+  .draggable-char {
+    position: fixed;
+    bottom: 100px;
+    right: 30px;
+    font-size: 80px;
+    cursor: grab;
+    z-index: 101;
+    user-select: none;
+    transition: transform 0.1s;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+  }
+  .draggable-char:active {
+    cursor: grabbing;
+    transform: scale(1.1);
+  }
+  .draggable-char.hint {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    font-size: 0.75em;
+    color: rgba(255,255,255,0.3);
+  }
+
 </style>
 </head>
 <body>
@@ -488,6 +565,83 @@
       document.querySelector('.mode-tab:nth-child(2)').classList.add('active');
     }
   }
+
+  // 更新日志折叠
+  function toggleUpdateLog() {
+    const content = document.getElementById('updateContent');
+    const log = document.getElementById('updateLog');
+    if (content.style.display === 'none') {
+      content.style.display = '';
+      log.style.width = '220px';
+    } else {
+      content.style.display = 'none';
+      log.style.width = 'auto';
+    }
+  }
+
+  // 拖动人物
+  const char = document.getElementById('draggableChar');
+  let isDragging = false;
+  let offsetX, offsetY;
+
+  char.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    offsetX = e.clientX - char.getBoundingClientRect().left;
+    offsetY = e.clientY - char.getBoundingClientRect().top;
+    char.style.cursor = 'grabbing';
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    char.style.left = (e.clientX - offsetX) + 'px';
+    char.style.top = (e.clientY - offsetY) + 'px';
+    char.style.right = 'auto';
+  });
+
+  document.addEventListener('mouseup', () => {
+    isDragging = false;
+    char.style.cursor = 'grab';
+  });
+
+  // 触摸支持
+  char.addEventListener('touchstart', (e) => {
+    isDragging = true;
+    const touch = e.touches[0];
+    offsetX = touch.clientX - char.getBoundingClientRect().left;
+    offsetY = touch.clientY - char.getBoundingClientRect().top;
+  });
+
+  document.addEventListener('touchmove', (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    char.style.left = (touch.clientX - offsetX) + 'px';
+    char.style.top = (touch.clientY - offsetY) + 'px';
+    char.style.right = 'auto';
+  });
+
+  document.addEventListener('touchend', () => {
+    isDragging = false;
+  });
+
 </script>
+
+  <!-- 更新日志 -->
+  <div class="update-log" id="updateLog">
+    <div class="update-log-header">
+      <span class="update-version">v2.1</span>
+      <button class="update-log-toggle" onclick="toggleUpdateLog()">📋</button>
+    </div>
+    <div class="update-content" id="updateContent">
+      <div class="update-item">五年级对战判断题修复</div>
+      <div class="update-item">六年级云同步上线</div>
+      <div class="update-item">新增成就系统</div>
+    </div>
+  </div>
+
+  <!-- Q版可拖动人物 (可用SD替换) 👦 -->
+  <div class="draggable-char" id="draggableChar" title="拖动我玩~">👦</div>
+  <div class="draggable-char-hint">👆</div>
+
 </body>
 </html>
