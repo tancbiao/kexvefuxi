@@ -1243,6 +1243,7 @@ const gameState = {
   currentQuestion: 0,
   correctCount: 0,
   lessonProgress: {},
+  answered: [], // 已答题目索引，防止重答叠加
   equipment: [], // 装备背包
   allAchievements: [
     // ⭐普通成就
@@ -1370,6 +1371,7 @@ function startLesson(lesson) {
   gameState.correctCount = 0;
   gameState.currentStreak = 0;
   gameState.maxStreak = 0;
+  gameState.answered = [];
   gameState.hintsRemaining = 3;
   // 成就提示加成
   const achBonuses = calcAchievementBonuses();
@@ -1435,7 +1437,9 @@ function renderQuestion() {
 function selectOption(idx) {
   const q = gameState.currentQuestions[gameState.currentQuestion];
   const options = document.querySelectorAll('.option');
+  // 已答过则忽略，防止返回上一题重选时叠加连击和正确数
   if (options[idx].classList.contains('disabled')) return;
+  if (gameState.answered.includes(gameState.currentQuestion)) return;
 
   options.forEach(opt => opt.classList.add('disabled'));
 
