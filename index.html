@@ -483,22 +483,19 @@
     const unlockedIds = new Set();
     const grades = [4, 5, 6];
     
-    grades.forEach(grade => {
-      // 尝试各年级的下册
-      ['scienceGame_user_'].forEach(prefix => {
-        // 遍历可能的学号（简化处理，只检查是否有任何存档）
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && key.includes('scienceGame_user_')) {
-            try {
-              const data = JSON.parse(localStorage.getItem(key));
-              if (data && data.unlockedAchievements) {
-                data.unlockedAchievements.forEach(id => unlockedIds.add(id));
-              }
-            } catch(e) {}
-          }
+    const gradePrefixes = ['scienceGame4_user_', 'scienceGame5_user_', 'scienceGame6_user_', 'scienceGame_user_'];
+    gradePrefixes.forEach(prefix => {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.includes(prefix)) {
+          try {
+            const data = JSON.parse(localStorage.getItem(key));
+            if (data && data.unlockedAchievements) {
+              data.unlockedAchievements.forEach(id => unlockedIds.add(id));
+            }
+          } catch(e) {}
         }
-      });
+      }
     });
     
     return Array.from(unlockedIds);
