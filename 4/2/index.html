@@ -1290,7 +1290,8 @@ const equipmentSystem = {
     { id: 'sword', name: '剑', icon: '⚔️' },
     { id: 'bow', name: '弓箭', icon: '🏹' },
     { id: 'staff', name: '魔法杖', icon: '🪄' },
-    { id: 'shield', name: '盾牌', icon: '🛡️' }
+    { id: 'shield', name: '盾牌', icon: '🛡️' },
+    { id: 'cup', name: '水杯', icon: '🥛' }
   ],
   
   // 效果类型
@@ -1346,7 +1347,19 @@ const equipmentSystem = {
 };
 
 // 初始化装备池
-const equipmentPool = equipmentSystem.getEquipmentPool();
+// 谭老师的愤怒水杯
+const tanTeacherCup = {
+  id: 'cup_tanTeacherCup',
+  name: '谭老师的愤怒水杯',
+  icon: '🥛',
+  level: 'legendary',
+  levelName: '金色传说的',
+  effect: '金色传说获得概率+1%，史诗获得概率+5%',
+  pointBonus: 0,
+  color: '#ffd700',
+  desc: '保持安静'
+};
+const equipmentPool = [...equipmentSystem.getEquipmentPool(), tanTeacherCup];
 
 // ========== 游戏状态 ==========
 const gameState = {
@@ -1406,7 +1419,131 @@ const gameState = {
 };
 
 // 重置游戏状态（登录时调用，确保账号独立）
-function resetGameState() {
+function tryDropEquip(isUnitComplete, penalty) {
+  penalty = penalty || 1;
+  const totalQ = gameState.currentQuestions ? gameState.currentQuestions.length : 10;
+  const streak = gameState.maxStreak || 0;
+  const ratio = totalQ > 0 ? streak / totalQ : 0;
+
+  const hasTanCup = gameState.equipment && gameState.equipment.some(e => e.id === 'cup_tanTeacherCup');
+  const applyCupBonus = hasTanCup;
+  let targetLevel;
+
+  if (ratio >= 1) {
+    const r = Math.random() * 100;
+    if (applyCupBonus) {
+      if (r < 60) targetLevel = 'good';
+      else if (r < 93) targetLevel = 'rare';
+      else if (r < 99) targetLevel = 'epic';
+      else if (r < 99.98) targetLevel = 'legendary';
+      else targetLevel = 'mythic';
+    } else {
+      if (r < 65) targetLevel = 'good';
+      else if (r < 95) targetLevel = 'rare';
+      else if (r < 99.95 * penalty) targetLevel = 'epic';
+      else if (r < 99.999) targetLevel = 'legendary';
+      else targetLevel = 'mythic';
+    }
+  } else if (ratio >= 0.8) {
+    const r = Math.random() * 100;
+    if (applyCupBonus) {
+      if (r < 15) targetLevel = 'exquisite';
+      else if (r < 65) targetLevel = 'good';
+      else if (r < 95) targetLevel = 'rare';
+      else targetLevel = 'epic';
+    } else {
+      if (r < 20) targetLevel = 'exquisite';
+      else if (r < 70) targetLevel = 'good';
+      else if (r < 95.9) targetLevel = 'rare';
+      else targetLevel = Math.random() < penalty ? 'epic' : 'rare';
+    }
+  } else if (ratio >= 0.5) {
+    const r = Math.random() * 100;
+    if (applyCupBonus) {
+      if (r < 10) targetLevel = 'common';
+      else if (r < 45) targetLevel = 'exquisite';
+      else if (r < 78) targetLevel = 'good';
+      else if (r < 96) targetLevel = 'rare';
+      else targetLevel = 'epic';
+    } else {
+      if (r < 15) targetLevel = 'common';
+      else if (r < 55) targetLevel = 'exquisite';
+      else if (r < 85) targetLevel = 'good';
+      else if (r < 97) targetLevel = 'rare';
+      else if (r < 99.99 * penalty) targetLevel = 'epic';
+      else targetLevel = 'legendary';
+    }
+  } else {
+    const r = Math.random() * 100;
+    if (applyCupBonus) {
+      if (r < 45) targetLevel = 'common';
+      else if (r < 80) targetLevel = 'exquisite';
+      else if (r < 95) targetLevel = 'good';
+      else targetLevel = 'rare';
+    } else {
+      if (r < 50) targetLevel = 'common';
+      else if (r < 85) targetLevel = 'exquisite';
+      else if (r < 97) targetLevel = 'good';
+      else targetLevel = 'rare';
+    }
+  }
+  dropEquip(targetLevel);
+}
+function dropEquip(levelKey) {
+  const typeInfo = equipmentSystem.equipTypes[Math.floor(Math.random() * equipmentSystem.equipTypes.length)];
+  const equip = equipmentSystem.generateEquip(levelKey, typeInfo.id);
+  if (!gameState.equipment) gameState.equipment = [];
+  const exists = gameState.equipment.find(e => e.id === equip.id);
+  if (!exists) {
+    gameState.equipment.push(equip);
+    showEquipDrop(equip);
+  }
+}
+
+function showEquipDrop(equip) {
+  const overlay = document.createElement('div');
+  overlay.className = 'equip-drop-overlay';
+  overlay.innerHTML = `
+    <div class="equip-drop-card">
+      <div class="equip-drop-title">🎁 获得新装备！</div>
+      <div class="equip-drop-icon">${equip.icon}</div>
+      <div class="equip-drop-name" style="color: ${equip.color}">${equip.name}</div>
+      <div class="equip-drop-effect">${equip.effect}</div>
+      ${equip.desc ? \`<div class="equip-drop-desc" style="color:#888;font-size:0.8em;margin-top:6px">\${equip.desc}</div>\` : \`\`}
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  if (!document.getElementById('equipDropStyle')) {
+    const style = document.createElement('style');
+    style.id = 'equipDropStyle';
+    style.textContent = \`
+      .equip-drop-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center;
+        z-index: 9999; animation: fadeIn 0.3s;
+      }
+      .equip-drop-card {
+        background: linear-gradient(135deg, #2a2a4a, #1a1a2e);
+        border-radius: 20px; padding: 40px; text-align: center;
+        border: 3px solid gold; animation: bounceIn 0.5s;
+      }
+      .equip-drop-title { font-size: 1.5em; margin-bottom: 20px; }
+      .equip-drop-icon { font-size: 4em; margin: 20px 0; }
+      .equip-drop-name { font-size: 1.5em; font-weight: bold; margin: 10px 0; }
+      .equip-drop-effect { color: #aaa; margin-top: 10px; }
+      @keyframes bounceIn {
+        0% { transform: scale(0); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+      }
+    \`;
+    document.head.appendChild(style);
+  }
+  overlay.addEventListener('click', () => overlay.remove());
+  setTimeout(() => overlay.remove(), 5000);
+}
+
+nction resetGameState() {
   gameState.currentStreak = 0;
   gameState.maxStreak = 0;
   gameState.hintsRemaining = 3;
@@ -2995,15 +3132,34 @@ function finishQuiz() {
   if (accuracy >= 60) {
     const dropKey = `${lessonId}_dropped`;
     if (!gameState.equipDropped) gameState.equipDropped = {};
-    if (!gameState.equipDropped[dropKey]) {
-      gameState.equipDropped[dropKey] = true;
-      const droppedEquip = tryDropEquipment(false);
-      if (droppedEquip) {
-        showDropPopup(droppedEquip);
-      }
+    // 每题答题5%概率获得装备
+  const cupBonus2 = (gameState.equipment && gameState.equipment.some(e => e.id === 'cup_tanTeacherCup')) ? 0.05 : 0;
+  const perQChance = 0.05 + cupBonus2;
+  if (Math.random() < perQChance) {
+    let targetLevel;
+    const r = Math.random() * 100;
+    if (cupBonus2 > 0) {
+      if (r < 38) targetLevel = 'common';
+      else if (r < 71) targetLevel = 'exquisite';
+      else if (r < 91) targetLevel = 'good';
+      else if (r < 98) targetLevel = 'rare';
+      else targetLevel = 'epic';
+    } else {
+      if (r < 50) targetLevel = 'common';
+      else if (r < 80) targetLevel = 'exquisite';
+      else if (r < 93) targetLevel = 'good';
+      else targetLevel = 'rare';
     }
+    dropEquip(targetLevel);
   }
-  
+
+  // 课时完成掉落：每次100%，重复刷史诗+减半
+  const isFirstDrop = !gameState.equipDropped[dropKey];
+  gameState.equipDropped[dropKey] = true;
+  tryDropEquip(false, isFirstDrop ? 1 : 0.5);
+  checkEquipAchievements();
+  }
+
   saveUserData();
   
   showScreen('resultScreen');
