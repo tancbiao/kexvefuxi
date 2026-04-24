@@ -2410,7 +2410,7 @@ function loadUserData() {
         gameState.equipDropped = cloudData.equipDropped || {};
         // 更新本地
         localStorage.setItem(saveKey, JSON.stringify(cloudData));
-        updateUI();
+        updateStatusBar();
         renderAchievementPreview();
         console.log('使用云端存档');
       } else {
@@ -2427,6 +2427,7 @@ function loadUserData() {
     gameState.unlockedAchievements = d.unlockedAchievements || [];
     gameState.equipment = d.equipment || [];
     gameState.equipDropped = d.equipDropped || {};
+    updateStatusBar();
     renderAchievementPreview();
   }
 }
