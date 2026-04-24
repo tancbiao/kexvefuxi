@@ -270,7 +270,7 @@
   .update-log {
     position: fixed;
     bottom: 20px;
-    right: 20px;
+    left: 20px;
     width: 220px;
     background: rgba(0,0,0,0.7);
     border: 1px solid rgba(0,212,255,0.3);
@@ -283,9 +283,10 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+    cursor: pointer;
   }
   .update-version {
     background: linear-gradient(90deg, #00d4ff, #7c3aed);
@@ -327,6 +328,7 @@
     cursor: grab;
     z-index: 101;
     user-select: none;
+    touch-action: none;
   }
   .char-wrapper:active { cursor: grabbing; }
 
@@ -336,6 +338,7 @@
     transform: translateX(-50%);
     width: 80px;
     height: 120px;
+    pointer-events: none;
     background: linear-gradient(180deg, #FFD700 0%, #FF8C00 100%);
     border-radius: 12px 12px 8px 8px;
     border: 3px solid #FF6B00;
@@ -520,6 +523,46 @@
   /* 更新日志改进 */
   .update-log {
     backdrop-filter: blur(10px);
+  }
+
+  @media (max-width: 600px) {
+    .update-log {
+      width: auto !important;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      padding: 8px;
+      font-size: 0.75em;
+    }
+    .char-wrapper {
+      width: 80px;
+      height: 110px;
+      bottom: 60px;
+      right: 10px;
+    }
+    .char-base {
+      width: 56px;
+      height: 84px;
+    }
+    .char-body::before {
+      width: 32px;
+      height: 32px;
+      top: -26px;
+    }
+    .char-equip {
+      max-width: 80px;
+      max-height: 110px;
+    }
+    #equip-hat   { bottom: 70px; }
+    #equip-face  { bottom: 62px; }
+    #equip-eyes  { bottom: 70px; }
+    #equip-top   { bottom: 20px; }
+    .char-toggle-btn {
+      bottom: 10px;
+      right: 10px;
+      padding: 6px 10px;
+      font-size: 0.7em;
+    }
   }
 
 
@@ -755,12 +798,15 @@
   function toggleUpdateLog() {
     const content = document.getElementById('updateContent');
     const log = document.getElementById('updateLog');
+    const toggleBtn = log.querySelector('.update-log-toggle');
     if (content.style.display === 'none') {
       content.style.display = '';
       log.style.width = '220px';
+      toggleBtn.textContent = '📋';
     } else {
       content.style.display = 'none';
       log.style.width = 'auto';
+      toggleBtn.textContent = '📋▶';
     }
   }
 
@@ -870,7 +916,8 @@
     const t = e.touches[0];
     offX = t.clientX - wrapper.getBoundingClientRect().left;
     offY = t.clientY - wrapper.getBoundingClientRect().top;
-  }, { passive: true });
+    e.preventDefault();
+  }, { passive: false });
 
   document.addEventListener('touchmove', (e) => {
     if (!isDragging) return;
@@ -888,11 +935,11 @@
 
   <!-- 更新日志 -->
   <div class="update-log" id="updateLog">
-    <div class="update-log-header">
+    <div class="update-log-header" onclick="toggleUpdateLog()">
       <span class="update-version">v2.3</span>
-      <button class="update-log-toggle" onclick="toggleUpdateLog()">📋</button>
+      <button class="update-log-toggle" onclick="event.stopPropagation(); toggleUpdateLog()">📋▶</button>
     </div>
-    <div class="update-content" id="updateContent">
+    <div class="update-content" id="updateContent" style="display:none">
       <div class="update-item">修复登录/开始挑战无反应</div>
       <div class="update-item">修复四年级JS语法错误</div>
       <div class="update-item">修复五六年级大括号匹配</div>
