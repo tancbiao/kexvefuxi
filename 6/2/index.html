@@ -1841,7 +1841,9 @@ async function saveToCloud(studentId, data) {
   try {
     const recordKey = 'grade6_' + studentId;
     const url = CLOUD_CONFIG.apiUrl + '/c/' + CLOUD_CONFIG.collectionId + '/records/' + recordKey;
-    await fetch(url, {
+    
+    // 先尝试 PUT（更新已有记录）
+    const response = await fetch(url, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -1849,7 +1851,27 @@ async function saveToCloud(studentId, data) {
       },
       body: JSON.stringify(data)
     });
-    console.log('云端同步成功:', recordKey);
+    
+    if (response.status === 404) {
+      // 记录不存在，用 POST 创建新记录
+      const createUrl = CLOUD_CONFIG.apiUrl + '/c/' + CLOUD_CONFIG.collectionId + '/records';
+      const createResponse = await fetch(createUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Master-Key': CLOUD_CONFIG.apiKey
+        },
+        body: JSON.stringify({ key: recordKey, value: data })
+      });
+      
+      if (!createResponse.ok) {
+        console.error('创建云端记录失败:', createResponse.status);
+        return;
+      }
+      console.log('云端记录创建成功:', recordKey);
+    } else {
+      console.log('云端同步成功:', recordKey);
+    }
   } catch (e) {
     console.error('云端同步失败:', e);
   }
