@@ -1409,6 +1409,7 @@ const gameState = {
     // ⭐⭐⭐史诗成就
     { id: 'streak_5', icon: '💥', name: '五福临门', desc: '达成5连胜', tier: '⭐⭐⭐', bonus: { pointsMul: 1.15, dropBonus: 0.05 } },
     { id: 'perfect', icon: '💯', name: '满分答卷', desc: '一次通关获得满分', tier: '⭐⭐⭐', bonus: { pointsMul: 1.15 } },
+    { id: 'genius', icon: '🎓', name: '天才少年', desc: '首次做某课时就满分通关', tier: '⭐⭐⭐', bonus: { dropBonus: 0.05 } },
     { id: 'comeback', icon: '🐂', name: '逆风翻盘', desc: '前半错3题以上但最终满分通关', tier: '⭐⭐⭐', bonus: { pointsMul: 1.15, dropBonus: 0.08 } },
     { id: 'quick_perfect', icon: '⏱️', name: '极速通关', desc: '30秒内满分完成一课', tier: '⭐⭐⭐', bonus: { pointsMul: 1.18, dropBonus: 0.05 } },
     { id: 'no_wrong_3', icon: '🧊', name: '冷面杀手', desc: '连续3课零失误通关', tier: '⭐⭐⭐', bonus: { pointsMul: 1.15, hintExtra: 2 } },
@@ -1675,6 +1676,17 @@ function finishQuiz() {
   // 趣味成就检查
   const isPerfect = accuracy === 100;
   const elapsed = gameState.lessonStartTime ? (Date.now() - gameState.lessonStartTime) / 1000 : 999;
+  const hadProgress = gameState.lessonProgress && gameState.lessonProgress[lessonId];
+
+  // 满分答卷：一次通关获得满分
+  if (isPerfect && !gameState.unlockedAchievements.includes('perfect')) {
+    unlockAchievement('perfect');
+  }
+
+  // 天才少年：首次做某课时就满分通关
+  if (isPerfect && !hadProgress && !gameState.unlockedAchievements.includes('genius')) {
+    unlockAchievement('genius');
+  }
 
   // 极速通关：30秒内满分
   if (isPerfect && elapsed <= 30 && !gameState.unlockedAchievements.includes('quick_perfect')) {
