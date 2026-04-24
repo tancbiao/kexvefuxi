@@ -1721,14 +1721,14 @@ function saveUserData() {
     equipment: gameState.equipment,
     equipDropped: gameState.equipDropped || {}
   };
-  localStorage.setItem('scienceGame5_user_' + gameState.studentId, JSON.stringify(data));
+  localStorage.setItem('scienceGame6_user_' + gameState.studentId, JSON.stringify(data));
   // 同时云同步
   saveToCloud(gameState.studentId, data);
 }
 
 function loadUserData() {
   if (gameState.isGuest) return;
-  const saveKey = 'scienceGame5_user_' + gameState.studentId;
+  const saveKey = 'scienceGame6_user_' + gameState.studentId;
   const saved = localStorage.getItem(saveKey);
   
   // 先尝试从云端加载（异步，不阻塞）

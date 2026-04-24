@@ -1092,7 +1092,8 @@ function startRound() {
 
 function renderOpts(side, q) {
   const c = document.getElementById(side+'Options');
-  if (q.type === 'truefalse' || (q.opts && q.opts.length === 2 && (q.opts[0] === '√' || q.opts[0] === '✓'))) {
+  const isJudge = q.type === 'truefalse' || q.type === 'tf' || (q.opts && q.opts.length === 2 && (q.opts[0] === '√' || q.opts[0] === '✓'));
+  if (isJudge) {
     c.innerHTML = '<div class="tf-buttons">' +
       '<button class="tf-btn" id="'+side+'-0" onclick="ans(\''+side+'\',0)">✅ 正确</button>' +
       '<button class="tf-btn" id="'+side+'-1" onclick="ans(\''+side+'\',1)">❌ 错误</button>' +
@@ -1114,9 +1115,12 @@ function ans(side, idx) {
 
   // 判断正确性
   let ok = false;
-  if (q.type === 'truefalse' || (q.opts && q.opts.length === 2 && (q.opts[0] === '√' || q.opts[0] === '✓'))) {
-    // 判断题：answer 字段 0=√(正确), 1=×(错误)
-    ok = (idx === q.answer);
+  const isJudge = q.type === 'truefalse' || q.type === 'tf' || (q.opts && q.opts.length === 2 && (q.opts[0] === '√' || q.opts[0] === '✓'));
+  if (isJudge) {
+    // 判断题：answer 可以是 0/1(数字) 或 true/false(布尔)
+    let ansVal = q.answer;
+    if (typeof ansVal === 'boolean') ansVal = ansVal ? 0 : 1;
+    ok = (idx === ansVal);
   } else {
     // 选择题
     ok = idx === q.answer;
