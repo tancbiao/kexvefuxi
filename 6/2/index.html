@@ -1592,7 +1592,7 @@ function finishQuiz() {
     dropEquip(targetLevel);
   }
 
-  课时完成掉落：每次完成100%掉落，史诗+概率减半（重复刷）
+  // 课时完成掉落：每次完成100%掉落，史诗+概率减半（重复刷）
   const difficulty = gameState.currentDifficulty || 'basic';
   const dropKey = `${lessonId}_${difficulty}_dropped`;
   if (!gameState.equipDropped) gameState.equipDropped = {};
@@ -1600,8 +1600,7 @@ function finishQuiz() {
   gameState.equipDropped[dropKey] = true;
   tryDropEquip(false, isFirstDrop ? 1 : 0.5);
   checkEquipAchievements();
-  }}
-  
+
   saveUserData();
   
   document.getElementById('resultIcon').textContent = accuracy >= 80 ? '🎉' : accuracy >= 60 ? '👍' : '💪';

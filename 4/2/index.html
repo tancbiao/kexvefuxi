@@ -1740,7 +1740,7 @@ function loadUserData() {
 
 // ========== 装备掉落系统 ==========
 // 新规则：单课100%掉落，大概率绿白；完成单元才有机会获得红色装备
-function tryDropEquipment(isUnitComplete = false) {
+nction tryDropEquipment(isUnitComplete = false) {
   const totalQ = gameState.currentQuestions ? gameState.currentQuestions.length : 10;
   const streak = gameState.maxStreak || 0;
   const ratio = totalQ > 0 ? streak / totalQ : 0; // 0~1
