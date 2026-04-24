@@ -1835,14 +1835,37 @@ const CLOUD_CONFIG = {
   apiUrl: 'https://api.jsonbin.io/v3'
 };
 
+// 本地缓存学号到 binId 的映射
+function getBinIdMap() {
+  const map = localStorage.getItem('scienceGame6_binIdMap');
+  return map ? JSON.parse(map) : {};
+}
+
+function setBinIdMap(map) {
+  localStorage.setItem('scienceGame6_binIdMap', JSON.stringify(map));
+}
+
 // 保存到云端（按学号分开存储）
 async function saveToCloud(studentId, data) {
   if (!studentId || studentId === 'guest') return;
   try {
     const recordKey = 'grade6_' + studentId;
-    const url = CLOUD_CONFIG.apiUrl + '/c/' + CLOUD_CONFIG.collectionId + '/records/' + recordKey;
+    const map = getBinIdMap();
+    let binId = map[recordKey];
     
-    // 先尝试 PUT（更新已有记录）
+    if (!binId) {
+      // 没有缓存的 binId，需要先查找或创建
+      binId = await findOrCreateBinId(recordKey, data);
+      if (!binId) {
+        console.error('无法获取云端 bin ID');
+        return;
+      }
+      map[recordKey] = binId;
+      setBinIdMap(map);
+    }
+    
+    // 更新已有 bin
+    const url = CLOUD_CONFIG.apiUrl + '/b/' + binId;
     const response = await fetch(url, {
       method: 'PUT',
       headers: {
@@ -1852,29 +1875,67 @@ async function saveToCloud(studentId, data) {
       body: JSON.stringify(data)
     });
     
-    if (response.status === 404) {
-      // 记录不存在，用 POST 创建新记录
-      const createUrl = CLOUD_CONFIG.apiUrl + '/c/' + CLOUD_CONFIG.collectionId + '/records';
-      const createResponse = await fetch(createUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Master-Key': CLOUD_CONFIG.apiKey
-        },
-        body: JSON.stringify({ key: recordKey, value: data })
-      });
-      
-      if (!createResponse.ok) {
-        console.error('创建云端记录失败:', createResponse.status);
-        return;
-      }
-      console.log('云端记录创建成功:', recordKey);
-    } else {
+    if (response.ok) {
       console.log('云端同步成功:', recordKey);
+    } else {
+      console.error('云端同步失败:', response.status, await response.text());
     }
   } catch (e) {
     console.error('云端同步失败:', e);
   }
+}
+
+// 查找或创建 bin
+async function findOrCreateBinId(recordKey, data) {
+  // 先尝试在 collection 中查找已有的 bin
+  try {
+    const listUrl = CLOUD_CONFIG.apiUrl + '/c/' + CLOUD_CONFIG.collectionId + '/bins';
+    const response = await fetch(listUrl, {
+      headers: { 'X-Master-Key': CLOUD_CONFIG.apiKey }
+    });
+    
+    if (response.ok) {
+      const result = await response.json();
+      // 遍历所有 bin，查找匹配的学号
+      for (const bin of result) {
+        // 检查 bin 名称（创建时设置的 X-Bin-Name）
+        if (bin.snippetMeta && bin.snippetMeta.name === recordKey) {
+          console.log('找到已有云端记录:', recordKey, 'binId:', bin.record);
+          return bin.record;
+        }
+      }
+    }
+  } catch (e) {
+    console.log('查找已有记录失败，将创建新记录');
+  }
+  
+  // 没找到，创建新 bin
+  try {
+    const createUrl = CLOUD_CONFIG.apiUrl + '/b';
+    const createResp = await fetch(createUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': CLOUD_CONFIG.apiKey,
+        'X-Collection-Id': CLOUD_CONFIG.collectionId,
+        'X-Bin-Name': recordKey
+      },
+      body: JSON.stringify({ ...data, _studentKey: recordKey })
+    });
+    
+    if (createResp.ok) {
+      const result = await createResp.json();
+      const binId = result.metadata.id;
+      console.log('云端记录创建成功:', recordKey, 'binId:', binId);
+      return binId;
+    } else {
+      console.error('创建云端记录失败:', createResp.status, await createResp.text());
+    }
+  } catch (e) {
+    console.error('创建云端记录失败:', e);
+  }
+  
+  return null;
 }
 
 // 从云端加载（只加载当前学号的数据）
@@ -1882,18 +1943,54 @@ async function loadFromCloud(studentId) {
   if (!studentId || studentId === 'guest') return null;
   try {
     const recordKey = 'grade6_' + studentId;
-    const url = CLOUD_CONFIG.apiUrl + '/c/' + CLOUD_CONFIG.collectionId + '/records/' + recordKey;
-    const response = await fetch(url, {
-      headers: { 'X-Master-Key': CLOUD_CONFIG.apiKey }
-    });
-    if (response.status === 404) return null; // 新用户无云端存档，正常
-    if (response.ok) {
-      const result = await response.json();
-      console.log('从云端加载成功:', recordKey);
-      return result.record;
+    const map = getBinIdMap();
+    let binId = map[recordKey];
+    
+    if (!binId) {
+      // 没有缓存的 binId，需要查找
+      binId = await findBinId(recordKey);
+      if (binId) {
+        map[recordKey] = binId;
+        setBinIdMap(map);
+      }
+    }
+    
+    if (binId) {
+      const url = CLOUD_CONFIG.apiUrl + '/b/' + binId + '/latest';
+      const response = await fetch(url, {
+        headers: { 'X-Master-Key': CLOUD_CONFIG.apiKey }
+      });
+      if (response.ok) {
+        const result = await response.json();
+        console.log('从云端加载成功:', recordKey);
+        return result.record;
+      }
     }
   } catch (e) {
     console.error('从云端加载失败:', e);
+  }
+  return null;
+}
+
+// 仅查找 binId（不创建）
+async function findBinId(recordKey) {
+  try {
+    const listUrl = CLOUD_CONFIG.apiUrl + '/c/' + CLOUD_CONFIG.collectionId + '/bins';
+    const response = await fetch(listUrl, {
+      headers: { 'X-Master-Key': CLOUD_CONFIG.apiKey }
+    });
+    
+    if (response.ok) {
+      const result = await response.json();
+      for (const bin of result) {
+        if (bin.snippetMeta && bin.snippetMeta.name === recordKey) {
+          console.log('通过名称找到 bin:', recordKey, 'binId:', bin.record);
+          return bin.record;
+        }
+      }
+    }
+  } catch (e) {
+    console.error('查找 bin 失败:', e);
   }
   return null;
 }
