@@ -627,6 +627,14 @@
     display: flex; align-items: center; justify-content: center;
   }
 
+
+/* SVG 图标样式 */
+.icon-svg { display: inline-block; vertical-align: middle; }
+.icon-32 { width: 32px; height: 32px; }
+.icon-48 { width: 48px; height: 48px; }
+.icon-24 { width: 24px; height: 24px; }
+.lesson-icon img, .unit-icon img { width: 100%; height: 100%; object-fit: contain; }
+
 </style>
 </head>
 <body>
@@ -688,7 +696,7 @@
       <span class="question-type type-choice" id="questionType">单选题</span>
       <p class="question-text" id="questionText">题目加载中...</p>
       <div class="options" id="optionsContainer"></div>
-      <button class="hint-btn" id="hintBtn" onclick="showHint()">💡 提示 (3)</button>
+      <button class="hint-btn" id="hintBtn" onclick="showHint()"><img src="../../icons/lightbulb.svg" class="icon-24"> 提示 (3)</button>
       <div class="hint-box" id="hintBox"></div>
     </div>
     <div class="btn-group">
@@ -741,7 +749,7 @@ const questionData = {
     name: '第一单元 小小设计师',
     icon: '🎨',
     lessons: [
-      { id: 'u1l1', name: '巧妙的设计', icon: '💡',
+      { id: 'u1l1', name: '巧妙的设计', icon: '<img src="../../icons/lightbulb.svg" class="icon-32">',
         basic: [
           { q: "一个好的设计，一般要经过哪些主要环节？", options: ["只需要制作", "构思、制作、改进", "购买、试用、评价", "想象、打印、出售"], answer: 1, hint: "好的设计需要先构思方案，再动手制作，最后不断改进完善。" },
           { q: "下列哪种物品是利用巧妙设计的原理发明的？", options: ["指甲钳", "石头", "树枝", "水坑"], answer: 0, hint: "指甲钳利用了省力杠杆原理。" },
@@ -861,7 +869,7 @@ const questionData = {
   },
   unit2: {
     name: '第二单元 能量',
-    icon: '⚡',
+    icon: '<img src="../../icons/lightning.svg" class="icon-32">',
     lessons: [
       { id: 'u2l1', name: '游乐场里的能量', icon: '🎢',
         basic: [
@@ -1168,11 +1176,11 @@ const equipmentSystem = {
     { id: 'glove', name: '手套', icon: '🧤' },
     { id: 'pants', name: '长裤', icon: '👖' },
     { id: 'shorts', name: '短裤', icon: '🩳' },
-    { id: 'shirt', name: '衬衫', icon: '👔' },
-    { id: 'skirt', name: '裙子', icon: '👗' },
+    { id: 'shirt', name: '衬衫', icon: '<img src="../../icons/top.svg" class="icon-32">' },
+    { id: 'skirt', name: '裙子', icon: '<img src="../../icons/top.svg" class="icon-32">' },
     { id: 'plaid', name: '格子裙', icon: '🎽' },
     { id: 'sword', name: '剑', icon: '⚔️' },
-    { id: 'bow', name: '弓箭', icon: '🏹' },
+    { id: 'bow', name: '弓箭', icon: '<img src="../../icons/sword.svg" class="icon-32">' },
     { id: 'staff', name: '魔法杖', icon: '🪄' },
     { id: 'shield', name: '盾牌', icon: '🛡️' }
   ],
@@ -1245,43 +1253,43 @@ const gameState = {
   wrongQuestions: [], // 错题本
   allAchievements: [
     // ⭐普通成就
-    { id: 'first_blood', icon: '🎯', name: '首战告捷', desc: '完成第一题', tier: '⭐', bonus: { pointsMul: 1.05 } },
-    { id: 'streak_2', icon: '⚡', name: '小试牛刀', desc: '达成2连胜', tier: '⭐', bonus: { pointsMul: 1.05 } },
+    { id: 'first_blood', icon: '<img src="../../icons/target.svg" class="icon-32">', name: '首战告捷', desc: '完成第一题', tier: '⭐', bonus: { pointsMul: 1.05 } },
+    { id: 'streak_2', icon: '<img src="../../icons/lightning.svg" class="icon-32">', name: '小试牛刀', desc: '达成2连胜', tier: '⭐', bonus: { pointsMul: 1.05 } },
     { id: 'wrong_start', icon: '🤦', name: '开门黑', desc: '第一题就答错了', tier: '⭐', bonus: { hintExtra: 1 } },
-    { id: 'hint_user', icon: '💡', name: '提示依赖', desc: '一课中使用了3次以上提示', tier: '⭐', bonus: { hintExtra: 1 } },
+    { id: 'hint_user', icon: '<img src="../../icons/lightbulb.svg" class="icon-32">', name: '提示依赖', desc: '一课中使用了3次以上提示', tier: '⭐', bonus: { hintExtra: 1 } },
     { id: 'wrong_again', icon: '😭', name: '同一个坑', desc: '同一道题连续答错2次', tier: '⭐', bonus: {} },
     // ⭐⭐稀有成就
-    { id: 'streak_3', icon: '🔥', name: '三连斩', desc: '达成3连胜', tier: '⭐⭐', bonus: { pointsMul: 1.10 } },
+    { id: 'streak_3', icon: '<img src="../../icons/fire.svg" class="icon-32">', name: '三连斩', desc: '达成3连胜', tier: '⭐⭐', bonus: { pointsMul: 1.10 } },
     { id: 'no_hint', icon: '🧠', name: '独立思考', desc: '不使用提示通关', tier: '⭐⭐', bonus: { pointsMul: 1.10, hintExtra: 1 } },
-    { id: 'fast_correct', icon: '🚀', name: '闪电侠', desc: '3秒内答对一题', tier: '⭐⭐', bonus: { pointsMul: 1.08 } },
+    { id: 'fast_correct', icon: '<img src="../../icons/rocket.svg" class="icon-32">', name: '闪电侠', desc: '3秒内答对一题', tier: '⭐⭐', bonus: { pointsMul: 1.08 } },
     { id: 'equip_helmet_first', icon: '🪖', name: '安全第一', desc: '获得的第一件装备是头盔', tier: '⭐⭐', bonus: { dropBonus: 0.05 } },
     { id: 'first_equip', icon: '📦', name: '初识装备', desc: '获得第一件装备', tier: '⭐⭐', bonus: { dropBonus: 0.03 } },
     { id: 'all_shirt_set', icon: '👔👗', name: '穿搭达人', desc: '同时拥有衬衫和裙子', tier: '⭐⭐', bonus: { pointsMul: 1.08 } },
     { id: 'equip_bow_staff', icon: '🏹🪄', name: '法师猎人', desc: '同时拥有弓箭和魔法杖', tier: '⭐⭐', bonus: { pointsMul: 1.08 } },
     // ⭐⭐⭐史诗成就
-    { id: 'streak_5', icon: '💥', name: '五福临门', desc: '达成5连胜', tier: '⭐⭐⭐', bonus: { pointsMul: 1.15, dropBonus: 0.05 } },
+    { id: 'streak_5', icon: '<img src="../../icons/fire.svg" class="icon-32">', name: '五福临门', desc: '达成5连胜', tier: '⭐⭐⭐', bonus: { pointsMul: 1.15, dropBonus: 0.05 } },
     { id: 'perfect', icon: '💯', name: '满分答卷', desc: '一次通关获得满分', tier: '⭐⭐⭐', bonus: { pointsMul: 1.15 } },
     { id: 'genius', icon: '🎓', name: '天才少年', desc: '首次做某课时就满分通关', tier: '⭐⭐⭐', bonus: { dropBonus: 0.05 } },
     { id: 'comeback', icon: '🐂', name: '逆风翻盘', desc: '前半错3题以上但最终满分通关', tier: '⭐⭐⭐', bonus: { pointsMul: 1.15, dropBonus: 0.08 } },
     { id: 'quick_perfect', icon: '⏱️', name: '极速通关', desc: '30秒内满分完成一课', tier: '⭐⭐⭐', bonus: { pointsMul: 1.18, dropBonus: 0.05 } },
     { id: 'no_wrong_3', icon: '🧊', name: '冷面杀手', desc: '连续3课零失误通关', tier: '⭐⭐⭐', bonus: { pointsMul: 1.15, hintExtra: 2 } },
-    { id: 'equip_10', icon: '🎒', name: '收藏家', desc: '收集10件装备', tier: '⭐⭐⭐', bonus: { dropBonus: 0.10 } },
+    { id: 'equip_10', icon: '<img src="../../icons/bag.svg" class="icon-32">', name: '收藏家', desc: '收集10件装备', tier: '⭐⭐⭐', bonus: { dropBonus: 0.10 } },
     { id: 'equip_sword_shield', icon: '⚔️🛡️', name: '我的刀盾', desc: '同时拥有剑和盾牌', tier: '⭐⭐⭐', bonus: { pointsMul: 1.10, dropBonus: 0.05 } },
     { id: 'equip_blue_white', icon: '🌤️', name: '蓝天白云', desc: '同时拥有2件白色和2件蓝色装备', tier: '⭐⭐⭐', bonus: { pointsMul: 1.10 } },
     // ⭐⭐⭐史诗·单元成就
     { id: 'unit1_master', icon: '🎨', name: '设计达人', desc: '完成第一单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
-    { id: 'unit2_master', icon: '⚡', name: '能量达人', desc: '完成第二单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
+    { id: 'unit2_master', icon: '<img src="../../icons/lightning.svg" class="icon-32">', name: '能量达人', desc: '完成第二单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
     { id: 'unit3_master', icon: '🦢', name: '生态达人', desc: '完成第三单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
     { id: 'unit4_master', icon: '🌱', name: '环保达人', desc: '完成第四单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
     { id: 'unit3_master', icon: '🌋', name: '地质探险家', desc: '完成第三单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
-    { id: 'unit4_master', icon: '🚀', name: '宇宙旅行者', desc: '完成第四单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
+    { id: 'unit4_master', icon: '<img src="../../icons/rocket.svg" class="icon-32">', name: '宇宙旅行者', desc: '完成第四单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
     // 👑传说成就
-    { id: 'streak_7', icon: '🌟', name: '七星连珠', desc: '达成7连胜', tier: '👑', bonus: { pointsMul: 1.25, dropBonus: 0.15, hintExtra: 2 } },
+    { id: 'streak_7', icon: '<img src="../../icons/star.svg" class="icon-32">', name: '七星连珠', desc: '达成7连胜', tier: '👑', bonus: { pointsMul: 1.25, dropBonus: 0.15, hintExtra: 2 } },
     { id: 'equip_rainbow', icon: '🌈', name: '彩虹收集', desc: '集齐所有颜色装备', tier: '👑', bonus: { pointsMul: 1.25, dropBonus: 0.20 } },
-    { id: 'equip_mythic', icon: '🌟', name: '欧皇', desc: '获得神话装备', tier: '👑', bonus: { pointsMul: 1.30, dropBonus: 0.15 } },
+    { id: 'equip_mythic', icon: '<img src="../../icons/star.svg" class="icon-32">', name: '欧皇', desc: '获得神话装备', tier: '👑', bonus: { pointsMul: 1.30, dropBonus: 0.15 } },
     // 🏆神话成就
-    { id: 'streak_10', icon: '👑', name: '常胜将军', desc: '达成10连胜', tier: '🏆', bonus: { pointsMul: 1.40, dropBonus: 0.25, hintExtra: 3 } },
-    { id: 'all_complete', icon: '🏆', name: '科学探险家', desc: '完成所有关卡', tier: '🏆', bonus: { pointsMul: 1.50, dropBonus: 0.30, hintExtra: 3 } },
+    { id: 'streak_10', icon: '<img src="../../icons/crown.svg" class="icon-32">', name: '常胜将军', desc: '达成10连胜', tier: '🏆', bonus: { pointsMul: 1.40, dropBonus: 0.25, hintExtra: 3 } },
+    { id: 'all_complete', icon: '<img src="../../icons/trophy.svg" class="icon-32">', name: '科学探险家', desc: '完成所有关卡', tier: '🏆', bonus: { pointsMul: 1.50, dropBonus: 0.30, hintExtra: 3 } },
   ],
   unlockedAchievements: []
 };
@@ -1426,7 +1434,7 @@ function renderQuestion() {
   });
   
   const hintBtn = document.getElementById('hintBtn');
-  hintBtn.textContent = `💡 提示 (${gameState.hintsRemaining})`;
+  hintBtn.textContent = `<img src="../../icons/lightbulb.svg" class="icon-24"> 提示 (${gameState.hintsRemaining})`;
   hintBtn.disabled = gameState.hintsRemaining <= 0;
   document.getElementById('hintBox').classList.remove('show');
   document.getElementById('hintBox').textContent = q.hint || '暂无提示';
@@ -1513,7 +1521,7 @@ function showHint() {
   }
   const hintBox = document.getElementById('hintBox');
   hintBox.classList.add('show');
-  document.getElementById('hintBtn').textContent = `💡 提示 (${gameState.hintsRemaining})`;
+  document.getElementById('hintBtn').textContent = `<img src="../../icons/lightbulb.svg" class="icon-24"> 提示 (${gameState.hintsRemaining})`;
   document.getElementById('hintBtn').disabled = gameState.hintsRemaining <= 0;
 }
 
@@ -1902,7 +1910,7 @@ function recordWrongQuestion(q, correctAnswer) {
     const btns = document.querySelectorAll('.tf-btn');
     btns.forEach((btn, i) => {
       if (btn.classList.contains('wrong')) {
-        userAnswer = i === 0 ? '✅ 正确' : '❌ 错误';
+        userAnswer = i === 0 ? '<img src="../../icons/check.svg" class="icon-24"> 正确' : '<img src="../../icons/cross.svg" class="icon-24"> 错误';
       }
     });
     if (!userAnswer) userAnswer = '未作答';
@@ -1961,7 +1969,7 @@ function createWrongQuestionUI() {
 <div class="wrong-question-overlay" id="wrongQuestionOverlay">
   <div class="wrong-question-card">
     <div class="wrong-question-header">
-      <div class="wrong-question-title">📖 错题本</div>
+      <div class="wrong-question-title"><img src="../../icons/wrong-book.svg" class="icon-24"> 错题本</div>
       <button class="wrong-question-close" onclick="closeWrongQuestions()">✕</button>
     </div>
     <div class="wrong-question-stats">
@@ -2257,13 +2265,13 @@ function renderWrongQuestionList() {
     <div class="wrong-item" data-index="${idx}">
       <button class="wrong-item-delete" onclick="deleteWrongQuestion(${idx})">✕</button>
       <div class="wrong-item-header">
-        <span class="wrong-item-lesson">📚 ${w.lessonName || '课程' + w.lessonId}</span>
+        <span class="wrong-item-lesson"><img src="../../icons/book.svg" class="icon-24"> ${w.lessonName || '课程' + w.lessonId}</span>
         <span class="wrong-item-count">错 ${w.count} 次</span>
       </div>
       <div class="wrong-item-question">${escapeHtml(w.question)}</div>
       <div class="wrong-item-answer">
-        <span class="wrong-item-user">❌ 你的答案: ${escapeHtml(w.userAnswer)}</span>
-        <span class="wrong-item-correct">✅ 正确答案: ${escapeHtml(w.correctAnswer)}</span>
+        <span class="wrong-item-user"><img src="../../icons/cross.svg" class="icon-24"> 你的答案: ${escapeHtml(w.userAnswer)}</span>
+        <span class="wrong-item-correct"><img src="../../icons/check.svg" class="icon-24"> 正确答案: ${escapeHtml(w.correctAnswer)}</span>
       </div>
     </div>
   `).join('');
@@ -2435,7 +2443,7 @@ function showBackpack() {
   
   // 渲染装备列表
   if (!gameState.equipment || gameState.equipment.length === 0) {
-    grid.innerHTML = '<div class="equip-empty">🎒 背包空空如也<br>完成练习即可获得装备</div>';
+    grid.innerHTML = '<div class="equip-empty"><img src="../../icons/bag.svg" class="icon-24"> 背包空空如也<br>完成练习即可获得装备</div>';
   } else {
     grid.innerHTML = gameState.equipment.map(equip => `
       <div class="equip-item ${equip.level}">
@@ -2696,7 +2704,7 @@ document.addEventListener('touchend', () => { isDragging = false; });
 <div class="backpack-overlay" id="backpackOverlay">
   <div class="backpack-card">
     <div class="backpack-header">
-      <div class="backpack-title">🎒 我的背包</div>
+      <div class="backpack-title"><img src="../../icons/bag.svg" class="icon-24"> 我的背包</div>
       <button class="backpack-close" onclick="closeBackpack()">✕</button>
     </div>
     <div class="backpack-stats">
@@ -2725,7 +2733,7 @@ document.addEventListener('touchend', () => { isDragging = false; });
       <span style="color:#ff5722;">🟠 神话 <span id="count-mythic">0</span></span>
     </div>
     <div class="backpack-grid" id="backpackGrid">
-      <div class="equip-empty">🎒 背包空空如也<br>完成练习即可获得装备</div>
+      <div class="equip-empty"><img src="../../icons/bag.svg" class="icon-24"> 背包空空如也<br>完成练习即可获得装备</div>
     </div>
   </div>
 </div>
@@ -2764,7 +2772,7 @@ document.addEventListener('touchend', () => { isDragging = false; });
       <div class="char-panel-items" id="items-hat"></div>
     </div>
     <div class="char-panel-section">
-      <div class="char-panel-title">🎒 披风</div>
+      <div class="char-panel-title"><img src="../../icons/bag.svg" class="icon-24"> 披风</div>
       <div class="char-panel-items" id="items-cape"></div>
     </div>
     <div class="char-panel-section">

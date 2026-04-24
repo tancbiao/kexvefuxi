@@ -1024,6 +1024,14 @@
     display: flex; align-items: center; justify-content: center;
   }
 
+
+/* SVG 图标样式 */
+.icon-svg { display: inline-block; vertical-align: middle; }
+.icon-32 { width: 32px; height: 32px; }
+.icon-48 { width: 48px; height: 48px; }
+.icon-24 { width: 24px; height: 24px; }
+.lesson-icon img, .unit-icon img { width: 100%; height: 100%; object-fit: contain; }
+
 </style>
 </head>
 <body>
@@ -1063,7 +1071,7 @@
         粤教粤科版 · 四大单元 · 趣味答题 · 成就解锁
       </p>
       <button class="start-btn" onclick="showLevelSelect()">🚀 开始探险</button>
-      <button class="start-btn secondary" onclick="showWrongQuestions()" style="margin-top:12px;background:linear-gradient(135deg,#667eea,#764ba2);">📖 错题本</button>
+      <button class="start-btn secondary" onclick="showWrongQuestions()" style="margin-top:12px;background:linear-gradient(135deg,#667eea,#764ba2);"><img src="../../icons/wrong-book.svg" class="icon-24"> 错题本</button>
     </div>
 
     <!-- 成就预览 -->
@@ -1104,7 +1112,7 @@
 
     <div class="hint-section" id="hintSection">
       <button class="hint-btn" id="hintBtn" onclick="showHint()">
-        💡 求助小精灵（<span id="hintLeft">3</span>次）
+        <img src="../../icons/lightbulb.svg" class="icon-24"> 求助小精灵（<span id="hintLeft">3</span>次）
       </button>
       <div class="hint-content" id="hintContent"></div>
     </div>
@@ -1169,7 +1177,7 @@
       输入8位学号即可保存你的成就和装备
     </p>
     <input type="text" class="login-input" id="studentIdInput" placeholder="请输入8位学号" maxlength="8" onkeypress="if(event.key==='Enter')loginWithId()">
-    <button class="login-btn primary" id="loginBtn">🎒 登录存档</button>
+    <button class="login-btn primary" id="loginBtn"><img src="../../icons/bag.svg" class="icon-24"> 登录存档</button>
     <button class="login-btn secondary" id="guestBtn">🚶 游客试玩</button>
     <p class="login-hint">学号将用于识别你的存档，同一学号可跨设备同步</p>
   </div>
@@ -1222,7 +1230,7 @@
 <div class="backpack-overlay" id="backpackOverlay">
   <div class="backpack-card">
     <div class="backpack-header">
-      <div class="backpack-title">🎒 我的背包</div>
+      <div class="backpack-title"><img src="../../icons/bag.svg" class="icon-24"> 我的背包</div>
       <button class="backpack-close" onclick="closeBackpack()">✕</button>
     </div>
     <div class="backpack-stats">
@@ -1289,14 +1297,14 @@ const equipmentSystem = {
     { id: 'glove', name: '手套', icon: '🧤' },
     { id: 'pants', name: '长裤', icon: '👖' },
     { id: 'shorts', name: '短裤', icon: '🩳' },
-    { id: 'shirt', name: '衬衫', icon: '👔' },
-    { id: 'skirt', name: '裙子', icon: '👗' },
+    { id: 'shirt', name: '衬衫', icon: '<img src="../../icons/top.svg" class="icon-32">' },
+    { id: 'skirt', name: '裙子', icon: '<img src="../../icons/top.svg" class="icon-32">' },
     { id: 'plaid', name: '格子裙', icon: '🎽' },
     { id: 'sword', name: '剑', icon: '⚔️' },
-    { id: 'bow', name: '弓箭', icon: '🏹' },
+    { id: 'bow', name: '弓箭', icon: '<img src="../../icons/sword.svg" class="icon-32">' },
     { id: 'staff', name: '魔法杖', icon: '🪄' },
     { id: 'shield', name: '盾牌', icon: '🛡️' },
-    { id: 'cup', name: '水杯', icon: '🥛' }
+    { id: 'cup', name: '水杯', icon: '<img src="../../icons/pants.svg" class="icon-32">' }
   ],
   
   // 效果类型
@@ -1356,7 +1364,7 @@ const equipmentSystem = {
 const tanTeacherCup = {
   id: 'cup_tanTeacherCup',
   name: '谭老师的愤怒水杯',
-  icon: '🥛',
+  icon: '<img src="../../icons/pants.svg" class="icon-32">',
   level: 'legendary',
   levelName: '金色传说的',
   effect: '金色传说获得概率+1%，史诗获得概率+5%',
@@ -1387,27 +1395,27 @@ const gameState = {
   wrongQuestions: [], // 错题本 [{unitId, lessonId, lessonName, question, userAnswer, correctAnswer, questionType, timestamp, count}]
   allAchievements: [
     // ⭐普通成就
-    { id: 'first_blood', icon: '🎯', name: '首战告捷', desc: '完成第一题', tier: '⭐', bonus: { pointsMul: 1.05 } },
-    { id: 'streak_2', icon: '⚡', name: '小试牛刀', desc: '达成2连胜', tier: '⭐', bonus: { pointsMul: 1.05 } },
+    { id: 'first_blood', icon: '<img src="../../icons/target.svg" class="icon-32">', name: '首战告捷', desc: '完成第一题', tier: '⭐', bonus: { pointsMul: 1.05 } },
+    { id: 'streak_2', icon: '<img src="../../icons/lightning.svg" class="icon-32">', name: '小试牛刀', desc: '达成2连胜', tier: '⭐', bonus: { pointsMul: 1.05 } },
     { id: 'wrong_start', icon: '🤦', name: '开门黑', desc: '第一题就答错了', tier: '⭐', bonus: { hintExtra: 1 } },
-    { id: 'hint_user', icon: '💡', name: '提示依赖', desc: '一课中使用了3次以上提示', tier: '⭐', bonus: { hintExtra: 1 } },
+    { id: 'hint_user', icon: '<img src="../../icons/lightbulb.svg" class="icon-32">', name: '提示依赖', desc: '一课中使用了3次以上提示', tier: '⭐', bonus: { hintExtra: 1 } },
     { id: 'wrong_again', icon: '😭', name: '同一个坑', desc: '同一道题连续答错2次', tier: '⭐', bonus: {} },
     // ⭐⭐稀有成就
-    { id: 'streak_3', icon: '🔥', name: '三连斩', desc: '达成3连胜', tier: '⭐⭐', bonus: { pointsMul: 1.10 } },
+    { id: 'streak_3', icon: '<img src="../../icons/fire.svg" class="icon-32">', name: '三连斩', desc: '达成3连胜', tier: '⭐⭐', bonus: { pointsMul: 1.10 } },
     { id: 'no_hint', icon: '🧠', name: '独立思考', desc: '不使用提示通关', tier: '⭐⭐', bonus: { pointsMul: 1.10, hintExtra: 1 } },
-    { id: 'fast_correct', icon: '🚀', name: '闪电侠', desc: '3秒内答对一题', tier: '⭐⭐', bonus: { pointsMul: 1.08 } },
+    { id: 'fast_correct', icon: '<img src="../../icons/rocket.svg" class="icon-32">', name: '闪电侠', desc: '3秒内答对一题', tier: '⭐⭐', bonus: { pointsMul: 1.08 } },
     { id: 'equip_helmet_first', icon: '🪖', name: '安全第一', desc: '获得的第一件装备是头盔', tier: '⭐⭐', bonus: { dropBonus: 0.05 } },
     { id: 'first_equip', icon: '📦', name: '初识装备', desc: '获得第一件装备', tier: '⭐⭐', bonus: { dropBonus: 0.03 } },
     { id: 'all_shirt_set', icon: '👔👗', name: '穿搭达人', desc: '同时拥有衬衫和裙子', tier: '⭐⭐', bonus: { pointsMul: 1.08 } },
     { id: 'equip_bow_staff', icon: '🏹🪄', name: '法师猎人', desc: '同时拥有弓箭和魔法杖', tier: '⭐⭐', bonus: { pointsMul: 1.08 } },
     // ⭐⭐⭐史诗成就
-    { id: 'streak_5', icon: '💥', name: '五福临门', desc: '达成5连胜', tier: '⭐⭐⭐', bonus: { pointsMul: 1.15, dropBonus: 0.05 } },
+    { id: 'streak_5', icon: '<img src="../../icons/fire.svg" class="icon-32">', name: '五福临门', desc: '达成5连胜', tier: '⭐⭐⭐', bonus: { pointsMul: 1.15, dropBonus: 0.05 } },
     { id: 'perfect', icon: '💯', name: '满分答卷', desc: '一次通关获得满分', tier: '⭐⭐⭐', bonus: { pointsMul: 1.15 } },
     { id: 'genius', icon: '🎓', name: '天才少年', desc: '首次做某课时就满分通关', tier: '⭐⭐⭐', bonus: { dropBonus: 0.05 } },
     { id: 'comeback', icon: '🐂', name: '逆风翻盘', desc: '前半错3题以上但最终满分通关', tier: '⭐⭐⭐', bonus: { pointsMul: 1.15, dropBonus: 0.08 } },
     { id: 'quick_perfect', icon: '⏱️', name: '极速通关', desc: '30秒内满分完成一课', tier: '⭐⭐⭐', bonus: { pointsMul: 1.18, dropBonus: 0.05 } },
     { id: 'no_wrong_3', icon: '🧊', name: '冷面杀手', desc: '连续3课零失误通关', tier: '⭐⭐⭐', bonus: { pointsMul: 1.15, hintExtra: 2 } },
-    { id: 'equip_10', icon: '🎒', name: '收藏家', desc: '收集10件装备', tier: '⭐⭐⭐', bonus: { dropBonus: 0.10 } },
+    { id: 'equip_10', icon: '<img src="../../icons/bag.svg" class="icon-32">', name: '收藏家', desc: '收集10件装备', tier: '⭐⭐⭐', bonus: { dropBonus: 0.10 } },
     { id: 'equip_sword_shield', icon: '⚔️🛡️', name: '我的刀盾', desc: '同时拥有剑和盾牌', tier: '⭐⭐⭐', bonus: { pointsMul: 1.10, dropBonus: 0.05 } },
     { id: 'equip_blue_white', icon: '🌤️', name: '蓝天白云', desc: '同时拥有2件白色和2件蓝色装备', tier: '⭐⭐⭐', bonus: { pointsMul: 1.10 } },
     // ⭐⭐⭐史诗·单元成就
@@ -1416,12 +1424,12 @@ const gameState = {
     { id: 'unit3_master', icon: '🚗', name: '运动达人', desc: '完成第三单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
     { id: 'unit4_master', icon: '🌙', name: '太空探索者', desc: '完成第四单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
     // 👑传说成就
-    { id: 'streak_7', icon: '🌟', name: '七星连珠', desc: '达成7连胜', tier: '👑', bonus: { pointsMul: 1.25, dropBonus: 0.15, hintExtra: 2 } },
+    { id: 'streak_7', icon: '<img src="../../icons/star.svg" class="icon-32">', name: '七星连珠', desc: '达成7连胜', tier: '👑', bonus: { pointsMul: 1.25, dropBonus: 0.15, hintExtra: 2 } },
     { id: 'equip_rainbow', icon: '🌈', name: '彩虹收集', desc: '集齐所有颜色装备', tier: '👑', bonus: { pointsMul: 1.25, dropBonus: 0.20 } },
-    { id: 'equip_mythic', icon: '🌟', name: '欧皇', desc: '获得神话装备', tier: '👑', bonus: { pointsMul: 1.30, dropBonus: 0.15 } },
+    { id: 'equip_mythic', icon: '<img src="../../icons/star.svg" class="icon-32">', name: '欧皇', desc: '获得神话装备', tier: '👑', bonus: { pointsMul: 1.30, dropBonus: 0.15 } },
     // 🏆神话成就
-    { id: 'streak_10', icon: '👑', name: '常胜将军', desc: '达成10连胜', tier: '🏆', bonus: { pointsMul: 1.40, dropBonus: 0.25, hintExtra: 3 } },
-    { id: 'all_complete', icon: '🏆', name: '科学探险家', desc: '完成所有关卡', tier: '🏆', bonus: { pointsMul: 1.50, dropBonus: 0.30, hintExtra: 3 } },
+    { id: 'streak_10', icon: '<img src="../../icons/crown.svg" class="icon-32">', name: '常胜将军', desc: '达成10连胜', tier: '🏆', bonus: { pointsMul: 1.40, dropBonus: 0.25, hintExtra: 3 } },
+    { id: 'all_complete', icon: '<img src="../../icons/trophy.svg" class="icon-32">', name: '科学探险家', desc: '完成所有关卡', tier: '🏆', bonus: { pointsMul: 1.50, dropBonus: 0.30, hintExtra: 3 } },
   ]
 };
 
@@ -1728,7 +1736,7 @@ function recordWrongQuestion(q, correctAnswer) {
     const btns = document.querySelectorAll('.tf-btn');
     btns.forEach((btn, i) => {
       if (btn.classList.contains('wrong')) {
-        userAnswer = i === 0 ? '✅ 正确' : '❌ 错误';
+        userAnswer = i === 0 ? '<img src="../../icons/check.svg" class="icon-24"> 正确' : '<img src="../../icons/cross.svg" class="icon-24"> 错误';
       }
     });
     if (!userAnswer) userAnswer = '未作答';
@@ -1782,7 +1790,7 @@ function createWrongQuestionUI() {
 <div class="wrong-question-overlay" id="wrongQuestionOverlay">
   <div class="wrong-question-card">
     <div class="wrong-question-header">
-      <div class="wrong-question-title">📖 错题本</div>
+      <div class="wrong-question-title"><img src="../../icons/wrong-book.svg" class="icon-24"> 错题本</div>
       <button class="wrong-question-close" onclick="closeWrongQuestions()">✕</button>
     </div>
     <div class="wrong-question-stats">
@@ -2098,13 +2106,13 @@ function renderWrongQuestionList() {
     <div class="wrong-item" data-index="${idx}">
       <button class="wrong-item-delete" onclick="deleteWrongQuestion(${idx})">✕</button>
       <div class="wrong-item-header">
-        <span class="wrong-item-lesson">📚 ${w.lessonName || '课程' + w.lessonId}</span>
+        <span class="wrong-item-lesson"><img src="../../icons/book.svg" class="icon-24"> ${w.lessonName || '课程' + w.lessonId}</span>
         <span class="wrong-item-count">错 ${w.count} 次</span>
       </div>
       <div class="wrong-item-question">${escapeHtml(w.question)}</div>
       <div class="wrong-item-answer">
-        <span class="wrong-item-user">❌ 你的答案: ${escapeHtml(w.userAnswer)}</span>
-        <span class="wrong-item-correct">✅ 正确答案: ${escapeHtml(w.correctAnswer)}</span>
+        <span class="wrong-item-user"><img src="../../icons/cross.svg" class="icon-24"> 你的答案: ${escapeHtml(w.userAnswer)}</span>
+        <span class="wrong-item-correct"><img src="../../icons/check.svg" class="icon-24"> 正确答案: ${escapeHtml(w.correctAnswer)}</span>
       </div>
     </div>
   `).join('');
@@ -2350,7 +2358,7 @@ const questionData = {
     name: '第一单元 植物大观园',
     icon: '🌿',
     lessons: [
-      { id: 'u1l1', name: '白兰和银杏', icon: '📚',
+      { id: 'u1l1', name: '白兰和银杏', icon: '<img src="../../icons/book.svg" class="icon-32">',
         basic: [
           {"q": "白兰和银杏属于什么类型的植物？", "options": ["灌木", "乔木", "草本植物", "藤本植物"], "answer": 1, "hint": "植物的基本分类——乔木"},
           {"q": "乔木的特点是", "options": ["植株矮小，没有明显主干", "植株高大，有明显且坚硬的主干", "茎柔软", "攀附生长"], "answer": 1, "hint": "乔木的定义特征"},
@@ -2372,7 +2380,7 @@ const questionData = {
         ],
         hard: [],
       },
-      { id: 'u1l2', name: '月季和茉莉', icon: '📚',
+      { id: 'u1l2', name: '月季和茉莉', icon: '<img src="../../icons/book.svg" class="icon-32">',
         basic: [
           {"q": "月季和茉莉属于什么类型的植物？", "options": ["乔木", "灌木", "草本植物", "藤本植物"], "answer": 1, "hint": "灌木的定义"},
           {"q": "灌木的特点是", "options": ["植株高大，有明显主干", "没有明显主干，植株比较矮小", "茎柔软", "攀附生长"], "answer": 1, "hint": "灌木的基本特征"},
@@ -2394,7 +2402,7 @@ const questionData = {
         ],
         hard: [],
       },
-      { id: 'u1l3', name: '凤仙花和狗尾草', icon: '📚',
+      { id: 'u1l3', name: '凤仙花和狗尾草', icon: '<img src="../../icons/book.svg" class="icon-32">',
         basic: [
           {"q": "凤仙花和狗尾草属于什么类型的植物？", "options": ["乔木", "灌木", "草本植物", "藤本植物"], "answer": 2, "hint": "草本植物的定义"},
           {"q": "草本植物的特点是", "options": ["植株高大，有明显主干", "植株低矮，茎很柔软", "攀附生长", "生长在水中"], "answer": 1, "hint": "草本植物的基本特征"},
@@ -2416,7 +2424,7 @@ const questionData = {
         ],
         hard: [],
       },
-      { id: 'u1l4', name: '葡萄和爬墙虎', icon: '📚',
+      { id: 'u1l4', name: '葡萄和爬墙虎', icon: '<img src="../../icons/book.svg" class="icon-32">',
         basic: [
           {"q": "葡萄和爬墙虎属于什么类型的植物？", "options": ["乔木", "灌木", "草本植物", "藤本植物"], "answer": 3, "hint": "藤本植物的定义"},
           {"q": "藤本植物的特点是", "options": ["植株高大，有明显主干", "自身不能直立生长，攀附在其他物体上生长", "生长在水中", "茎很坚硬"], "answer": 1, "hint": "藤本植物的基本特征"},
@@ -2438,7 +2446,7 @@ const questionData = {
         ],
         hard: [],
       },
-      { id: 'u1l5', name: '睡莲和荷花', icon: '📚',
+      { id: 'u1l5', name: '睡莲和荷花', icon: '<img src="../../icons/book.svg" class="icon-32">',
         basic: [
           {"q": "睡莲和荷花属于什么类型的植物？", "options": ["乔木", "水生植物", "藤本植物", "灌木"], "answer": 1, "hint": "水生植物的定义"},
           {"q": "水生植物按生长方式可分为几种类型？", "options": ["两种", "三种", "四种", "五种"], "answer": 1, "hint": "水生植物的分类"},
@@ -2460,7 +2468,7 @@ const questionData = {
         ],
         hard: [],
       },
-      { id: 'u1l6', name: '校园里的植物', icon: '📚',
+      { id: 'u1l6', name: '校园里的植物', icon: '<img src="../../icons/book.svg" class="icon-32">',
         basic: [
           {"q": "校园里种植的植物种类包括", "options": ["只有乔木", "只有灌木", "乔木、灌木和草本植物等", "只有草本植物"], "answer": 2, "hint": "校园植物的多样性"},
           {"q": "在观察校园植物时，不需要了解的是", "options": ["植物的名称", "植物的形态特点", "植物的价格", "植物的生长环境"], "answer": 2, "hint": "科学观察的内容"},
@@ -2482,7 +2490,7 @@ const questionData = {
         ],
         hard: [],
       },
-      { id: 'u1l7', name: '网上学习：有趣的植物', icon: '📚',
+      { id: 'u1l7', name: '网上学习：有趣的植物', icon: '<img src="../../icons/book.svg" class="icon-32">',
         basic: [
           {"q": "下列哪种植物长着奇特的捕虫笼？", "options": ["王莲", "猪笼草", "生石花", "荷花"], "answer": 1, "hint": "食虫植物的特征"},
           {"q": "网上学习的步骤是什么？", "options": ["搜集信息→确定主题→上传资料→分享交流", "确定主题→搜集信息→上传资料→分享交流", "上传资料→确定主题→搜集信息→分享交流", "分享交流→确定主题→搜集信息→上传资料"], "answer": 1, "hint": "网上学习的流程"},
@@ -2510,7 +2518,7 @@ const questionData = {
     name: '第二单元 动物的需求',
     icon: '🐾',
     lessons: [
-      { id: 'u2l8', name: '动物需要空气', icon: '📚',
+      { id: 'u2l8', name: '动物需要空气', icon: '<img src="../../icons/book.svg" class="icon-32">',
         basic: [
           {"q": "绝大多数的动物需要通过呼吸从环境中获取什么？", "options": ["二氧化碳", "氧气", "氮气", "氢气"], "answer": 1, "hint": "动物的呼吸需求"},
           {"q": "鱼用什么器官呼吸？", "options": ["肺", "鳃", "皮肤", "鼻子"], "answer": 1, "hint": "鱼的呼吸器官"},
@@ -2532,7 +2540,7 @@ const questionData = {
         ],
         hard: [],
       },
-      { id: 'u2l9', name: '动物需要水分', icon: '📚',
+      { id: 'u2l9', name: '动物需要水分', icon: '<img src="../../icons/book.svg" class="icon-32">',
         basic: [
           {"q": "动物获取水分的方式不包括", "options": ["饮水", "从食物中获取水分", "自己制造水分", "以上都是获取方式"], "answer": 2, "hint": "动物获取水分的方式"},
           {"q": "水是构成动物身体的什么成分？", "options": ["次要成分", "主要成分", "不需要", "有害成分"], "answer": 1, "hint": "水在动物体内的地位"},
@@ -2554,7 +2562,7 @@ const questionData = {
         ],
         hard: [],
       },
-      { id: 'u2l10', name: '动物需要食物', icon: '📚',
+      { id: 'u2l10', name: '动物需要食物', icon: '<img src="../../icons/book.svg" class="icon-32">',
         basic: [
           {"q": "主要以植物为食的动物叫做什么？", "options": ["肉食性动物", "植食性动物", "杂食性动物", "腐食性动物"], "answer": 1, "hint": "动物的食性分类"},
           {"q": "主要以其他动物为食的动物叫做什么？", "options": ["植食性动物", "肉食性动物", "杂食性动物", "腐食性动物"], "answer": 1, "hint": "动物的食性分类"},
@@ -2576,7 +2584,7 @@ const questionData = {
         ],
         hard: [],
       },
-      { id: 'u2l11', name: '动物行为', icon: '📚',
+      { id: 'u2l11', name: '动物行为', icon: '<img src="../../icons/book.svg" class="icon-32">',
         basic: [
           {"q": "动物的行为包括寻找食物、逃避敌害和", "options": ["睡觉", "繁殖后代", "玩耍", "发呆"], "answer": 1, "hint": "动物行为的主要类型"},
           {"q": "牛、羊等食草动物有什么发达的牙齿？", "options": ["犬齿", "臼齿", "门齿", "没有牙齿"], "answer": 1, "hint": "食草动物的适应特征"},
@@ -2598,7 +2606,7 @@ const questionData = {
         ],
         hard: [],
       },
-      { id: 'u2l12', name: '动物的巢穴', icon: '📚',
+      { id: 'u2l12', name: '动物的巢穴', icon: '<img src="../../icons/book.svg" class="icon-32">',
         basic: [
           {"q": "鸟类的巢穴有什么作用？", "options": ["只用于休息", "作为休息或繁殖的庇护所", "只用于储存食物", "没有作用"], "answer": 1, "hint": "鸟巢的作用"},
           {"q": "喜鹊的巢通常建在哪里？", "options": ["屋檐下", "高大的树上", "地下", "水边"], "answer": 1, "hint": "喜鹊巢的位置"},
@@ -2620,7 +2628,7 @@ const questionData = {
         ],
         hard: [],
       },
-      { id: 'u2l13', name: '帮鸟儿建个家', icon: '📚',
+      { id: 'u2l13', name: '帮鸟儿建个家', icon: '<img src="../../icons/book.svg" class="icon-32">',
         basic: [
           {"q": "专题探究的步骤是什么？", "options": ["提出问题→作出假设→制订计划→搜集证据→得出结论", "得出结论→提出问题→作出假设→制订计划→搜集证据", "搜集证据→提出问题→作出假设→制订计划→得出结论", "制订计划→提出问题→作出假设→搜集证据→得出结论"], "answer": 0, "hint": "科学探究的基本步骤"},
           {"q": "制作人工鸟巢时，首先要做什么？", "options": ["制作鸟巢", "提出问题", "放置鸟巢", "观察鸟儿"], "answer": 1, "hint": "探究的第一步"},
@@ -2646,9 +2654,9 @@ const questionData = {
   },
   unit3: {
     name: '第三单元 运动与力',
-    icon: '🚀',
+    icon: '<img src="../../icons/rocket.svg" class="icon-32">',
     lessons: [
-      { id: 'u3l14', name: '车动了吗', icon: '📚',
+      { id: 'u3l14', name: '车动了吗', icon: '<img src="../../icons/book.svg" class="icon-32">',
         basic: [
           {"q": "物体是否运动的标志是什么？", "options": ["看物体的大小", "看相对于参照物有没有发生移动", "看物体的颜色", "看物体的形状"], "answer": 1, "hint": "运动的相对性"},
           {"q": "要判断一个物体是否在运动，需要选择什么作为标准？", "options": ["另一个物体作为参照物", "任意选择", "不需要标准", "选择自己"], "answer": 0, "hint": "参照物的概念"},
@@ -2670,7 +2678,7 @@ const questionData = {
         ],
         hard: [],
       },
-      { id: 'u3l15', name: '物体的运动方式', icon: '📚',
+      { id: 'u3l15', name: '物体的运动方式', icon: '<img src="../../icons/book.svg" class="icon-32">',
         basic: [
           {"q": "轻轻推小球，它会怎样运动？", "options": ["滚动", "飞行", "静止", "消失"], "answer": 0, "hint": "滚动运动"},
           {"q": "让小球从一定高度下落，碰到桌面时会怎样？", "options": ["滚动", "振动", "静止", "飞行"], "answer": 1, "hint": "振动运动"},
@@ -2692,7 +2700,7 @@ const questionData = {
         ],
         hard: [],
       },
-      { id: 'u3l16', name: '运动的快与慢', icon: '📚',
+      { id: 'u3l16', name: '运动的快与慢', icon: '<img src="../../icons/book.svg" class="icon-32">',
         basic: [
           {"q": "通过测量什么可以准确比较物体运动的快慢？", "options": ["只测量时间", "只测量距离", "测量时间和距离", "不需要测量"], "answer": 2, "hint": "速度的概念"},
           {"q": "人们常用什么工具测量时间？", "options": ["尺子", "秒表", "天平", "温度计"], "answer": 1, "hint": "测量时间的工具"},
@@ -2714,7 +2722,7 @@ const questionData = {
         ],
         hard: [],
       },
-      { id: 'u3l17', name: '风帆小车', icon: '📚',
+      { id: 'u3l17', name: '风帆小车', icon: '<img src="../../icons/book.svg" class="icon-32">',
         basic: [
           {"q": "在古代，人们发明了什么，利用风力航行？", "options": ["汽车", "帆船", "飞机", "火车"], "answer": 1, "hint": "风力的利用"},
           {"q": "风帆小车利用什么让小车动起来？", "options": ["电力", "风力", "人力", "燃料"], "answer": 1, "hint": "风帆小车的动力"},
@@ -2736,7 +2744,7 @@ const questionData = {
         ],
         hard: [],
       },
-      { id: 'u3l18', name: '运动与摩擦力', icon: '📚',
+      { id: 'u3l18', name: '运动与摩擦力', icon: '<img src="../../icons/book.svg" class="icon-32">',
         basic: [
           {"q": "一个物体在另一个物体表面运动时，在两个物体的接触面会产生一种什么力？", "options": ["重力", "摩擦力", "浮力", "弹力"], "answer": 1, "hint": "摩擦力的概念"},
           {"q": "摩擦力的方向与物体运动的方向", "options": ["相同", "相反", "垂直", "无关"], "answer": 1, "hint": "摩擦力的方向"},
@@ -2758,7 +2766,7 @@ const questionData = {
         ],
         hard: [],
       },
-      { id: 'u3l19', name: '运动的物体有能量', icon: '📚',
+      { id: 'u3l19', name: '运动的物体有能量', icon: '<img src="../../icons/book.svg" class="icon-32">',
         basic: [
           {"q": "当运动的小球撞击静止的小球时，静止的小球会怎样？", "options": ["保持静止", "动起来", "消失", "变大"], "answer": 1, "hint": "动能的传递"},
           {"q": "运动的物体具有什么？", "options": ["颜色", "能量", "形状", "大小"], "answer": 1, "hint": "动能的概念"},
@@ -2786,7 +2794,7 @@ const questionData = {
     name: '第四单元 地球上看到的光和影',
     icon: '🌙',
     lessons: [
-      { id: 'u4l20', name: '哪里有影子', icon: '📚',
+      { id: 'u4l20', name: '哪里有影子', icon: '<img src="../../icons/book.svg" class="icon-32">',
         basic: [
           {"q": "影子形成的条件不包括", "options": ["光源", "阻挡物", "屏", "水"], "answer": 3, "hint": "影子形成的条件"},
           {"q": "影子形成的条件中，阻挡物要在什么位置？", "options": ["光源后面", "屏后面", "光源和屏之间", "任意位置"], "answer": 2, "hint": "影子形成的位置关系"},
@@ -2808,7 +2816,7 @@ const questionData = {
         ],
         hard: [],
       },
-      { id: 'u4l21', name: '阳光下的影子', icon: '📚',
+      { id: 'u4l21', name: '阳光下的影子', icon: '<img src="../../icons/book.svg" class="icon-32">',
         basic: [
           {"q": "在一天中，阳光下物体影子的长短和方向会怎样？", "options": ["不变", "发生变化", "只变长短", "只变方向"], "answer": 1, "hint": "影子随时间的变化"},
           {"q": "阳光下物体影子的方向总是和太阳的方向", "options": ["相同", "相反", "垂直", "无关"], "answer": 1, "hint": "影子方向与太阳的关系"},
@@ -2830,7 +2838,7 @@ const questionData = {
         ],
         hard: [],
       },
-      { id: 'u4l22', name: '明亮的月光', icon: '📚',
+      { id: 'u4l22', name: '明亮的月光', icon: '<img src="../../icons/book.svg" class="icon-32">',
         basic: [
           {"q": "月球表面明亮和较暗的区域有什么特点？", "options": ["明亮区域地势较低", "明亮区域地势较高，较暗区域是盆地", "明亮区域是盆地", "没有区别"], "answer": 1, "hint": "月球表面的特征"},
           {"q": "月球表面较暗的盆地被称为什么？", "options": ["月海", "月山", "月谷", "月坑"], "answer": 0, "hint": "月海的概念"},
@@ -2852,7 +2860,7 @@ const questionData = {
         ],
         hard: [],
       },
-      { id: 'u4l23', name: '变化的月相', icon: '📚',
+      { id: 'u4l23', name: '变化的月相', icon: '<img src="../../icons/book.svg" class="icon-32">',
         basic: [
           {"q": "月光是什么反射的太阳光？", "options": ["地球", "月球", "星星", "太阳"], "answer": 1, "hint": "月光的来源"},
           {"q": "太阳总是照亮月球的多大面积？", "options": ["全部", "一半", "三分之一", "四分之一"], "answer": 1, "hint": "太阳照亮月球的面积"},
@@ -3199,8 +3207,8 @@ function renderQuestion() {
     case 'truefalse':
       container.innerHTML = `
         <div class="tf-buttons">
-          <button class="tf-btn tf-true" onclick="selectOption(0)">✅ 正确</button>
-          <button class="tf-btn tf-false" onclick="selectOption(1)">❌ 错误</button>
+          <button class="tf-btn tf-true" onclick="selectOption(0)"><img src="../../icons/check.svg" class="icon-24"> 正确</button>
+          <button class="tf-btn tf-false" onclick="selectOption(1)"><img src="../../icons/cross.svg" class="icon-24"> 错误</button>
         </div>
       `;
       break;
@@ -3217,7 +3225,7 @@ function renderQuestion() {
             </div>
           `).join('')}
         </div>
-        <p style="text-align:center;margin-top:12px;color:rgba(255,255,255,0.5);font-size:0.85em;">💡 单击选中一项，双击另一项即可交换位置</p>
+        <p style="text-align:center;margin-top:12px;color:rgba(255,255,255,0.5);font-size:0.85em;"><img src="../../icons/lightbulb.svg" class="icon-24"> 单击选中一项，双击另一项即可交换位置</p>
         <div style="text-align:center;margin-top:15px;">
           <button class="action-btn show" onclick="submitSortAnswer()" style="display:inline-block;">确认排序 →</button>
         </div>
@@ -3278,7 +3286,7 @@ function renderQuestion() {
             `).join('')}
           </div>
         </div>
-        <p style="text-align:center;margin-top:15px;color:rgba(255,255,255,0.6);font-size:0.9em;">💡 点击两个匹配的卡片即可连线</p>
+        <p style="text-align:center;margin-top:15px;color:rgba(255,255,255,0.6);font-size:0.9em;"><img src="../../icons/lightbulb.svg" class="icon-24"> 点击两个匹配的卡片即可连线</p>
       `;
       gameState.matchSelections = { left: null, right: null };
       break;
@@ -3413,7 +3421,7 @@ function submitSortAnswer() {
     const correctText = q.answer.map(idx => q.items[idx]).join(' → ');
     const hint = document.createElement('div');
     hint.style.cssText = 'background:rgba(76,175,80,0.2);border:1px solid #4caf50;border-radius:10px;padding:12px;margin-top:10px;color:#fff;';
-    hint.innerHTML = `✅ 正确顺序：<strong>${correctText}</strong>`;
+    hint.innerHTML = `<img src="../../icons/check.svg" class="icon-24"> 正确顺序：<strong>${correctText}</strong>`;
     document.getElementById('optionsContainer').appendChild(hint);
   }
 }
@@ -3454,7 +3462,7 @@ function checkAnswer(isCorrect) {
     if (q.type === 'choice') {
       correctAnswer = q.options[q.answer];
     } else if (q.type === 'truefalse') {
-      correctAnswer = q.answer === true ? '✅ 正确' : '❌ 错误';
+      correctAnswer = q.answer === true ? '<img src="../../icons/check.svg" class="icon-24"> 正确' : '<img src="../../icons/cross.svg" class="icon-24"> 错误';
     } else if (q.type === 'sort') {
       correctAnswer = q.answer.map(idx => q.items[idx]).join(' → ');
     }
@@ -3514,7 +3522,7 @@ function showHint() {
   const hintContent = document.getElementById('hintContent');
   const hintText = Array.isArray(q.hint) ? q.hint[level] : q.hint;
   hintContent.innerHTML = `
-    <div class="hint-level">💡 提示 ${level + 1}/3</div>
+    <div class="hint-level"><img src="../../icons/lightbulb.svg" class="icon-24"> 提示 ${level + 1}/3</div>
     <div>${hintText || '暂无提示'}</div>
   `;
   hintContent.classList.add('show');
@@ -3853,7 +3861,7 @@ document.addEventListener('touchend', () => { isDragging = false; });
       <div class="char-panel-items" id="items-hat"></div>
     </div>
     <div class="char-panel-section">
-      <div class="char-panel-title">🎒 披风</div>
+      <div class="char-panel-title"><img src="../../icons/bag.svg" class="icon-24"> 披风</div>
       <div class="char-panel-items" id="items-cape"></div>
     </div>
     <div class="char-panel-section">
