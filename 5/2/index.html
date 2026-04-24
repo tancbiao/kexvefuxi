@@ -1599,8 +1599,8 @@ function finishQuiz() {
     dropEquip(targetLevel);
   }
 
-  // 课时完成掉落：每课首次通过(>=30%)才掉落，防止刷装备
-  if (accuracy >= 30) {
+  // 课时完成掉落：每课首次通过即可100%掉落
+  if (accuracy >= 0) {
     const difficulty = gameState.currentDifficulty || 'basic';
     const dropKey = `${lessonId}_${difficulty}_dropped`;
     if (!gameState.equipDropped) gameState.equipDropped = {};
