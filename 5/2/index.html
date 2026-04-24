@@ -2064,6 +2064,7 @@ async function loadFromCloud(studentId) {
     const response = await fetch(url, {
       headers: { 'X-ACCESS-KEY': CLOUD_CONFIG.apiKey }
     });
+    if (response.status === 404) return null; // 新用户无云端存档，正常
     if (response.ok) {
       const result = await response.json();
       console.log('从云端加载成功:', recordKey);
