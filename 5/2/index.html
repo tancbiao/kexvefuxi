@@ -1599,17 +1599,15 @@ function finishQuiz() {
     dropEquip(targetLevel);
   }
 
-  // 课时完成掉落：每课首次通过即可100%掉落
-  if (accuracy >= 0) {
-    const difficulty = gameState.currentDifficulty || 'basic';
-    const dropKey = `${lessonId}_${difficulty}_dropped`;
-    if (!gameState.equipDropped) gameState.equipDropped = {};
-    if (!gameState.equipDropped[dropKey]) {
-      gameState.equipDropped[dropKey] = true;
-      tryDropEquip(false); // dropEquip内部会自动弹窗
-      checkEquipAchievements();
-    }
-  }
+  // 课时完成掉落：每次完成100%掉落，史诗+概率减半（重复刷）
+  const difficulty = gameState.currentDifficulty || 'basic';
+  const dropKey = `${lessonId}_${difficulty}_dropped`;
+  if (!gameState.equipDropped) gameState.equipDropped = {};
+  const isFirstDrop = !gameState.equipDropped[dropKey];
+  gameState.equipDropped[dropKey] = true;
+  tryDropEquip(false, isFirstDrop ? 1 : 0.5);
+  checkEquipAchievements();
+  }}
   
   saveUserData();
   
@@ -1626,7 +1624,8 @@ function finishQuiz() {
 // 装备掉落函数
 // streakRatio = maxStreak / totalQuestions（0~1），连击率越高品质越好
 // 全对（ratio=1）必爆蓝以上：蓝90% 紫9% 粉0.9% 金0.09% 橙0.01%
-function tryDropEquip(isUnitComplete) {
+function tryDropEquip(isUnitComplete, penalty) {
+  penalty = penalty || 1;
   const totalQ = gameState.currentQuestions ? gameState.currentQuestions.length : 10;
   const streak = gameState.maxStreak || 0;
   const ratio = totalQ > 0 ? streak / totalQ : 0; // 0~1
@@ -1649,7 +1648,7 @@ function tryDropEquip(isUnitComplete) {
     } else {
       if (r < 65)         targetLevel = 'good';
       else if (r < 95)    targetLevel = 'rare';
-      else if (r < 99.95) targetLevel = 'epic';
+      else if (r < 99.95 * penalty) targetLevel = 'epic';
       else if (r < 99.999) targetLevel = 'legendary';
       else                targetLevel = 'mythic';
     }
@@ -1665,7 +1664,7 @@ function tryDropEquip(isUnitComplete) {
       if (r < 20)      targetLevel = 'exquisite';
       else if (r < 70) targetLevel = 'good';
       else if (r < 95.9) targetLevel = 'rare';
-      else             targetLevel = 'epic';
+      else             targetLevel = Math.random() < penalty ? 'epic' : 'rare';
     }
   } else if (ratio >= 0.5) {
     const r = Math.random() * 100;
@@ -1681,7 +1680,7 @@ function tryDropEquip(isUnitComplete) {
       else if (r < 55) targetLevel = 'exquisite';
       else if (r < 85) targetLevel = 'good';
       else if (r < 97) targetLevel = 'rare';
-      else if (r < 99.99) targetLevel = 'epic';
+      else if (r < 99.99 * penalty) targetLevel = 'epic';
       else                targetLevel = 'legendary';
     }
   } else {
