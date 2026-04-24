@@ -510,6 +510,137 @@
     transition: all 0.3s;
   }
   .guest-btn:hover { background: rgba(255,255,255,0.2); }
+
+  /* ============ Q版可拖动人物 + 装备系统 ============ */
+  .char-wrapper {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 120px;
+    height: 160px;
+    cursor: grab;
+    z-index: 9999;
+    user-select: none;
+  }
+  .char-wrapper:active { cursor: grabbing; }
+
+  .char-base {
+    position: absolute;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 120px;
+    background: linear-gradient(180deg, #FFD700 0%, #FF8C00 100%);
+    border-radius: 12px 12px 8px 8px;
+    border: 3px solid #FF6B00;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+
+  .char-body::before {
+    content: "";
+    position: absolute;
+    top: -36px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 44px;
+    height: 44px;
+    background: #FFD700;
+    border-radius: 50%;
+    border: 3px solid #FF6B00;
+    background-image:
+      radial-gradient(circle at 30% 35%, #fff 4px, transparent 4px),
+      radial-gradient(circle at 70% 35%, #fff 4px, transparent 4px),
+      radial-gradient(circle at 30% 35%, #000 2px, transparent 2px),
+      radial-gradient(circle at 70% 35%, #000 2px, transparent 2px),
+      radial-gradient(circle at 50% 58%, #FF6B00 8px, transparent 8px);
+  }
+  .char-body {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  .char-equip {
+    position: absolute;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    max-width: 120px;
+    max-height: 160px;
+    pointer-events: none;
+  }
+  #equip-hat   { bottom: 100px; z-index: 6; }
+  #equip-cape  { bottom: 0; z-index: 0; }
+  #equip-top   { bottom: 30px; z-index: 3; }
+  #equip-bottom{ bottom: 0; z-index: 2; }
+  #equip-face  { bottom: 90px; z-index: 5; }
+  #equip-eyes  { bottom: 100px; z-index: 6; }
+
+  .char-toggle-btn {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background: linear-gradient(135deg, rgba(0,212,255,0.3), rgba(124,58,237,0.3));
+    border: 1px solid rgba(0,212,255,0.5);
+    border-radius: 10px;
+    color: #fff;
+    padding: 8px 14px;
+    font-size: 0.8em;
+    cursor: pointer;
+    z-index: 9999;
+    font-family: inherit;
+    transition: all 0.3s;
+  }
+  .char-toggle-btn:hover {
+    background: linear-gradient(135deg, rgba(0,212,255,0.5), rgba(124,58,237,0.5));
+  }
+
+  .char-panel {
+    position: fixed;
+    bottom: 55px;
+    left: 20px;
+    width: 200px;
+    max-height: 320px;
+    overflow-y: auto;
+    background: rgba(0,0,0,0.85);
+    border: 1px solid rgba(0,212,255,0.4);
+    border-radius: 12px;
+    padding: 10px;
+    z-index: 9999;
+  }
+  .char-panel::-webkit-scrollbar { width: 4px; }
+  .char-panel::-webkit-scrollbar-thumb { background: rgba(0,212,255,0.3); border-radius: 2px; }
+  .char-panel-section { margin-bottom: 8px; }
+  .char-panel-title {
+    font-size: 0.75em;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 4px;
+    padding-bottom: 2px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .char-panel-items { display: flex; flex-wrap: wrap; gap: 4px; }
+  .char-item {
+    width: 36px; height: 36px;
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 6px;
+    cursor: pointer;
+    object-fit: contain;
+    background: rgba(255,255,255,0.05);
+    transition: all 0.2s;
+    padding: 2px;
+  }
+  .char-item:hover { border-color: rgba(0,212,255,0.6); background: rgba(0,212,255,0.1); }
+  .char-item.selected { border-color: #00d4ff; background: rgba(0,212,255,0.2); }
+  .char-item.none-btn {
+    font-size: 0.65em;
+    color: rgba(255,255,255,0.4);
+    display: flex; align-items: center; justify-content: center;
+  }
+
 </style>
 </head>
 <body>
@@ -2143,6 +2274,123 @@ document.addEventListener('click', function(e) {
 
 // 初始化时渲染成就预览
 setTimeout(renderAchievementPreview, 100);
+
+
+// ============ Q版可拖动人物 + 装备系统 ============
+const EQUIP_DATA = {
+  hat: {
+    label: '帽子',
+    folder: '帽子',
+    ids: ['1000011','1000095','1000206','1001019','1001036','1001066','1001152','1002016','1002024','1002059','1002081','1002115','1002131','1002208','1002284','1002346','1002391','1002403']
+  },
+  top: {
+    label: '上衣',
+    folder: '上衣',
+    ids: ['1040027','1040147','1040191','1040800','1041031','1041058','1042004','1042058','1042089','1042140','1042202','1042259','1042337','1042367']
+  },
+  bottom: {
+    label: '裤裙',
+    folder: '裤裙',
+    ids: ['1060077','1060103','1060600','1061031','1047','1061070','1061077','1061150','1061208','1062117','1062203','1062294']
+  },
+  cape: {
+    label: '披风',
+    folder: '披风',
+    ids: ['1100033','1102065','1102167','1102275','1102310']
+  },
+  face: {
+    label: '脸饰',
+    folder: '脸饰',
+    ids: ['1010006','1011015','1012054','1012147','1012222','1012300','1012395','1012397','1012458']
+  },
+  eyes: {
+    label: '眼饰',
+    folder: '眼饰',
+    ids: ['1020001','1020213','1022058','1022310']
+  }
+};
+
+const equipped = { hat: null, top: null, bottom: null, cape: null, face: null, eyes: null };
+
+function getIconUrl(folder, id) {
+  return `https://raw.githubusercontent.com/tancbiao/kexvefuxi/main/maplestory_sprites/${folder}/${id}_icon.png`;
+}
+
+function renderEquipItems() {
+  Object.keys(EQUIP_DATA).forEach(slot => {
+    const container = document.getElementById('items-' + slot);
+    if (!container) return;
+    const { folder, ids } = EQUIP_DATA[slot];
+    let html = `<div class="char-item none-btn" onclick="equipItem('${slot}', null)">卸</div>`;
+    ids.forEach(id => {
+      const url = getIconUrl(folder, id);
+      const sel = equipped[slot] === id ? 'selected' : '';
+      html += `<img class="char-item ${sel}" src="${url}" onclick="equipItem('${slot}', '${id}')" title="${folder}/${id}">`;
+    });
+    container.innerHTML = html;
+  });
+}
+
+function equipItem(slot, id) {
+  equipped[slot] = id;
+  const img = document.getElementById('equip-' + slot);
+  if (id) {
+    img.src = getIconUrl(EQUIP_DATA[slot].folder, id);
+    img.style.display = '';
+  } else {
+    img.src = '';
+    img.style.display = 'none';
+  }
+  renderEquipItems();
+}
+
+function toggleCharPanel() {
+  const panel = document.getElementById('charPanel');
+  panel.style.display = panel.style.display === 'none' ? '' : 'none';
+  if (panel.style.display === '') renderEquipItems();
+}
+
+// 拖动
+const wrapper = document.getElementById('charWrapper');
+let isDragging = false, offX, offY;
+
+wrapper.addEventListener('mousedown', (e) => {
+  if (e.target.closest('.char-panel') || e.target.closest('.char-toggle-btn')) return;
+  isDragging = true;
+  offX = e.clientX - wrapper.getBoundingClientRect().left;
+  offY = e.clientY - wrapper.getBoundingClientRect().top;
+  e.preventDefault();
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (!isDragging) return;
+  wrapper.style.left = (e.clientX - offX) + 'px';
+  wrapper.style.top = (e.clientY - offY) + 'px';
+  wrapper.style.right = 'auto';
+  wrapper.style.bottom = 'auto';
+});
+
+document.addEventListener('mouseup', () => { isDragging = false; });
+
+wrapper.addEventListener('touchstart', (e) => {
+  if (e.target.closest('.char-panel') || e.target.closest('.char-toggle-btn')) return;
+  isDragging = true;
+  const t = e.touches[0];
+  offX = t.clientX - wrapper.getBoundingClientRect().left;
+  offY = t.clientY - wrapper.getBoundingClientRect().top;
+}, { passive: true });
+
+document.addEventListener('touchmove', (e) => {
+  if (!isDragging) return;
+  const t = e.touches[0];
+  wrapper.style.left = (t.clientX - offX) + 'px';
+  wrapper.style.top = (t.clientY - offY) + 'px';
+  wrapper.style.right = 'auto';
+  wrapper.style.bottom = 'auto';
+}, { passive: true });
+
+document.addEventListener('touchend', () => { isDragging = false; });
+
 </script>
 
 <!-- 成就殿堂弹窗 -->
@@ -2232,6 +2480,47 @@ setTimeout(renderAchievementPreview, 100);
   <div class="icon" id="unlockIcon">🏆</div>
   <div class="name" id="unlockName">成就名称</div>
 </div>
+
+  <!-- Q版可拖动人物 + 装备层叠系统 -->
+  <div class="char-wrapper" id="charWrapper">
+    <div class="char-base" id="charBase">
+      <div class="char-body"></div>
+    </div>
+    <img class="char-equip" id="equip-top" src="" style="display:none">
+    <img class="char-equip" id="equip-bottom" src="" style="display:none">
+    <img class="char-equip" id="equip-hat" src="" style="display:none">
+    <img class="char-equip" id="equip-cape" src="" style="display:none">
+    <img class="char-equip" id="equip-face" src="" style="display:none">
+    <img class="char-equip" id="equip-eyes" src="" style="display:none">
+  </div>
+  <button class="char-toggle-btn" id="charToggleBtn" onclick="toggleCharPanel()">💪 换装</button>
+  <div class="char-panel" id="charPanel" style="display:none">
+    <div class="char-panel-section">
+      <div class="char-panel-title">🧥 上衣</div>
+      <div class="char-panel-items" id="items-top"></div>
+    </div>
+    <div class="char-panel-section">
+      <div class="char-panel-title">👖 裤裙</div>
+      <div class="char-panel-items" id="items-bottom"></div>
+    </div>
+    <div class="char-panel-section">
+      <div class="char-panel-title">🎩 帽子</div>
+      <div class="char-panel-items" id="items-hat"></div>
+    </div>
+    <div class="char-panel-section">
+      <div class="char-panel-title">🎒 披风</div>
+      <div class="char-panel-items" id="items-cape"></div>
+    </div>
+    <div class="char-panel-section">
+      <div class="char-panel-title">😷 脸饰</div>
+      <div class="char-panel-items" id="items-face"></div>
+    </div>
+    <div class="char-panel-section">
+      <div class="char-panel-title">👓 眼饰</div>
+      <div class="char-panel-items" id="items-eyes"></div>
+    </div>
+  </div>
+
 </body>
 </body>
 </html>
