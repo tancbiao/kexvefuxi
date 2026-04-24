@@ -1374,6 +1374,25 @@ function updateStatusBar() {
   document.getElementById('userBadge').textContent = gameState.isGuest ? '🚶 游客' : `👤 ${gameState.studentId}`;
 }
 
+// 打乱选择题选项（保持"以上都"类题不变）
+function shuffleQuestionOptions(q) {
+  if (q.type === 'tf') return q;
+  if (!q.opts) return q;
+  const correctIdx = q.answer;
+  if (correctIdx === undefined || correctIdx === null) return q;
+  const correctText = q.opts[correctIdx];
+  if (!correctText) return q;
+  if (correctText.includes('以上都') || correctText.includes('以上各')) return q;
+  const indexed = q.opts.map((text, i) => ({ text, i }));
+  for (let i = indexed.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indexed[i], indexed[j]] = [indexed[j], indexed[i]];
+  }
+  const newOpts = indexed.map(x => x.text);
+  const newAnswer = indexed.findIndex(x => x.text === correctText);
+  return { ...q, opts: newOpts, answer: newAnswer, _origAnswer: correctIdx, _origOpts: q.opts, _optionMap: indexed.map(x => x.i) };
+}
+
 function startLesson(lesson) {
   gameState.currentLesson = lesson;
   gameState.currentQuestion = 0;
@@ -1395,9 +1414,9 @@ function startLesson(lesson) {
   gameState.isReplay = (gameState.lessonProgress && gameState.lessonProgress[lessonId] && gameState.lessonProgress[lessonId] >= 1);
   
   const allQuestions = [
-    ...lesson.basic.map(q => ({...q, difficulty: 'basic', difficultyName: '基础题'})),
-    ...lesson.medium.map(q => ({...q, difficulty: 'medium', difficultyName: '提升题'})),
-    ...lesson.hard.map(q => ({...q, difficulty: 'hard', difficultyName: '挑战题'}))
+    ...lesson.basic.map(q => shuffleQuestionOptions({...q, difficulty: 'basic', difficultyName: '基础题'})),
+    ...lesson.medium.map(q => shuffleQuestionOptions({...q, difficulty: 'medium', difficultyName: '提升题'})),
+    ...lesson.hard.map(q => shuffleQuestionOptions({...q, difficulty: 'hard', difficultyName: '挑战题'}))
   ];
   
   for (let i = allQuestions.length - 1; i > 0; i--) {
@@ -1494,9 +1513,10 @@ function selectOption(idx) {
       unlockAchievement('wrong_again');
     }
     gameState.prevWrongId = qId;
-    // 记录错题
-    const correctAnswer = q.opts ? q.opts[q.answer] : (q.options ? q.options[q.answer] : '正确答案');
-    recordWrongQuestion(q, correctAnswer);
+    // 记录错题（用原始答案文本）
+    const origAnswerIdx = q._origAnswer !== undefined ? q._origAnswer : q.answer;
+    const correctAnswerText = q._origOpts ? q._origOpts[origAnswerIdx] : (q.opts ? q.opts[origAnswerIdx] : '正确答案');
+    recordWrongQuestion(q, correctAnswerText);
   }
   
   updateStatusBar();
@@ -1828,83 +1848,50 @@ function unlockAchievement(id) {
   saveUserData();
 }
 
-// ========== JSONBin 云同步配置 ==========
-// ========== GitHub Gist 云同步配置 ==========
+// ========== Firebase 云同步配置 ==========
 const CLOUD_CONFIG = {
-  gistId: '56ad5a7fae6a5f2c9d4177c2f08f71a8',
-  token: atob('Z2hwXzZ4SUJmOTZ6V2VqOFhoRlNwVHdyYkQ5NXMzMm1YajFYeGlFRA=='),
-  apiUrl: 'https://api.github.com/gists'
+  databaseURL: 'https://kexvefuxi-default-rtdb.asia-southeast1.firebasedatabase.app'
 };
 
-// 保存到云端（GitHub Gist）
+// 保存到云端（Firebase Realtime Database）
 async function saveToCloud(studentId, data) {
   if (!studentId || studentId === 'guest') return;
   try {
-    const grade = 'GRADE6'; // 占位，后面会替换
-    const fileName = 'grade' + grade.slice(-1) + '_' + studentId + '.json';
+    const recordKey = 'grade6_' + studentId;
+    const url = CLOUD_CONFIG.databaseURL + '/students/' + recordKey + '.json';
     
-    // 先获取当前 Gist 内容
-    const getResp = await fetch(CLOUD_CONFIG.apiUrl + '/' + CLOUD_CONFIG.gistId, {
-      headers: { 'Authorization': 'token ' + CLOUD_CONFIG.token }
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
     });
     
-    if (!getResp.ok) {
-      console.error('获取 Gist 失败:', getResp.status);
-      return;
-    }
-    
-    const gistData = await getResp.json();
-    const files = {};
-    
-    // 保留原有文件
-    if (gistData.files) {
-      for (const [name, file] of Object.entries(gistData.files)) {
-        files[name] = { content: file.content };
-      }
-    }
-    
-    // 添加/更新当前学生的数据
-    files[fileName] = { content: JSON.stringify(data) };
-    
-    // 更新 Gist
-    const updateResp = await fetch(CLOUD_CONFIG.apiUrl + '/' + CLOUD_CONFIG.gistId, {
-      method: 'PATCH',
-      headers: {
-        'Authorization': 'token ' + CLOUD_CONFIG.token,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ files: files })
-    });
-    
-    if (updateResp.ok) {
-      console.log('云端同步成功:', fileName);
+    if (response.ok) {
+      console.log('云端同步成功:', recordKey);
     } else {
-      console.error('云端同步失败:', updateResp.status);
+      console.error('云端同步失败:', response.status);
     }
   } catch (e) {
     console.error('云端同步失败:', e);
   }
 }
 
-// 从云端加载（GitHub Gist）
+// 从云端加载（Firebase Realtime Database）
 async function loadFromCloud(studentId) {
   if (!studentId || studentId === 'guest') return null;
   try {
-    const grade = 'GRADE6'; // 占位，后面会替换
-    const fileName = 'grade' + grade.slice(-1) + '_' + studentId + '.json';
+    const recordKey = 'grade6_' + studentId;
+    const url = CLOUD_CONFIG.databaseURL + '/students/' + recordKey + '.json';
     
-    const response = await fetch(CLOUD_CONFIG.apiUrl + '/' + CLOUD_CONFIG.gistId, {
-      headers: { 'Authorization': 'token ' + CLOUD_CONFIG.token }
-    });
+    const response = await fetch(url);
     
     if (response.ok) {
-      const gistData = await response.json();
-      const file = gistData.files && gistData.files[fileName];
-      if (file && file.content) {
-        console.log('从云端加载成功:', fileName);
-        return JSON.parse(file.content);
+      const data = await response.json();
+      if (data) {
+        console.log('从云端加载成功:', recordKey);
+        return data;
       } else {
-        console.log('云端无此学生数据:', fileName);
+        console.log('云端无此学生数据:', recordKey);
       }
     }
   } catch (e) {

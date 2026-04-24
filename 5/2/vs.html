@@ -960,6 +960,26 @@ function init() {
   }
 }
 
+// 打乱选择题选项（保持"以上都"类题不变）
+function shuffleQuestionOpts(item) {
+  if (item.type === 'tf' || item.type === 'truefalse') return item;
+  const opts = item.opts;
+  if (!opts) return item;
+  const correctIdx = item.answer;
+  if (correctIdx === undefined || correctIdx === null) return item;
+  const correctText = opts[correctIdx];
+  if (!correctText) return item;
+  if (correctText.includes('以上都') || correctText.includes('以上各')) return item;
+  const indexed = opts.map((text, i) => ({ text, i }));
+  for (let i = indexed.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indexed[i], indexed[j]] = [indexed[j], indexed[i]];
+  }
+  const newOpts = indexed.map(x => x.text);
+  const newAnswer = indexed.findIndex(x => x.text === correctText);
+  return { ...item, opts: newOpts, answer: newAnswer, _origAnswer: correctIdx, _origOpts: opts };
+}
+
 // ========== 生成题目列表 ==========
 function genList() {
   const bank = window.QUESTION_BANK_5_2;
@@ -980,7 +1000,7 @@ function genList() {
         if (lesson[diff]) {
           lesson[diff].forEach(item => {
             // 只取选择题和判断题，跳过复杂类型
-            q.push({
+            const qItem = {
               q: item.q,
               opts: item.options || item.opts,
               answer: item.answer,
@@ -989,7 +1009,8 @@ function genList() {
               hint: item.hint,
               unit: unit,
               lessonName: lesson.name
-            });
+            };
+            q.push(shuffleQuestionOpts(qItem));
           });
         }
       });
@@ -1160,8 +1181,9 @@ function ans(side, idx) {
     document.getElementById(side+'Status').className = 'q-status wrong';
     p.streak = 0;
     document.getElementById(side+'Streak').classList.add('hidden');
-    // 标出正确答案
-    const cb = document.getElementById(side+'-'+q.answer);
+    // 标出正确答案（用原始答案索引）
+    const origIdx = q._origAnswer !== undefined ? q._origAnswer : q.answer;
+    const cb = document.getElementById(side+'-'+origIdx);
     if (cb) cb.classList.add('correct');
 
     const other = side==='p1'?'p2':'p1';
@@ -1191,7 +1213,8 @@ function revealOther(side) {
   document.getElementById(side+'Status').className = 'q-status wrong';
   G[side].streak = 0;
   document.getElementById(side+'Streak').classList.add('hidden');
-  const cb = document.getElementById(side+'-'+q.answer);
+  const origIdx2 = q._origAnswer !== undefined ? q._origAnswer : q.answer;
+  const cb = document.getElementById(side+'-'+origIdx2);
   if(cb) cb.classList.add('correct');
 
   const deficit = Math.abs(G.p1.score - G.p2.score);
