@@ -1650,7 +1650,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ========== JSONBin 云同步配置 ==========
 const CLOUD_CONFIG = {
-  apiKey: '$2a$10$AuQ2flyjbYofj5lLFldK6.hxbLJHg8lZtKLBwWLDEV1lspelaMLU6',
+  apiKey: '$2a$10$3d.vTCheq4ohLZxKkNPUZOUr6rbQU4MzVe.cAcnvuOCKYBAd.UU9K',
   collectionId: '69e9771aaaba8821972a04b6',
   apiUrl: 'https://api.jsonbin.io/v3'
 };
@@ -1665,7 +1665,7 @@ async function saveToCloud(studentId, data) {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'X-ACCESS-KEY': CLOUD_CONFIG.apiKey
+        'X-Master-Key': CLOUD_CONFIG.apiKey
       },
       body: JSON.stringify(data)
     });
@@ -1682,7 +1682,7 @@ async function loadFromCloud(studentId) {
     const recordKey = 'grade4_' + studentId;
     const url = CLOUD_CONFIG.apiUrl + '/c/' + CLOUD_CONFIG.collectionId + '/records/' + recordKey;
     const response = await fetch(url, {
-      headers: { 'X-ACCESS-KEY': CLOUD_CONFIG.apiKey }
+      headers: { 'X-Master-Key': CLOUD_CONFIG.apiKey }
     });
     if (response.status === 404) return null; // 新用户无云端存档，正常
     if (response.ok) {
