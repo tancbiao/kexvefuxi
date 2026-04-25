@@ -323,8 +323,8 @@
     position: fixed;
     bottom: 110px;
     right: 20px;
-    width: 120px;
-    height: 160px;
+    width: 140px;
+    height: 200px;
     cursor: grab;
     z-index: 101;
     user-select: none;
@@ -336,39 +336,18 @@
     position: absolute;
     bottom: 0; left: 50%;
     transform: translateX(-50%);
-    width: 80px;
-    height: 120px;
+    width: 120px;
+    height: 180px;
     pointer-events: none;
-    background: linear-gradient(180deg, #FFD700 0%, #FF8C00 100%);
-    border-radius: 12px 12px 8px 8px;
-    border: 3px solid #FF6B00;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding-top: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
   }
 
-  /* 头部 */
-  .char-body::before {
-    content: "";
-    position: absolute;
-    top: -36px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 44px;
-    height: 44px;
-    background: #FFD700;
-    border-radius: 50%;
-    border: 3px solid #FF6B00;
-    background-image:
-      radial-gradient(circle at 30% 35%, #fff 4px, transparent 4px),
-      radial-gradient(circle at 70% 35%, #fff 4px, transparent 4px),
-      radial-gradient(circle at 30% 35%, #000 2px, transparent 2px),
-      radial-gradient(circle at 70% 35%, #000 2px, transparent 2px),
-      radial-gradient(circle at 50% 58%, #FF6B00 8px, transparent 8px);
+  .char-base-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
   }
+
   .char-body {
     position: relative;
     width: 100%;
@@ -410,6 +389,26 @@
   }
   .char-toggle-btn:hover {
     background: linear-gradient(135deg, rgba(0,212,255,0.5), rgba(124,58,237,0.5));
+  }
+
+  /* 性别切换按钮 */
+  .char-gender-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 90px;
+    background: linear-gradient(135deg, rgba(255,107,157,0.3), rgba(255,152,0,0.3));
+    border: 1px solid rgba(255,107,157,0.5);
+    border-radius: 10px;
+    color: #fff;
+    padding: 8px 12px;
+    font-size: 0.8em;
+    cursor: pointer;
+    z-index: 102;
+    font-family: inherit;
+    transition: all 0.3s;
+  }
+  .char-gender-btn:hover {
+    background: linear-gradient(135deg, rgba(255,107,157,0.5), rgba(255,152,0,0.5));
   }
 
   /* 换装面板 */
@@ -536,33 +535,34 @@
       font-size: 0.75em;
     }
     .char-wrapper {
-      width: 80px;
-      height: 110px;
+      width: 100px;
+      height: 140px;
       bottom: 60px;
       right: 10px;
     }
     .char-base {
-      width: 56px;
-      height: 84px;
-    }
-    .char-body::before {
-      width: 32px;
-      height: 32px;
-      top: -26px;
+      width: 80px;
+      height: 120px;
     }
     .char-equip {
-      max-width: 80px;
-      max-height: 110px;
+      max-width: 100px;
+      max-height: 140px;
     }
-    #equip-hat   { bottom: 70px; }
-    #equip-face  { bottom: 62px; }
-    #equip-eyes  { bottom: 70px; }
+    #equip-hat   { bottom: 100px; }
+    #equip-face  { bottom: 85px; }
+    #equip-eyes  { bottom: 95px; }
     #equip-shoes { bottom: 0; }
-    #equip-top   { bottom: 20px; }
+    #equip-top   { bottom: 40px; }
     .char-toggle-btn {
       bottom: 10px;
       right: 10px;
       padding: 6px 10px;
+      font-size: 0.7em;
+    }
+    .char-gender-btn {
+      bottom: 10px;
+      right: 70px;
+      padding: 6px 8px;
       font-size: 0.7em;
     }
   }
@@ -813,7 +813,24 @@
   }
 
   // ============ Q版可拖动人物 + 装备系统 ============
-  const BASE = 'C:\\Users\\tanc\\.qclaw\\workspace-agent-90d0f043\\maplestory_sprites\\';
+  // 性别切换
+  let currentGender = localStorage.getItem('kexvefuxi_char_gender') || 'girl';
+  
+  function toggleGender() {
+    currentGender = currentGender === 'girl' ? 'boy' : 'girl';
+    localStorage.setItem('kexvefuxi_char_gender', currentGender);
+    updateCharBase();
+    document.getElementById('charGenderBtn').textContent = currentGender === 'girl' ? '👧' : '👦';
+  }
+  
+  function updateCharBase() {
+    const img = document.getElementById('charBaseImg');
+    img.src = currentGender === 'girl' ? 'generated-assets/char_girl_base.png' : 'generated-assets/char_boy_base.png';
+  }
+  
+  // 初始化性别按钮
+  document.getElementById('charGenderBtn').textContent = currentGender === 'girl' ? '👧' : '👦';
+  updateCharBase();
 
   const EQUIP_DATA = {
     hat: {
@@ -959,6 +976,7 @@
   <!-- Q版可拖动人物 + 装备层叠系统 -->
   <div class="char-wrapper" id="charWrapper">
     <div class="char-base" id="charBase">
+      <img class="char-base-img" id="charBaseImg" src="generated-assets/char_girl_base.png" alt="Q版角色">
       <div class="char-body"></div>
     </div>
     <img class="char-equip" id="equip-top" src="" style="display:none">
@@ -969,6 +987,7 @@
     <img class="char-equip" id="equip-eyes" src="" style="display:none">
     <img class="char-equip" id="equip-shoes" src="" style="display:none">
   </div>
+  <button class="char-gender-btn" id="charGenderBtn" onclick="toggleGender()">👧</button>
   <button class="char-toggle-btn" id="charToggleBtn" onclick="toggleCharPanel()">&#128170; 换装</button>
   <div class="char-panel" id="charPanel" style="display:none">
     <div class="char-panel-section">
