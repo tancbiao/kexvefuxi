@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>科学趣味闯关 · 年级选择</title>
 <script src="icons/icon-map.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -573,13 +574,381 @@
     height: 28px;
     vertical-align: middle;
   }
+
+  /* ============ 顶部导航栏 ============ */
+  .top-nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    background: rgba(26, 26, 46, 0.9);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding: 12px 20px;
+    z-index: 200;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .nav-left { display: flex; align-items: center; gap: 12px; }
+  .nav-logo {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, #00d4ff, #7c3aed);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .nav-title {
+    font-size: 1.2em;
+    font-weight: bold;
+    background: linear-gradient(90deg, #00d4ff, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .nav-right { display: flex; gap: 10px; }
+  .nav-btn {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    padding: 8px 14px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.85em;
+    transition: all 0.3s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .nav-btn:hover {
+    background: rgba(0,212,255,0.2);
+    border-color: rgba(0,212,255,0.5);
+  }
+  .nav-btn i { font-size: 14px; }
+
+  /* ============ 弹窗系统 ============ */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 300;
+    padding: 20px;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border: 1px solid rgba(0,212,255,0.3);
+    border-radius: 20px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 80vh;
+    overflow: hidden;
+    animation: modalIn 0.3s ease;
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .modal-title {
+    font-size: 1.3em;
+    font-weight: bold;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .modal-title.achievements { color: #ffd700; }
+  .modal-title.equipment { color: #00d4ff; }
+  .modal-title.character { color: #ff6b9d; }
+  .modal-close {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.5);
+    font-size: 1.5em;
+    cursor: pointer;
+    padding: 5px;
+    transition: color 0.3s;
+  }
+  .modal-close:hover { color: #fff; }
+  .modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    max-height: calc(80vh - 80px);
+  }
+
+  /* 角色信息面板 */
+  .char-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .char-preview-box {
+    background: rgba(255,255,255,0.05);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+  }
+  .char-preview-title {
+    font-size: 0.9em;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 15px;
+  }
+  .char-preview-img {
+    width: 150px; height: 200px;
+    margin: 0 auto;
+    position: relative;
+  }
+  .char-preview-img img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+  }
+  .char-stats-box {
+    background: rgba(255,255,255,0.05);
+    border-radius: 16px;
+    padding: 20px;
+  }
+  .char-stats-title {
+    font-size: 0.9em;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 15px;
+    text-align: center;
+  }
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-label {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.9em;
+  }
+  .stat-value {
+    font-weight: bold;
+    font-size: 1.1em;
+  }
+  .stat-value.str { color: #ff6b6b; }
+  .stat-value.dex { color: #4ecdc4; }
+  .stat-value.int { color: #a78bfa; }
+  .stat-value.luk { color: #ffd93d; }
+  .stat-value.bonus { color: #4ade80; }
+
+  /* 装备稀有度 */
+  .rarity-common { border-color: #9ca3af; }
+  .rarity-rare { border-color: #3b82f6; }
+  .rarity-epic { border-color: #a855f7; }
+  .rarity-legendary { border-color: #f97316; }
+  .rarity-mythic { border-color: #ec4899; }
+
+  /* 成就网格 */
+  .achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+  }
+  .achievement-card {
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+    transition: all 0.3s;
+    border: 1px solid transparent;
+  }
+  .achievement-card:hover {
+    background: rgba(255,255,255,0.1);
+    transform: translateY(-2px);
+  }
+  .achievement-card.locked {
+    opacity: 0.4;
+    filter: grayscale(100%);
+  }
+  .achievement-card.unlocked {
+    border-color: #ffd700;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+  }
+  .achievement-icon { font-size: 32px; margin-bottom: 8px; }
+  .achievement-name { font-size: 0.8em; font-weight: bold; }
+  .achievement-desc { font-size: 0.7em; color: rgba(255,255,255,0.5); margin-top: 4px; }
+
+  /* 装备列表 */
+  .equip-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+  }
+  .equip-tab {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    padding: 6px 12px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.8em;
+    transition: all 0.3s;
+  }
+  .equip-tab:hover, .equip-tab.active {
+    background: rgba(0,212,255,0.2);
+    border-color: rgba(0,212,255,0.5);
+  }
+  .equip-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 10px;
+  }
+  .equip-item {
+    aspect-ratio: 1;
+    background: rgba(255,255,255,0.05);
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .equip-item:hover { transform: scale(1.05); }
+  .equip-item.selected {
+    border-color: #00d4ff;
+    box-shadow: 0 0 10px rgba(0,212,255,0.3);
+  }
+  .equip-item img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+  }
+
+  /* 响应式调整 */
+  @media (max-width: 600px) {
+    .top-nav { padding: 10px 15px; }
+    .nav-title { font-size: 1em; }
+    .nav-btn { padding: 6px 10px; font-size: 0.75em; }
+    .nav-btn span { display: none; }
+    .char-info-grid { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
 
+<!-- 顶部导航栏 -->
+<header class="top-nav">
+  <div class="nav-left">
+    <div class="nav-logo">🔬</div>
+    <span class="nav-title">科学趣味闯关</span>
+  </div>
+  <div class="nav-right">
+    <button class="nav-btn" onclick="openModal('achievementsModal')">
+      <i class="fa fa-trophy" style="color:#ffd700"></i>
+      <span>成就</span>
+    </button>
+    <button class="nav-btn" onclick="openModal('equipmentModal')">
+      <i class="fa fa-shield" style="color:#00d4ff"></i>
+      <span>装备</span>
+    </button>
+    <button class="nav-btn" onclick="openModal('characterModal')">
+      <i class="fa fa-user" style="color:#ff6b9d"></i>
+      <span id="navUserName">登录</span>
+    </button>
+  </div>
+</header>
+
+<!-- 成就弹窗 -->
+<div class="modal-overlay" id="achievementsModal" onclick="closeModalOnOverlay(event, 'achievementsModal')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title achievements">
+        <i class="fa fa-trophy"></i>
+        <span>成就系统</span>
+      </div>
+      <button class="modal-close" onclick="closeModal('achievementsModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="achievements-grid" id="achievementsGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 装备弹窗 -->
+<div class="modal-overlay" id="equipmentModal" onclick="closeModalOnOverlay(event, 'equipmentModal')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title equipment">
+        <i class="fa fa-shield"></i>
+        <span>装备管理</span>
+      </div>
+      <button class="modal-close" onclick="closeModal('equipmentModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="equip-tabs">
+        <button class="equip-tab active" data-cat="all" onclick="filterEquip('all')">全部</button>
+        <button class="equip-tab" data-cat="hat" onclick="filterEquip('hat')">帽子</button>
+        <button class="equip-tab" data-cat="top" onclick="filterEquip('top')">上衣</button>
+        <button class="equip-tab" data-cat="bottom" onclick="filterEquip('bottom')">裤裙</button>
+        <button class="equip-tab" data-cat="cape" onclick="filterEquip('cape')">披风</button>
+        <button class="equip-tab" data-cat="face" onclick="filterEquip('face')">脸饰</button>
+        <button class="equip-tab" data-cat="eyes" onclick="filterEquip('eyes')">眼饰</button>
+        <button class="equip-tab" data-cat="shoes" onclick="filterEquip('shoes')">鞋子</button>
+      </div>
+      <div class="equip-grid" id="equipGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 角色信息弹窗 -->
+<div class="modal-overlay" id="characterModal" onclick="closeModalOnOverlay(event, 'characterModal')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title character">
+        <i class="fa fa-user"></i>
+        <span>角色信息</span>
+      </div>
+      <button class="modal-close" onclick="closeModal('characterModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="char-info-grid">
+        <div class="char-preview-box">
+          <div class="char-preview-title">角色预览</div>
+          <div class="char-preview-img">
+            <img id="modalCharImg" src="generated-assets/char_girl_base.png" alt="角色">
+          </div>
+        </div>
+        <div class="char-stats-box">
+          <div class="char-stats-title">角色属性</div>
+          <div class="stat-row">
+            <span class="stat-label">💪 力量</span>
+            <span class="stat-value str" id="statStr">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">⚡ 敏捷</span>
+            <span class="stat-value dex" id="statDex">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">🧠 智力</span>
+            <span class="stat-value int" id="statInt">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">🍀 运气</span>
+            <span class="stat-value luk" id="statLuk">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">🎯 积分倍率</span>
+            <span class="stat-value bonus" id="statScoreRate">1.0x</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">🎁 装备爆率</span>
+            <span class="stat-value bonus" id="statDropRate">10%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="particles" id="particles"></div>
 
-<div class="container">
+<div class="container" style="padding-top: 80px;">
   <div class="logo">🔬</div>
   <h1>科学趣味闯关</h1>
   <p class="subtitle">选择你的年级，开始复习之旅</p>
@@ -954,6 +1323,194 @@
   }, { passive: false });
 
   document.addEventListener('touchend', () => { isDragging = false; });
+
+  // ============ 弹窗系统 ============
+  function openModal(modalId) {
+    document.getElementById(modalId).classList.add('active');
+    if (modalId === 'achievementsModal') renderAchievementsGrid();
+    if (modalId === 'equipmentModal') renderEquipGrid();
+    if (modalId === 'characterModal') updateCharacterStats();
+  }
+  
+  function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('active');
+  }
+  
+  function closeModalOnOverlay(event, modalId) {
+    if (event.target === event.currentTarget) {
+      closeModal(modalId);
+    }
+  }
+
+  // ============ 成就网格渲染 ============
+  function renderAchievementsGrid() {
+    const grid = document.getElementById('achievementsGrid');
+    const unlockedIds = loadAchievements();
+    
+    let html = '';
+    ALL_ACHIEVEMENTS.forEach(a => {
+      const unlocked = unlockedIds.includes(a.id);
+      html += `
+        <div class="achievement-card ${unlocked ? 'unlocked' : 'locked'}">
+          <div class="achievement-icon">${a.icon}</div>
+          <div class="achievement-name">${a.name}</div>
+          <div class="achievement-desc">${a.desc}</div>
+        </div>
+      `;
+    });
+    grid.innerHTML = html;
+  }
+
+  // ============ 装备属性数据 ============
+  const EQUIP_ATTR = {
+    // 帽子
+    "1000011": {str:2,dex:1,int:0,luk:1,scoreRate:1.03,dropRate:0.02},
+    "1000095": {str:1,dex:2,int:1,luk:0,scoreRate:1.02,dropRate:0.01},
+    "1000206": {str:4,dex:3,int:0,luk:2,scoreRate:1.06,dropRate:0.04},
+    "1001019": {str:0,dex:4,int:3,luk:2,scoreRate:1.07,dropRate:0.05},
+    "1001036": {str:2,dex:2,int:4,luk:3,scoreRate:1.08,dropRate:0.05},
+    "1001066": {str:5,dex:4,int:1,luk:0,scoreRate:1.09,dropRate:0.06},
+    "1001152": {str:1,dex:3,int:5,luk:4,scoreRate:1.12,dropRate:0.07},
+    "1002016": {str:0,dex:2,int:8,luk:3,scoreRate:1.15,dropRate:0.08},
+    "1002024": {str:3,dex:1,int:6,luk:5,scoreRate:1.13,dropRate:0.07},
+    "1002059": {str:9,dex:5,int:0,luk:2,scoreRate:1.16,dropRate:0.09},
+    "1002081": {str:2,dex:5,int:2,luk:1,scoreRate:1.04,dropRate:0.03},
+    "1002115": {str:4,dex:2,int:3,luk:6,scoreRate:1.14,dropRate:0.08},
+    "1002131": {str:1,dex:3,int:2,luk:2,scoreRate:1.03,dropRate:0.02},
+    "1002208": {str:2,dex:4,int:5,luk:3,scoreRate:1.10,dropRate:0.06},
+    "1002284": {str:3,dex:6,int:2,luk:7,scoreRate:1.20,dropRate:0.11},
+    "1002346": {str:6,dex:7,int:1,luk:2,scoreRate:1.19,dropRate:0.10},
+    "1002391": {str:2,dex:2,int:1,luk:1,scoreRate:1.02,dropRate:0.01},
+    "1002403": {str:12,dex:8,int:3,luk:4,scoreRate:1.26,dropRate:0.16},
+    // 上衣
+    "1040027": {str:2,dex:2,int:2,luk:1,scoreRate:1.03,dropRate:0.02},
+    "1040147": {str:7,dex:3,int:1,luk:4,scoreRate:1.11,dropRate:0.07},
+    "1040191": {str:1,dex:5,int:3,luk:2,scoreRate:1.07,dropRate:0.04},
+    "1041031": {str:3,dex:2,int:7,luk:5,scoreRate:1.14,dropRate:0.08},
+    "1041058": {str:8,dex:6,int:0,luk:3,scoreRate:1.17,dropRate:0.09},
+    "1042004": {str:1,dex:3,int:4,luk:2,scoreRate:1.06,dropRate:0.04},
+    "1042058": {str:5,dex:4,int:1,luk:1,scoreRate:1.08,dropRate:0.05},
+    "1042089": {str:6,dex:2,int:3,luk:5,scoreRate:1.12,dropRate:0.07},
+    "1042140": {str:4,dex:7,int:2,luk:3,scoreRate:1.15,dropRate:0.08},
+    "1042259": {str:1,dex:2,int:5,luk:4,scoreRate:1.09,dropRate:0.05},
+    "1042337": {str:2,dex:1,int:3,luk:3,scoreRate:1.05,dropRate:0.03},
+    "1042367": {str:3,dex:4,int:2,luk:6,scoreRate:1.10,dropRate:0.06},
+    "1040800": {str:11,dex:9,int:2,luk:3,scoreRate:1.22,dropRate:0.12},
+    "1042202": {str:15,dex:10,int:4,luk:6,scoreRate:1.30,dropRate:0.18},
+    // 裤裙
+    "1060077": {str:3,dex:2,int:1,luk:1,scoreRate:1.04,dropRate:0.02},
+    "1060103": {str:1,dex:3,int:2,luk:2,scoreRate:1.03,dropRate:0.02},
+    "1060600": {str:2,dex:1,int:3,luk:5,scoreRate:1.07,dropRate:0.04},
+    "1061031": {str:4,dex:5,int:1,luk:2,scoreRate:1.09,dropRate:0.05},
+    "1061047": {str:2,dex:2,int:6,luk:4,scoreRate:1.11,dropRate:0.06},
+    "1061070": {str:7,dex:4,int:0,luk:3,scoreRate:1.13,dropRate:0.07},
+    "1061077": {str:1,dex:3,int:8,luk:2,scoreRate:1.15,dropRate:0.08},
+    "1061150": {str:5,dex:6,int:2,luk:1,scoreRate:1.10,dropRate:0.06},
+    "1061208": {str:3,dex:2,int:4,luk:7,scoreRate:1.16,dropRate:0.09},
+    "1062117": {str:4,dex:8,int:3,luk:5,scoreRate:1.21,dropRate:0.12},
+    "1062203": {str:6,dex:5,int:6,luk:4,scoreRate:1.23,dropRate:0.13},
+    "1062294": {str:9,dex:7,int:10,luk:8,scoreRate:1.28,dropRate:0.17},
+    // 披风
+    "1100033": {str:8,dex:5,int:4,luk:6,scoreRate:1.18,dropRate:0.10},
+    "1102065": {str:2,dex:2,int:3,luk:2,scoreRate:1.06,dropRate:0.04},
+    "1102167": {str:3,dex:4,int:2,luk:3,scoreRate:1.08,dropRate:0.05},
+    "1102275": {str:10,dex:9,int:3,luk:4,scoreRate:1.24,dropRate:0.14},
+    "1102310": {str:18,dex:12,int:15,luk:10,scoreRate:1.33,dropRate:0.20},
+    // 脸饰
+    "1010006": {str:6,dex:3,int:1,luk:2,scoreRate:1.09,dropRate:0.05},
+    "1011015": {str:2,dex:7,int:4,luk:3,scoreRate:1.12,dropRate:0.07},
+    "1012054": {str:3,dex:2,int:9,luk:4,scoreRate:1.14,dropRate:0.08},
+    "1012147": {str:7,dex:6,int:5,luk:8,scoreRate:1.17,dropRate:0.09},
+    "1012222": {str:1,dex:8,int:3,luk:2,scoreRate:1.10,dropRate:0.06},
+    "1012300": {str:2,dex:1,int:2,luk:4,scoreRate:1.05,dropRate:0.03},
+    "1012395": {str:4,dex:3,int:5,luk:1,scoreRate:1.07,dropRate:0.04},
+    "1012397": {str:3,dex:2,int:7,luk:5,scoreRate:1.13,dropRate:0.07},
+    "1012458": {str:5,dex:4,int:3,luk:9,scoreRate:1.20,dropRate:0.11},
+    // 眼饰
+    "1020001": {str:4,dex:6,int:2,luk:3,scoreRate:1.08,dropRate:0.05},
+    "1020213": {str:1,dex:2,int:6,luk:2,scoreRate:1.06,dropRate:0.04},
+    "1022058": {str:5,dex:9,int:3,luk:4,scoreRate:1.16,dropRate:0.09},
+    "1022310": {str:12,dex:11,int:8,luk:7,scoreRate:1.25,dropRate:0.15},
+    // 鞋子
+    "1070038": {str:3,dex:8,int:1,luk:2,scoreRate:1.11,dropRate:0.06},
+    "1070098": {str:6,dex:10,int:2,luk:3,scoreRate:1.18,dropRate:0.10},
+    "1070113": {str:2,dex:3,int:2,luk:3,scoreRate:1.04,dropRate:0.03},
+    "1070139": {str:4,dex:5,int:4,luk:2,scoreRate:1.09,dropRate:0.05},
+    "1070147": {str:1,dex:4,int:3,luk:5,scoreRate:1.07,dropRate:0.04},
+    "1071026": {str:5,dex:2,int:1,luk:4,scoreRate:1.08,dropRate:0.05},
+    "1071095": {str:3,dex:6,int:5,luk:2,scoreRate:1.12,dropRate:0.07},
+    "1071122": {str:7,dex:4,int:3,luk:6,scoreRate:1.15,dropRate:0.08},
+    "1071149": {str:2,dex:5,int:7,luk:4,scoreRate:1.13,dropRate:0.07},
+    "1072109": {str:8,dex:7,int:2,luk:5,scoreRate:1.19,dropRate:0.11},
+    "1072148": {str:4,dex:3,int:8,luk:6,scoreRate:1.16,dropRate:0.09},
+    "1072221": {str:6,dex:9,int:4,luk:3,scoreRate:1.21,dropRate:0.12},
+    "1072222": {str:5,dex:6,int:7,luk:8,scoreRate:1.22,dropRate:0.13},
+    "1072237": {str:9,dex:5,int:6,luk:7,scoreRate:1.24,dropRate:0.14},
+    "1072322": {str:11,dex:13,int:8,luk:9,scoreRate:1.27,dropRate:0.16}
+  };
+
+  // ============ 装备网格渲染 ============
+  let currentEquipFilter = 'all';
+  
+  function filterEquip(category) {
+    currentEquipFilter = category;
+    document.querySelectorAll('.equip-tab').forEach(tab => {
+      tab.classList.toggle('active', tab.dataset.cat === category);
+    });
+    renderEquipGrid();
+  }
+  
+  function renderEquipGrid() {
+    const grid = document.getElementById('equipGrid');
+    let html = '';
+    
+    Object.keys(EQUIP_DATA).forEach(slot => {
+      if (currentEquipFilter !== 'all' && slot !== currentEquipFilter) return;
+      
+      const { folder, ids } = EQUIP_DATA[slot];
+      ids.forEach(id => {
+        const url = getIconUrl(folder, id);
+        const selected = equipped[slot] === id ? 'selected' : '';
+        html += `
+          <div class="equip-item ${selected}" onclick="equipItem('${slot}', '${id}'); renderEquipGrid();">
+            <img src="${url}" alt="${id}">
+          </div>
+        `;
+      });
+    });
+    
+    grid.innerHTML = html;
+  }
+
+  // ============ 角色属性计算 ============
+  function updateCharacterStats() {
+    let str = 0, dex = 0, int = 0, luk = 0, scoreRate = 1.0, dropRate = 0.10;
+    
+    Object.keys(equipped).forEach(slot => {
+      const id = equipped[slot];
+      if (id && EQUIP_ATTR[id]) {
+        const attr = EQUIP_ATTR[id];
+        str += attr.str || 0;
+        dex += attr.dex || 0;
+        int += attr.int || 0;
+        luk += attr.luk || 0;
+        scoreRate += (attr.scoreRate || 1.0) - 1.0;
+        dropRate += attr.dropRate || 0;
+      }
+    });
+    
+    document.getElementById('statStr').textContent = str;
+    document.getElementById('statDex').textContent = dex;
+    document.getElementById('statInt').textContent = int;
+    document.getElementById('statLuk').textContent = luk;
+    document.getElementById('statScoreRate').textContent = scoreRate.toFixed(2) + 'x';
+    document.getElementById('statDropRate').textContent = Math.round(dropRate * 100) + '%';
+    
+    // 更新角色图
+    document.getElementById('modalCharImg').src = currentGender === 'girl' 
+      ? 'generated-assets/char_girl_base.png' 
+      : 'generated-assets/char_boy_base.png';
+  }
 
 </script>
 
