@@ -930,33 +930,15 @@
     position: absolute;
     bottom: 0; left: 50%;
     transform: translateX(-50%);
-    width: 80px;
-    height: 120px;
-    background: linear-gradient(180deg, #FFD700 0%, #FF8C00 100%);
-    border-radius: 12px 12px 8px 8px;
-    border: 3px solid #FF6B00;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding-top: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    width: 120px;
+    height: 180px;
+    pointer-events: none;
   }
-  .char-body::before {
-    content: "";
-    position: absolute;
-    top: -36px; left: 50%;
-    transform: translateX(-50%);
-    width: 44px; height: 44px;
-    background: #FFD700;
-    border-radius: 50%;
-    border: 3px solid #FF6B00;
-    background-image:
-      radial-gradient(circle at 30% 35%, #fff 4px, transparent 4px),
-      radial-gradient(circle at 70% 35%, #fff 4px, transparent 4px),
-      radial-gradient(circle at 30% 35%, #000 2px, transparent 2px),
-      radial-gradient(circle at 70% 35%, #000 2px, transparent 2px),
-      radial-gradient(circle at 50% 58%, #FF6B00 8px, transparent 8px);
+  .char-base-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
   }
   .char-body { position: relative; width: 100%; height: 100%; }
   .char-equip {
@@ -989,6 +971,24 @@
   }
   .char-toggle-btn:hover {
     background: linear-gradient(135deg, rgba(0,212,255,0.5), rgba(124,58,237,0.5));
+  }
+  .char-gender-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 90px;
+    background: linear-gradient(135deg, rgba(255,107,157,0.3), rgba(255,152,0,0.3));
+    border: 1px solid rgba(255,107,157,0.5);
+    border-radius: 10px;
+    color: #fff;
+    padding: 8px 12px;
+    font-size: 0.8em;
+    cursor: pointer;
+    z-index: 10000;
+    font-family: inherit;
+    transition: all 0.3s;
+  }
+  .char-gender-btn:hover {
+    background: linear-gradient(135deg, rgba(255,107,157,0.5), rgba(255,152,0,0.5));
   }
   .char-panel {
     position: fixed;
@@ -3789,6 +3789,30 @@ init();
 
 
 // ============ Q版可拖动人物 + 装备系统 ============
+// 性别切换
+let currentGender = localStorage.getItem('kexvefuxi_char_gender') || 'girl';
+
+function toggleGender() {
+  currentGender = currentGender === 'girl' ? 'boy' : 'girl';
+  localStorage.setItem('kexvefuxi_char_gender', currentGender);
+  updateCharBase();
+  document.getElementById('charGenderBtn').textContent = currentGender === 'girl' ? '👧' : '👦';
+}
+
+function updateCharBase() {
+  const img = document.getElementById('charBaseImg');
+  if (img) {
+    img.src = currentGender === 'girl' ? '../../generated-assets/char_girl_base.png' : '../../generated-assets/char_boy_base.png';
+  }
+}
+
+// 初始化
+setTimeout(() => {
+  updateCharBase();
+  const btn = document.getElementById('charGenderBtn');
+  if (btn) btn.textContent = currentGender === 'girl' ? '👧' : '👦';
+}, 100);
+
 const EQUIP_DATA = {
   hat: { label: '帽子', folder: '帽子', ids: ['1000011','1000095','1000206','1001019','1001036','1001066','1001152','1002016','1002024','1002059','1002081','1002115','1002131','1002208','1002284','1002346','1002391','1002403'] },
   top: { label: '上衣', folder: '上衣', ids: ['1040027','1040147','1040191','1040800','1041031','1041058','1042004','1042058','1042089','1042140','1042202','1042259','1042337','1042367'] },
@@ -3800,7 +3824,8 @@ const EQUIP_DATA = {
 };
 const equipped = { hat: null, top: null, bottom: null, cape: null, face: null, eyes: null, shoes: null };
 function getIconUrl(folder, id) {
-  return `https://raw.githubusercontent.com/tancbiao/kexvefuxi/main/maplestory_sprites/${folder}/${id}_icon.png`;
+  // 使用本地图片路径
+  return `../../maplestory_sprites/${folder}/${id}_icon.png`;
 }
 function renderEquipItems() {
   Object.keys(EQUIP_DATA).forEach(slot => {
@@ -3872,6 +3897,7 @@ document.addEventListener('touchend', () => { isDragging = false; });
   <!-- Q版可拖动人物 + 装备层叠系统 -->
   <div class="char-wrapper" id="charWrapper">
     <div class="char-base" id="charBase">
+      <img class="char-base-img" id="charBaseImg" src="../../generated-assets/char_girl_base.png" alt="Q版角色">
       <div class="char-body"></div>
     </div>
     <img class="char-equip" id="equip-top" src="" style="display:none">
@@ -3882,6 +3908,7 @@ document.addEventListener('touchend', () => { isDragging = false; });
     <img class="char-equip" id="equip-eyes" src="" style="display:none">
     <img class="char-equip" id="equip-shoes" src="" style="display:none">
   </div>
+  <button class="char-gender-btn" id="charGenderBtn" onclick="toggleGender()">👧</button>
   <button class="char-toggle-btn" onclick="toggleCharPanel()">💪 换装</button>
   <div class="char-panel" id="charPanel" style="display:none">
     <div class="char-panel-section">

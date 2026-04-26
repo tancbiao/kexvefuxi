@@ -1243,7 +1243,8 @@
   const equipped = { hat: null, top: null, bottom: null, cape: null, face: null, eyes: null, shoes: null };
 
   function getIconUrl(folder, id) {
-    return `https://raw.githubusercontent.com/tancbiao/kexvefuxi/main/maplestory_sprites/${folder}/${id}_icon.png`;
+    // 使用本地图片路径
+    return `maplestory_sprites/${folder}/${id}_icon.png`;
   }
 
   function renderEquipItems() {
