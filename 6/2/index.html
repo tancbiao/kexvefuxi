@@ -1712,6 +1712,26 @@ function dropEquip(levelKey) {
     
     // 显示掉落动画
     showEquipDrop(equip);
+    // 同步到暗黑背包
+    try {
+      const rarityMap = {common:1,exquisite:2,good:3,rare:4,epic:5,legendary:6,mythic:7};
+      const inv = JSON.parse(localStorage.getItem('kexvefuxi_inventory') || '[]');
+      inv.push({
+        id: `diablo_${equip.id}_${Date.now()}`,
+        baseId: equip.id,
+        slot: 'hat',
+        name: equip.name,
+        rarity: rarityMap[equip.level] || 1,
+        rarityName: equip.levelName ? equip.levelName.replace('的','') : '普通',
+        rarityColor: equip.color,
+        rarityGlow: 'none',
+        multiplier: equip.pointBonus >= 2 ? equip.pointBonus : 1 + (equip.pointBonus || 0),
+        affixes: [],
+        affixDetails: [],
+        timestamp: Date.now()
+      });
+      localStorage.setItem('kexvefuxi_inventory', JSON.stringify(inv));
+    } catch(e) {}
   }
 }
 

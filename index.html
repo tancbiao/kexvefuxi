@@ -892,6 +892,13 @@
         <button class="equip-tab" data-cat="shoes" onclick="filterEquip('shoes')">鞋子</button>
       </div>
       <div class="equip-grid" id="equipGrid"></div>
+      <div style="margin-top:20px;padding-top:15px;border-top:1px solid rgba(255,255,255,0.1);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <span style="color:#ffd700;font-weight:bold;">🎒 暗黑背包</span>
+          <span style="color:rgba(255,255,255,0.5);font-size:0.8em;" id="inventoryCount">0 件</span>
+        </div>
+        <div id="inventoryGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -939,6 +946,10 @@
           <div class="stat-row">
             <span class="stat-label">🎁 装备爆率</span>
             <span class="stat-value bonus" id="statDropRate">10%</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">✨ 活跃词缀</span>
+            <span class="stat-value" id="statAffixes" style="font-size:0.8em;text-align:right;max-width:200px;line-height:1.8;">无</span>
           </div>
         </div>
       </div>
@@ -1325,11 +1336,121 @@
 
   document.addEventListener('touchend', () => { isDragging = false; });
 
+  // ============ 暗黑破坏神装备生成系统 ============
+  const EQUIPMENT_RARITY = {
+    1: { name: '普通', color: '#9ca3af', border: '#6b7280', multiplier: 1.01, glow: 'none' },
+    2: { name: '精致', color: '#4ade80', border: '#22c55e', multiplier: 1.02, glow: 'none' },
+    3: { name: '良好', color: '#38bdf8', border: '#0ea5e9', multiplier: 1.03, glow: 'none' },
+    4: { name: '稀有', color: '#a78bfa', border: '#8b5cf6', multiplier: 1.05, glow: '0 0 6px #8b5cf6' },
+    5: { name: '史诗', color: '#f472b6', border: '#ec4899', multiplier: 1.08, glow: '0 0 8px #ec4899' },
+    6: { name: '传说', color: '#fbbf24', border: '#f59e0b', multiplier: 2.0,  glow: '0 0 12px #f59e0b' },
+    7: { name: '神话', color: '#ff6600', border: '#ea580c', multiplier: 3.0,  glow: '0 0 16px #ea580c, 0 0 24px #ff6600' }
+  };
+  const DROP_WEIGHTS = [50, 25, 15, 7, 2, 0.8, 0.2];
+  const BASE_DROP_CHANCE = 0.05;
+  const AFFIX_POOL = {
+    CRIT_RATE:    { name: '暴击率', desc: '答对概率+5%', icon: '💥' },
+    ATTACK_SPEED: { name: '攻速', desc: '答题时间+3s', icon: '⚡' },
+    GOLD_BONUS:   { name: '金币', desc: '积分+10%', icon: '💰' },
+    EXP_BONUS:    { name: '经验', desc: '经验+15%', icon: '📈' },
+    EXTRA_HINT:   { name: '洞察', desc: '额外提示+1', icon: '👁️' },
+    PERFECT_BONUS:{ name: '完美', desc: '满分奖励+50%', icon: '💎' },
+    LUCKY_DRAW:   { name: '幸运', desc: '掉率+3%', icon: '🍀' },
+    STREAK_SHIELD:{ name: '连击盾', desc: '连胜免扣1次', icon: '🛡️' },
+    DOUBLE_SCORE: { name: '双倍', desc: '10%概率翻倍', icon: '✨' },
+    BERSERKER:    { name: '狂暴', desc: '连胜3+时x1.5', icon: '🔥' }
+  };
+  function rollAffixes(rarity) {
+    const affixCount = { 4: 1, 5: 2, 6: 3, 7: 4 }[rarity] || 0;
+    if (!affixCount) return [];
+    const keys = Object.keys(AFFIX_POOL), picked = [], avail = [...keys];
+    for (let i = 0; i < affixCount && avail.length; i++) {
+      const idx = Math.floor(Math.random() * avail.length);
+      picked.push(avail.splice(idx, 1)[0]);
+    }
+    return picked;
+  }
+  function rollRarity() {
+    const total = DROP_WEIGHTS.reduce((s, w) => s + w, 0);
+    let r = Math.random() * total;
+    for (let i = 0; i < DROP_WEIGHTS.length; i++) { r -= DROP_WEIGHTS[i]; if (r <= 0) return i + 1; }
+    return 1;
+  }
+  const DIABLO_NAMES = {
+    hat:     { p: ['暗影','虚空','圣光','混沌','天界','地狱','秘法','龙魂','星界','深渊'], s: ['王冠','头冠','兜帽','战盔','法帽','面具','头环','宝冠'] },
+    top:     { p: ['暗影','虚空','圣光','混沌','天界','地狱','秘法','龙魂','星界','深渊'], s: ['战甲','法袍','皮衣','锁甲','长袍','战衣','斗篷','圣衣'] },
+    bottom:  { p: ['暗影','虚空','圣光','混沌','天界','地狱','秘法','龙魂','星界','深渊'], s: ['护腿','战裙','长裤','腿甲','法裙','护胫','轻甲','重甲'] },
+    cape:    { p: ['暗影','虚空','圣光','混沌','天界','地狱','秘法','龙魂','星界','深渊'], s: ['披风','斗篷','羽翼','背饰','战披','幻翼','暗幕','圣翼'] },
+    face:    { p: ['暗影','虚空','圣光','混沌','天界','地狱','秘法','龙魂','星界','深渊'], s: ['面具','脸饰','护面','鬼面','圣颜','暗罩','魔纹','神面'] },
+    eyes:    { p: ['暗影','虚空','圣光','混沌','天界','地狱','秘法','龙魂','星界','深渊'], s: ['眼镜','护目','眼罩','单片镜','魔瞳','神眼','幻视','真视'] },
+    shoes:   { p: ['暗影','虚空','圣光','混沌','天界','地狱','秘法','龙魂','星界','深渊'], s: ['战靴','长靴','步履','疾风靴','铁靴','魔履','飞鞋','圣靴'] }
+  };
+  function generateDiabloEquip(slot, baseId) {
+    const rarity = rollRarity();
+    const affixes = rollAffixes(rarity);
+    const nd = DIABLO_NAMES[slot];
+    const prefix = nd.p[Math.floor(Math.random() * nd.p.length)];
+    const suffix = nd.s[Math.floor(Math.random() * nd.s.length)];
+    const ri = EQUIPMENT_RARITY[rarity];
+    return { id: `${slot}_${baseId}_${rarity}_${Date.now()}`, baseId, slot, name: `${prefix}${suffix}`, rarity, rarityName: ri.name, rarityColor: ri.color, rarityGlow: ri.glow, multiplier: ri.multiplier, affixes, affixDetails: affixes.map(a => AFFIX_POOL[a]), timestamp: Date.now() };
+  }
+  function checkEquipmentDrop() {
+    if (Math.random() >= BASE_DROP_CHANCE) return null;
+    const slots = Object.keys(EQUIP_DATA);
+    const slot = slots[Math.floor(Math.random() * slots.length)];
+    const ids = EQUIP_DATA[slot].ids;
+    const baseId = ids[Math.floor(Math.random() * ids.length)];
+    return generateDiabloEquip(slot, baseId);
+  }
+  function getInventory() { try { return JSON.parse(localStorage.getItem('kexvefuxi_inventory') || '[]'); } catch(e) { return []; } }
+  function saveInventory(inv) { localStorage.setItem('kexvefuxi_inventory', JSON.stringify(inv)); }
+  function addToInventory(item) { const inv = getInventory(); inv.push(item); saveInventory(inv); }
+  function getEquippedDiablo() { try { return JSON.parse(localStorage.getItem('kexvefuxi_equipped_diablo') || '{}'); } catch(e) { return {}; } }
+  function saveEquippedDiablo(eq) { localStorage.setItem('kexvefuxi_equipped_diablo', JSON.stringify(eq)); }
+  function getDiabloBonus() {
+    const eq = getEquippedDiablo(), inv = getInventory();
+    let mul = 1.0, drop = 0, activeAffixes = [];
+    Object.values(eq).forEach(itemId => {
+      const item = inv.find(i => i.id === itemId);
+      if (item) { mul += (item.multiplier || 1.0) - 1.0; if (item.affixes) item.affixes.forEach(a => { if (!activeAffixes.includes(a)) activeAffixes.push(a); }); }
+    });
+    if (activeAffixes.includes('LUCKY_DRAW')) drop += 0.03;
+    return { multiplier: mul, dropBonus: drop, affixes: activeAffixes };
+  }
+  function renderInventory() {
+    const inv = getInventory(), eq = getEquippedDiablo();
+    const grid = document.getElementById('inventoryGrid'), count = document.getElementById('inventoryCount');
+    if (!grid) return;
+    count.textContent = inv.length + ' 件';
+    if (!inv.length) { grid.innerHTML = '<div style="color:rgba(255,255,255,0.4);font-size:0.85em;grid-column:1/-1;text-align:center;padding:20px;">答题时有5%概率掉落装备，暗黑风格等你来！</div>'; return; }
+    let html = '';
+    [...inv].reverse().forEach(item => {
+      const r = EQUIPMENT_RARITY[item.rarity] || EQUIPMENT_RARITY[1];
+      const isEq = Object.values(eq).includes(item.id);
+      const afx = (item.affixDetails||[]).map(a => `<span style="font-size:0.7em;background:rgba(255,255,255,0.1);padding:1px 4px;border-radius:3px;margin-right:2px;">${a.icon}${a.name}</span>`).join('');
+      html += `<div style="background:rgba(255,255,255,0.05);border:2px solid ${r.border};border-radius:10px;padding:10px;cursor:pointer;transition:all 0.2s;${isEq?'box-shadow:'+r.glow+';':''}" onclick="toggleEquipDiablo('${item.id}')" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;"><span style="color:${r.color};font-weight:bold;font-size:0.85em;">${item.rarityName}</span>${isEq?'<span style="color:#4ade80;font-size:0.7em;">已装</span>':''}</div>
+        <div style="font-size:0.9em;font-weight:bold;margin-bottom:4px;">${item.name}</div>
+        <div style="font-size:0.75em;color:rgba(255,255,255,0.5);">倍率 x${item.multiplier.toFixed(2)}</div>
+        ${afx?'<div style="margin-top:4px;">'+afx+'</div>':''}
+      </div>`;
+    });
+    grid.innerHTML = html;
+  }
+  function toggleEquipDiablo(itemId) {
+    const inv = getInventory(), item = inv.find(i => i.id === itemId);
+    if (!item) return;
+    const eq = getEquippedDiablo();
+    if (Object.values(eq).includes(itemId)) { Object.keys(eq).forEach(k => { if (eq[k] === itemId) delete eq[k]; }); }
+    else { eq[item.slot] = itemId; }
+    saveEquippedDiablo(eq); renderInventory(); updateCharacterStats();
+  }
+
   // ============ 弹窗系统 ============
   function openModal(modalId) {
     document.getElementById(modalId).classList.add('active');
     if (modalId === 'achievementsModal') renderAchievementsGrid();
-    if (modalId === 'equipmentModal') renderEquipGrid();
+    if (modalId === 'equipmentModal') { renderEquipGrid(); renderInventory(); }
     if (modalId === 'characterModal') updateCharacterStats();
   }
   
@@ -1506,6 +1627,17 @@
     document.getElementById('statLuk').textContent = luk;
     document.getElementById('statScoreRate').textContent = scoreRate.toFixed(2) + 'x';
     document.getElementById('statDropRate').textContent = Math.round(dropRate * 100) + '%';
+    
+    // 暗黑装备加成
+    const diablo = getDiabloBonus();
+    document.getElementById('statScoreRate').textContent = (scoreRate * diablo.multiplier).toFixed(2) + 'x';
+    document.getElementById('statDropRate').textContent = Math.round((dropRate + diablo.dropBonus) * 100) + '%';
+    const affixRow = document.getElementById('statAffixes');
+    if (affixRow) {
+      affixRow.innerHTML = diablo.affixes.length
+        ? diablo.affixes.map(a => { const d = AFFIX_POOL[a]; return d ? `<span style="background:rgba(255,255,255,0.1);padding:2px 6px;border-radius:4px;font-size:0.75em;margin-right:4px;">${d.icon}${d.name}</span>` : ''; }).join('')
+        : '<span style="color:rgba(255,255,255,0.3)">无</span>';
+    }
     
     // 更新角色图
     document.getElementById('modalCharImg').src = currentGender === 'girl' 
