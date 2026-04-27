@@ -755,6 +755,8 @@
   </div>
 </div>
 
+<script src="../../equipment-gen.js"></script>
+
 <script>
 // ========== 五年级题库 - 按单元和课程（教师版 2026-04-23） ==========
 // ========== 五年级题库 - 按单元和课程（教师版 2026-04-23） ==========
@@ -1290,101 +1292,57 @@ const questionData = {
     ],
   },
 };
-// ========== 装备系统 ==========
+// ========== 装备系统（兼容层）==========
+// 将旧 levelKey（common/exquisite/good/rare/epic/legendary/mythic）映射到新 rarity（1-7）
+const LEVEL_TO_RARITY = {
+  common: 1,    // 普通
+  exquisite: 2, // 精致
+  good: 3,      // 良好
+  rare: 4,      // 稀有
+  epic: 5,      // 史诗
+  legendary: 6, // 传说
+  mythic: 7     // 神话
+};
+
+// 保留旧 equipmentSystem 接口，底层委托给新生成器
 const equipmentSystem = {
-  // 装备等级定义（按稀有度从低到高）：白→绿→蓝→紫→粉→金→橙
-  // 新规则：单课100%掉落，大概率绿白；完成单元才有机会获得红色装备
-  levels: {
-    common: { name: '普通的', color: '#9e9e9e', dropRate: 0.10 },      // 白色 10%
-    exquisite: { name: '精致的', color: '#4caf50', dropRate: 0.06 },    // 绿色 6%
-    good: { name: '良好的', color: '#2196f3', dropRate: 0.03 },        // 蓝色 3%
-    rare: { name: '稀有的', color: '#9c27b0', dropRate: 0.01 },        // 紫色 1%
-    epic: { name: '史诗级的', color: '#e91e63', dropRate: 0.005 },     // 粉色 0.5%
-    legendary: { name: '金色传说的', color: '#ffd700', dropRate: 0.002 }, // 金色 0.2%
-    mythic: { name: '橙色神话的', color: '#ff5722', dropRate: 0.001 }   // 橙色 0.1%（仅单元完成时）
-  },
-  
-  // 装备类型定义
-  equipTypes: [
-    { id: 'helmet', name: '头盔', icon: '🪖' },
-    { id: 'glove', name: '手套', icon: '🧤' },
-    { id: 'pants', name: '长裤', icon: '👖' },
-    { id: 'shorts', name: '短裤', icon: '🩳' },
-    { id: 'shirt', name: '衬衫', icon: '<img src="../../icons/top.svg" class="icon-32">' },
-    { id: 'skirt', name: '裙子', icon: '<img src="../../icons/top.svg" class="icon-32">' },
-    { id: 'plaid', name: '格子裙', icon: '🎽' },
-    { id: 'sword', name: '剑', icon: '⚔️' },
-    { id: 'bow', name: '弓箭', icon: '<img src="../../icons/sword.svg" class="icon-32">' },
-    { id: 'staff', name: '魔法杖', icon: '🪄' },
-    { id: 'shield', name: '盾牌', icon: '🛡️' },
-    { id: 'cup', name: '水杯', icon: '<img src="../../icons/pants.svg" class="icon-32">' }
-  ],
-  
-  // 效果类型
+  levels: EQUIP_RARITY,  // 复用新系统的稀有度定义
+  equipTypes: ALL_EQUIP_TYPES,
   effectTypes: [
     { id: 'bonus', name: '积分加成' },
     { id: 'skip', name: '跳过题目' },
     { id: 'shield', name: '护盾' },
     { id: 'combo', name: '连击保护' }
   ],
-  
-  // 根据等级和类型生成装备
   generateEquip(levelKey, typeId) {
-    const level = this.levels[levelKey];
-    const typeInfo = this.equipTypes.find(t => t.id === typeId);
-    const prefix = level.name;
-    
-    const effects = {
-      common: { value: '+1%积分', pointBonus: 0.01 },
-      exquisite: { value: '+2%积分', pointBonus: 0.02 },
-      good: { value: '+3%积分', pointBonus: 0.03 },
-      rare: { value: '+5%积分', pointBonus: 0.05 },
-      epic: { value: '+8%积分', pointBonus: 0.08 },
-      legendary: { value: '积分×2', pointBonus: 2 },
-      mythic: { value: '积分×3', pointBonus: 3 }
-    };
-    
-    return {
-      id: `${typeId}_${levelKey}`,
-      name: `${prefix}${typeInfo.name}`,
-      icon: typeInfo.icon,
-      level: levelKey,
-      levelName: level.name,
-      effect: effects[levelKey].value,
-      pointBonus: effects[levelKey].pointBonus,
-      color: level.color
-    };
+    const rarity = LEVEL_TO_RARITY[levelKey] || 1;
+    return generateEquip(rarity, typeId);
   },
-  
-  // 生成完整的装备池
   getEquipmentPool() {
     const pool = [];
     for (const typeInfo of this.equipTypes) {
-      for (const levelKey of Object.keys(this.levels)) {
-        pool.push(this.generateEquip(levelKey, typeInfo.id));
+      for (let rarity = 1; rarity <= 7; rarity++) {
+        pool.push(generateEquip(rarity, typeInfo.id));
       }
     }
     return pool;
-  },
+  }
+};,
   
   totalDropRate: 0.01
 };
 
-// 谭老师的愤怒水杯：专属金色传说，条件触发发放
+// 谭老师的愤怒水杯：专属传说，条件触发发放
 const tanTeacherCup = {
   id: 'cup_tanTeacherCup',
   name: '谭老师的愤怒水杯',
   icon: '<img src="../../icons/pants.svg" class="icon-32">',
-  level: 'legendary',
-  levelName: '金色传说的',
-  effect: '金色传说获得概率+1%，史诗获得概率+5%',
-  pointBonus: 0,
-  color: '#ffd700',
-  desc: '保持安静'
+  rarity: 6, rarityName: '传说', rarityColor: '#ffd700', multiplier: 2.0,
+  slot: '宝物', effect: '传说获得概率+1%，史诗获得概率+5%',
+  desc: '保持安静', str: 0, dex: 0, int: 0, hpBonus: 0, mpBonus: 0, affixes: []
 };
 
-// 完整的装备池 = 系统生成 + 专属装备
-const equipmentPool = [...equipmentSystem.getEquipmentPool(), tanTeacherCup];
+// 完整的装备池 = 系统生成 + 专属装备 = [...equipmentSystem.getEquipmentPool(), tanTeacherCup];
 
 const gameState = {
   studentId: null,
@@ -1945,15 +1903,11 @@ function showEquipDrop(equip) {
   overlay.innerHTML = `
     <div class="equip-drop-card">
       <div class="equip-drop-title">🎁 获得新装备！</div>
-      <div class="equip-drop-icon">${equip.icon}</div>
-      <div class="equip-drop-name" style="color: ${equip.color}">${equip.name}</div>
-      <div class="equip-drop-effect">${equip.effect}</div>
-      ${equip.desc ? `<div class="equip-drop-desc" style="color:#888;font-size:0.8em;margin-top:6px">${equip.desc}</div>` : ``}
+      ${genEquipDropHTML(equip)}
     </div>
   `;
   document.body.appendChild(overlay);
   
-  // 添加样式
   if (!document.getElementById('equipDropStyle')) {
     const style = document.createElement('style');
     style.id = 'equipDropStyle';
@@ -1965,24 +1919,27 @@ function showEquipDrop(equip) {
       }
       .equip-drop-card {
         background: linear-gradient(135deg, #2a2a4a, #1a1a2e);
-        border-radius: 20px; padding: 40px; text-align: center;
-        border: 3px solid gold; animation: bounceIn 0.5s;
+        border-radius: 20px; padding: 30px 40px; text-align: center;
+        border: 3px solid ${equip.rarityColor}; box-shadow: 0 0 30px ${equip.rarityColor}55;
+        animation: bounceIn 0.5s; max-width: 340px; width: 90%;
       }
-      .equip-drop-title { font-size: 1.5em; margin-bottom: 20px; }
-      .equip-drop-icon { font-size: 4em; margin: 20px 0; }
-      .equip-drop-name { font-size: 1.5em; font-weight: bold; margin: 10px 0; }
-      .equip-drop-effect { color: #aaa; margin-top: 10px; }
-      .equip-drop-desc { font-style: italic; }
+      .equip-drop-title { font-size: 1.4em; margin-bottom: 15px; }
       @keyframes bounceIn {
         0% { transform: scale(0); }
-        50% { transform: scale(1.1); }
+        50% { transform: scale(1.08); }
         100% { transform: scale(1); }
       }
+      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     `;
     document.head.appendChild(style);
+  } else {
+    // 更新边框颜色
+    const card = overlay.querySelector('.equip-drop-card');
+    if (card) {
+      card.style.borderColor = equip.rarityColor;
+      card.style.boxShadow = `0 0 30px ${equip.rarityColor}55`;
+    }
   }
-  
-  // 点击关闭
   overlay.addEventListener('click', () => overlay.remove());
   setTimeout(() => overlay.remove(), 5000);
 }
