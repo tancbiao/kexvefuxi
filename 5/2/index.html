@@ -579,7 +579,6 @@
   #equip-bottom{ bottom: 0; z-index: 2; }
   #equip-face  { bottom: 90px; z-index: 5; }
   #equip-eyes  { bottom: 100px; z-index: 6; }
-  #equip-shoes { bottom: 0; z-index: 1; }
 
   .char-toggle-btn {
     position: fixed;
@@ -1401,23 +1400,32 @@ const gameState = {
   answered: [], // 已答题目索引，防止重答叠加
   wrongQuestions: [], // 错题本
   equipment: [], // 装备背包
+  totalQuestionsAnswered: 0, // 累计答题数（仅正常答题，不含重刷）
+  retrySuccessCount: 0, // 错题重做成功次数
+  consecutivePerfectLessons: 0, // 连续满分课数
+  equipDupeCount: 0, // 重复装备次数
   allAchievements: [
     // ⭐普通成就
-    { id: 'first_blood', icon: '<img src="../../icons/target.svg" class="icon-32">', name: '首战告捷', desc: '完成第一题', tier: '⭐', bonus: { pointsMul: 1.05 } },
-    { id: 'streak_2', icon: '<img src="../../icons/lightning.svg" class="icon-32">', name: '小试牛刀', desc: '达成2连胜', tier: '⭐', bonus: { pointsMul: 1.05 } },
+    { id: 'first_blood', icon: '<img src="../../icons/target.svg" class="icon-32">', name: '首战告捷', desc: '答对第一题，开启学习之旅', tier: '⭐', bonus: { pointsMul: 1.05 } },
+    { id: 'streak_2', icon: '<img src="../../icons/lightning.svg" class="icon-32">', name: '小试牛刀', desc: '单课达成2连胜', tier: '⭐', bonus: { pointsMul: 1.05 } },
     { id: 'wrong_start', icon: '🤦', name: '开门黑', desc: '第一题就答错了', tier: '⭐', bonus: { hintExtra: 1 } },
     { id: 'hint_user', icon: '<img src="../../icons/lightbulb.svg" class="icon-32">', name: '提示依赖', desc: '一课中使用了3次以上提示', tier: '⭐', bonus: { hintExtra: 1 } },
     { id: 'wrong_again', icon: '😭', name: '同一个坑', desc: '同一道题连续答错2次', tier: '⭐', bonus: {} },
+    { id: 'q_20', icon: '📝', name: '二十而励', desc: '累计答对20题', tier: '⭐', bonus: { pointsMul: 1.05 } },
+    { id: 'first_hint', icon: '💡', name: '求知若渴', desc: '第一次使用提示', tier: '⭐', bonus: { hintExtra: 1 } },
+    { id: 'perfect_retry', icon: '🔁', name: '亡羊补牢', desc: '错题重做后答对同一题', tier: '⭐', bonus: { pointsMul: 1.05 } },
     // ⭐⭐稀有成就
-    { id: 'streak_3', icon: '<img src="../../icons/fire.svg" class="icon-32">', name: '三连斩', desc: '达成3连胜', tier: '⭐⭐', bonus: { pointsMul: 1.10 } },
+    { id: 'streak_3', icon: '<img src="../../icons/fire.svg" class="icon-32">', name: '三连斩', desc: '单课达成3连胜', tier: '⭐⭐', bonus: { pointsMul: 1.10 } },
     { id: 'no_hint', icon: '🧠', name: '独立思考', desc: '不使用提示通关', tier: '⭐⭐', bonus: { pointsMul: 1.10, hintExtra: 1 } },
     { id: 'fast_correct', icon: '<img src="../../icons/rocket.svg" class="icon-32">', name: '闪电侠', desc: '3秒内答对一题', tier: '⭐⭐', bonus: { pointsMul: 1.08 } },
-    { id: 'equip_helmet_first', icon: '🪖', name: '安全第一', desc: '获得的第一件装备是头盔', tier: '⭐⭐', bonus: { dropBonus: 0.05 } },
     { id: 'first_equip', icon: '📦', name: '初识装备', desc: '获得第一件装备', tier: '⭐⭐', bonus: { dropBonus: 0.03 } },
     { id: 'all_shirt_set', icon: '👔👗', name: '穿搭达人', desc: '同时拥有衬衫和裙子', tier: '⭐⭐', bonus: { pointsMul: 1.08 } },
     { id: 'equip_bow_staff', icon: '🏹🪄', name: '法师猎人', desc: '同时拥有弓箭和魔法杖', tier: '⭐⭐', bonus: { pointsMul: 1.08 } },
+    { id: 'q_50', icon: '📖', name: '半百之路', desc: '累计答对50题', tier: '⭐⭐', bonus: { pointsMul: 1.08 } },
+    { id: 'equip_dupe', icon: '♻️', name: '命中注定', desc: '获得重复装备', tier: '⭐⭐', bonus: { dropBonus: 0.03 } },
+    { id: 'equip_3_same_type', icon: '🧥', name: '装备专家', desc: '同一类型装备集满3件', tier: '⭐⭐', bonus: { pointsMul: 1.08 } },
     // ⭐⭐⭐史诗成就
-    { id: 'streak_5', icon: '<img src="../../icons/fire.svg" class="icon-32">', name: '五福临门', desc: '达成5连胜', tier: '⭐⭐⭐', bonus: { pointsMul: 1.15, dropBonus: 0.05 } },
+    { id: 'streak_5', icon: '<img src="../../icons/fire.svg" class="icon-32">', name: '五福临门', desc: '单课达成5连胜', tier: '⭐⭐⭐', bonus: {} },
     { id: 'perfect', icon: '💯', name: '满分答卷', desc: '一次通关获得满分', tier: '⭐⭐⭐', bonus: { pointsMul: 1.15 } },
     { id: 'genius', icon: '🎓', name: '天才少年', desc: '首次做某课时就满分通关', tier: '⭐⭐⭐', bonus: { dropBonus: 0.05 } },
     { id: 'comeback', icon: '🐂', name: '逆风翻盘', desc: '前半错3题以上但最终满分通关', tier: '⭐⭐⭐', bonus: { pointsMul: 1.15, dropBonus: 0.08 } },
@@ -1426,18 +1434,24 @@ const gameState = {
     { id: 'equip_10', icon: '<img src="../../icons/bag.svg" class="icon-32">', name: '收藏家', desc: '收集10件装备', tier: '⭐⭐⭐', bonus: { dropBonus: 0.10 } },
     { id: 'equip_sword_shield', icon: '⚔️🛡️', name: '我的刀盾', desc: '同时拥有剑和盾牌', tier: '⭐⭐⭐', bonus: { pointsMul: 1.10, dropBonus: 0.05 } },
     { id: 'equip_blue_white', icon: '🌤️', name: '蓝天白云', desc: '同时拥有2件白色和2件蓝色装备', tier: '⭐⭐⭐', bonus: { pointsMul: 1.10 } },
+    { id: 'equip_epic', icon: '💎', name: '史诗降临', desc: '获得第一件史诗装备', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20 } },
+    { id: 'q_100', icon: '🎯', name: '百题斩', desc: '累计答对100题', tier: '⭐⭐⭐', bonus: { pointsMul: 1.12 } },
+    { id: 'retry_3', icon: '💪', name: '越挫越勇', desc: '错题重做成功3次', tier: '⭐⭐⭐', bonus: { pointsMul: 1.10 } },
+    { id: 'perfect_3', icon: '🏅', name: '连续满分', desc: '连续3课满分通关', tier: '⭐⭐⭐', bonus: { pointsMul: 1.15 } },
     // ⭐⭐⭐史诗·单元成就
     { id: 'unit1_master', icon: '🌉', name: '桥梁专家', desc: '完成第一单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
     { id: 'unit2_master', icon: '<img src="../../icons/microscope.svg" class="icon-32">', name: '微观探索者', desc: '完成第二单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
-    { id: 'unit3_master', icon: '🌋', name: '地质探险家', desc: '完成第三单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
-    { id: 'unit4_master', icon: '<img src="../../icons/rocket.svg" class="icon-32">', name: '宇宙旅行者', desc: '完成第四单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
     // 👑传说成就
-    { id: 'equip_tan_cup', icon: '<img src="../../icons/pants.svg" class="icon-32">', name: '谭老师的愤怒水杯', desc: '集齐10件装备仍未获得金色传说', tier: '👑', bonus: {} },
-    { id: 'streak_7', icon: '<img src="../../icons/star.svg" class="icon-32">', name: '七星连珠', desc: '达成7连胜', tier: '👑', bonus: { pointsMul: 1.25, dropBonus: 0.15, hintExtra: 2 } },
+    { id: 'equip_tan_cup', icon: '<img src="../../icons/pants.svg" class="icon-32">', name: '谭老师的愤怒水杯', desc: '集齐10件装备仍未获得金色传说', tier: '👑', bonus: { pointsMul: 1.30 } },
     { id: 'equip_rainbow', icon: '🌈', name: '彩虹收集', desc: '集齐所有颜色装备', tier: '👑', bonus: { pointsMul: 1.25, dropBonus: 0.20 } },
     { id: 'equip_mythic', icon: '<img src="../../icons/star.svg" class="icon-32">', name: '欧皇', desc: '获得神话装备', tier: '👑', bonus: { pointsMul: 1.30, dropBonus: 0.15 } },
+    { id: 'equip_legendary', icon: '👑', name: '传说降临', desc: '获得第一件金色传说装备', tier: '👑', bonus: { pointsMul: 1.25 } },
+    { id: 'q_200', icon: '🚀', name: '双百英雄', desc: '累计答对200题', tier: '👑', bonus: { pointsMul: 1.18 } },
+    { id: 'wrong_10', icon: '📚', name: '错题达人', desc: '错题本积累10道以上', tier: '👑', bonus: { pointsMul: 1.08 } },
+    { id: 'streak_7', icon: '<img src="../../icons/star.svg" class="icon-32">', name: '七星连珠', desc: '单课达成7连胜', tier: '👑', bonus: {} },
     // 🏆神话成就
-    { id: 'streak_10', icon: '<img src="../../icons/crown.svg" class="icon-32">', name: '常胜将军', desc: '达成10连胜', tier: '🏆', bonus: { pointsMul: 1.40, dropBonus: 0.25, hintExtra: 3 } },
+    { id: 'streak_10', icon: '<img src="../../icons/crown.svg" class="icon-32">', name: '常胜将军', desc: '单课达成10连胜', tier: '🏆', bonus: {} },
+    { id: 'no_wrong_5', icon: '❄️', name: '冷血杀手', desc: '连续5课零失误通关', tier: '🏆', bonus: { pointsMul: 1.30 } },
     { id: 'all_complete', icon: '<img src="../../icons/trophy.svg" class="icon-32">', name: '科学探险家', desc: '完成所有关卡', tier: '🏆', bonus: { pointsMul: 1.50, dropBonus: 0.30, hintExtra: 3 } },
   ],
   unlockedAchievements: []
@@ -1595,11 +1609,21 @@ function renderQuestion() {
   const optionsContainer = document.getElementById('optionsContainer');
   optionsContainer.innerHTML = '';
   
-  q.options.forEach((opt, idx) => {
+  const opts5 = q.options || q.opts || [];
+  const alreadyAnswered5 = gameState.answered.includes(gameState.currentQuestion);
+  opts5.forEach((opt, idx) => {
     const btn = document.createElement('button');
     btn.className = 'option';
     btn.textContent = opt;
     btn.onclick = () => selectOption(idx);
+    // 恢复已答题目的样式，防止返回上一题重选
+    if (alreadyAnswered5) {
+      btn.classList.add('disabled');
+      if (idx === q.answer) btn.classList.add('correct');
+      if (q._userAnswer !== undefined && idx === q._userAnswer && q._userAnswer !== q.answer) {
+        btn.classList.add('wrong');
+      }
+    }
     optionsContainer.appendChild(btn);
   });
   
@@ -1620,6 +1644,11 @@ function selectOption(idx) {
   if (options[idx].classList.contains('disabled')) return;
   if (gameState.answered.includes(gameState.currentQuestion)) return;
 
+  // 立即标记已答，防止返回上一题重复计算
+  gameState.answered.push(gameState.currentQuestion);
+  // 记录用户选择，用于返回时恢复显示
+  q._userAnswer = idx;
+
   options.forEach(opt => opt.classList.add('disabled'));
 
   const isCorrect = idx === q.answer;
@@ -1633,6 +1662,19 @@ function selectOption(idx) {
     gameState.currentStreak++;
     gameState.correctCount++;
     if (gameState.currentStreak > gameState.maxStreak) gameState.maxStreak = gameState.currentStreak;
+
+    // 累计答题数（非重刷）
+    if (!gameState.isReplay && !gameState.isWrongQuestionPractice) {
+      gameState.totalQuestionsAnswered = (gameState.totalQuestionsAnswered || 0) + 1;
+      checkTotalQuestionsAchievements();
+    }
+
+    // 错题重做成功
+    if (gameState.isWrongQuestionPractice) {
+      gameState.retrySuccessCount = (gameState.retrySuccessCount || 0) + 1;
+      if (!gameState.unlockedAchievements.includes('perfect_retry')) unlockAchievement('perfect_retry');
+      if (gameState.retrySuccessCount >= 3 && !gameState.unlockedAchievements.includes('retry_3')) unlockAchievement('retry_3');
+    }
 
     // 闪电侠：3秒内答对
     if (gameState.questionStartTime && (Date.now() - gameState.questionStartTime) < 3000
@@ -1687,6 +1729,10 @@ function showHint() {
   if (gameState.hintsRemaining <= 0) return;
   gameState.hintsRemaining--;
   gameState.hintUsedCount = (gameState.hintUsedCount || 0) + 1;
+  // 求知若渴：第一次使用提示
+  if (gameState.hintUsedCount === 1 && !gameState.unlockedAchievements.includes('first_hint')) {
+    unlockAchievement('first_hint');
+  }
   // 提示依赖：一课用3次以上提示
   if (gameState.hintUsedCount >= 3 && !gameState.unlockedAchievements.includes('hint_user')) {
     unlockAchievement('hint_user');
@@ -1733,26 +1779,20 @@ function finishQuiz() {
     unlockAchievement('comeback');
   }
 
-  // 冷面杀手：连续3课零失误
+  // 连续满分：连续3课零失误
   if (isPerfect) {
     gameState.consecutivePerfectLessons = (gameState.consecutivePerfectLessons || 0) + 1;
+    if (gameState.consecutivePerfectLessons >= 3 && !gameState.unlockedAchievements.includes('perfect_3')) {
+      unlockAchievement('perfect_3');
+    }
     if (gameState.consecutivePerfectLessons >= 3 && !gameState.unlockedAchievements.includes('no_wrong_3')) {
       unlockAchievement('no_wrong_3');
     }
+    if (gameState.consecutivePerfectLessons >= 5 && !gameState.unlockedAchievements.includes('no_wrong_5')) {
+      unlockAchievement('no_wrong_5');
+    }
   } else {
     gameState.consecutivePerfectLessons = 0;
-  }
-
-  // 安全第一：第一件装备是头盔
-  if (!gameState.unlockedAchievements.includes('equip_helmet_first') && gameState.equipment && gameState.equipment.length > 0) {
-    // 仅在刚获得第一件装备时检查（equipDropped总量=1）
-    const droppedCount = gameState.equipDropped ? Object.keys(gameState.equipDropped).length : 0;
-    if (droppedCount <= 1) {
-      const lastEquip = gameState.equipment[gameState.equipment.length - 1];
-      if (lastEquip && lastEquip.id && lastEquip.id.startsWith('helmet')) {
-        unlockAchievement('equip_helmet_first');
-      }
-    }
   }
   
   // 装备掉落：每课每个难度首次通过(≥60%)才100%掉落，防止刷装备
@@ -1882,17 +1922,20 @@ function tryDropEquip(isUnitComplete, penalty) {
 function dropEquip(levelKey) {
   const typeInfo = equipmentSystem.equipTypes[Math.floor(Math.random() * equipmentSystem.equipTypes.length)];
   const equip = equipmentSystem.generateEquip(levelKey, typeInfo.id);
-  
+
   // 添加到背包
   if (!gameState.equipment) gameState.equipment = [];
-  
+
   // 检查是否已拥有同样装备
   const exists = gameState.equipment.find(e => e.id === equip.id);
   if (!exists) {
     gameState.equipment.push(equip);
-    
     // 显示掉落动画
     showEquipDrop(equip);
+  } else {
+    // 命中注定：获得重复装备
+    gameState.equipDupeCount = (gameState.equipDupeCount || 0) + 1;
+    if (!gameState.unlockedAchievements.includes('equip_dupe')) unlockAchievement('equip_dupe');
   }
 }
 
@@ -1958,71 +2001,118 @@ function checkAchievements() {
 
 
 function checkUnitAchievements() {
-  const u1 = questionData.unit1.lessons.every(l => (gameState.lessonProgress[l.id] || 0) >= 1);
-  const u2 = questionData.unit2.lessons.every(l => (gameState.lessonProgress[l.id] || 0) >= 1);
-  const u3 = questionData.unit3 && questionData.unit3.lessons.every(l => (gameState.lessonProgress[l.id] || 0) >= 1);
-  const u4 = questionData.unit4 && questionData.unit4.lessons.every(l => (gameState.lessonProgress[l.id] || 0) >= 1);
-  if (u1 && !gameState.unlockedAchievements.includes('unit1_master')) unlockAchievement('unit1_master');
-  if (u2 && !gameState.unlockedAchievements.includes('unit2_master')) unlockAchievement('unit2_master');
-  if (u3 && !gameState.unlockedAchievements.includes('unit3_master')) unlockAchievement('unit3_master');
-  if (u4 && !gameState.unlockedAchievements.includes('unit4_master')) unlockAchievement('unit4_master');
-  if (u1 && u2 && u3 && u4 && !gameState.unlockedAchievements.includes('all_complete')) unlockAchievement('all_complete');
+  const units = ['unit1', 'unit2', 'unit3', 'unit4'];
+  const completedUnits = [];
+  units.forEach(u => {
+    if (questionData[u] && questionData[u].lessons) {
+      const done = questionData[u].lessons.every(l => (gameState.lessonProgress[l.id] || 0) >= 1);
+      if (done) completedUnits.push(u);
+      const achId = u + '_master';
+      if (done && !gameState.unlockedAchievements.includes(achId)) unlockAchievement(achId);
+    }
+  });
+  // 科学探险家：所有存在的单元全部完成
+  const allUnitsExist = units.every(u => questionData[u] && questionData[u].lessons);
+  if (allUnitsExist && completedUnits.length === 4 && !gameState.unlockedAchievements.includes('all_complete')) {
+    unlockAchievement('all_complete');
+  } else if (!allUnitsExist && completedUnits.length === units.filter(u => questionData[u] && questionData[u].lessons).length && !gameState.unlockedAchievements.includes('all_complete')) {
+    unlockAchievement('all_complete');
+  }
+}
+
+// ========== 累计答题成就 ==========
+function checkTotalQuestionsAchievements() {
+  const total = gameState.totalQuestionsAnswered || 0;
+  const thresholds = [
+    { id: 'q_20', min: 20 },
+    { id: 'q_50', min: 50 },
+    { id: 'q_100', min: 100 },
+    { id: 'q_200', min: 200 },
+  ];
+  thresholds.forEach(t => {
+    if (total >= t.min && !gameState.unlockedAchievements.includes(t.id)) unlockAchievement(t.id);
+  });
+
+  // 错题达人：错题本>=10
+  if ((gameState.wrongQuestions || []).length >= 10 && !gameState.unlockedAchievements.includes('wrong_10')) {
+    unlockAchievement('wrong_10');
+  }
 }
 
 // ========== 装备成就检查 ==========
 function checkEquipAchievements() {
   const counts = { common: 0, exquisite: 0, good: 0, rare: 0, epic: 0, legendary: 0, mythic: 0 };
   const typeIds = {};
+  const typeCount = {}; // { typeId: count }
   if (!gameState.equipment) gameState.equipment = [];
   gameState.equipment.forEach(e => {
-    counts[e.level]++;
-    typeIds[e.id.split('_')[0]] = true;
+    counts[e.level] = (counts[e.level] || 0) + 1;
+    const type = e.id.split('_')[0];
+    typeIds[type] = true;
+    typeCount[type] = (typeCount[type] || 0) + 1;
   });
-  
+
   // 初识装备
   if (gameState.equipment.length >= 1 && !gameState.unlockedAchievements.includes('first_equip')) {
     unlockAchievement('first_equip');
   }
-  
+
   // 收藏家
   if (gameState.equipment.length >= 10 && !gameState.unlockedAchievements.includes('equip_10')) {
     unlockAchievement('equip_10');
   }
-  
+
   // 蓝天白云：拥有2件白色 + 2件蓝色
   if (counts.common >= 2 && counts.good >= 2 && !gameState.unlockedAchievements.includes('equip_blue_white')) {
     unlockAchievement('equip_blue_white');
   }
-  
+
   // 我的刀盾：同时拥有剑和盾牌
   if (typeIds.sword && typeIds.shield && !gameState.unlockedAchievements.includes('equip_sword_shield')) {
     unlockAchievement('equip_sword_shield');
   }
-  
+
   // 穿搭达人：同时拥有衬衫和裙子
   if (typeIds.shirt && typeIds.skirt && !gameState.unlockedAchievements.includes('all_shirt_set')) {
     unlockAchievement('all_shirt_set');
   }
-  
+
   // 法师猎人：同时拥有弓箭和魔法杖
   if (typeIds.bow && typeIds.staff && !gameState.unlockedAchievements.includes('equip_bow_staff')) {
     unlockAchievement('equip_bow_staff');
   }
-  
+
+  // 装备专家：同一类型装备3件
+  if (!gameState.unlockedAchievements.includes('equip_3_same_type')) {
+    for (const type in typeCount) {
+      if (typeCount[type] >= 3) { unlockAchievement('equip_3_same_type'); break; }
+    }
+  }
+
+  // 史诗降临：首次获得史诗装备
+  if (counts.epic > 0 && !gameState.unlockedAchievements.includes('equip_epic')) {
+    unlockAchievement('equip_epic');
+  }
+
+  // 传说降临：首次获得金色传说装备
+  if (counts.legendary > 0 && !gameState.unlockedAchievements.includes('equip_legendary')) {
+    unlockAchievement('equip_legendary');
+  }
+
   // 彩虹收集：集齐所有颜色装备
   const allLevels = ['common', 'exquisite', 'good', 'rare', 'epic', 'legendary', 'mythic'];
   if (allLevels.every(l => counts[l] > 0) && !gameState.unlockedAchievements.includes('equip_rainbow')) {
     unlockAchievement('equip_rainbow');
   }
-  
+
   // 欧皇：获得神话装备
   if (counts.mythic > 0 && !gameState.unlockedAchievements.includes('equip_mythic')) {
     unlockAchievement('equip_mythic');
   }
 
-  // 谭老师的愤怒水杯：>=5件装备但未拥有金色传说，且尚未获得此装备
+  // 谭老师的愤怒水杯：>=10件装备仍未获得金色传说
   const hasTanCup = gameState.equipment.some(e => e.id === 'cup_tanTeacherCup');
-  if (gameState.equipment.length >= 5 && counts.legendary === 0 && !hasTanCup) {
+  if (gameState.equipment.length >= 10 && counts.legendary === 0 && !hasTanCup) {
     const cup = {
       id: 'cup_tanTeacherCup',
       name: '谭老师的愤怒水杯',
@@ -2837,15 +2927,10 @@ const EQUIP_DATA = {
     label: '眼饰',
     folder: '眼饰',
     ids: ['1020001','1020213','1022058','1022310']
-  },
-  shoes: {
-    label: '鞋子',
-    folder: '鞋子',
-    ids: ['1070038','1070098','1070113','1070139','1070147','1071026','1071095','1071122','1071149','1072109','1072148','1072221','1072222','1072237','1072322']
   }
 };
 
-const equipped = { hat: null, top: null, bottom: null, cape: null, face: null, eyes: null, shoes: null };
+const equipped = { hat: null, top: null, bottom: null, cape: null, face: null, eyes: null };
 
 function getIconUrl(folder, id) {
   return `https://raw.githubusercontent.com/tancbiao/kexvefuxi/main/maplestory_sprites/${folder}/${id}_icon.png`;
@@ -3027,7 +3112,6 @@ document.addEventListener('touchend', () => { isDragging = false; });
     <img class="char-equip" id="equip-cape" src="" style="display:none">
     <img class="char-equip" id="equip-face" src="" style="display:none">
     <img class="char-equip" id="equip-eyes" src="" style="display:none">
-    <img class="char-equip" id="equip-shoes" src="" style="display:none">
   </div>
   <button class="char-toggle-btn" id="charToggleBtn" onclick="toggleCharPanel()">💪 换装</button>
   <div class="char-panel" id="charPanel" style="display:none">
@@ -3054,10 +3138,6 @@ document.addEventListener('touchend', () => { isDragging = false; });
     <div class="char-panel-section">
       <div class="char-panel-title">👓 眼饰</div>
       <div class="char-panel-items" id="items-eyes"></div>
-    </div>
-    <div class="char-panel-section">
-      <div class="char-panel-title">👞 鞋子</div>
-      <div class="char-panel-items" id="items-shoes"></div>
     </div>
   </div>
 
