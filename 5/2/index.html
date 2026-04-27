@@ -2201,7 +2201,9 @@ function saveUserData() {
     unlockedAchievements: gameState.unlockedAchievements,
     equipment: gameState.equipment,
     equipDropped: gameState.equipDropped || {},
-    wrongQuestions: gameState.wrongQuestions || []
+    wrongQuestions: gameState.wrongQuestions || [],
+    // 每次保存都更新时间戳，用于判断新旧
+    lastUpdated: Date.now()
   };
   localStorage.setItem('scienceGame5_user_' + gameState.studentId, JSON.stringify(data));
   // 同时云同步
@@ -2685,44 +2687,88 @@ function practiceWrongQuestions() {
 }
 
 
+function mergeUserData(localData, cloudData) {
+  if (!cloudData) return localData;
+  if (!localData) return cloudData;
+
+  // 以时间戳最新者为主
+  const localTs = localData.lastUpdated || 0;
+  const cloudTs = cloudData.lastUpdated || 0;
+
+  if (cloudTs <= localTs) return localData;
+
+  // 云端更新，合并装备/成就列表（并集，去重）
+  const merged = { ...cloudData };
+
+  // 装备：合并并按稀有度排序
+  if (cloudData.equipment || localData.equipment) {
+    const equipMap = {};
+    [...(localData.equipment || []), ...(cloudData.equipment || [])].forEach(e => {
+      if (!equipMap[e.id] || (e.rarity || '').localeCompare(equipMap[e.id].rarity || '') > 0) {
+        equipMap[e.id] = e;
+      }
+    });
+    merged.equipment = Object.values(equipMap).sort((a, b) => {
+      const rOrder = { mythic: 7, legendary: 6, epic: 5, rare: 4, good: 3, fine: 2, common: 1 };
+      return (rOrder[b.rarity] || 0) - (rOrder[a.rarity] || 0);
+    });
+  }
+
+  // 成就：合并并集
+  if (cloudData.unlockedAchievements || localData.unlockedAchievements) {
+    const achSet = new Set([...(localData.unlockedAchievements || []), ...(cloudData.unlockedAchievements || [])]);
+    merged.unlockedAchievements = [...achSet];
+  }
+
+  // 错题：合并去重
+  if (cloudData.wrongQuestions || localData.wrongQuestions) {
+    const wqMap = {};
+    [...(localData.wrongQuestions || []), ...(cloudData.wrongQuestions || [])].forEach(wq => {
+      wqMap[wq.question + '|' + wq.correctAnswer] = wq;
+    });
+    merged.wrongQuestions = Object.values(wqMap);
+  }
+
+  return merged;
+}
+
 function loadUserData() {
   if (gameState.isGuest) return;
   const saveKey = 'scienceGame5_user_' + gameState.studentId;
   const saved = localStorage.getItem(saveKey);
-  
-  // 先尝试从云端加载（异步，不阻塞）
+  const localData = saved ? JSON.parse(saved) : null;
+
+  // 先用本地数据渲染（同步），保证页面不白屏
+  if (localData) {
+    applyUserData(localData);
+    console.log('使用本地存档');
+  }
+
+  // 异步拉取云端，比较时间戳后合并
   loadFromCloud(gameState.studentId).then(cloudData => {
-    if (cloudData) {
-      // 云端数据比本地新，合并使用
-      const localData = saved ? JSON.parse(saved) : null;
-      if (!localData || (cloudData.totalQuestionsAnswered || 0) > (localData.totalQuestionsAnswered || 0)) {
-        gameState.totalPoints = cloudData.totalPoints || 0;
-        gameState.lessonProgress = cloudData.lessonProgress || {};
-        gameState.unlockedAchievements = cloudData.unlockedAchievements || [];
-        gameState.equipment = cloudData.equipment || [];
-        gameState.equipDropped = cloudData.equipDropped || {};
-        // 更新本地
-        localStorage.setItem(saveKey, JSON.stringify(cloudData));
-        updateStatusBar();
-        renderAchievementPreview();
-        console.log('使用云端存档');
-      } else {
-        console.log('使用本地存档（更新于云端之后）');
-      }
+    if (!cloudData) return;
+    const merged = mergeUserData(localData, cloudData);
+    if (merged !== localData) {
+      // 云端有更新，应用合并结果
+      applyUserData(merged);
+      // 回写本地
+      localStorage.setItem(saveKey, JSON.stringify(merged));
+      // 回推云端（确保一致性）
+      saveToCloud(gameState.studentId, merged);
+      console.log('已同步云端最新存档');
     }
   });
-  
-  // 同步加载本地数据作为初始值
-  if (saved) {
-    const d = JSON.parse(saved);
-    gameState.totalPoints = d.totalPoints || 0;
-    gameState.lessonProgress = d.lessonProgress || {};
-    gameState.unlockedAchievements = d.unlockedAchievements || [];
-    gameState.equipment = d.equipment || [];
-    gameState.equipDropped = d.equipDropped || {};
-    updateStatusBar();
-    renderAchievementPreview();
-  }
+}
+
+function applyUserData(data) {
+  gameState.totalPoints = data.totalPoints || 0;
+  gameState.lessonProgress = data.lessonProgress || {};
+  gameState.unlockedAchievements = data.unlockedAchievements || [];
+  gameState.equipment = data.equipment || [];
+  gameState.equipDropped = data.equipDropped || {};
+  gameState.wrongQuestions = data.wrongQuestions || [];
+  updateStatusBar();
+  renderAchievementPreview();
 }
 
 document.getElementById('loginBtn').addEventListener('click', loginWithId);

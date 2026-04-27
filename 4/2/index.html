@@ -1754,7 +1754,8 @@ function saveUserData() {
     equipDropped: gameState.equipDropped || {},
     totalQuestionsAnswered: gameState.totalQuestionsAnswered,
     lessonProgress: gameState.lessonProgress || {},
-    wrongQuestions: gameState.wrongQuestions || []
+    wrongQuestions: gameState.wrongQuestions || [],
+    lastUpdated: Date.now()
   };
   localStorage.setItem(saveKey, JSON.stringify(data));
   // 同时云同步
@@ -2262,51 +2263,59 @@ function practiceWrongQuestions() {
 }
 
 
+function mergeUserData(localData, cloudData) {
+  if (!cloudData) return localData;
+  if (!localData) return cloudData;
+  const localTs = localData.lastUpdated || 0;
+  const cloudTs = cloudData.lastUpdated || 0;
+  if (cloudTs <= localTs) return localData;
+  const merged = { ...cloudData };
+  if (cloudData.equipment || localData.equipment) {
+    const equipMap = {};
+    [...(localData.equipment || []), ...(cloudData.equipment || [])].forEach(e => { equipMap[e.id] = e; });
+    merged.equipment = Object.values(equipMap);
+  }
+  if (cloudData.unlockedAchievements || localData.unlockedAchievements) {
+    const achSet = new Set([...(localData.unlockedAchievements || []), ...(cloudData.unlockedAchievements || [])]);
+    merged.unlockedAchievements = [...achSet];
+  }
+  if (cloudData.wrongQuestions || localData.wrongQuestions) {
+    const wqMap = {};
+    [...(localData.wrongQuestions || []), ...(cloudData.wrongQuestions || [])].forEach(wq => { wqMap[wq.question + '|' + wq.correctAnswer] = wq; });
+    merged.wrongQuestions = Object.values(wqMap);
+  }
+  return merged;
+}
+
 function loadUserData() {
   const saveKey = 'scienceGame_user_' + (gameState.studentId || 'guest');
   const saved = localStorage.getItem(saveKey);
-  
-  // 先尝试从云端加载（异步，不阻塞）
+  const localData = saved ? JSON.parse(saved) : null;
+  if (localData) { applyUserData(localData); console.log('使用本地存档'); }
   loadFromCloud(gameState.studentId).then(cloudData => {
-    if (cloudData) {
-      // 云端数据比本地新，合并使用
-      const localData = saved ? JSON.parse(saved) : null;
-      if (!localData || (cloudData.totalQuestionsAnswered || 0) > (localData.totalQuestionsAnswered || 0)) {
-        gameState.totalPoints = cloudData.totalPoints || 0;
-        gameState.unlockedAchievements = cloudData.unlockedAchievements || [];
-        gameState.unitProgress = cloudData.unitProgress || [0, 0, 0, 0];
-        gameState.equipment = cloudData.equipment || [];
-        gameState.equipDropped = cloudData.equipDropped || {};
-        gameState.totalQuestionsAnswered = cloudData.totalQuestionsAnswered || 0;
-        gameState.wrongQuestions = cloudData.wrongQuestions || [];
-        // 更新本地
-        localStorage.setItem(saveKey, JSON.stringify(cloudData));
-        updateUI();
-        renderAchievementPreview();
-        console.log('使用云端存档');
-      } else {
-        console.log('使用本地存档（更新于云端之后）');
-      }
+    if (!cloudData) return;
+    const merged = mergeUserData(localData, cloudData);
+    if (merged !== localData) {
+      applyUserData(merged);
+      localStorage.setItem(saveKey, JSON.stringify(merged));
+      saveToCloud(gameState.studentId, merged);
+      console.log('已同步云端最新存档');
     }
   });
-  
-  // 同步加载本地数据作为初始值
-  if (saved) {
-    const data = JSON.parse(saved);
-    gameState.totalPoints = data.totalPoints || 0;
-    gameState.unlockedAchievements = data.unlockedAchievements || [];
-    gameState.unitProgress = data.unitProgress || [0, 0, 0, 0];
-    gameState.equipment = data.equipment || [];
-    gameState.equipDropped = data.equipDropped || {};
-    gameState.totalQuestionsAnswered = data.totalQuestionsAnswered || 0;
-    gameState.lessonProgress = data.lessonProgress || {};
-    gameState.wrongQuestions = data.wrongQuestions || [];
-    updateStatusBar();
-    renderAchievementPreview();
-  }
 }
 
-// ========== 背包系统 ==========
+function applyUserData(data) {
+  gameState.totalPoints = data.totalPoints || 0;
+  gameState.unlockedAchievements = data.unlockedAchievements || [];
+  gameState.unitProgress = data.unitProgress || [0, 0, 0, 0];
+  gameState.equipment = data.equipment || [];
+  gameState.equipDropped = data.equipDropped || {};
+  gameState.totalQuestionsAnswered = data.totalQuestionsAnswered || 0;
+  gameState.lessonProgress = data.lessonProgress || {};
+  gameState.wrongQuestions = data.wrongQuestions || [];
+  updateUI();
+  renderAchievementPreview();
+}// ========== 背包系统 ==========
 function showBackpack() {
   const overlay = document.getElementById('backpackOverlay');
   const grid = document.getElementById('backpackGrid');
