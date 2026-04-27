@@ -852,12 +852,16 @@ const ALL_ACHIEVEMENTS = [
   { id: 'first_win', icon: '🏆', name: '初战告捷', desc: '首次赢得对战' },
   { id: 'streak_3', icon: '🔥', name: '三连胜', desc: '单局连续答对3题' },
   { id: 'streak_5', icon: '💥', name: '五连胜', desc: '单局连续答对5题' },
-  { id: 'streak_7', icon: '🌟', name: '七星连珠', desc: '单局连续答对7题' },
+  { id: 'streak_7', icon: '🌟', name: '七星连珠', desc: '单局连续答对7题', bonus: { pointsMul: 1.25 } },
   { id: 'perfect', icon: '💯', name: '满分答卷', desc: '单局全部答对' },
-  { id: 'speed_demon', icon: '⚡', name: '闪电快手', desc: '6秒内答对5题' },
-  { id: 'comeback', icon: '🔄', name: '逆转乾坤', desc: '落后20分以上仍获胜' },
+  { id: 'perfect_10', icon: '🏅', name: '全对大师', desc: '单局10题全对', bonus: { pointsMul: 1.20 } },
+  { id: 'speed_demon', icon: '⚡', name: '闪电快手', desc: '6秒内答对5题', bonus: { pointsMul: 1.12 } },
+  { id: 'comeback', icon: '🔄', name: '逆转乾坤', desc: '落后20分以上仍获胜', bonus: { pointsMul: 1.15 } },
   { id: 'veteran', icon: '🎖️', name: '身经百战', desc: '累计对战10局' },
-  { id: 'champion', icon: '👑', name: '常胜将军', desc: '累计获胜5局' },
+  { id: 'total_wins_5', icon: '🗡️', name: '久经沙场', desc: '累计获胜5局', bonus: { pointsMul: 1.08 } },
+  { id: 'total_wins_10', icon: '⚔️', name: '千锤百炼', desc: '累计获胜10局', bonus: { pointsMul: 1.15 } },
+  { id: 'total_wins_20', icon: '💀', name: '战神降临', desc: '累计获胜20局', bonus: { pointsMul: 1.30 } },
+  { id: 'champion', icon: '👑', name: '常胜将军', desc: '单局连续答对10题', bonus: { pointsMul: 1.40 } },
   { id: 'high_roller', icon: '💎', name: '豪赌客', desc: '以100分分值赢下对战' },
   { id: 'unit1_master', icon: '🎨', name: '设计达人', desc: '在设计单元取得胜利' },
   { id: 'unit2_master', icon: '⚡', name: '能量达人', desc: '在能量单元取得胜利' },
@@ -1363,37 +1367,31 @@ function checkAndUnlockAchievements(record, player, isWinner, isDraw) {
   // 首次获胜
   if (isWinner && record.wins >= 1) tryUnlock('first_win');
 
-  // 三连胜
-  if (player.streak >= 3) tryUnlock('streak_3');
-  // 五连胜
-  if (player.streak >= 5) tryUnlock('streak_5');
-  // 七连胜
-  if (player.streak >= 7) tryUnlock('streak_7');
+  // 身经百战（总场次）
+  if (record.games >= 10) tryUnlock('veteran');
 
-  // 满分
-  if (player.score === G.qList.length * (POINTS_CORRECT + POINTS_SPEED) && G.qList.length === TOTAL_QUESTIONS) {
-    // 近似满分检测
+  // 累计获胜成就
+  if (isWinner) {
+    if (record.wins >= 5) tryUnlock('total_wins_5');
+    if (record.wins >= 10) tryUnlock('total_wins_10');
+    if (record.wins >= 20) tryUnlock('total_wins_20');
   }
-  const maxPossible = G.qList.length * (POINTS_CORRECT + POINTS_SPEED);
-  const correctCount = G.qList.filter((_, i) => {
-    // 简化：用分数估算
-    return true;
-  }).length;
-  if (player.score >= G.qList.length * POINTS_CORRECT && player.streak >= G.qList.length) {
-    tryUnlock('perfect');
-  }
+
+  // 单局连胜成就
+  if (player.streak >= 3) tryUnlock('streak_3');
+  if (player.streak >= 5) tryUnlock('streak_5');
+  if (player.streak >= 7) tryUnlock('streak_7');
+  if (player.streak >= 10) tryUnlock('champion'); // 常胜将军：单局10连胜
+
+  // 单局全对
+  if (player.streak >= G.qList.length && G.qList.length > 0) tryUnlock('perfect');
+  if (player.streak >= 10 && G.qList.length === 10) tryUnlock('perfect_10');
 
   // 闪电快手
   if (player.speedCount >= 5) tryUnlock('speed_demon');
 
   // 逆转乾坤
   if (isWinner && G.maxDeficit >= 20) tryUnlock('comeback');
-
-  // 身经百战
-  if (record.games >= 10) tryUnlock('veteran');
-
-  // 常胜将军
-  if (record.wins >= 5) tryUnlock('champion');
 
   // 豪赌客
   if (isWinner && getBetValue() >= 100) tryUnlock('high_roller');
