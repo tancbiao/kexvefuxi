@@ -2648,8 +2648,8 @@ function showBackpack() {
         ? `<div style="font-size:0.75em;color:#ffd700;margin-top:4px;">⚔${equip.str||0} ⚡${equip.dex||0} 💡${equip.int||0}</div>`
         : '';
       const equipBtn = isEquipped
-        ? `<button class="btn-sm" style="margin-top:6px;background:rgba(255,255,255,0.1);" onclick="unequipItem('${equip.id}')">卸下</button>`
-        : `<button class="btn-sm" style="margin-top:6px;" onclick="equipItem('${equip.id}')">穿戴</button>`;
+        ? `<button class="btn-sm" style="margin-top:6px;background:rgba(255,255,255,0.1);" onclick="bpUnequipItem('${equip.id}')">卸下</button>`
+        : `<button class="btn-sm" style="margin-top:6px;" onclick="bpEquipItem('${equip.id}')">穿戴</button>`;
       return `
         <div class="equip-item ${rKey}" style="${isEquipped ? 'border-color:#ffd700;background:rgba(255,215,0,0.06);' : ''}">
           <div class="equip-icon">${equip.icon}</div>
@@ -2666,24 +2666,24 @@ function showBackpack() {
 }
 
 // 穿戴装备
-function equipItem(equipId) {
+function bpEquipItem(equipId) {
   const equip = gameState.equipment.find(e => e.id === equipId);
   if (!equip) return;
   const slot = equip.slot;
   if (!gameState.equipped) gameState.equipped = {};
   gameState.equipped[slot] = equip;
-  updateCharEquip();
+  syncCharEquipToDOM();
   saveUserData();
   showBackpack();
 }
 
 // 卸下装备
-function unequipItem(equipId) {
+function bpUnequipItem(equipId) {
   if (!gameState.equipped) return;
   const slot = Object.keys(gameState.equipped).find(k => gameState.equipped[k] && gameState.equipped[k].id === equipId);
   if (slot) {
     delete gameState.equipped[slot];
-    updateCharEquip();
+    syncCharEquipToDOM();
     saveUserData();
     showBackpack();
   }
@@ -2827,11 +2827,11 @@ function renderEquipItems() {
     const container = document.getElementById('items-' + slot);
     if (!container) return;
     const { folder, ids } = EQUIP_DATA[slot];
-    let html = `<div class="char-item none-btn" onclick="equipItem('${slot}', null)">卸</div>`;
+    let html = `<div class="char-item none-btn" onclick="bpEquipItem('${slot}', null)">卸</div>`;
     ids.forEach(id => {
       const url = getIconUrl(folder, id);
       const sel = equipped[slot] === id ? 'selected' : '';
-      html += `<img class="char-item ${sel}" src="${url}" onclick="equipItem('${slot}', '${id}')" title="${folder}/${id}">`;
+      html += `<img class="char-item ${sel}" src="${url}" onclick="bpEquipItem('${slot}', '${id}')" title="${folder}/${id}">`;
     });
     container.innerHTML = html;
   });
@@ -2848,6 +2848,25 @@ function equipItem(slot, id) {
   }
   renderEquipItems();
 }
+// 同步 equipped 对象到角色面板 DOM
+function syncCharEquipToDOM() {
+  if (!gameState.equipped) gameState.equipped = {};
+  Object.keys(gameState.equipped).forEach(slot => {
+    const equip = gameState.equipped[slot];
+    const img = document.getElementById('equip-' + slot);
+    if (img) {
+      if (equip && equip.iconUrl) {
+        img.src = equip.iconUrl;
+        img.style.display = '';
+      } else {
+        img.src = '';
+        img.style.display = 'none';
+      }
+    }
+  });
+  if (typeof renderEquipItems === 'function') renderEquipItems();
+}
+
 function toggleCharPanel() {
   const panel = document.getElementById('charPanel');
   panel.style.display = panel.style.display === 'none' ? '' : 'none';

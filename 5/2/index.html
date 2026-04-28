@@ -2742,14 +2742,20 @@ function showAchievementUnlock(achievement) {
 function showBackpack() {
   const overlay = document.getElementById('backpackOverlay');
   const grid = document.getElementById('backpackGrid');
-  
+  const RARITY_NAMES = ['common','exquisite','good','rare','epic','legendary','mythic'];
+  const RARITY_LABELS = { common:'普通', exquisite:'精致', good:'良好', rare:'稀有', epic:'史诗', legendary:'传说', mythic:'神话' };
+
   // 更新统计
-  document.getElementById('equipCount').textContent = gameState.equipment ? gameState.equipment.length : 0;
-  
-  // 统计各等级装备
-  const counts = { common: 0, exquisite: 0, good: 0, rare: 0, epic: 0, legendary: 0, mythic: 0 };
+  const total = gameState.equipment ? gameState.equipment.length : 0;
+  document.getElementById('equipCount').textContent = total;
+
+  // 统计各稀有度装备
+  const counts = { common:0, exquisite:0, good:0, rare:0, epic:0, legendary:0, mythic:0 };
   if (gameState.equipment) {
-    gameState.equipment.forEach(e => counts[e.level]++);
+    gameState.equipment.forEach(e => {
+      const rKey = RARITY_NAMES[e.rarity - 1];
+      if (rKey) counts[rKey]++;
+    });
   }
   document.getElementById('count-common').textContent = counts.common;
   document.getElementById('count-exquisite').textContent = counts.exquisite;
@@ -2758,22 +2764,63 @@ function showBackpack() {
   document.getElementById('count-epic').textContent = counts.epic;
   document.getElementById('count-legendary').textContent = counts.legendary;
   document.getElementById('count-mythic').textContent = counts.mythic;
-  
+
+  // 属性统计（已穿戴装备）
+  let totalStr = 0, totalDex = 0, totalInt = 0;
+  Object.values(equipped).forEach(id => {
+    if (!id) return;
+    const eq = gameState.equipment.find(e => e.id === id);
+    if (eq) { totalStr += (eq.str||0); totalDex += (eq.dex||0); totalInt += (eq.int||0); }
+  });
+  const summary = document.getElementById('backpackBonusSummary');
+  if (summary) {
+    if (totalStr || totalDex || totalInt) {
+      const se = document.getElementById('stat-str'); const de = document.getElementById('stat-dex'); const ie = document.getElementById('stat-int');
+      if (se) se.textContent = totalStr; if (de) de.textContent = totalDex; if (ie) ie.textContent = totalInt;
+      summary.style.display = '';
+    } else {
+      summary.style.display = 'none';
+    }
+  }
+
   // 渲染装备列表
   if (!gameState.equipment || gameState.equipment.length === 0) {
     grid.innerHTML = '<div class="equip-empty"><img src="../../icons/bag.png" class="icon-24"> 背包空空如也<br>完成练习即可获得装备</div>';
   } else {
-    grid.innerHTML = gameState.equipment.map(equip => `
-      <div class="equip-item ${equip.level}">
-        <div class="equip-icon">${equip.icon}</div>
-        <div class="equip-name">${equip.name}</div>
-        <span class="equip-level ${equip.level}">${equip.levelName}</span>
-        <div class="equip-effect">${equip.effect}</div>
-      </div>
-    `).join('');
+    grid.innerHTML = gameState.equipment.map(equip => {
+      const rKey = RARITY_NAMES[equip.rarity - 1] || 'common';
+      const rLabel = RARITY_LABELS[rKey] || rKey;
+      const isEquipped = Object.values(equipped).some(id => id === equip.id);
+      const stats = (equip.str||0)+(equip.dex||0)+(equip.int||0) > 0
+        ? '<div style="font-size:0.75em;color:#ffd700;margin-top:4px;">&#x2694;'+(equip.str||0)+' &#x26A1;'+(equip.dex||0)+' &#x1F4A1;'+(equip.int||0)+'</div>' : '';
+      const btn = isEquipped
+        ? '<button class="btn-sm" style="margin-top:6px;background:rgba(255,255,255,0.1);" onclick="bpUnequip52(''+equip.id+'')">&#x5378;&#x4E0B;</button>'
+        : '<button class="btn-sm" style="margin-top:6px;" onclick="bpEquip52(''+equip.id+'')">&#x7A7F;&#x6234;</button>';
+      return '<div class="equip-item '+rKey+'" style="'+(isEquipped?'border-color:#ffd700;background:rgba(255,215,0,0.06);':'')+'">'+
+        '<div class="equip-icon">'+equip.icon+'</div>'+
+        '<div class="equip-name">'+equip.name+'</div>'+
+        '<span class="equip-level '+rKey+'">'+rLabel+'</span>'+
+        '<div class="equip-effect">'+(equip.desc||'')+'</div>'+
+        stats+
+        '<div style="text-align:center;">'+btn+'</div>'+
+        '</div>';
+    }).join('');
   }
-  
+
   overlay.classList.add('show');
+}
+
+// 背包穿戴/卸下（转接 5/2 的 equipItem(slot, id)）
+function bpEquip52(equipId) {
+  const equip = gameState.equipment.find(e => e.id === equipId);
+  if (!equip || !equip.slot) return;
+  equipItem(equip.slot, equip.id);
+  showBackpack();
+}
+function bpUnequip52(equipId) {
+  const slot = Object.keys(equipped).find(k => equipped[k] === equipId);
+  if (slot) equipItem(slot, null);
+  showBackpack();
 }
 
 function closeBackpack() {
