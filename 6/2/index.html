@@ -744,49 +744,47 @@
 
 <script>
 
-// 兼容层：映射旧等级键到新稀有度编号
+// ========== 装备系统（兼容层）==========
+// 将旧 levelKey（common/exquisite/good/rare/epic/legendary/mythic）映射到新 rarity（1-7）
 const LEVEL_TO_RARITY = {
-  common: 1, exquisite: 2, good: 3, rare: 4, epic: 5, legendary: 6, mythic: 7
+  common: 1,    exquisite: 2,  good: 3,      rare: 4,
+  epic: 5,      legendary: 6,  mythic: 7
 };
 
-function initEquipmentSystem() {
-  if (typeof generateEquip === 'undefined') {
-    console.error('equipment-gen.js未加载');
-    return;
-  }
-  window.equipmentSystem = {
-    levels: window.EQUIP_RARITY || {},
-    equipTypes: window.ALL_EQUIP_TYPES || [],
-    effectTypes: [
-      { id: 'bonus', name: '积分加成' },
-      { id: 'skip', name: '跳过题目' },
-      { id: 'shield', name: '护盾' },
-      { id: 'combo', name: '连击保护' }
-    ],
-    generateEquip(levelKey, typeId) {
-      const rarity = LEVEL_TO_RARITY[levelKey] || 1;
-      return generateEquip(rarity, typeId);
-    },
-    getEquipmentPool() {
-      const pool = [];
-      if (!this.equipTypes.length) return pool;
-      for (const typeInfo of this.equipTypes) {
-        for (let rarity = 1; rarity <= 7; rarity++) {
-          pool.push(generateEquip(rarity, typeInfo.id));
-        }
+const equipmentSystem = {
+  levels: EQUIP_RARITY,
+  equipTypes: ALL_EQUIP_TYPES,
+  effectTypes: [
+    { id: 'bonus', name: '积分加成' },
+    { id: 'skip', name: '跳过题目' },
+    { id: 'shield', name: '护盾' },
+    { id: 'combo', name: '连击保护' }
+  ],
+  generateEquip(levelKey, typeId) {
+    const rarity = LEVEL_TO_RARITY[levelKey] || 1;
+    return generateEquip(rarity, typeId);
+  },
+  getEquipmentPool() {
+    const pool = [];
+    for (const typeInfo of this.equipTypes) {
+      for (let rarity = 1; rarity <= 7; rarity++) {
+        pool.push(generateEquip(rarity, typeInfo.id));
       }
-      return pool;
-    },
-    totalDropRate: 0.01
-  };
-}
+    }
+    return pool;
+  },
+  totalDropRate: 0.01
+};
 
-if (typeof generateEquip !== 'undefined') {
-  initEquipmentSystem();
-} else {
-  window.addEventListener('load', initEquipmentSystem);
-}
-
+// 谭老师的愤怒水杯：专属传说，条件触发发放
+const tanTeacherCup = {
+  id: 'cup_tanTeacherCup',
+  name: '谭老师的愤怒水杯',
+  icon: '<img src="../../icons/pants.png" class="icon-32">',
+  rarity: 6, rarityName: '传说', rarityColor: '#ffd700', multiplier: 2.0,
+  slot: '宝物', effect: '传说获得概率+1%，史诗获得概率+5%',
+  desc: '保持安静', str: 0, dex: 0, int: 0, hpBonus: 0, mpBonus: 0, affixes: []
+};
 
 // ========== 六年级下册题库（23课×3难度）==========
 // 基于六年级下册知识点（教师版）生成
@@ -1207,7 +1205,6 @@ const questionData = {
 // 旧装备系统代码已移除，使用 equipment-gen.js
 
 
-const equipmentPool = equipmentSystem.getEquipmentPool();
 
 const gameState = {
   studentId: null,
@@ -1768,8 +1765,8 @@ function tryDropEquip(isUnitComplete, penalty) {
 }
 
 function dropEquip(levelKey) {
-  const typeInfo = equipmentSystem.equipTypes[Math.floor(Math.random() * equipmentSystem.equipTypes.length)];
-  const equip = equipmentSystem.generateEquip(levelKey, typeInfo.id);
+  const typeInfo = ALL_EQUIP_TYPES[Math.floor(Math.random() * ALL_EQUIP_TYPES.length)];
+  const equip = genEquip(levelKey, typeInfo.id);
 
   // 添加到背包
   if (!gameState.equipment) gameState.equipment = [];
