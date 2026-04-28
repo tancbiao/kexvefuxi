@@ -1768,7 +1768,7 @@ function tryDropEquip(isUnitComplete, penalty) {
 
 function dropEquip(levelKey) {
   const typeInfo = ALL_EQUIP_TYPES[Math.floor(Math.random() * ALL_EQUIP_TYPES.length)];
-  const equip = genEquip(levelKey, typeInfo.id);
+  const equip = generateEquip(levelKey, typeInfo.id);
 
   // 添加到背包
   if (!gameState.equipment) gameState.equipment = [];
