@@ -1305,9 +1305,10 @@ const LEVEL_TO_RARITY = {
 };
 
 // 保留旧 equipmentSystem 接口，底层委托给新生成器
+// 安全初始化：若 equipment-gen.js 未加载，使用 fallback 值
 const equipmentSystem = {
-  levels: EQUIP_RARITY,  // 复用新系统的稀有度定义
-  equipTypes: ALL_EQUIP_TYPES,
+  levels: typeof EQUIP_RARITY !== 'undefined' ? EQUIP_RARITY : {},
+  equipTypes: typeof ALL_EQUIP_TYPES !== 'undefined' ? ALL_EQUIP_TYPES : [],
   effectTypes: [
     { id: 'bonus', name: '积分加成' },
     { id: 'skip', name: '跳过题目' },
@@ -1316,17 +1317,23 @@ const equipmentSystem = {
   ],
   generateEquip(levelKey, typeId) {
     const rarity = LEVEL_TO_RARITY[levelKey] || 1;
-    return generateEquip(rarity, typeId);
+    if (typeof window.generateEquip === 'function') return window.generateEquip(rarity, typeId);
+    // fallback: 简单装备对象
+    const names = ['普通','精致','良好','稀有','史诗','传说','神话'];
+    const colors = ['#9e9e9e','#4caf50','#2196f3','#9c27b0','#e91e63','#ffd700','#ff5722'];
+    return { id: 'fb_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), name: (names[rarity-1]||'普通')+'装备', icon: '📦', rarity, rarityName: names[rarity-1]||'普通', rarityColor: colors[rarity-1]||'#9e9e9e', multiplier: 1, slot: 'misc', str: 0, dex: 0, int: 0, hpBonus: 0, mpBonus: 0, affixes: [] };
   },
   getEquipmentPool() {
     const pool = [];
+    if (!this.equipTypes.length) return pool;
     for (const typeInfo of this.equipTypes) {
       for (let rarity = 1; rarity <= 7; rarity++) {
-        pool.push(generateEquip(rarity, typeInfo.id));
+        if (typeof window.generateEquip === 'function') pool.push(window.generateEquip(rarity, typeInfo.id));
       }
     }
     return pool;
-  }
+  },
+  totalDropRate: 0.01
 };
 // 谭老师的愤怒水杯：专属传说，条件触发发放
 const tanTeacherCup = {
@@ -2794,8 +2801,8 @@ function showBackpack() {
       const stats = (equip.str||0)+(equip.dex||0)+(equip.int||0) > 0
         ? '<div style="font-size:0.75em;color:#ffd700;margin-top:4px;">&#x2694;'+(equip.str||0)+' &#x26A1;'+(equip.dex||0)+' &#x1F4A1;'+(equip.int||0)+'</div>' : '';
       const btn = isEquipped
-        ? '<button class="btn-sm" style="margin-top:6px;background:rgba(255,255,255,0.1);" onclick="bpUnequip52(''+equip.id+'')">&#x5378;&#x4E0B;</button>'
-        : '<button class="btn-sm" style="margin-top:6px;" onclick="bpEquip52(''+equip.id+'')">&#x7A7F;&#x6234;</button>';
+        ? `<button class="btn-sm" style="margin-top:6px;background:rgba(255,255,255,0.1);" onclick="bpUnequip52('${equip.id}')">&#x5378;&#x4E0B;</button>`
+        : `<button class="btn-sm" style="margin-top:6px;" onclick="bpEquip52('${equip.id}')">&#x7A7F;&#x6234;</button>`;
       return '<div class="equip-item '+rKey+'" style="'+(isEquipped?'border-color:#ffd700;background:rgba(255,215,0,0.06);':'')+'">'+
         '<div class="equip-icon">'+equip.icon+'</div>'+
         '<div class="equip-name">'+equip.name+'</div>'+

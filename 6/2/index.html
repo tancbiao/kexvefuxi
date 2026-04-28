@@ -785,8 +785,8 @@ const LEVEL_TO_RARITY = {
 };
 
 const equipmentSystem = {
-  levels: EQUIP_RARITY,
-  equipTypes: ALL_EQUIP_TYPES,
+  levels: typeof EQUIP_RARITY !== 'undefined' ? EQUIP_RARITY : {},
+  equipTypes: typeof ALL_EQUIP_TYPES !== 'undefined' ? ALL_EQUIP_TYPES : [],
   effectTypes: [
     { id: 'bonus', name: '积分加成' },
     { id: 'skip', name: '跳过题目' },
@@ -795,13 +795,17 @@ const equipmentSystem = {
   ],
   generateEquip(levelKey, typeId) {
     const rarity = LEVEL_TO_RARITY[levelKey] || 1;
-    return generateEquip(rarity, typeId);
+    if (typeof window.generateEquip === 'function') return window.generateEquip(rarity, typeId);
+    const names = ['普通','精致','良好','稀有','史诗','传说','神话'];
+    const colors = ['#9e9e9e','#4caf50','#2196f3','#9c27b0','#e91e63','#ffd700','#ff5722'];
+    return { id: 'fb_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), name: (names[rarity-1]||'普通')+'装备', icon: '📦', rarity, rarityName: names[rarity-1]||'普通', rarityColor: colors[rarity-1]||'#9e9e9e', multiplier: 1, slot: 'misc', str: 0, dex: 0, int: 0, hpBonus: 0, mpBonus: 0, affixes: [] };
   },
   getEquipmentPool() {
     const pool = [];
+    if (!this.equipTypes.length) return pool;
     for (const typeInfo of this.equipTypes) {
       for (let rarity = 1; rarity <= 7; rarity++) {
-        pool.push(generateEquip(rarity, typeInfo.id));
+        if (typeof window.generateEquip === 'function') pool.push(window.generateEquip(rarity, typeInfo.id));
       }
     }
     return pool;
