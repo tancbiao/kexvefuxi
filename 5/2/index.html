@@ -3146,19 +3146,16 @@ function mergeUserData(localData, cloudData) {
   if (!cloudData) return localData;
   if (!localData) return cloudData;
 
-  // 以时间戳最新者为主
   const localTs = localData.lastUpdated || 0;
   const cloudTs = cloudData.lastUpdated || 0;
 
-  if (cloudTs <= localTs) return localData;
-
-  // 云端更新，合并装备/成就列表（并集，去重）
-  const merged = { ...cloudData };
+  const merged = { ...(cloudTs > localTs ? cloudData : localData) };
 
   // 装备：合并并按稀有度排序
   if (cloudData.equipment || localData.equipment) {
     const equipMap = {};
     [...(localData.equipment || []), ...(cloudData.equipment || [])].forEach(e => {
+      if (!e || !e.id) return;
       if (!equipMap[e.id] || (e.rarity || '').localeCompare(equipMap[e.id].rarity || '') > 0) {
         equipMap[e.id] = e;
       }
@@ -3182,6 +3179,15 @@ function mergeUserData(localData, cloudData) {
       wqMap[wq.question + '|' + wq.correctAnswer] = wq;
     });
     merged.wrongQuestions = Object.values(wqMap);
+  }
+
+  // 宠物数据：以时间戳最新的为准
+  const localPetTs = localData.petSystem && localData.petSystem.lastUpdated || 0;
+  const cloudPetTs = cloudData.petSystem && cloudData.petSystem.lastUpdated || 0;
+  if (cloudPetTs > localPetTs) {
+    merged.petSystem = cloudData.petSystem;
+  } else if (localData.petSystem) {
+    merged.petSystem = localData.petSystem;
   }
 
   return merged;
@@ -3219,7 +3225,6 @@ function applyUserData(data) {
   gameState.totalPoints = data.totalPoints || 0;
   gameState.lessonProgress = data.lessonProgress || {};
   gameState.unlockedAchievements = data.unlockedAchievements || [];
-  // 装备存档：旧格式是数组[]，新格式是100格数组[null,...]
   const oldEquip = data.equipment || [];
   const items = oldEquip.filter(Boolean);
   const inv = new Array(100).fill(null);
@@ -3227,6 +3232,10 @@ function applyUserData(data) {
   gameState.equipment = inv;
   gameState.equipDropped = data.equipDropped || {};
   gameState.wrongQuestions = data.wrongQuestions || [];
+  // 恢复宠物数据
+  if (data.petSystem) {
+    savePetSystemState(data.petSystem);
+  }
   updateStatusBar();
   renderAchievementPreview();
 }
@@ -3914,11 +3923,33 @@ const PETSYS_TALENT_NAMES = {
 const PETSYS_STORE_KEY = 'petSystemStateV2';
 
 // 读取pet-system的存档
+// 获取当前账号的宠物状态，按 studentId 隔离
 function getPetSystemState() {
   try {
-    const raw = localStorage.getItem(PETSYS_STORE_KEY);
+    const studentId = gameState.studentId;
+    if (!studentId || gameState.isGuest) return null;
+    const key = 'petSystemStateV2_' + studentId;
+    let raw = localStorage.getItem(key);
+    // 迁移：首次登录时从旧键迁移数据
+    if (!raw) {
+      const oldRaw = localStorage.getItem(PETSYS_STORE_KEY);
+      if (oldRaw) {
+        localStorage.setItem(key, oldRaw);
+        raw = oldRaw;
+      }
+    }
     return raw ? JSON.parse(raw) : null;
   } catch(e) { return null; }
+}
+
+// 保存当前账号的宠物状态到 localStorage（供宠物系统调用）
+function savePetSystemState(state) {
+  try {
+    const studentId = gameState.studentId;
+    if (!studentId || gameState.isGuest) return;
+    const key = 'petSystemStateV2_' + studentId;
+    localStorage.setItem(key, JSON.stringify(state));
+  } catch(e) { console.error('savePetSystemState error:', e); }
 }
 
 // 计算宠物出战总加成
@@ -4131,18 +4162,18 @@ async function saveToCloud52(studentId, data) {
 
 function saveUserData() {
   if (gameState.isGuest) return;
-  const saveKey = 'scienceGame5_user_' + gameState.studentId;
+  const petState = getPetSystemState();
   const data = {
     totalPoints: gameState.totalPoints || 0,
-    unlockedAchievements: gameState.unlockedAchievements || [],
     lessonProgress: gameState.lessonProgress || {},
+    unlockedAchievements: gameState.unlockedAchievements || [],
     equipment: gameState.equipment || [],
     equipDropped: gameState.equipDropped || {},
-    totalQuestionsAnswered: gameState.totalQuestionsAnswered || 0,
     wrongQuestions: gameState.wrongQuestions || [],
+    petSystem: petState,  // 加入宠物数据
     lastUpdated: Date.now()
   };
-  localStorage.setItem(saveKey, JSON.stringify(data));
+  localStorage.setItem('scienceGame5_user_' + gameState.studentId, JSON.stringify(data));
   saveToCloud52(gameState.studentId, data);
 }
 
