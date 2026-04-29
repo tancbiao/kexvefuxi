@@ -180,7 +180,7 @@
   .achievement-unlock .icon { font-size: 3em; margin: 15px 0; animation: bounce 0.5s; }
   .achievement-unlock .name { font-weight: 700; color: #ffd700; }
   
-  /* ========== 背包弹窗 ========== */
+  /* ========== 背包弹窗（暗黑风格 100格网格） ========== */
   .backpack-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.85);
@@ -190,52 +190,261 @@
   }
   .backpack-overlay.show { display: flex; }
   .backpack-card {
-    background: rgba(20,20,40,0.95);
+    background: rgba(15,15,25,0.97);
     backdrop-filter: blur(20px);
-    border-radius: 24px;
-    padding: 30px;
-    max-width: 600px;
-    width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 24px;
+    max-width: 880px;
+    width: 95%;
+    max-height: 85vh;
+    overflow: hidden;
     animation: popIn 0.4s;
+    display: flex;
+    flex-direction: column;
   }
-  .backpack-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-  .backpack-title { font-size: 1.5em; font-weight: 900; }
+  .backpack-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .backpack-title { font-size: 1.3em; font-weight: 900; color: #aaa; }
   .backpack-close {
-    background: rgba(255,255,255,0.1); border: none; color: #fff;
+    background: rgba(255,255,255,0.08); border: none; color: #fff;
     width: 36px; height: 36px; border-radius: 50%;
-    cursor: pointer; font-size: 1.2em; transition: all 0.3s;
+    cursor: pointer; font-size: 1.1em; transition: all 0.3s;
   }
-  .backpack-close:hover { background: rgba(255,255,255,0.2); }
-  .backpack-stats { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
-  .backpack-stat { background: rgba(255,255,255,0.08); border-radius: 12px; padding: 12px 20px; display: flex; align-items: center; gap: 10px; }
-  .backpack-stat-icon { font-size: 1.5em; }
-  .backpack-stat-info { text-align: left; }
-  .backpack-stat-label { font-size: 0.75em; color: rgba(255,255,255,0.5); }
-  .backpack-stat-value { font-size: 1.2em; font-weight: 700; }
-  .backpack-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
-  .equip-item { background: rgba(255,255,255,0.06); border-radius: 16px; padding: 16px; text-align: center; border: 2px solid transparent; transition: all 0.3s; cursor: pointer; }
-  .equip-item:hover { transform: scale(1.05); }
-  .equip-item.common { border-color: #9e9e9e; }
-  .equip-item.exquisite { border-color: #4caf50; }
-  .equip-item.good { border-color: #2196f3; }
-  .equip-item.rare { border-color: #9c27b0; }
-  .equip-item.epic { border-color: #e91e63; }
-  .equip-item.legendary { border-color: #ffd700; }
-  .equip-item.mythic { border-color: #ff5722; }
-  .equip-icon { font-size: 2.5em; margin-bottom: 8px; }
-  .equip-name { font-weight: 700; font-size: 0.95em; margin-bottom: 4px; }
-  .equip-level { font-size: 0.75em; padding: 2px 10px; border-radius: 10px; display: inline-block; margin-bottom: 6px; }
-  .equip-level.common { background: #9e9e9e; }
-  .equip-level.exquisite { background: #4caf50; }
-  .equip-level.good { background: #2196f3; }
-  .equip-level.rare { background: #9c27b0; }
-  .equip-level.epic { background: #e91e63; }
-  .equip-level.legendary { background: #ffd700; color: #1a1a2e; }
-  .equip-level.mythic { background: #ff5722; }
-  .equip-effect { font-size: 0.8em; color: rgba(255,255,255,0.6); }
-  .equip-empty { text-align: center; padding: 40px; color: rgba(255,255,255,0.5); }
+  .backpack-close:hover { background: rgba(255,100,100,0.2); color: #ff6b6b; }
+
+  /* 两栏布局：左侧角色面板 + 右侧背包 */
+  .bp-layout { display: grid; grid-template-columns: 240px 1fr; gap: 20px; height: calc(85vh - 80px); }
+
+  /* 角色属性面板 */
+  .bp-char-panel {
+    background: rgba(20,20,30,0.8);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    overflow-y: auto;
+  }
+  .bp-char-avatar {
+    text-align: center; margin-bottom: 12px;
+  }
+  .bp-char-avatar-inner {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: linear-gradient(135deg, #1a1a2e, #2d2d44);
+    margin: 0 auto 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.5em;
+    border: 3px solid #333;
+    position: relative; overflow: hidden;
+  }
+  .bp-char-avatar-inner::after {
+    content: ''; position: absolute; top: 0; left: -100%;
+    width: 50%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+    animation: shimmer 3s infinite;
+  }
+  .bp-char-level { font-size: 0.8em; color: #666; }
+  .bp-stat-row { margin-bottom: 8px; }
+  .bp-stat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; font-size: 0.75em; }
+  .bp-stat-name { display: flex; align-items: center; gap: 4px; }
+  .bp-stat-bar { height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+  .bp-stat-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+  .bp-str-fill { background: linear-gradient(90deg, #ff6b6b, #ee5a5a); }
+  .bp-dex-fill { background: linear-gradient(90deg, #4ecdc4, #45b7aa); }
+  .bp-int-fill { background: linear-gradient(90deg, #a78bfa, #8b5cf6); }
+  .bp-hp-fill { background: linear-gradient(90deg, #ef4444, #dc2626); }
+  .bp-mp-fill { background: linear-gradient(90deg, #3b82f6, #2563eb); }
+  .bp-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 10px 0; }
+  .bp-rarity-counts { display: flex; flex-direction: column; gap: 4px; font-size: 0.75em; }
+  .bp-rarity-row { display: flex; justify-content: space-between; align-items: center; }
+  .bp-rarity-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+  .bp-equip-bonus { font-size: 0.75em; color: #666; text-align: center; padding-top: 8px; }
+  .bp-actions { display: flex; flex-direction: column; gap: 6px; margin-top: auto; padding-top: 12px; }
+  .bp-action-btn {
+    padding: 6px 12px; background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 6px;
+    color: #888; font-size: 0.8em; cursor: pointer; transition: all 0.3s; text-align: center;
+  }
+  .bp-action-btn:hover { background: rgba(255,100,100,0.15); color: #ff6b6b; border-color: rgba(255,100,100,0.3); }
+
+  /* ========== 角色装备穿戴区（五年级） ========== */
+  .bp-equipped-section {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .bp-equipped-title {
+    font-size: 0.8em;
+    color: #ffd700;
+    margin-bottom: 8px;
+    text-align: center;
+    font-weight: bold;
+  }
+  .bp-equipped-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .bp-slot-box {
+    background: rgba(0,0,0,0.4);
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+    min-height: 70px;
+    position: relative;
+  }
+  .bp-slot-box:hover {
+    border-color: rgba(255,215,0,0.4);
+    background: rgba(255,215,0,0.05);
+  }
+  .bp-slot-box.equipped {
+    border-color: rgba(255,215,0,0.6);
+    background: rgba(255,215,0,0.08);
+  }
+  .bp-slot-label {
+    font-size: 0.65em;
+    color: #888;
+    text-align: center;
+  }
+  .bp-slot-icon {
+    font-size: 1.8em;
+    line-height: 1;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .bp-slot-empty { color: rgba(255,255,255,0.2); font-size: 1.5em; }
+  .bp-slot-name {
+    font-size: 0.6em;
+    color: #aaa;
+    text-align: center;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* ========== 装备总加成显示条（五年级） ========== */
+  .bp-total-bonus-bar {
+    background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,150,0,0.1));
+    border: 1px solid rgba(255,215,0,0.3);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    align-items: center;
+    justify-content: center;
+  }
+  .bp-total-bonus-title {
+    width: 100%;
+    text-align: center;
+    font-size: 0.75em;
+    color: #ffd700;
+    font-weight: bold;
+    margin-bottom: 4px;
+  }
+  .bp-total-bonus-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8em;
+    color: #fff;
+  }
+  .bp-total-bonus-value { color: #ffd700; font-weight: bold; }
+  .bp-total-bonus-empty { color: #666; font-size: 0.8em; }
+
+  /* 背包右侧区域 */
+  .bp-inventory-area { display: flex; flex-direction: column; overflow: hidden; }
+  .bp-inventory-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-shrink: 0; }
+  .bp-inventory-title { font-size: 0.9em; color: #888; }
+  .bp-inventory-count { color: #ffd700; font-weight: bold; }
+
+  /* 100格网格 */
+  .backpack-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); gap: 6px; overflow-y: auto; flex: 1; padding-right: 4px; }
+  .backpack-grid::-webkit-scrollbar { width: 4px; }
+  .backpack-grid::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+  .inventory-slot {
+    aspect-ratio: 1;
+    background: rgba(0,0,0,0.3);
+    border: 2px dashed rgba(255,255,255,0.08);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6em;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    min-height: 62px;
+  }
+  .inventory-slot:hover { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.05); transform: scale(1.05); }
+  .inventory-slot.empty { color: #222; }
+  .inventory-slot[data-rarity="6"] { animation: legendaryGlow 2s ease-in-out infinite; }
+  .inventory-slot[data-rarity="7"] { animation: mythicGlow 1.5s ease-in-out infinite; }
+  .inventory-slot .bp-tooltip {
+    display: none; position: absolute; bottom: 110%; left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.97); padding: 8px 10px; border-radius: 6px;
+    font-size: 0.65em; white-space: nowrap; z-index: 100;
+    border: 1px solid rgba(255,255,255,0.2);
+    pointer-events: none;
+  }
+  .inventory-slot:hover .bp-tooltip { display: block; }
+  .bp-tooltip-name { font-weight: bold; }
+  .bp-tooltip-stats { color: #ffd700; margin-top: 2px; }
+  .bp-tooltip-affix { color: #888; margin-top: 2px; }
+
+  /* 传说/神话光效动画 */
+  @keyframes legendaryGlow {
+    0%, 100% { box-shadow: 0 0 12px rgba(255,215,0,0.4); }
+    50% { box-shadow: 0 0 25px rgba(255,215,0,0.7); }
+  }
+  @keyframes mythicGlow {
+    0%, 100% { box-shadow: 0 0 18px rgba(255,87,34,0.5); }
+    50% { box-shadow: 0 0 35px rgba(255,87,34,0.9), 0 0 60px rgba(255,102,0,0.4); }
+  }
+  @keyframes shimmer { 100% { left: 200%; } }
+
+  /* 装备详情弹窗 */
+  .bp-detail-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center;
+    z-index: 3000; animation: fadeIn 0.2s;
+  }
+  .bp-detail-card {
+    background: rgba(15,15,25,0.98); border-radius: 16px; padding: 24px;
+    max-width: 320px; width: 90%; text-align: center;
+    border: 2px solid;
+    animation: bounceIn 0.4s;
+  }
+  .bp-detail-icon { font-size: 3em; margin-bottom: 8px; }
+  .bp-detail-name { font-size: 1.1em; font-weight: bold; margin-bottom: 4px; }
+  .bp-detail-type { font-size: 0.8em; color: #666; margin-bottom: 12px; }
+  .bp-detail-stats { background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; margin-bottom: 10px; text-align: left; font-size: 0.85em; }
+  .bp-detail-stat-row { display: flex; justify-content: space-between; padding: 2px 0; }
+  .bp-detail-mult { background: linear-gradient(135deg, rgba(0,212,255,0.15), rgba(124,58,237,0.15)); border-radius: 6px; padding: 6px; font-size: 0.9em; }
+  .bp-detail-mult span { color: #ffd700; font-weight: bold; }
+  .bp-detail-btns { display: flex; gap: 8px; margin-top: 12px; }
+  .bp-detail-btn { flex: 1; padding: 8px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85em; font-weight: bold; transition: all 0.3s; }
+  .bp-detail-wear { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #1a1a2e; }
+  .bp-detail-unequip { background: rgba(255,255,255,0.1); color: #aaa; }
+  .bp-detail-close-btn { margin-top: 8px; padding: 6px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #888; cursor: pointer; font-size: 0.8em; }
+
+  /* 稀有度装备卡（详情模式） */
+  .equip-item { display: none; }
+  .equip-icon { display: none; }
+  .equip-name { display: none; }
+  .equip-level { display: none; }
+  .equip-effect { display: none; }
+  .equip-empty { display: none; }
   @keyframes bounce {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-20px); }
@@ -675,7 +884,7 @@
     </div>
     <div class="status-item" id="backpackBtn" style="cursor:pointer;" onclick="showBackpack()">
       <span class="status-icon">🎒</span>
-      <span>背包</span>
+      <span>背包 <span id="statusEquipCount" style="color:#ffd700">0</span></span>
     </div>
   </div>
 
@@ -755,7 +964,7 @@
   </div>
 </div>
 
-<script src="../../equipment-gen.js"></script>
+<script src="../../equipment-gen.js?v=20260428"></script>
 
 <script>
 // ========== 五年级题库 - 按单元和课程（教师版 2026-04-23） ==========
@@ -1496,6 +1705,10 @@ function updateStatusBar() {
   document.getElementById('currentStreak').textContent = gameState.currentStreak;
   document.getElementById('streakIcon').style.display = gameState.currentStreak >= 2 ? 'inline' : 'none';
   document.getElementById('userBadge').textContent = gameState.isGuest ? '🚶 游客' : `👤 ${gameState.studentId}`;
+  // 装备数量
+  initInventory52();
+  const count = (gameState.equipment || []).filter(Boolean).length;
+  document.getElementById('statusEquipCount').textContent = count > 0 ? '(' + count + ')' : '0';
 }
 
 // 打乱选择题选项（保持"以上都"类题不变）
@@ -1758,7 +1971,7 @@ function finishQuiz() {
   
   // 装备掉落：每课每个难度首次通过(≥60%)才100%掉落，防止刷装备
   // 每题答题5%概率获得装备（吃水杯加成）
-  const cupBonus2 = (gameState.equipment && gameState.equipment.some(e => e.id === 'cup_tanTeacherCup')) ? 0.05 : 0;
+  const cupBonus2 = ((gameState.equipment || []).filter(Boolean).some(e => e.id === 'cup_tanTeacherCup')) ? 0.05 : 0;
   const perQChance = 0.05 + cupBonus2;
   if (Math.random() < perQChance) {
     let targetLevel;
@@ -1809,7 +2022,7 @@ function tryDropEquip(isUnitComplete, penalty) {
   const ratio = totalQ > 0 ? streak / totalQ : 0; // 0~1
 
   // 谭老师的愤怒水杯效果：检测是否已拥有
-  const hasTanCup = gameState.equipment && gameState.equipment.some(e => e.id === 'cup_tanTeacherCup');
+  const hasTanCup = ((gameState.equipment || []).filter(Boolean).some(e => e.id === 'cup_tanTeacherCup'));
   const applyCupBonus = hasTanCup;
 
   let targetLevel;
@@ -1884,13 +2097,21 @@ function dropEquip(levelKey) {
   const typeInfo = equipmentSystem.equipTypes[Math.floor(Math.random() * equipmentSystem.equipTypes.length)];
   const equip = equipmentSystem.generateEquip(levelKey, typeInfo.id);
 
-  // 添加到背包
-  if (!gameState.equipment) gameState.equipment = [];
+  // 初始化100格背包
+  if (!gameState.equipment || !Array.isArray(gameState.equipment)) {
+    gameState.equipment = new Array(100).fill(null);
+  }
 
-  // 检查是否已拥有同样装备
-  const exists = gameState.equipment.find(e => e.id === equip.id);
+  // 检查是否已拥有同样装备（跨格式兼容）
+  const exists = (gameState.equipment).find(e => e && e.id === equip.id);
   if (!exists) {
-    gameState.equipment.push(equip);
+    // 找第一个空位放入
+    const emptyIdx = gameState.equipment.findIndex(s => s === null);
+    if (emptyIdx >= 0) {
+      gameState.equipment[emptyIdx] = equip;
+    } else if (gameState.equipment.length < 100) {
+      gameState.equipment.push(equip);
+    }
     // 显示掉落动画
     showEquipDrop(equip);
   } else {
@@ -1901,50 +2122,49 @@ function dropEquip(levelKey) {
 }
 
 function showEquipDrop(equip) {
+  // 暗黑掉落动画
   const overlay = document.createElement('div');
-  overlay.className = 'equip-drop-overlay';
+  overlay.style.cssText = `
+    position:fixed;top:0;left:0;width:100%;height:100%;
+    background:rgba(0,0,0,0.7);display:flex;justify-content:center;align-items:center;
+    z-index:9999;animation:fadeIn 0.3s;cursor:pointer;
+  `;
+  overlay.onclick = () => overlay.remove();
+
+  // 属性行
+  let statsHtml = '';
+  if (equip.str > 0) statsHtml += '<div style="display:flex;justify-content:space-between;padding:2px 0;font-size:0.85em;"><span style="color:#888">💪 力量</span><span style="color:#ff6b6b;font-weight:bold">+'+equip.str+'</span></div>';
+  if (equip.dex > 0) statsHtml += '<div style="display:flex;justify-content:space-between;padding:2px 0;font-size:0.85em;"><span style="color:#888">🏃 敏捷</span><span style="color:#4ecdc4;font-weight:bold">+'+equip.dex+'</span></div>';
+  if (equip.int > 0) statsHtml += '<div style="display:flex;justify-content:space-between;padding:2px 0;font-size:0.85em;"><span style="color:#888">🧠 智力</span><span style="color:#a78bfa;font-weight:bold">+'+equip.int+'</span></div>';
+  if (equip.hpBonus > 0) statsHtml += '<div style="display:flex;justify-content:space-between;padding:2px 0;font-size:0.85em;"><span style="color:#888">❤️ HP</span><span style="color:#ef4444;font-weight:bold">+'+equip.hpBonus+'</span></div>';
+  if (equip.mpBonus > 0) statsHtml += '<div style="display:flex;justify-content:space-between;padding:2px 0;font-size:0.85em;"><span style="color:#888">💧 MP</span><span style="color:#3b82f6;font-weight:bold">+'+equip.mpBonus+'</span></div>';
+
+  const affixesHtml = equip.affixes && equip.affixes.length > 0
+    ? '<div style="margin-top:8px;font-size:0.75em;color:#666;">' + equip.affixes.map(a => '<span style="color:'+a.color+'">✦ '+a.effect+'</span>').join(' · ') + '</div>'
+    : '';
+
   overlay.innerHTML = `
-    <div class="equip-drop-card">
-      <div class="equip-drop-title">🎁 获得新装备！</div>
-      ${genEquipDropHTML(equip)}
+    <div style="
+      background:linear-gradient(135deg,rgba(15,15,25,0.98),rgba(30,30,50,0.98));
+      border-radius:20px;padding:28px 32px;text-align:center;
+      border:2px solid ${equip.rarityColor || '#9e9e9e'};
+      box-shadow:0 0 40px ${(equip.rarityColor || '#9e9e9e')}66;
+      animation:bounceIn 0.5s;max-width:320px;width:90%;
+      font-family:'Microsoft YaHei',sans-serif;
+    ">
+      <div style="font-size:0.9em;color:#666;margin-bottom:10px;">🎁 获得新装备！</div>
+      <div style="font-size:3.5em;margin:10px 0;">${equip.icon}</div>
+      <div style="font-size:1.15em;font-weight:bold;color:${equip.rarityColor || '#9e9e9e'};margin-bottom:4px;">${equip.name}</div>
+      <div style="font-size:0.8em;color:#666;margin-bottom:12px;">${equip.slot} · ${(equip.multiplier || equip.pointBonus || 1).toFixed(2)}x 积分倍率</div>
+      <div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:10px;text-align:left;font-size:0.9em;">
+        ${statsHtml}
+      </div>
+      ${affixesHtml}
+      <div style="margin-top:12px;font-size:0.75em;color:#555;">点击任意处关闭</div>
     </div>
   `;
   document.body.appendChild(overlay);
-  
-  if (!document.getElementById('equipDropStyle')) {
-    const style = document.createElement('style');
-    style.id = 'equipDropStyle';
-    style.textContent = `
-      .equip-drop-overlay {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center;
-        z-index: 9999; animation: fadeIn 0.3s;
-      }
-      .equip-drop-card {
-        background: linear-gradient(135deg, #2a2a4a, #1a1a2e);
-        border-radius: 20px; padding: 30px 40px; text-align: center;
-        border: 3px solid ${equip.rarityColor}; box-shadow: 0 0 30px ${equip.rarityColor}55;
-        animation: bounceIn 0.5s; max-width: 340px; width: 90%;
-      }
-      .equip-drop-title { font-size: 1.4em; margin-bottom: 15px; }
-      @keyframes bounceIn {
-        0% { transform: scale(0); }
-        50% { transform: scale(1.08); }
-        100% { transform: scale(1); }
-      }
-      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    `;
-    document.head.appendChild(style);
-  } else {
-    // 更新边框颜色
-    const card = overlay.querySelector('.equip-drop-card');
-    if (card) {
-      card.style.borderColor = equip.rarityColor;
-      card.style.boxShadow = `0 0 30px ${equip.rarityColor}55`;
-    }
-  }
-  overlay.addEventListener('click', () => overlay.remove());
-  setTimeout(() => overlay.remove(), 5000);
+  setTimeout(() => overlay.remove(), 6000);
 }
 
 function restartQuiz() { startLesson(gameState.currentLesson); }
@@ -2001,24 +2221,27 @@ function checkTotalQuestionsAchievements() {
 
 // ========== 装备成就检查 ==========
 function checkEquipAchievements() {
+  initInventory52();
+  const inv = gameState.equipment || [];
+  const items = inv.filter(Boolean);
+  const RARITY_NAMES = ['common','exquisite','good','rare','epic','legendary','mythic'];
   const counts = { common: 0, exquisite: 0, good: 0, rare: 0, epic: 0, legendary: 0, mythic: 0 };
   const typeIds = {};
-  const typeCount = {}; // { typeId: count }
-  if (!gameState.equipment) gameState.equipment = [];
-  gameState.equipment.forEach(e => {
-    counts[e.level] = (counts[e.level] || 0) + 1;
-    const type = e.id.split('_')[0];
-    typeIds[type] = true;
-    typeCount[type] = (typeCount[type] || 0) + 1;
+  const typeCount = {};
+  items.forEach(e => {
+    const rKey = RARITY_NAMES[e.rarity - 1];
+    if (rKey) counts[rKey]++;
+    const type = (e.typeId || e.id || '').split('_')[0];
+    if (type) { typeIds[type] = true; typeCount[type] = (typeCount[type] || 0) + 1; }
   });
 
   // 初识装备
-  if (gameState.equipment.length >= 1 && !gameState.unlockedAchievements.includes('first_equip')) {
+  if (items.length >= 1 && !gameState.unlockedAchievements.includes('first_equip')) {
     unlockAchievement('first_equip');
   }
 
   // 收藏家
-  if (gameState.equipment.length >= 10 && !gameState.unlockedAchievements.includes('equip_10')) {
+  if (items.length >= 10 && !gameState.unlockedAchievements.includes('equip_10')) {
     unlockAchievement('equip_10');
   }
 
@@ -2071,20 +2294,27 @@ function checkEquipAchievements() {
   }
 
   // 谭老师的愤怒水杯：>=10件装备仍未获得金色传说
-  const hasTanCup = gameState.equipment.some(e => e.id === 'cup_tanTeacherCup');
-  if (gameState.equipment.length >= 10 && counts.legendary === 0 && !hasTanCup) {
+  const hasTanCup = items.some(e => e.id === 'cup_tanTeacherCup');
+  if (items.length >= 10 && counts.legendary === 0 && !hasTanCup) {
     const cup = {
       id: 'cup_tanTeacherCup',
       name: '谭老师的愤怒水杯',
-      icon: '<img src="../../icons/pants.png" class="icon-32">',
-      level: 'legendary',
-      levelName: '金色传说的',
-      effect: '金色传说获得概率+1%，史诗获得概率+5%',
-      pointBonus: 0,
-      color: '#ffd700',
-      desc: '保持安静'
+      icon: '☕',
+      typeId: 'cup',
+      type: '水杯',
+      slot: '宝物',
+      rarity: 6,
+      rarityName: '传说',
+      rarityColor: '#ffd700',
+      multiplier: 2.00,
+      desc: '保持安静',
+      str: 0, dex: 0, int: 0, hpBonus: 0, mpBonus: 0,
+      timestamp: Date.now()
     };
-    gameState.equipment.push(cup);
+    // 找空位放入
+    const emptyIdx = inv.findIndex(s => s === null);
+    if (emptyIdx >= 0) inv[emptyIdx] = cup;
+    else if (inv.length < 100) inv.push(cup);
     unlockAchievement('equip_tan_cup');
     showEquipDrop(cup);
   }
@@ -2724,7 +2954,12 @@ function applyUserData(data) {
   gameState.totalPoints = data.totalPoints || 0;
   gameState.lessonProgress = data.lessonProgress || {};
   gameState.unlockedAchievements = data.unlockedAchievements || [];
-  gameState.equipment = data.equipment || [];
+  // 装备存档：旧格式是数组[]，新格式是100格数组[null,...]
+  const oldEquip = data.equipment || [];
+  const items = oldEquip.filter(Boolean);
+  const inv = new Array(100).fill(null);
+  items.forEach((item, i) => { if (i < 100) inv[i] = item; });
+  gameState.equipment = inv;
   gameState.equipDropped = data.equipDropped || {};
   gameState.wrongQuestions = data.wrongQuestions || [];
   updateStatusBar();
@@ -2745,81 +2980,417 @@ function showAchievementUnlock(achievement) {
   setTimeout(() => el.classList.remove('show'), 3000);
 }
 
-// ========== 背包系统 ==========
-function showBackpack() {
-  const overlay = document.getElementById('backpackOverlay');
-  const grid = document.getElementById('backpackGrid');
-  const RARITY_NAMES = ['common','exquisite','good','rare','epic','legendary','mythic'];
-  const RARITY_LABELS = { common:'普通', exquisite:'精致', good:'良好', rare:'稀有', epic:'史诗', legendary:'传说', mythic:'神话' };
+// 安全取值器，防止旧装备无 rarity 字段导致 NaN → Undefined
+function getRarityColor52(e) { return ['#9e9e9e','#4caf50','#2196f3','#9c27b0','#e91e63','#ffd700','#ff5722'][(e && e.rarity ? e.rarity : 1) - 1] || '#9e9e9e'; }
 
-  // 更新统计
-  const total = gameState.equipment ? gameState.equipment.length : 0;
-  document.getElementById('equipCount').textContent = total;
+// ========== 背包系统（暗黑100格网格版） ==========
 
-  // 统计各稀有度装备
-  const counts = { common:0, exquisite:0, good:0, rare:0, epic:0, legendary:0, mythic:0 };
-  if (gameState.equipment) {
-    gameState.equipment.forEach(e => {
-      const rKey = RARITY_NAMES[e.rarity - 1];
-      if (rKey) counts[rKey]++;
-    });
+// 初始化100格背包数组，兼容旧数据
+function initInventory52() {
+  if (!gameState.equipment) gameState.equipment = new Array(100).fill(null);
+  if (Array.isArray(gameState.equipment) && gameState.equipment.length <= 100) {
+    // 旧格式无 null 间隙，直接转100格
+    const items = gameState.equipment.filter(Boolean);
+    const inv = new Array(100).fill(null);
+    items.forEach((item, i) => { if (i < 100) inv[i] = item; });
+    gameState.equipment = inv;
   }
-  document.getElementById('count-common').textContent = counts.common;
-  document.getElementById('count-exquisite').textContent = counts.exquisite;
-  document.getElementById('count-good').textContent = counts.good;
-  document.getElementById('count-rare').textContent = counts.rare;
-  document.getElementById('count-epic').textContent = counts.epic;
-  document.getElementById('count-legendary').textContent = counts.legendary;
-  document.getElementById('count-mythic').textContent = counts.mythic;
-
-  // 属性统计（已穿戴装备）
-  let totalStr = 0, totalDex = 0, totalInt = 0;
-  Object.values(equipped).forEach(id => {
-    if (!id) return;
-    const eq = gameState.equipment.find(e => e.id === id);
-    if (eq) { totalStr += (eq.str||0); totalDex += (eq.dex||0); totalInt += (eq.int||0); }
-  });
-  const summary = document.getElementById('backpackBonusSummary');
-  if (summary) {
-    if (totalStr || totalDex || totalInt) {
-      const se = document.getElementById('stat-str'); const de = document.getElementById('stat-dex'); const ie = document.getElementById('stat-int');
-      if (se) se.textContent = totalStr; if (de) de.textContent = totalDex; if (ie) ie.textContent = totalInt;
-      summary.style.display = '';
-    } else {
-      summary.style.display = 'none';
-    }
-  }
-
-  // 渲染装备列表
-  if (!gameState.equipment || gameState.equipment.length === 0) {
-    grid.innerHTML = '<div class="equip-empty"><img src="../../icons/bag.png" class="icon-24"> 背包空空如也<br>完成练习即可获得装备</div>';
-  } else {
-    grid.innerHTML = gameState.equipment.map(equip => {
-      const rKey = RARITY_NAMES[equip.rarity - 1] || 'common';
-      const rLabel = RARITY_LABELS[rKey] || rKey;
-      const isEquipped = Object.values(equipped).some(id => id === equip.id);
-      const stats = (equip.str||0)+(equip.dex||0)+(equip.int||0) > 0
-        ? '<div style="font-size:0.75em;color:#ffd700;margin-top:4px;">&#x2694;'+(equip.str||0)+' &#x26A1;'+(equip.dex||0)+' &#x1F4A1;'+(equip.int||0)+'</div>' : '';
-      const btn = isEquipped
-        ? `<button class="btn-sm" style="margin-top:6px;background:rgba(255,255,255,0.1);" onclick="bpUnequip52('${equip.id}')">&#x5378;&#x4E0B;</button>`
-        : `<button class="btn-sm" style="margin-top:6px;" onclick="bpEquip52('${equip.id}')">&#x7A7F;&#x6234;</button>`;
-      return '<div class="equip-item '+rKey+'" style="'+(isEquipped?'border-color:#ffd700;background:rgba(255,215,0,0.06);':'')+'">'+
-        '<div class="equip-icon">'+equip.icon+'</div>'+
-        '<div class="equip-name">'+equip.name+'</div>'+
-        '<span class="equip-level '+rKey+'">'+rLabel+'</span>'+
-        '<div class="equip-effect">'+(equip.desc||'')+'</div>'+
-        stats+
-        '<div style="text-align:center;">'+btn+'</div>'+
-        '</div>';
-    }).join('');
-  }
-
-  overlay.classList.add('show');
 }
 
-// 背包穿戴/卸下（转接 5/2 的 equipItem(slot, id)）
+// 计算角色属性加成（来自所有装备）
+function recalcCharStats52() {
+  const bonus = { str: 0, dex: 0, int: 0 };
+  let hpBonus = 0, mpBonus = 0;
+  const inv = gameState.equipment || [];
+  inv.forEach(item => {
+    if (!item) return;
+    bonus.str += item.str || 0;
+    bonus.dex += item.dex || 0;
+    bonus.int += item.int || 0;
+    hpBonus += item.hpBonus || 0;
+    mpBonus += item.mpBonus || 0;
+  });
+  const base = { str: 10, dex: 10, int: 10 };
+  return {
+    totalStr: base.str + bonus.str,
+    totalDex: base.dex + bonus.dex,
+    totalInt: base.int + bonus.int,
+    hp: 100 + bonus.str * 10 + hpBonus,
+    mp: 50 + bonus.int * 5 + mpBonus,
+    bonusTotal: bonus.str + bonus.dex + bonus.int
+  };
+}
+
+// 更新角色属性面板
+function updateCharPanel52() {
+  const s = recalcCharStats52();
+  document.getElementById('bpStrVal').textContent = s.totalStr;
+  document.getElementById('bpDexVal').textContent = s.totalDex;
+  document.getElementById('bpIntVal').textContent = s.totalInt;
+  document.getElementById('bpHpVal').textContent = s.hp;
+  document.getElementById('bpMpVal').textContent = s.mp;
+  document.getElementById('bpStrBar').style.width = Math.min(100, s.totalStr / 2) + '%';
+  document.getElementById('bpDexBar').style.width = Math.min(100, s.totalDex / 2) + '%';
+  document.getElementById('bpIntBar').style.width = Math.min(100, s.totalInt / 2) + '%';
+  document.getElementById('bpHpBar').style.width = Math.min(100, s.hp / 5) + '%';
+  document.getElementById('bpMpBar').style.width = Math.min(100, s.mp / 2) + '%';
+  const level = Math.floor(1 + (s.totalStr + s.totalDex + s.totalInt) / 30);
+  document.getElementById('bpCharLevel').textContent = Math.min(99, level);
+  document.getElementById('bpEquipBonus').textContent = s.bonusTotal > 0 ? '+' + s.bonusTotal : '+0';
+  // 渲染已穿戴装备图标列表
+  const equippedList = document.getElementById('bpEquippedList');
+  if (equippedList) {
+    let html = '';
+    for (const slot in bpEquippedSlots52) {
+      const idx = bpEquippedSlots52[slot];
+      if (idx !== null && gameState.equipment && gameState.equipment[idx]) {
+        const e = gameState.equipment[idx];
+        const color = getRarityColor52(e);
+        html += `<div onclick="showEquipDetail52(gameState.equipment[${idx}],${idx})" title="${e.name || '装备'}" style="cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.06);border-radius:6px;border:1px solid ${color}40;font-size:1.1em;">${e.icon || '📦'}</div>`;
+      }
+    }
+    equippedList.innerHTML = html;
+  }
+  // 更新总加成文字
+  updateTotalBonusBar52();
+  // 稀有度统计
+  updateRarityCounts52();
+}
+
+// ========== 五年级装备穿戴系统 ==========
+const bpEquippedSlots52 = { hat: null, top: null, bottom: null, other: null };
+
+function getEquipSlotType52(equip) {
+  if (!equip) return 'other';
+  const slot = (equip.slot || equip.type || 'other').toLowerCase();
+  if (slot.includes('hat') || slot.includes('帽') || slot.includes('冠') || slot.includes('盔')) return 'hat';
+  if (slot.includes('top') || slot.includes('衣') || slot.includes('服') || slot.includes('衫')) return 'top';
+  if (slot.includes('bottom') || slot.includes('裤') || slot.includes('裙') || slot.includes('下装')) return 'bottom';
+  return 'other';
+}
+
+function saveEquippedState52() {
+  const userId = gameState.studentId || 'guest';
+  localStorage.setItem('bpEquipped_5_' + userId, JSON.stringify(bpEquippedSlots52));
+}
+
+function loadEquippedState52() {
+  const userId = gameState.studentId || 'guest';
+  const saved = localStorage.getItem('bpEquipped_5_' + userId);
+  if (saved) {
+    try {
+      const state = JSON.parse(saved);
+      for (const slot in state) {
+        const idx = state[slot];
+        if (idx !== null && (!gameState.equipment[idx] || gameState.equipment[idx] === null)) {
+          state[slot] = null;
+        }
+      }
+      Object.assign(bpEquippedSlots52, state);
+    } catch (e) {}
+  }
+}
+
+function calcEquippedBonus52() {
+  const bonus = { str: 0, dex: 0, int: 0, hp: 0, mp: 0, pointMul: 1 };
+  for (const slot in bpEquippedSlots52) {
+    const idx = bpEquippedSlots52[slot];
+    if (idx !== null && gameState.equipment[idx]) {
+      const e = gameState.equipment[idx];
+      bonus.str += e.str || 0;
+      bonus.dex += e.dex || 0;
+      bonus.int += e.int || 0;
+      bonus.hp += e.hpBonus || 0;
+      bonus.mp += e.mpBonus || 0;
+      if (e.multiplier) bonus.pointMul += (e.multiplier >= 2 ? e.multiplier - 1 : e.multiplier - 1);
+    }
+  }
+  return bonus;
+}
+
+function updateTotalBonusBar52() {
+  const bar = document.getElementById('bpTotalBonusBar');
+  if (!bar) return;
+  const bonus = calcEquippedBonus52();
+  const hasEquip = Object.values(bpEquippedSlots52).some(v => v !== null);
+  if (!hasEquip) {
+    bar.innerHTML = `<div class="bp-total-bonus-title">✨ 已穿戴装备加成</div><div class="bp-total-bonus-empty">尚未穿戴任何装备</div>`;
+    return;
+  }
+  let html = `<div class="bp-total-bonus-title">✨ 已穿戴装备加成</div>`;
+  if (bonus.str) html += `<div class="bp-total-bonus-item">💪 力量 <span class="bp-total-bonus-value">+${bonus.str}</span></div>`;
+  if (bonus.dex) html += `<div class="bp-total-bonus-item">🏃 敏捷 <span class="bp-total-bonus-value">+${bonus.dex}</span></div>`;
+  if (bonus.int) html += `<div class="bp-total-bonus-item">🧠 智力 <span class="bp-total-bonus-value">+${bonus.int}</span></div>`;
+  if (bonus.hp) html += `<div class="bp-total-bonus-item">❤️ HP <span class="bp-total-bonus-value">+${bonus.hp}</span></div>`;
+  if (bonus.mp) html += `<div class="bp-total-bonus-item">💧 MP <span class="bp-total-bonus-value">+${bonus.mp}</span></div>`;
+  if (bonus.pointMul > 1) html += `<div class="bp-total-bonus-item">🎯 积分倍率 <span class="bp-total-bonus-value">×${bonus.pointMul.toFixed(2)}</span></div>`;
+  bar.innerHTML = html;
+}
+
+function updateEquippedSlots52() {
+  const slotLabels = { hat: '🎩 帽子', top: '👕 上衣', bottom: '👖 下衣', other: '🎒 其他' };
+  for (const slot in bpEquippedSlots52) {
+    const box = document.querySelector(`.bp-slot-box[data-slot="${slot}"]`);
+    if (!box) continue;
+    const idx = bpEquippedSlots52[slot];
+    const iconEl = box.querySelector('.bp-slot-icon');
+    const nameEl = box.querySelector('.bp-slot-name');
+    if (idx !== null && gameState.equipment[idx]) {
+      const e = gameState.equipment[idx];
+      const color = e.rarityColor || '#ffd700';
+      box.classList.add('equipped');
+      iconEl.innerHTML = e.icon || '📦';
+      iconEl.style.color = color;
+      nameEl.textContent = e.name || '';
+      nameEl.style.color = color;
+    } else {
+      box.classList.remove('equipped');
+      iconEl.innerHTML = '空';
+      iconEl.className = 'bp-slot-icon bp-slot-empty';
+      nameEl.textContent = '';
+    }
+  }
+  updateTotalBonusBar52();
+}
+
+function openEquipSelector52(slotType) {
+  const slotLabels = { hat: '🎩 帽子', top: '👕 上衣', bottom: '👖 下衣', other: '🎒 其他' };
+  const equips = gameState.equipment.map((e, i) => ({ equip: e, idx: i }))
+    .filter(item => {
+      if (!item.equip) return false;
+      const type = getEquipSlotType52(item.equip);
+      return type === slotType;
+    })
+    .sort((a, b) => (b.equip.rarity || 1) - (a.equip.rarity || 1));
+
+  const equippedIdx = bpEquippedSlots52[slotType];
+  let html = `<div class="bp-detail-overlay" onclick="closeEquipSelector52(event)">
+    <div class="bp-detail-card" style="border-color:#ffd700;max-height:80vh;overflow-y:auto;" onclick="event.stopPropagation()">
+      <div class="bp-detail-name" style="color:#ffd700">选择${slotLabels[slotType]}</div>
+      <div class="bp-detail-type">点击装备进行穿戴</div>`;
+
+  if (equippedIdx !== null) {
+    html += `<button class="bp-detail-btn bp-detail-unequip" style="margin-bottom:12px;" onclick="unequipBySlot52('${slotType}')">卸下当前装备</button>`;
+  }
+  if (equippedIdx !== null && gameState.equipment[equippedIdx]) {
+    const e = gameState.equipment[equippedIdx];
+    html += `<div style="border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px;margin-bottom:10px;opacity:0.6;">
+      <div style="font-size:0.8em;color:#666;">当前穿戴</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:1.5em;">${e.icon || '📦'}</span>
+        <span style="color:${e.rarityColor || '#fff'}">${e.name}</span>
+      </div>
+    </div>`;
+  }
+  if (equips.length === 0) {
+    html += `<div style="text-align:center;color:#666;padding:20px;">背包中没有${slotLabels[slotType]}类装备</div>`;
+  } else {
+    html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px;margin-top:10px;">`;
+    equips.forEach(item => {
+      const e = item.equip;
+      const color = e.rarityColor || '#9e9e9e';
+      const isEquipped = item.idx === equippedIdx;
+      html += `<div class="inventory-slot ${isEquipped ? 'equipped' : ''}"
+        style="border-color:${color}40;padding:8px;cursor:pointer;${isEquipped ? 'background:rgba(255,215,0,0.15);' : ''}"
+        onclick="bpEquipByIdx52(${item.idx});closeEquipSelector52();">
+        <div style="font-size:1.5em;">${e.icon || '📦'}</div>
+        <div style="font-size:0.6em;color:${color};text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${e.name}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+  html += `<button class="bp-detail-close-btn" onclick="closeEquipSelector52()" style="margin-top:12px;">关闭</button></div></div>`;
+  document.getElementById('bpDetailContainer').innerHTML = html;
+}
+
+function closeEquipSelector52(e) {
+  if (e && e.target !== e.currentTarget) return;
+  document.getElementById('bpDetailContainer').innerHTML = '';
+}
+
+function unequipBySlot52(slotType) {
+  bpEquippedSlots52[slotType] = null;
+  saveEquippedState52();
+  closeEquipSelector52();
+  updateCharPanel52();
+  renderInventoryGrid52();
+  updateEquippedSlots52();
+}
+
+function bpEquipByIdx52(idx) {
+  const e = gameState.equipment[idx];
+  if (!e) return;
+  const slotType = getEquipSlotType52(e);
+  bpEquippedSlots52[slotType] = idx;
+  saveEquippedState52();
+  updateCharPanel52();
+  renderInventoryGrid52();
+  updateEquippedSlots52();
+}
+
+function bpUnequipByIdx52(idx) {
+  const e = gameState.equipment[idx];
+  if (!e) return;
+  const slotType = getEquipSlotType52(e);
+  if (bpEquippedSlots52[slotType] === idx) {
+    bpEquippedSlots52[slotType] = null;
+    saveEquippedState52();
+    updateCharPanel52();
+    renderInventoryGrid52();
+    updateEquippedSlots52();
+  }
+}
+
+// 更新稀有度统计
+function updateRarityCounts52() {
+  const RARITY_NAMES = ['common','exquisite','good','rare','epic','legendary','mythic'];
+  const RARITY_LABELS = { common:'普通', exquisite:'精致', good:'良好', rare:'稀有', epic:'史诗', legendary:'传说', mythic:'神话' };
+  const RARITY_COLORS = { common:'#9e9e9e', exquisite:'#4caf50', good:'#2196f3', rare:'#9c27b0', epic:'#e91e63', legendary:'#ffd700', mythic:'#ff6600' };
+  const counts = { common:0, exquisite:0, good:0, rare:0, epic:0, legendary:0, mythic:0 };
+  (gameState.equipment || []).forEach(e => {
+    if (e && e.rarity) {
+      const rKey = RARITY_NAMES[e.rarity - 1];
+      if (rKey) counts[rKey]++;
+    }
+  });
+  const container = document.getElementById('bpRarityCounts');
+  container.innerHTML = RARITY_NAMES.map(rKey =>
+    '<div class="bp-rarity-row"><span><span class="bp-rarity-dot" style="background:'+RARITY_COLORS[rKey]+'"></span>'+RARITY_LABELS[rKey]+'</span><span>'+counts[rKey]+'</span></div>'
+  ).join('');
+}
+
+// 渲染100格背包网格
+function renderInventoryGrid52() {
+  const grid = document.getElementById('backpackGrid');
+  const inv = gameState.equipment || [];
+  grid.innerHTML = '';
+  for (let i = 0; i < 100; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'inventory-slot';
+    const item = inv[i];
+    if (item) {
+      const isEquipped = Object.values(bpEquippedSlots52).includes(i);
+      if (isEquipped) {
+        slot.style.background = 'rgba(255,215,0,0.15)';
+        slot.style.borderColor = 'rgba(255,215,0,0.6)';
+        slot.innerHTML = '<div style="position:absolute;top:2px;right:2px;font-size:0.5em;background:#ffd700;color:#000;padding:1px 3px;border-radius:3px;z-index:1;">装</div>';
+      }
+      slot.innerHTML += item.icon;
+      slot.dataset.rarity = item.rarity;
+      if (!isEquipped) slot.style.borderColor = item.rarityColor || '#9e9e9e';
+      const st = [];
+      if (item.str) st.push('STR+' + item.str);
+      if (item.dex) st.push('DEX+' + item.dex);
+      if (item.int) st.push('INT+' + item.int);
+      const affixText = item.affixes && item.affixes.length > 0 ? '<div class="bp-tooltip-affix" style="color:#888;margin-top:2px;">'+item.affixes.map(a=>a.name).join('、')+'</div>' : '';
+      const equipTag = isEquipped ? '<div style="color:#ffd700;margin-top:2px;">【已穿戴】</div>' : '';
+      slot.innerHTML += '<div class="bp-tooltip"><div class="bp-tooltip-name" style="color:'+(item.rarityColor||'#fff')+'">'+item.name+'</div><div class="bp-tooltip-stats">'+st.join(' · ')+'</div>'+equipTag+affixText+'</div>';
+      slot.onclick = () => showEquipDetail52(item, i);
+    } else {
+      slot.classList.add('empty');
+    }
+    grid.appendChild(slot);
+  }
+  const count = inv.filter(Boolean).length;
+  document.getElementById('bpEquipCount').textContent = count;
+  document.getElementById('bpSlotCount').textContent = '（' + count + '/100）';
+}
+
+// 显示装备详情弹窗
+function showEquipDetail52(item, idx) {
+  const container = document.getElementById('bpDetailContainer');
+  const RARITY_NAMES = ['common','exquisite','good','rare','epic','legendary','mythic'];
+  const rKey = RARITY_NAMES[item.rarity - 1] || 'common';
+  const isEquipped = Object.values(bpEquippedSlots52).includes(idx);
+  const affixHtml = item.affixes && item.affixes.length > 0
+    ? '<div style="margin-top:8px;font-size:0.75em;color:#888;">' + item.affixes.map(a => '<span style="color:'+a.color+'">✦ '+a.effect+'</span>').join(' · ') + '</div>'
+    : '';
+  const equipTag = isEquipped ? ' <span style="color:#ffd700;">【已穿戴】</span>' : '';
+  container.innerHTML = `
+    <div class="bp-detail-overlay" onclick="closeBpDetail(event)">
+      <div class="bp-detail-card" style="border-color:${item.rarityColor || '#9e9e9e'};box-shadow:0 0 25px ${(item.rarityColor || '#9e9e9e')}55;">
+        <div class="bp-detail-icon">${item.icon}</div>
+        <div class="bp-detail-name" style="color:${item.rarityColor || '#9e9e9e'}">${item.name}</div>
+        <div class="bp-detail-type">${item.slot} · ${item.type}${equipTag}</div>
+        <div class="bp-detail-stats">
+          ${item.str > 0 ? '<div class="bp-detail-stat-row"><span>💪 力量</span><span style="color:#ff6b6b">+'+item.str+'</span></div>' : ''}
+          ${item.dex > 0 ? '<div class="bp-detail-stat-row"><span>🏃 敏捷</span><span style="color:#4ecdc4">+'+item.dex+'</span></div>' : ''}
+          ${item.int > 0 ? '<div class="bp-detail-stat-row"><span>🧠 智力</span><span style="color:#a78bfa">+'+item.int+'</span></div>' : ''}
+          ${item.hpBonus > 0 ? '<div class="bp-detail-stat-row"><span>❤️ HP</span><span style="color:#ef4444">+'+item.hpBonus+'</span></div>' : ''}
+          ${item.mpBonus > 0 ? '<div class="bp-detail-stat-row"><span>💧 MP</span><span style="color:#3b82f6">+'+item.mpBonus+'</span></div>' : ''}
+        </div>
+        ${affixHtml}
+        <div class="bp-detail-mult">积分倍率 <span>${item.multiplier.toFixed(2)}x</span></div>
+        <div class="bp-detail-btns">
+          ${isEquipped
+            ? '<button class="bp-detail-btn bp-detail-wear" disabled style="opacity:0.5;cursor:not-allowed;">已装备</button><button class="bp-detail-btn bp-detail-unequip" onclick="bpUnequipByIdx52('+idx+')" style="background:rgba(255,100,100,0.3);">卸下</button>'
+            : '<button class="bp-detail-btn bp-detail-wear" onclick="bpEquipByIdx52('+idx+')" style="background:rgba(76,175,80,0.3);">装备</button><button class="bp-detail-btn bp-detail-unequip" disabled style="opacity:0.5;cursor:not-allowed;">卸下</button>'
+          }
+          <button class="bp-detail-btn bp-detail-unequip" onclick="closeBpDetail()">关闭</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+function closeBpDetail(e) {
+  if (e && e.target !== e.currentTarget) return;
+  document.getElementById('bpDetailContainer').innerHTML = '';
+}
+function bpEquipDetail52(equipId) {
+  const equip = (gameState.equipment || []).find(e => e && e.id === equipId);
+  if (!equip || !equip.slot) return;
+  equipItem(equip.slot, equip.id);
+  closeBpDetail();
+  showBackpack();
+}
+function bpUnequipDetail52(equipId) {
+  const slot = Object.keys(equipped).find(k => equipped[k] === equipId);
+  if (slot) equipItem(slot, null);
+  closeBpDetail();
+  showBackpack();
+}
+
+// 排序装备（稀有度→属性）
+function bpSort52() {
+  const inv = gameState.equipment || [];
+  const items = inv.filter(Boolean);
+  items.sort((a, b) => {
+    if (b.rarity !== a.rarity) return b.rarity - a.rarity;
+    return (b.str + b.dex + b.int) - (a.str + a.dex + a.int);
+  });
+  const newInv = new Array(100).fill(null);
+  items.forEach((item, i) => { newInv[i] = item; });
+  gameState.equipment = newInv;
+  renderInventoryGrid52();
+  updateRarityCounts52();
+  updateCharPanel52();
+}
+
+// 导出装备
+function bpExport52() {
+  const data = JSON.stringify((gameState.equipment || []).filter(Boolean), null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'equipment_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+}
+
+// 清空装备
+function bpClear52() {
+  if (!confirm('确定清空所有装备？此操作不可恢复！')) return;
+  gameState.equipment = new Array(100).fill(null);
+  // 重置已穿戴
+  Object.keys(equipped).forEach(k => { equipped[k] = null; });
+  renderEquipItems();
+  renderInventoryGrid52();
+  updateRarityCounts52();
+  updateCharPanel52();
+}
+
+// 兼容旧的 bpEquip52 / bpUnequip52（保留给冒险岛换装面板点击用）
 function bpEquip52(equipId) {
-  const equip = gameState.equipment.find(e => e.id === equipId);
+  const equip = (gameState.equipment || []).find(e => e && e.id === equipId);
   if (!equip || !equip.slot) return;
   equipItem(equip.slot, equip.id);
   showBackpack();
@@ -2830,8 +3401,19 @@ function bpUnequip52(equipId) {
   showBackpack();
 }
 
+function showBackpack() {
+  initInventory52();
+  loadEquippedState52();
+  updateCharPanel52();
+  updateRarityCounts52();
+  renderInventoryGrid52();
+  updateEquippedSlots52();
+  document.getElementById('backpackOverlay').classList.add('show');
+}
+
 function closeBackpack() {
   document.getElementById('backpackOverlay').classList.remove('show');
+  document.getElementById('bpDetailContainer').innerHTML = '';
 }
 
 // 点击遮罩关闭
@@ -3109,43 +3691,100 @@ document.addEventListener('touchend', () => { isDragging = false; });
   </div>
 </div>
 
-<!-- 背包弹窗 -->
+<!-- 背包弹窗（暗黑100格网格版） -->
 <div class="backpack-overlay" id="backpackOverlay">
   <div class="backpack-card">
     <div class="backpack-header">
-      <div class="backpack-title"><img src="../../icons/bag.png" class="icon-24"> 我的背包</div>
+      <div class="backpack-title">🎒 我的背包 <span id="bpSlotCount" style="font-size:0.8em;color:#666;font-weight:normal;"></span></div>
       <button class="backpack-close" onclick="closeBackpack()">✕</button>
     </div>
-    <div class="backpack-stats">
-      <div class="backpack-stat">
-        <div class="backpack-stat-icon">📦</div>
-        <div class="backpack-stat-info">
-          <div class="backpack-stat-label">装备数量</div>
-          <div class="backpack-stat-value" id="equipCount">0</div>
+    <div class="bp-layout">
+      <!-- 左侧角色属性面板 -->
+      <div class="bp-char-panel">
+        <div class="bp-char-avatar">
+          <div class="bp-char-avatar-inner" id="bpCharAvatar">🧪</div>
+          <div class="bp-char-level">Lv.<span id="bpCharLevel">1</span></div>
+        </div>
+        <!-- 装备总加成显示 -->
+        <div class="bp-total-bonus-bar" id="bpTotalBonusBar">
+          <div class="bp-total-bonus-title">✨ 已穿戴装备</div>
+          <div class="bp-total-bonus-empty">尚未穿戴任何装备</div>
+        </div>
+        <!-- 穿戴装备图标行 -->
+        <div id="bpEquippedList" style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-bottom:8px;min-height:32px;"></div>
+        <!-- 属性条 -->
+        <div class="bp-stat-row">
+          <div class="bp-stat-header"><span class="bp-stat-name">💪 力量</span><span id="bpStrVal">10</span></div>
+          <div class="bp-stat-bar"><div class="bp-stat-bar-fill bp-str-fill" id="bpStrBar" style="width:10%"></div></div>
+        </div>
+        <div class="bp-stat-row">
+          <div class="bp-stat-header"><span class="bp-stat-name">🏃 敏捷</span><span id="bpDexVal">10</span></div>
+          <div class="bp-stat-bar"><div class="bp-stat-bar-fill bp-dex-fill" id="bpDexBar" style="width:10%"></div></div>
+        </div>
+        <div class="bp-stat-row">
+          <div class="bp-stat-header"><span class="bp-stat-name">🧠 智力</span><span id="bpIntVal">10</span></div>
+          <div class="bp-stat-bar"><div class="bp-stat-bar-fill bp-int-fill" id="bpIntBar" style="width:10%"></div></div>
+        </div>
+        <div class="bp-divider"></div>
+        <div class="bp-stat-row">
+          <div class="bp-stat-header"><span class="bp-stat-name">❤️ HP</span><span id="bpHpVal">100</span></div>
+          <div class="bp-stat-bar"><div class="bp-stat-bar-fill bp-hp-fill" id="bpHpBar" style="width:100%"></div></div>
+        </div>
+        <div class="bp-stat-row">
+          <div class="bp-stat-header"><span class="bp-stat-name">💧 MP</span><span id="bpMpVal">50</span></div>
+          <div class="bp-stat-bar"><div class="bp-stat-bar-fill bp-mp-fill" id="bpMpBar" style="width:50%"></div></div>
+        </div>
+        <div class="bp-divider"></div>
+        <!-- 稀有度统计 -->
+        <div class="bp-rarity-counts" id="bpRarityCounts"></div>
+        <div class="bp-equip-bonus">装备加成：<span id="bpEquipBonus">+0</span> 属性</div>
+        <!-- 操作按钮 -->
+        <div class="bp-actions">
+          <div class="bp-action-btn" onclick="bpSort52()">🔄 排序</div>
+          <div class="bp-action-btn" onclick="bpExport52()">📤 导出</div>
+          <div class="bp-action-btn" onclick="bpClear52()">🗑️ 清空</div>
         </div>
       </div>
-      <div class="backpack-stat">
-        <div class="backpack-stat-icon">⭐</div>
-        <div class="backpack-stat-info">
-          <div class="backpack-stat-label">收集成就</div>
-          <div class="backpack-stat-value" id="equipAchievementCount">0/5</div>
+      <!-- 右侧100格背包 -->
+      <div class="bp-inventory-area">
+        <div class="bp-inventory-header">
+          <span class="bp-inventory-title">已获得装备</span>
+          <span class="bp-inventory-count"><span id="bpEquipCount">0</span>/100</span>
         </div>
+        <div class="backpack-grid" id="backpackGrid"></div>
       </div>
     </div>
-    <div class="equip-count" style="flex-wrap:wrap;gap:8px;">
-      <span style="color:#9e9e9e;">⚪ 普通 <span id="count-common">0</span></span>
-      <span style="color:#4caf50;">🟢 精致 <span id="count-exquisite">0</span></span>
-      <span style="color:#2196f3;">🔵 良好 <span id="count-good">0</span></span>
-      <span style="color:#9c27b0;">🟣 稀有 <span id="count-rare">0</span></span>
-      <span style="color:#e91e63;">💗 史诗 <span id="count-epic">0</span></span>
-      <span style="color:#ffd700;">🟡 传说 <span id="count-legendary">0</span></span>
-      <span style="color:#ff5722;">🟠 神话 <span id="count-mythic">0</span></span>
-    </div>
-    <div class="backpack-grid" id="backpackGrid">
-      <div class="equip-empty"><img src="../../icons/bag.png" class="icon-24"> 背包空空如也<br>完成练习即可获得装备</div>
+    <!-- 角色装备穿戴区 -->
+    <div class="bp-equipped-section">
+      <div class="bp-equipped-title">🎽 角色装备</div>
+      <div class="bp-equipped-grid" id="bpEquippedGrid">
+        <div class="bp-slot-box" data-slot="hat" onclick="openEquipSelector52('hat')">
+          <div class="bp-slot-label">🎩 帽子</div>
+          <div class="bp-slot-icon bp-slot-empty">空</div>
+          <div class="bp-slot-name"></div>
+        </div>
+        <div class="bp-slot-box" data-slot="top" onclick="openEquipSelector52('top')">
+          <div class="bp-slot-label">👕 上衣</div>
+          <div class="bp-slot-icon bp-slot-empty">空</div>
+          <div class="bp-slot-name"></div>
+        </div>
+        <div class="bp-slot-box" data-slot="bottom" onclick="openEquipSelector52('bottom')">
+          <div class="bp-slot-label">👖 下衣</div>
+          <div class="bp-slot-icon bp-slot-empty">空</div>
+          <div class="bp-slot-name"></div>
+        </div>
+        <div class="bp-slot-box" data-slot="other" onclick="openEquipSelector52('other')">
+          <div class="bp-slot-label">🎒 其他</div>
+          <div class="bp-slot-icon bp-slot-empty">空</div>
+          <div class="bp-slot-name"></div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
+
+<!-- 装备详情弹窗 -->
+<div id="bpDetailContainer"></div>
 
 <!-- 成就解锁动画 -->
 <div class="achievement-unlock" id="achievementUnlock">
