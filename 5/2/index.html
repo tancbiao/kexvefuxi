@@ -1095,7 +1095,7 @@
       </p>
       <button class="start-btn" onclick="showLoginScreen()">🚀 开始挑战</button>
       <button class="start-btn secondary" onclick="showWrongQuestions()" style="margin-top:12px;background:linear-gradient(135deg,#667eea,#764ba2);"><img src="../../icons/wrong-book.png" class="icon-24"> 错题本</button>
-      <button class="start-btn secondary" onclick="showUploadPasswordPrompt()" style="margin-top:8px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);font-size:0.85em;padding:8px 18px;border:1px solid rgba(255,255,255,0.1);">📤 上传题库</button>
+      <button class="start-btn secondary" id="uploadQBtn52" style="margin-top:8px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);font-size:0.85em;padding:8px 18px;border:1px solid rgba(255,255,255,0.1);">📤 上传题库</button>
     </div>
     
     <!-- 成就预览 -->
@@ -4713,6 +4713,12 @@ document.addEventListener('touchmove', (e) => {
 }, { passive: true });
 
 document.addEventListener('touchend', () => { isDragging = false; });
+
+// 绑定上传题库按钮
+window.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('uploadQBtn52');
+  if (btn) btn.onclick = showUploadPasswordPrompt;
+});
 
 // ====== 上传题库（教师用）======
 const UPLOAD_PASSWORD = 'admin';
