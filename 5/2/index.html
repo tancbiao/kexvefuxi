@@ -2132,9 +2132,7 @@ function selectOption(idx) {
       }
     }
     gameState.totalPoints += points;
-    // ====== 扣减体力 ======
-    gameState.dailyStamina = Math.max(0, gameState.dailyStamina - 1);
-    updateStaminaDisplay();
+    // 体力扣除已移至 finishQuiz（每课时完成扣1点）
     updateStatusBar(); // 立即更新顶部积分显示
     checkAchievements();
     
@@ -2218,6 +2216,13 @@ function finishQuiz() {
     gameState.lessonProgress[lessonId] = Math.min(3, (gameState.lessonProgress[lessonId] || 0) + 1);
   }
   
+  // ====== 课时完成：扣减体力 ======
+  if (accuracy >= 60) {
+    gameState.dailyStamina = Math.max(0, gameState.dailyStamina - 1);
+    updateStaminaDisplay();
+    saveUserData();
+  }
+
   checkUnitAchievements();
 
   // 趣味成就检查

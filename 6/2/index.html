@@ -1988,6 +1988,7 @@ function finishQuiz() {
   if (accuracy >= 60) {
     gameState.dailyStamina = Math.max(0, gameState.dailyStamina - 1);
     updateStaminaDisplay();
+    saveUserData();
   }
   
   checkUnitAchievements();
