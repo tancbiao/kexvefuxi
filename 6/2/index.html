@@ -1897,8 +1897,6 @@ function selectOption(idx) {
     }
     
     gameState.totalPoints += points;
-    gameState.dailyStamina = Math.max(0, gameState.dailyStamina - 1);
-    updateStaminaDisplay();
     checkAchievements();
   } else {
     gameState.currentStreak = 0;
@@ -1957,6 +1955,12 @@ function finishQuiz() {
   const lessonId = gameState.currentLesson.id;
   if (accuracy >= 60 && (!gameState.lessonProgress[lessonId] || gameState.lessonProgress[lessonId] < 3)) {
     gameState.lessonProgress[lessonId] = Math.min(3, (gameState.lessonProgress[lessonId] || 0) + 1);
+  }
+  
+  // ====== 防沉迷：完成课时扣体力 ======
+  if (accuracy >= 60) {
+    gameState.dailyStamina = Math.max(0, gameState.dailyStamina - 1);
+    updateStaminaDisplay();
   }
   
   checkUnitAchievements();
