@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -4328,9 +4328,9 @@ function checkAnswer(isCorrect) {
       points = Math.floor(points * petBonus.pointsMul);
     }
     
-    gameState.totalPoints += points;
-    // ====== 扣减体力 ======
-    gameState.dailyStamina = Math.max(0, gameState.dailyStamina - 1);
+    // ====== 体力扣除已移至 finishQuiz（每课时完成扣1点）======
+
+
     updateStaminaDisplay();
     updateStatusBar(); // 立即更新顶部积分显示
     
@@ -4580,10 +4580,17 @@ function checkAchievements() {
   if (accuracy === 100 && !hadProgress && !gameState.unlockedAchievements.includes('genius')) {
     unlockAchievement('genius');
   }
-  }
+
   
-  // 检查单元完成情况
+  // ====== 防沉迷：完成课时（accuracy >= 60%）扣1点体力 ======
+  if (accuracy >= 60) {
+    gameState.dailyStamina = Math.max(0, gameState.dailyStamina - 1);
+    updateStaminaDisplay();
+    saveUserData();
+  }
+
   checkUnitAchievements();
+
 }
 
 // 检查单元成就

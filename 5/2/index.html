@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -2131,10 +2131,10 @@ function selectOption(idx) {
       }
     }
     gameState.totalPoints += points;
-    // ====== 扣减体力 ======
-    gameState.dailyStamina = Math.max(0, gameState.dailyStamina - 1);
-    updateStaminaDisplay();
+
     updateStatusBar(); // 立即更新顶部积分显示
+
+
     checkAchievements();
     
     // 显示积分动画
@@ -2217,6 +2217,13 @@ function finishQuiz() {
     gameState.lessonProgress[lessonId] = Math.min(3, (gameState.lessonProgress[lessonId] || 0) + 1);
   }
   
+// ====== 防沉迷：完成课时（accuracy >= 60%）扣1点体力 ======
+  if (accuracy >= 60) {
+    gameState.dailyStamina = Math.max(0, gameState.dailyStamina - 1);
+    updateStaminaDisplay();
+    saveUserData();
+  }
+
   checkUnitAchievements();
 
   // 趣味成就检查
