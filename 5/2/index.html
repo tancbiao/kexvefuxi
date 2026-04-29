@@ -3236,6 +3236,8 @@ function applyUserData(data) {
   if (data.petSystem) {
     savePetSystemState(data.petSystem);
   }
+  // 恢复装备槽（从隔离的 localStorage 键读入，防止云端存档覆盖内存状态）
+  loadEquippedState52();
   updateStatusBar();
   renderAchievementPreview();
 }
@@ -3469,15 +3471,12 @@ function loadEquippedState52() {
       const state = JSON.parse(saved);
       for (const slot in state) {
         if (slot === 'treasure') {
-          // treasure 是数组，验证每个元素
-          state.treasure = [null, null];
-          if (Array.isArray(state.treasure)) {
-            for (let t = 0; t < 2; t++) {
-              const idx = state.treasure[t];
-              if (idx !== null && gameState.equipment[idx]) {
-                state.treasure[t] = idx;
-              }
-            }
+          // treasure 是数组，验证每个元素（复用已有数组引用，保护 updateEquippedSlots52 的 DOM 绑定）
+          if (!Array.isArray(state.treasure) || state.treasure.length < 2) {
+            state.treasure = [null, null];
+          } else {
+            state.treasure[0] = (state.treasure[0] !== null && gameState.equipment[state.treasure[0]]) ? state.treasure[0] : null;
+            state.treasure[1] = (state.treasure[1] !== null && gameState.equipment[state.treasure[1]]) ? state.treasure[1] : null;
           }
         } else {
           const idx = state[slot];
