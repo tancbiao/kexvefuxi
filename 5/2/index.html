@@ -682,6 +682,41 @@
     to { transform: translateX(0); opacity: 1; }
   }
 
+  /* ========== 宠物弹窗 ========== */
+  .pet-modal {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85); z-index: 5000;
+    display: none; justify-content: center; align-items: center;
+    animation: fadeIn 0.3s;
+  }
+  .pet-modal.show { display: flex; }
+  .pet-modal-content {
+    background: #1a1a2e; border-radius: 20px;
+    width: 95%; max-width: 1200px; height: 90vh;
+    position: relative; overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.1);
+  }
+  .pet-modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 20px; background: rgba(0,0,0,0.3);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .pet-modal-title { font-size: 1.2em; font-weight: 700; }
+  .pet-modal-close {
+    background: rgba(255,255,255,0.1); border: none; color: #fff;
+    width: 32px; height: 32px; border-radius: 50%;
+    cursor: pointer; font-size: 1.1em;
+  }
+  .pet-modal-close:hover { background: rgba(255,255,255,0.2); }
+  .pet-modal iframe { width: 100%; height: calc(100% - 50px); border: none; display: block; }
+  .pet-modal-points {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(243,156,18,0.2); padding: 6px 14px;
+    border-radius: 20px; border: 1px solid rgba(243,156,18,0.4);
+  }
+  .pet-modal-points .icon { font-size: 1.1em; }
+  .pet-modal-points .val { color: #f39c12; font-weight: 700; }
+
   @media (max-width: 600px) {
     .level-grid { grid-template-columns: 1fr; }
     .hero-title { font-size: 2em; }
@@ -1110,6 +1145,22 @@
     <input type="text" class="login-input" id="studentIdInput" placeholder="请输入8位学号" maxlength="8" onkeypress="if(event.key==='Enter')loginWithId()">
     <button class="login-btn" id="loginBtn" onclick="loginWithId()">登录存档</button>
     <button class="guest-btn" id="guestBtn" onclick="loginAsGuest()">游客试玩</button>
+  </div>
+</div>
+
+<!-- 宠物养成弹窗（iframe嵌入式） -->
+<div class="pet-modal" id="petModal">
+  <div class="pet-modal-content">
+    <div class="pet-modal-header">
+      <div class="pet-modal-title">🐾 宠物养成系统</div>
+      <div class="pet-modal-points">
+        <span class="icon">⭐</span>
+        <span>答题积分：</span>
+        <span class="val" id="petModalPoints">0</span>
+      </div>
+      <button class="pet-modal-close" onclick="closePetModal()">✕</button>
+    </div>
+    <iframe id="petIframe" src="../../pet-system.html"></iframe>
   </div>
 </div>
 
@@ -4010,8 +4061,64 @@ function closeBpPetDetail() {
 
 // 打开宠物系统（跳转到pet-system.html）
 function showPetBattle() {
-  window.open('../../pet-system.html', '_blank');
+  const modal = document.getElementById('petModal');
+  const iframe = document.getElementById('petIframe');
+  document.getElementById('petModalPoints').textContent = (gameState.totalPoints || 0).toLocaleString();
+  modal.classList.add('show');
+  setTimeout(() => {
+    iframe.contentWindow.postMessage({
+      type: 'init_pet',
+      studentId: gameState.studentId,
+      points: gameState.totalPoints || 0
+    }, '*');
+  }, 300);
 }
+
+function closePetModal() {
+  document.getElementById('petModal').classList.remove('show');
+}
+
+// ========== Firebase 云同步 ==========
+const CLOUD_CONFIG52 = {
+  databaseURL: 'https://kexvefuxi-default-rtdb.asia-southeast1.firebasedatabase.app'
+};
+
+async function saveToCloud52(studentId, data) {
+  if (!studentId || studentId === 'guest') return;
+  try {
+    const recordKey = 'grade5_' + studentId;
+    const url = CLOUD_CONFIG52.databaseURL + '/students/' + recordKey + '.json';
+    await fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+  } catch (e) { console.error('云同步失败:', e); }
+}
+
+function saveUserData() {
+  if (gameState.isGuest) return;
+  const saveKey = 'scienceGame5_user_' + gameState.studentId;
+  const data = {
+    totalPoints: gameState.totalPoints || 0,
+    unlockedAchievements: gameState.unlockedAchievements || [],
+    lessonProgress: gameState.lessonProgress || {},
+    equipment: gameState.equipment || [],
+    equipDropped: gameState.equipDropped || {},
+    totalQuestionsAnswered: gameState.totalQuestionsAnswered || 0,
+    wrongQuestions: gameState.wrongQuestions || [],
+    lastUpdated: Date.now()
+  };
+  localStorage.setItem(saveKey, JSON.stringify(data));
+  saveToCloud52(gameState.studentId, data);
+}
+
+// ========== 监听宠物系统的积分变动 ==========
+window.addEventListener('message', function(e) {
+  if (!e.data || typeof e.data !== 'object') return;
+  if (e.data.type === 'pet_points_change') {
+    gameState.totalPoints = Math.max(0, e.data.points);
+    document.getElementById('petModalPoints').textContent = gameState.totalPoints.toLocaleString();
+    updateStatusBar();
+    saveUserData(); // 云同步
+  }
+});
 
 // 清空装备
 function bpClear52() {
