@@ -36,6 +36,11 @@
     90% { opacity: 1; }
     100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
   }
+  @keyframes flyUp {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    50% { opacity: 1; transform: translateY(-30px) scale(1.2); }
+    100% { opacity: 0; transform: translateY(-60px) scale(0.8); }
+  }
 
   .game-container {
     position: relative;
@@ -690,7 +695,7 @@
     top: 0; left: 0;
     width: 100%; height: 100%;
     background: rgba(0,0,0,0.8);
-    z-index: 300;
+    z-index: 3000;
     justify-content: center;
     align-items: center;
   }
@@ -883,6 +888,120 @@
 .icon-24 { width: 24px; height: 24px; }
 .lesson-icon img, .unit-icon img { width: 100%; height: 100%; object-fit: contain; }
 
+/* ========== 宠物出战区块（内嵌在背包界面） ========== */
+.bp-pet-section {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.bp-pet-title {
+  font-size: 0.85em;
+  font-weight: bold;
+  color: #ff6b9d;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.bp-pet-slots {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.bp-pet-slot {
+  width: 70px;
+  height: 80px;
+  border-radius: 10px;
+  border: 1px dashed rgba(255,107,157,0.3);
+  background: rgba(255,107,157,0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.75em;
+  color: rgba(255,107,157,0.4);
+}
+.bp-pet-slot:hover {
+  border-color: #ff6b9d;
+  background: rgba(255,107,157,0.1);
+  transform: translateY(-2px);
+}
+.bp-pet-slot.empty .bp-pet-slot-emoji { font-size: 1.8em; }
+.bp-pet-slot.empty .bp-pet-slot-hint { margin-top: 2px; }
+.bp-pet-slot.filled {
+  border-style: solid;
+  border-color: rgba(255,107,157,0.5);
+  background: rgba(255,107,157,0.08);
+  color: #fff;
+}
+.bp-pet-slot.filled:hover {
+  border-color: #ff4757;
+  background: rgba(255,71,87,0.1);
+}
+.bp-pet-slot-emoji { font-size: 2.2em; }
+.bp-pet-slot-name { font-size: 0.7em; font-weight: bold; margin-top: 2px; }
+.bp-pet-slot-level { font-size: 0.65em; color: #aaa; }
+.bp-pet-bonus {
+  background: rgba(255,107,157,0.06);
+  border: 1px solid rgba(255,107,157,0.15);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+.bp-bonus-sep {
+  font-size: 0.7em;
+  color: rgba(255,107,157,0.5);
+  text-align: center;
+  margin-bottom: 6px;
+}
+.bp-bonus-empty {
+  font-size: 0.8em;
+  color: rgba(255,255,255,0.25);
+  text-align: center;
+}
+.bp-pet-bonus-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  justify-content: center;
+}
+.bp-pet-bonus-item {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.78em;
+  color: #ff6b9d;
+}
+.bp-pet-bonus-item .bp-bonus-val { color: #fff; font-weight: bold; }
+
+/* 宠物详情弹窗 */
+.bp-pet-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.bp-pet-detail-emoji { font-size: 4em; }
+.bp-pet-detail-info .bp-pet-detail-name { font-size: 1.2em; font-weight: bold; }
+.bp-pet-detail-info .bp-pet-detail-level { font-size: 0.85em; color: #aaa; margin-top: 2px; }
+.bp-pet-detail-talents {
+  background: rgba(255,107,157,0.08);
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 12px;
+}
+.bp-pet-detail-talents-title { font-size: 0.78em; color: #ff6b9d; margin-bottom: 6px; }
+.bp-pet-talent-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82em;
+  padding: 2px 0;
+}
+.bp-pet-talent-row .talent-name { color: #aaa; }
+.bp-pet-talent-row .talent-val { color: #fff; font-weight: bold; }
+
 </style>
 </head>
 <body>
@@ -910,6 +1029,11 @@
     <div class="status-item" id="backpackBtn" style="cursor:pointer;" onclick="showBackpack()">
       <span class="status-icon">🎒</span>
       <span>背包 <span id="statusEquipCount" style="color:#ffd700">0</span></span>
+    </div>
+
+    <div class="status-item" id="petBtn" style="cursor:pointer;" onclick="showPetBattle()" title="宠物加成">
+      <span class="status-icon">🐾</span>
+      <span id="statusPetInfo" style="color:#ff6b9d;font-size:0.85em">无加成</span>
     </div>
   </div>
 
@@ -1734,6 +1858,29 @@ function updateStatusBar() {
   initInventory52();
   const count = (gameState.equipment || []).filter(Boolean).length;
   document.getElementById('statusEquipCount').textContent = count > 0 ? '(' + count + ')' : '0';
+  // 宠物加成状态
+  updatePetStatusDisplay();
+}
+
+function updatePetStatusDisplay() {
+  const petBonus = calcPetBattleBonus();
+  const petInfoEl = document.getElementById('statusPetInfo');
+  if (!petInfoEl) return;
+  
+  if (petBonus.totalPets === 0) {
+    petInfoEl.textContent = '无加成';
+    petInfoEl.style.color = '#888';
+  } else {
+    let info = '';
+    if (petBonus.pointsMul > 1) {
+      info += `×${petBonus.pointsMul.toFixed(2)}`;
+    }
+    if (petBonus.critChance > 0) {
+      info += (info ? ' ' : '') + `🎯${petBonus.critChance}%`;
+    }
+    petInfoEl.textContent = info || '🐾';
+    petInfoEl.style.color = '#ff6b9d';
+  }
 }
 
 // 打乱选择题选项（保持"以上都"类题不变）
@@ -1890,8 +2037,45 @@ function selectOption(idx) {
     // 成就积分加成
     const achBonus = calcAchievementBonuses();
     if (achBonus.totalPointsMul > 1) points = Math.floor(points * achBonus.totalPointsMul);
+    
+    // ========== 宠物加成 ==========
+    const petBonus = calcPetBattleBonus();
+    let isCrit = false;
+    let critExtra = 0;
+    if (petBonus.totalPets > 0) {
+      // 宠物积分倍率
+      if (petBonus.pointsMul > 1) points = Math.floor(points * petBonus.pointsMul);
+      // 暴击检测
+      if (petBonus.critChance > 0 && Math.random() * 100 < petBonus.critChance) {
+        isCrit = true;
+        critExtra = Math.floor(points * (petBonus.critBonus / 100));
+        points += critExtra;
+      }
+    }
     gameState.totalPoints += points;
     checkAchievements();
+    
+    // 显示积分动画
+    const statusBar = document.querySelector('.status-bar');
+    if (statusBar) {
+      const ptsEl = document.getElementById('totalPoints');
+      if (ptsEl) ptsEl.textContent = gameState.totalPoints;
+      
+      // 创建积分飘字
+      const fly = document.createElement('div');
+      fly.style.cssText = `
+        position: fixed; font-size: 1.5em; font-weight: bold; color: ${isCrit ? '#ff6b6b' : '#ffd700'};
+        text-shadow: 0 0 10px ${isCrit ? '#ff0000' : '#ffaa00'};
+        pointer-events: none; z-index: 9999;
+        animation: flyUp 1s ease-out forwards;
+      `;
+      fly.textContent = `+${points}${isCrit ? ' 💥暴击!' : ''}`;
+      const rect = statusBar.getBoundingClientRect();
+      fly.style.left = rect.left + rect.width / 2 - 30 + 'px';
+      fly.style.top = rect.top - 20 + 'px';
+      document.body.appendChild(fly);
+      setTimeout(() => fly.remove(), 1000);
+    }
   } else {
     gameState.currentStreak = 0;
     // 开门黑：第一题就答错
@@ -3621,6 +3805,214 @@ function bpExport52() {
   a.click();
 }
 
+// ========== 宠物出战系统（从pet-system.html的localStorage读取） ==========
+
+// 宠物数据（需要与pet-system.html保持一致）
+const PETSYS_PETS_DATA = [
+  { id:1,  name:'小鸡崽',  emoji:'🐤', rarity:'N',   baseStats:{atk:5,def:3,str:4,agi:6,int:2},  specialStats:{critRate:1,critDmg:5,dropRate:0}, talents:['str','agi'] },
+  { id:2,  name:'小奶狗',  emoji:'🐶', rarity:'N',   baseStats:{atk:6,def:4,str:5,agi:4,int:3},  specialStats:{critRate:1,critDmg:5,dropRate:0}, talents:['str','def'] },
+  { id:3,  name:'小橘猫',  emoji:'🐱', rarity:'N',   baseStats:{atk:7,def:3,str:4,agi:7,int:3},  specialStats:{critRate:2,critDmg:6,dropRate:0}, talents:['agi','atk'] },
+  { id:4,  name:'小白兔',  emoji:'🐰', rarity:'N',   baseStats:{atk:4,def:5,str:3,agi:8,int:4},  specialStats:{critRate:1,critDmg:5,dropRate:0}, talents:['agi','int'] },
+  { id:5,  name:'小鸭鸭',  emoji:'🦆', rarity:'N',   baseStats:{atk:5,def:4,str:5,agi:5,int:5},  specialStats:{critRate:1,critDmg:5,dropRate:0}, talents:['int','str'] },
+  { id:6,  name:'小仓鼠',  emoji:'🐹', rarity:'R',   baseStats:{atk:10,def:8,str:9,agi:12,int:7}, specialStats:{critRate:3,critDmg:10,dropRate:1}, talents:['agi','atk','int'] },
+  { id:7,  name:'小猪猪',  emoji:'🐷', rarity:'R',   baseStats:{atk:8,def:12,str:14,agi:6,int:8}, specialStats:{critRate:2,critDmg:8,dropRate:1}, talents:['str','def','atk'] },
+  { id:8,  name:'小刺猬',  emoji:'🦔', rarity:'R',   baseStats:{atk:11,def:10,str:8,agi:10,int:9}, specialStats:{critRate:3,critDmg:10,dropRate:1}, talents:['def','agi','str'] },
+  { id:9,  name:'小松鼠',  emoji:'🐿️', rarity:'R',  baseStats:{atk:9,def:7,str:8,agi:15,int:10}, specialStats:{critRate:4,critDmg:12,dropRate:1}, talents:['agi','int','atk'] },
+  { id:10, name:'小狐狸',  emoji:'🦊', rarity:'R',   baseStats:{atk:12,def:8,str:10,agi:13,int:11}, specialStats:{critRate:4,critDmg:12,dropRate:2}, talents:['agi','int','critRate'] },
+  { id:11, name:'小狼崽',  emoji:'🐺', rarity:'SR',  baseStats:{atk:18,def:14,str:16,agi:20,int:12}, specialStats:{critRate:6,critDmg:18,dropRate:3}, talents:['agi','atk','str','critRate'] },
+  { id:12, name:'小棕熊',  emoji:'🐻', rarity:'SR',  baseStats:{atk:16,def:22,str:24,agi:10,int:14}, specialStats:{critRate:4,critDmg:15,dropRate:3}, talents:['str','def','atk','hp'] },
+  { id:13, name:'小豹子',  emoji:'🐆', rarity:'SR',  baseStats:{atk:20,def:12,str:14,agi:26,int:13}, specialStats:{critRate:8,critDmg:22,dropRate:4}, talents:['agi','critRate','critDmg','atk'] },
+  { id:14, name:'小鹰隼',  emoji:'🦅', rarity:'SR',  baseStats:{atk:22,def:10,str:16,agi:24,int:16}, specialStats:{critRate:7,critDmg:20,dropRate:4}, talents:['agi','atk','int','dropRate'] },
+  { id:15, name:'小熊猫',  emoji:'🐼', rarity:'SR',  baseStats:{atk:14,def:18,str:20,agi:12,int:22}, specialStats:{critRate:5,critDmg:16,dropRate:3}, talents:['int','str','def','critDmg'] },
+  { id:16, name:'小狮子',  emoji:'🦁', rarity:'SSR', baseStats:{atk:30,def:26,str:32,agi:28,int:20}, specialStats:{critRate:10,critDmg:30,dropRate:6}, talents:['str','atk','critRate','critDmg','def'] },
+  { id:17, name:'小老虎',  emoji:'🐯', rarity:'SSR', baseStats:{atk:34,def:24,str:28,agi:32,int:18}, specialStats:{critRate:12,critDmg:35,dropRate:7}, talents:['agi','atk','critRate','str','critDmg'] },
+  { id:18, name:'小飞龙',  emoji:'🐉', rarity:'SSR', baseStats:{atk:32,def:28,str:26,agi:30,int:28}, specialStats:{critRate:11,critDmg:32,dropRate:8}, talents:['int','agi','atk','critRate','dropRate'] },
+  { id:19, name:'小狼王',  emoji:'🐺', rarity:'SSR', baseStats:{atk:36,def:22,str:30,agi:34,int:22}, specialStats:{critRate:13,critDmg:38,dropRate:8}, talents:['agi','str','atk','critRate','critDmg'] },
+  { id:20, name:'小象龟',  emoji:'🐘', rarity:'SSR', baseStats:{atk:20,def:40,str:38,agi:12,int:26}, specialStats:{critRate:6,critDmg:22,dropRate:10}, talents:['def','str','hp','int','dropRate'] },
+  { id:21, name:'火凤凰',  emoji:'🔥', rarity:'UR',  baseStats:{atk:50,def:40,str:45,agi:55,int:48}, specialStats:{critRate:18,critDmg:55,dropRate:12}, talents:['agi','int','atk','critRate','critDmg','dropRate'] },
+  { id:22, name:'冰霜龙',  emoji:'❄️', rarity:'UR',  baseStats:{atk:55,def:45,str:40,agi:48,int:52}, specialStats:{critRate:16,critDmg:50,dropRate:14}, talents:['int','atk','critRate','def','critDmg','dropRate'] },
+  { id:23, name:'雷霆鹰',  emoji:'⚡', rarity:'UR',  baseStats:{atk:60,def:35,str:42,agi:65,int:44}, specialStats:{critRate:20,critDmg:58,dropRate:15}, talents:['agi','atk','critRate','str','critDmg','dropRate'] },
+  { id:24, name:'暗影豹',  emoji:'🌑', rarity:'UR',  baseStats:{atk:58,def:38,str:44,agi:62,int:46}, specialStats:{critRate:22,critDmg:60,dropRate:16}, talents:['agi','critRate','atk','critDmg','str','dropRate'] },
+  { id:25, name:'神圣独角兽', emoji:'🦄', rarity:'HR', baseStats:{atk:80,def:70,str:75,agi:85,int:90}, specialStats:{critRate:28,critDmg:80,dropRate:22}, talents:['int','agi','critRate','atk','critDmg','dropRate','all'] },
+  { id:26, name:'混沌麒麟', emoji:'🦎', rarity:'HR', baseStats:{atk:85,def:75,str:80,agi:82,int:88}, specialStats:{critRate:26,critDmg:78,dropRate:25}, talents:['str','int','agi','critRate','critDmg','dropRate','all'] },
+  { id:27, name:'时间龙龟', emoji:'🐢', rarity:'HR', baseStats:{atk:70,def:95,str:90,agi:60,int:85}, specialStats:{critRate:20,critDmg:65,dropRate:30}, talents:['def','str','hp','int','critRate','dropRate','all'] },
+  { id:28, name:'星穹凤凰', emoji:'🌟', rarity:'HR', baseStats:{atk:95,def:65,str:78,agi:92,int:95}, specialStats:{critRate:30,critDmg:88,dropRate:28}, talents:['agi','int','critRate','critDmg','atk','dropRate','all'] }
+];
+const PETSYS_RARITY = {
+  N:{name:'普通',color:'#95a5a6'},
+  R:{name:'精致',color:'#2ecc71'},
+  SR:{name:'完美',color:'#3498db'},
+  SSR:{name:'史诗',color:'#9b59b6'},
+  UR:{name:'传说',color:'#e67e22'},
+  HR:{name:'神话',color:'#f39c12'}
+};
+const PETSYS_TALENT_NAMES = {
+  atk:'攻击力',def:'防御力',str:'力量',agi:'敏捷',int:'智力',
+  critRate:'暴击率',critDmg:'暴伤',dropRate:'装备爆率',hp:'生命值',all:'全属性'
+};
+const PETSYS_STORE_KEY = 'petSystemStateV2';
+
+// 读取pet-system的存档
+function getPetSystemState() {
+  try {
+    const raw = localStorage.getItem(PETSYS_STORE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+
+// 计算宠物出战总加成
+function calcPetBattleBonus() {
+  const petState = getPetSystemState();
+  if (!petState || !petState.battlePets) return { total:0, pets:[], stats:{} };
+
+  const stats = { atk:0, def:0, str:0, agi:0, int:0, critRate:0, critDmg:0, dropRate:0 };
+  const pets = [];
+
+  petState.battlePets.forEach(petId => {
+    if (!petId) return;
+    const petData = PETSYS_PETS_DATA.find(p => p.id == petId);
+    const petInfo = petState.pets && petState.pets[petId];
+    if (!petData || !petInfo) return;
+
+    const lv = petInfo.level || 1;
+    const mult = 1 + (lv - 1) * 0.1;
+    const multSp = 1 + (lv - 1) * 0.05;
+
+    const petStats = {
+      atk: Math.floor(petData.baseStats.atk * mult),
+      def: Math.floor(petData.baseStats.def * mult),
+      str: Math.floor(petData.baseStats.str * mult),
+      agi: Math.floor(petData.baseStats.agi * mult),
+      int: Math.floor(petData.baseStats.int * mult),
+      critRate: Math.floor(petData.specialStats.critRate * multSp),
+      critDmg: Math.floor(petData.specialStats.critDmg * multSp),
+      dropRate: Math.floor(petData.specialStats.dropRate * multSp)
+    };
+
+    // 加上词条
+    if (petInfo.talents) {
+      petInfo.talents.forEach(t => {
+        if (t.stat in petStats) petStats[t.stat] += t.value;
+      });
+    }
+
+    for (const k in stats) stats[k] += petStats[k];
+    pets.push({ petData, petInfo, petStats });
+  });
+
+  return { total: pets.length, pets, stats };
+}
+
+// 渲染背包界面中的宠物出战区块
+function renderBpPetSlots() {
+  const slotsEl = document.getElementById('bpPetSlots');
+  const bonusEl = document.getElementById('bpPetBonus');
+  const petSection = document.getElementById('bpPetSection');
+  if (!slotsEl || !bonusEl || !petSection) return;
+
+  const petState = getPetSystemState();
+  const bonus = calcPetBattleBonus();
+
+  // 渲染3个槽位
+  let html = '';
+  for (let i = 0; i < 3; i++) {
+    const petId = (petState && petState.battlePets && petState.battlePets[i]) || null;
+    if (!petId) {
+      html += `<div class="bp-pet-slot empty" onclick="showPetBattle()">
+        <div class="bp-pet-slot-emoji">🐾</div>
+        <div class="bp-pet-slot-hint">点击前往</div>
+      </div>`;
+    } else {
+      const petData = PETSYS_PETS_DATA.find(p => p.id == petId);
+      const petInfo = petState.pets && petState.pets[petId];
+      if (petData && petInfo) {
+        html += `<div class="bp-pet-slot filled" onclick="showBpPetDetail(${petId})">
+          <div class="bp-pet-slot-emoji">${petData.emoji}</div>
+          <div class="bp-pet-slot-name" style="color:${PETSYS_RARITY[petData.rarity].color}">${petData.name}</div>
+          <div class="bp-pet-slot-level">Lv.${petInfo.level}</div>
+        </div>`;
+      } else {
+        html += `<div class="bp-pet-slot empty" onclick="showPetBattle()">
+          <div class="bp-pet-slot-emoji">🐾</div>
+          <div class="bp-pet-slot-hint">点击前往</div>
+        </div>`;
+      }
+    }
+  }
+  slotsEl.innerHTML = html;
+
+  // 渲染宠物加成（与装备加成分开显示）
+  if (bonus.total === 0) {
+    bonusEl.innerHTML = `
+      <div class="bp-bonus-sep">──────── 宠物加成 ────────</div>
+      <div class="bp-bonus-empty">尚未选择出战宠物</div>`;
+  } else {
+    const s = bonus.stats;
+    const rows = [];
+    if (s.atk) rows.push(`⚔️ <span class="bp-bonus-val">+${s.atk}</span> 攻`);
+    if (s.def) rows.push(`🛡️ <span class="bp-bonus-val">+${s.def}</span> 防`);
+    if (s.str) rows.push(`💪 <span class="bp-bonus-val">+${s.str}</span> 力`);
+    if (s.agi) rows.push(`🏃 <span class="bp-bonus-val">+${s.agi}</span> 敏`);
+    if (s.int) rows.push(`🧠 <span class="bp-bonus-val">+${s.int}</span> 智`);
+    if (s.critRate) rows.push(`🎯 <span class="bp-bonus-val">+${s.critRate}%</span> 暴`);
+    if (s.critDmg) rows.push(`💥 <span class="bp-bonus-val">+${s.critDmg}%</span> 爆伤`);
+    if (s.dropRate) rows.push(`🎁 <span class="bp-bonus-val">+${s.dropRate}%</span> 掉率`);
+
+    bonusEl.innerHTML = `
+      <div class="bp-bonus-sep">──────── 宠物加成（${bonus.total}/3）────────</div>
+      <div class="bp-pet-bonus-row">${rows.join('&nbsp;&nbsp;')}</div>`;
+  }
+
+  // 更新状态栏宠物数量
+  const petCount = bonus.total;
+  const el = document.getElementById('statusPetCount');
+  if (el) el.textContent = petCount;
+}
+
+// 显示宠物详情
+function showBpPetDetail(petId) {
+  const petState = getPetSystemState();
+  if (!petState) return;
+  const petData = PETSYS_PETS_DATA.find(p => p.id == petId);
+  const petInfo = petState.pets && petState.pets[petId];
+  if (!petData || !petInfo) return;
+
+  const config = PETSYS_RARITY[petData.rarity];
+  const lv = petInfo.level || 1;
+  const mult = 1 + (lv - 1) * 0.1;
+  const multSp = 1 + (lv - 1) * 0.05;
+
+  const talentRows = (petInfo.talents || []).map(t => {
+    const name = PETSYS_TALENT_NAMES[t.stat] || t.stat;
+    const val = t.stat === 'critRate' || t.stat === 'dropRate' ? `${t.value}%` : t.value;
+    return `<div class="bp-pet-talent-row"><span class="talent-name">✦ ${name}</span><span class="talent-val">+${val}</span></div>`;
+  }).join('');
+
+  document.getElementById('bpPetDetailCard').innerHTML = `
+    <div class="bp-pet-detail-header">
+      <div class="bp-pet-detail-emoji">${petData.emoji}</div>
+      <div class="bp-pet-detail-info">
+        <div class="bp-pet-detail-name" style="color:${config.color}">${petData.name}</div>
+        <div class="bp-pet-detail-level">等级 Lv.${lv} · ${config.name}</div>
+      </div>
+    </div>
+    <div class="bp-pet-detail-talents">
+      <div class="bp-pet-detail-talents-title">✨ 天赋词条</div>
+      ${talentRows || '<div style="color:#555;font-size:0.8em;text-align:center;">无词条</div>'}
+    </div>
+    <div style="font-size:0.75em;color:#555;text-align:center;margin-top:4px;">点击外部关闭 · 查看完整详情请前往宠物系统</div>`;
+  document.getElementById('bpPetDetailOverlay').classList.add('show');
+}
+
+function closeBpPetDetail() {
+  document.getElementById('bpPetDetailOverlay').classList.remove('show');
+}
+
+// 打开宠物系统（跳转到pet-system.html）
+function showPetBattle() {
+  window.open('../pet-system.html', '_blank');
+}
+
 // 清空装备
 function bpClear52() {
   if (!confirm('确定清空所有装备？此操作不可恢复！')) return;
@@ -3663,6 +4055,7 @@ function showBackpack() {
   updateRarityCounts52();
   renderInventoryGrid52();
   updateEquippedSlots52();
+  renderBpPetSlots(); // 宠物出战区块
   document.getElementById('backpackOverlay').classList.add('show');
 }
 
@@ -3725,6 +4118,107 @@ function calcAchievementBonuses() {
     }
   });
   return { totalPointsMul, totalDropBonus, totalHintExtra };
+}
+
+// ========== 宠物系统接入 ==========
+// 宠物基础数据（需与 pet-system.html 同步）
+const PETS_DATA = [
+  { id: 1, name: '小鸡崽', emoji: '🐤', rarity: 'N', baseStats: { atk: 5, def: 3, str: 4, agi: 6, int: 2 }, specialStats: { critRate: 1, critDmg: 5, dropRate: 0 }, talents: ['str', 'agi'] },
+  { id: 2, name: '小奶狗', emoji: '🐶', rarity: 'N', baseStats: { atk: 6, def: 4, str: 5, agi: 4, int: 3 }, specialStats: { critRate: 1, critDmg: 5, dropRate: 0 }, talents: ['str', 'def'] },
+  { id: 3, name: '小橘猫', emoji: '🐱', rarity: 'N', baseStats: { atk: 7, def: 3, str: 4, agi: 7, int: 3 }, specialStats: { critRate: 2, critDmg: 6, dropRate: 0 }, talents: ['agi', 'atk'] },
+  { id: 4, name: '小白兔', emoji: '🐰', rarity: 'N', baseStats: { atk: 4, def: 5, str: 3, agi: 8, int: 4 }, specialStats: { critRate: 1, critDmg: 5, dropRate: 0 }, talents: ['agi', 'int'] },
+  { id: 5, name: '小鸭鸭', emoji: '🦆', rarity: 'N', baseStats: { atk: 5, def: 4, str: 5, agi: 5, int: 5 }, specialStats: { critRate: 1, critDmg: 5, dropRate: 0 }, talents: ['int', 'str'] },
+  { id: 6, name: '小仓鼠', emoji: '🐹', rarity: 'R', baseStats: { atk: 10, def: 8, str: 9, agi: 12, int: 7 }, specialStats: { critRate: 3, critDmg: 10, dropRate: 1 }, talents: ['agi', 'atk', 'int'] },
+  { id: 7, name: '小猪猪', emoji: '🐷', rarity: 'R', baseStats: { atk: 8, def: 12, str: 14, agi: 6, int: 8 }, specialStats: { critRate: 2, critDmg: 8, dropRate: 1 }, talents: ['str', 'def', 'atk'] },
+  { id: 8, name: '小刺猬', emoji: '🦔', rarity: 'R', baseStats: { atk: 11, def: 10, str: 8, agi: 10, int: 9 }, specialStats: { critRate: 3, critDmg: 10, dropRate: 1 }, talents: ['def', 'agi', 'str'] },
+  { id: 9, name: '小松鼠', emoji: '🐿️', rarity: 'R', baseStats: { atk: 9, def: 7, str: 8, agi: 15, int: 10 }, specialStats: { critRate: 4, critDmg: 12, dropRate: 1 }, talents: ['agi', 'int', 'atk'] },
+  { id: 10, name: '小狐狸', emoji: '🦊', rarity: 'R', baseStats: { atk: 12, def: 8, str: 10, agi: 13, int: 11 }, specialStats: { critRate: 4, critDmg: 12, dropRate: 2 }, talents: ['agi', 'int', 'critRate'] },
+  { id: 11, name: '小狼崽', emoji: '🐺', rarity: 'SR', baseStats: { atk: 18, def: 14, str: 16, agi: 20, int: 12 }, specialStats: { critRate: 6, critDmg: 18, dropRate: 3 }, talents: ['agi', 'atk', 'str', 'critRate'] },
+  { id: 12, name: '小棕熊', emoji: '🐻', rarity: 'SR', baseStats: { atk: 16, def: 22, str: 24, agi: 10, int: 14 }, specialStats: { critRate: 4, critDmg: 15, dropRate: 3 }, talents: ['str', 'def', 'atk', 'hp'] },
+  { id: 13, name: '小豹子', emoji: '🐆', rarity: 'SR', baseStats: { atk: 20, def: 12, str: 14, agi: 26, int: 13 }, specialStats: { critRate: 8, critDmg: 22, dropRate: 4 }, talents: ['agi', 'critRate', 'critDmg', 'atk'] },
+  { id: 14, name: '小鹰隼', emoji: '🦅', rarity: 'SR', baseStats: { atk: 22, def: 10, str: 16, agi: 24, int: 16 }, specialStats: { critRate: 7, critDmg: 20, dropRate: 4 }, talents: ['agi', 'atk', 'int', 'dropRate'] },
+  { id: 15, name: '小熊猫', emoji: '🐼', rarity: 'SR', baseStats: { atk: 14, def: 18, str: 20, agi: 12, int: 22 }, specialStats: { critRate: 5, critDmg: 16, dropRate: 3 }, talents: ['int', 'str', 'def', 'critDmg'] },
+  { id: 16, name: '小狮子', emoji: '🦁', rarity: 'SSR', baseStats: { atk: 30, def: 26, str: 32, agi: 28, int: 20 }, specialStats: { critRate: 10, critDmg: 30, dropRate: 6 }, talents: ['str', 'atk', 'critRate', 'critDmg', 'def'] },
+  { id: 17, name: '小老虎', emoji: '🐯', rarity: 'SSR', baseStats: { atk: 34, def: 24, str: 28, agi: 32, int: 18 }, specialStats: { critRate: 12, critDmg: 35, dropRate: 7 }, talents: ['agi', 'atk', 'critRate', 'str', 'critDmg'] },
+  { id: 18, name: '小飞龙', emoji: '🐉', rarity: 'SSR', baseStats: { atk: 32, def: 28, str: 26, agi: 30, int: 28 }, specialStats: { critRate: 11, critDmg: 32, dropRate: 8 }, talents: ['int', 'agi', 'atk', 'critRate', 'dropRate'] },
+  { id: 19, name: '小狼王', emoji: '🐺', rarity: 'SSR', baseStats: { atk: 36, def: 22, str: 30, agi: 34, int: 22 }, specialStats: { critRate: 13, critDmg: 38, dropRate: 8 }, talents: ['agi', 'str', 'atk', 'critRate', 'critDmg'] },
+  { id: 20, name: '小象龟', emoji: '🐘', rarity: 'SSR', baseStats: { atk: 20, def: 40, str: 38, agi: 12, int: 26 }, specialStats: { critRate: 6, critDmg: 22, dropRate: 10 }, talents: ['def', 'str', 'hp', 'int', 'dropRate'] },
+  { id: 21, name: '火凤凰', emoji: '🔥', rarity: 'UR', baseStats: { atk: 50, def: 40, str: 45, agi: 55, int: 48 }, specialStats: { critRate: 18, critDmg: 55, dropRate: 12 }, talents: ['agi', 'int', 'atk', 'critRate', 'critDmg', 'dropRate'] },
+  { id: 22, name: '冰霜龙', emoji: '❄️', rarity: 'UR', baseStats: { atk: 55, def: 45, str: 40, agi: 48, int: 52 }, specialStats: { critRate: 16, critDmg: 50, dropRate: 14 }, talents: ['int', 'atk', 'critRate', 'def', 'critDmg', 'dropRate'] },
+  { id: 23, name: '雷霆鹰', emoji: '⚡', rarity: 'UR', baseStats: { atk: 60, def: 35, str: 42, agi: 65, int: 44 }, specialStats: { critRate: 20, critDmg: 58, dropRate: 15 }, talents: ['agi', 'atk', 'critRate', 'str', 'critDmg', 'dropRate'] },
+  { id: 24, name: '暗影豹', emoji: '🌑', rarity: 'UR', baseStats: { atk: 58, def: 38, str: 44, agi: 62, int: 46 }, specialStats: { critRate: 22, critDmg: 60, dropRate: 16 }, talents: ['agi', 'critRate', 'atk', 'critDmg', 'str', 'dropRate'] },
+  { id: 25, name: '神圣独角兽', emoji: '🦄', rarity: 'HR', baseStats: { atk: 80, def: 70, str: 75, agi: 85, int: 90 }, specialStats: { critRate: 28, critDmg: 80, dropRate: 22 }, talents: ['int', 'agi', 'critRate', 'atk', 'critDmg', 'dropRate', 'all'] },
+  { id: 26, name: '混沌麒麟', emoji: '🦎', rarity: 'HR', baseStats: { atk: 85, def: 75, str: 80, agi: 82, int: 88 }, specialStats: { critRate: 26, critDmg: 78, dropRate: 25 }, talents: ['str', 'int', 'agi', 'critRate', 'critDmg', 'dropRate', 'all'] },
+  { id: 27, name: '时间龙龟', emoji: '🐢', rarity: 'HR', baseStats: { atk: 70, def: 95, str: 90, agi: 60, int: 85 }, specialStats: { critRate: 20, critDmg: 65, dropRate: 30 }, talents: ['def', 'str', 'hp', 'int', 'critRate', 'dropRate', 'all'] },
+  { id: 28, name: '星穹凤凰', emoji: '🌟', rarity: 'HR', baseStats: { atk: 95, def: 65, str: 78, agi: 92, int: 95 }, specialStats: { critRate: 30, critDmg: 88, dropRate: 28 }, talents: ['agi', 'int', 'critRate', 'critDmg', 'atk', 'dropRate', 'all'] }
+];
+
+function calcPetBattleBonus() {
+  try {
+    const petStateStr = localStorage.getItem('petSystemStateV2');
+    if (!petStateStr) return { pointsMul: 1, critChance: 0, critBonus: 0, totalPets: 0, petNames: [] };
+    
+    const petState = JSON.parse(petStateStr);
+    const battlePets = petState.battlePets || [];
+    
+    let totalPointsMul = 1;  // 基础积分倍率
+    let totalCritChance = 0; // 总暴击率
+    let totalCritDmg = 0;    // 总暴击伤害
+    let totalPets = 0;
+    let petNames = [];
+    
+    battlePets.forEach(petId => {
+      if (!petId) return;
+      const petInfo = petState.pets && petState.pets[petId];
+      if (!petInfo) return;
+      
+      const petData = PETS_DATA.find(p => p.id == petId);
+      if (!petData) return;
+      
+      const lv = petInfo.level || 1;
+      const mult = 1 + (lv - 1) * 0.1;   // 基础属性成长
+      const multSp = 1 + (lv - 1) * 0.05; // 特殊属性成长
+      
+      // 计算主属性（力量/智力/敏捷），用于积分倍率
+      const strVal = Math.floor(petData.baseStats.str * mult);
+      const intVal = Math.floor(petData.baseStats.int * mult);
+      const agiVal = Math.floor(petData.baseStats.agi * mult);
+      const mainStats = strVal + intVal + agiVal;
+      
+      // 积分倍率 = 1 + (主属性 / 100)
+      totalPointsMul += mainStats / 100;
+      
+      // 暴击率 = 基础暴击率 * 成长 + 词条加成
+      totalCritChance += Math.floor(petData.specialStats.critRate * multSp);
+      totalCritDmg += Math.floor(petData.specialStats.critDmg * multSp);
+      
+      // 词条加成
+      petInfo.talents && petInfo.talents.forEach(t => {
+        if (t.stat === 'str' || t.stat === 'int' || t.stat === 'agi') {
+          totalPointsMul += t.value / 100;
+        }
+        if (t.stat === 'critRate') totalCritChance += t.value;
+        if (t.stat === 'critDmg') totalCritDmg += t.value;
+        if (t.stat === 'all') { // 全属性词条
+          totalPointsMul += t.value / 100 * 3;
+          totalCritChance += t.value;
+        }
+      });
+      
+      totalPets++;
+      petNames.push(petData.emoji + petData.name);
+    });
+    
+    return { 
+      pointsMul: totalPointsMul, 
+      critChance: totalCritChance, 
+      critBonus: totalCritDmg,
+      totalPets,
+      petNames
+    };
+  } catch (e) {
+    return { pointsMul: 1, critChance: 0, critBonus: 0, totalPets: 0, petNames: [] };
+  }
 }
 
 function renderAchievementGrid() {
@@ -4077,7 +4571,24 @@ document.addEventListener('touchend', () => { isDragging = false; });
         </div>
       </div>
     </div>
+
+    <!-- 宠物出战区块（显示在装备区上方） -->
+    <div class="bp-pet-section" id="bpPetSection">
+      <div class="bp-pet-title">🐾 出战宠物</div>
+      <div class="bp-pet-slots" id="bpPetSlots">
+        <!-- 动态生成3个槽位 -->
+      </div>
+      <div class="bp-pet-bonus" id="bpPetBonus">
+        <div class="bp-bonus-sep">──────── 宠物加成 ────────</div>
+        <div class="bp-bonus-empty">尚未选择出战宠物</div>
+      </div>
+    </div>
   </div>
+</div>
+
+<!-- 宠物详情弹窗 -->
+<div class="bp-detail-overlay" id="bpPetDetailOverlay" onclick="if(event.target===this)closeBpPetDetail()">
+  <div class="bp-detail-card" id="bpPetDetailCard"></div>
 </div>
 
 <!-- 装备详情弹窗 -->

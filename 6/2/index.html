@@ -662,7 +662,7 @@
     top: 0; left: 0;
     width: 100%; height: 100%;
     background: rgba(0,0,0,0.8);
-    z-index: 300;
+    z-index: 3000;
     justify-content: center;
     align-items: center;
   }
@@ -869,6 +869,10 @@
     <div class="status-item" id="backpackBtn" style="cursor:pointer;" onclick="showBackpack()">
       <span class="status-icon">🎒</span>
       <span>背包</span>
+    </div>
+    <div class="status-item" id="petBtn" style="cursor:pointer;" onclick="showPetBattle()">
+      <span class="status-icon">🐾</span>
+      <span id="statusPetInfo" style="color:#ff6b9d;font-size:0.85em">无加成</span>
     </div>
   </div>
 
@@ -1583,6 +1587,24 @@ function updateStatusBar() {
     }
   }
   if (countEl) countEl.textContent = '🎒' + equipCount;
+  // 宠物状态
+  updatePetStatusDisplay();
+}
+
+function updatePetStatusDisplay() {
+  const petBonus = calcPetBattleBonus();
+  const petInfoEl = document.getElementById('statusPetInfo');
+  if (!petInfoEl) return;
+  if (petBonus.totalPets === 0) {
+    petInfoEl.textContent = '无加成';
+    petInfoEl.style.color = '#888';
+  } else {
+    let info = '';
+    if (petBonus.pointsMul > 1) info += `×${petBonus.pointsMul.toFixed(2)}`;
+    if (petBonus.critChance > 0) info += (info ? ' ' : '') + `🎯${petBonus.critChance}%`;
+    petInfoEl.textContent = info || '🐾';
+    petInfoEl.style.color = '#ff6b9d';
+  }
 }
 
 // 打乱选择题选项
@@ -1794,6 +1816,13 @@ function selectOption(idx) {
     // 成就积分加成
     const achBonus = calcAchievementBonuses();
     if (achBonus.totalPointsMul > 1) points = Math.floor(points * achBonus.totalPointsMul);
+    
+    // ========== 宠物加成 ==========
+    const petBonus = calcPetBattleBonus();
+    if (petBonus.totalPets > 0 && petBonus.pointsMul > 1) {
+      points = Math.floor(points * petBonus.pointsMul);
+    }
+    
     gameState.totalPoints += points;
     checkAchievements();
   } else {
@@ -3144,6 +3173,10 @@ function showBackpack() {
   document.getElementById('backpackOverlay').classList.add('show');
 }
 
+function showPetBattle() {
+  window.open('pet-system.html', '_blank');
+}
+
 function closeBackpack() {
   document.getElementById('backpackOverlay').classList.remove('show');
   closeBpDetail62();
@@ -3203,6 +3236,69 @@ function calcAchievementBonuses() {
     }
   });
   return { totalPointsMul, totalDropBonus, totalHintExtra };
+}
+
+// ========== 宠物系统接入 ==========
+const PETS_DATA = [
+  { id: 1, name: '小鸡崽', emoji: '🐤', rarity: 'N', baseStats: { atk: 5, def: 3, str: 4, agi: 6, int: 2 }, specialStats: { critRate: 1, critDmg: 5, dropRate: 0 }, talents: ['str', 'agi'] },
+  { id: 2, name: '小奶狗', emoji: '🐶', rarity: 'N', baseStats: { atk: 6, def: 4, str: 5, agi: 4, int: 3 }, specialStats: { critRate: 1, critDmg: 5, dropRate: 0 }, talents: ['str', 'def'] },
+  { id: 3, name: '小橘猫', emoji: '🐱', rarity: 'N', baseStats: { atk: 7, def: 3, str: 4, agi: 7, int: 3 }, specialStats: { critRate: 2, critDmg: 6, dropRate: 0 }, talents: ['agi', 'atk'] },
+  { id: 4, name: '小白兔', emoji: '🐰', rarity: 'N', baseStats: { atk: 4, def: 5, str: 3, agi: 8, int: 4 }, specialStats: { critRate: 1, critDmg: 5, dropRate: 0 }, talents: ['agi', 'int'] },
+  { id: 5, name: '小鸭鸭', emoji: '🦆', rarity: 'N', baseStats: { atk: 5, def: 4, str: 5, agi: 5, int: 5 }, specialStats: { critRate: 1, critDmg: 5, dropRate: 0 }, talents: ['int', 'str'] },
+  { id: 6, name: '小仓鼠', emoji: '🐹', rarity: 'R', baseStats: { atk: 10, def: 8, str: 9, agi: 12, int: 7 }, specialStats: { critRate: 3, critDmg: 10, dropRate: 1 }, talents: ['agi', 'atk', 'int'] },
+  { id: 7, name: '小猪猪', emoji: '🐷', rarity: 'R', baseStats: { atk: 8, def: 12, str: 14, agi: 6, int: 8 }, specialStats: { critRate: 2, critDmg: 8, dropRate: 1 }, talents: ['str', 'def', 'atk'] },
+  { id: 8, name: '小刺猬', emoji: '🦔', rarity: 'R', baseStats: { atk: 11, def: 10, str: 8, agi: 10, int: 9 }, specialStats: { critRate: 3, critDmg: 10, dropRate: 1 }, talents: ['def', 'agi', 'str'] },
+  { id: 9, name: '小松鼠', emoji: '🐿️', rarity: 'R', baseStats: { atk: 9, def: 7, str: 8, agi: 15, int: 10 }, specialStats: { critRate: 4, critDmg: 12, dropRate: 1 }, talents: ['agi', 'int', 'atk'] },
+  { id: 10, name: '小狐狸', emoji: '🦊', rarity: 'R', baseStats: { atk: 12, def: 8, str: 10, agi: 13, int: 11 }, specialStats: { critRate: 4, critDmg: 12, dropRate: 2 }, talents: ['agi', 'int', 'critRate'] },
+  { id: 11, name: '小狼崽', emoji: '🐺', rarity: 'SR', baseStats: { atk: 18, def: 14, str: 16, agi: 20, int: 12 }, specialStats: { critRate: 6, critDmg: 18, dropRate: 3 }, talents: ['agi', 'atk', 'str', 'critRate'] },
+  { id: 12, name: '小棕熊', emoji: '🐻', rarity: 'SR', baseStats: { atk: 16, def: 22, str: 24, agi: 10, int: 14 }, specialStats: { critRate: 4, critDmg: 15, dropRate: 3 }, talents: ['str', 'def', 'atk', 'hp'] },
+  { id: 13, name: '小豹子', emoji: '🐆', rarity: 'SR', baseStats: { atk: 20, def: 12, str: 14, agi: 26, int: 13 }, specialStats: { critRate: 8, critDmg: 22, dropRate: 4 }, talents: ['agi', 'critRate', 'critDmg', 'atk'] },
+  { id: 14, name: '小鹰隼', emoji: '🦅', rarity: 'SR', baseStats: { atk: 22, def: 10, str: 16, agi: 24, int: 16 }, specialStats: { critRate: 7, critDmg: 20, dropRate: 4 }, talents: ['agi', 'atk', 'int', 'dropRate'] },
+  { id: 15, name: '小熊猫', emoji: '🐼', rarity: 'SR', baseStats: { atk: 14, def: 18, str: 20, agi: 12, int: 22 }, specialStats: { critRate: 5, critDmg: 16, dropRate: 3 }, talents: ['int', 'str', 'def', 'critDmg'] },
+  { id: 16, name: '小狮子', emoji: '🦁', rarity: 'SSR', baseStats: { atk: 30, def: 26, str: 32, agi: 28, int: 20 }, specialStats: { critRate: 10, critDmg: 30, dropRate: 6 }, talents: ['str', 'atk', 'critRate', 'critDmg', 'def'] },
+  { id: 17, name: '小老虎', emoji: '🐯', rarity: 'SSR', baseStats: { atk: 34, def: 24, str: 28, agi: 32, int: 18 }, specialStats: { critRate: 12, critDmg: 35, dropRate: 7 }, talents: ['agi', 'atk', 'critRate', 'str', 'critDmg'] },
+  { id: 18, name: '小飞龙', emoji: '🐉', rarity: 'SSR', baseStats: { atk: 32, def: 28, str: 26, agi: 30, int: 28 }, specialStats: { critRate: 11, critDmg: 32, dropRate: 8 }, talents: ['int', 'agi', 'atk', 'critRate', 'dropRate'] },
+  { id: 19, name: '小狼王', emoji: '🐺', rarity: 'SSR', baseStats: { atk: 36, def: 22, str: 30, agi: 34, int: 22 }, specialStats: { critRate: 13, critDmg: 38, dropRate: 8 }, talents: ['agi', 'str', 'atk', 'critRate', 'critDmg'] },
+  { id: 20, name: '小象龟', emoji: '🐘', rarity: 'SSR', baseStats: { atk: 20, def: 40, str: 38, agi: 12, int: 26 }, specialStats: { critRate: 6, critDmg: 22, dropRate: 10 }, talents: ['def', 'str', 'hp', 'int', 'dropRate'] },
+  { id: 21, name: '火凤凰', emoji: '🔥', rarity: 'UR', baseStats: { atk: 50, def: 40, str: 45, agi: 55, int: 48 }, specialStats: { critRate: 18, critDmg: 55, dropRate: 12 }, talents: ['agi', 'int', 'atk', 'critRate', 'critDmg', 'dropRate'] },
+  { id: 22, name: '冰霜龙', emoji: '❄️', rarity: 'UR', baseStats: { atk: 55, def: 45, str: 40, agi: 48, int: 52 }, specialStats: { critRate: 16, critDmg: 50, dropRate: 14 }, talents: ['int', 'atk', 'critRate', 'def', 'critDmg', 'dropRate'] },
+  { id: 23, name: '雷霆鹰', emoji: '⚡', rarity: 'UR', baseStats: { atk: 60, def: 35, str: 42, agi: 65, int: 44 }, specialStats: { critRate: 20, critDmg: 58, dropRate: 15 }, talents: ['agi', 'atk', 'critRate', 'str', 'critDmg', 'dropRate'] },
+  { id: 24, name: '暗影豹', emoji: '🌑', rarity: 'UR', baseStats: { atk: 58, def: 38, str: 44, agi: 62, int: 46 }, specialStats: { critRate: 22, critDmg: 60, dropRate: 16 }, talents: ['agi', 'critRate', 'atk', 'critDmg', 'str', 'dropRate'] },
+  { id: 25, name: '神圣独角兽', emoji: '🦄', rarity: 'HR', baseStats: { atk: 80, def: 70, str: 75, agi: 85, int: 90 }, specialStats: { critRate: 28, critDmg: 80, dropRate: 22 }, talents: ['int', 'agi', 'critRate', 'atk', 'critDmg', 'dropRate', 'all'] },
+  { id: 26, name: '混沌麒麟', emoji: '🦎', rarity: 'HR', baseStats: { atk: 85, def: 75, str: 80, agi: 82, int: 88 }, specialStats: { critRate: 26, critDmg: 78, dropRate: 25 }, talents: ['str', 'int', 'agi', 'critRate', 'critDmg', 'dropRate', 'all'] },
+  { id: 27, name: '时间龙龟', emoji: '🐢', rarity: 'HR', baseStats: { atk: 70, def: 95, str: 90, agi: 60, int: 85 }, specialStats: { critRate: 20, critDmg: 65, dropRate: 30 }, talents: ['def', 'str', 'hp', 'int', 'critRate', 'dropRate', 'all'] },
+  { id: 28, name: '星穹凤凰', emoji: '🌟', rarity: 'HR', baseStats: { atk: 95, def: 65, str: 78, agi: 92, int: 95 }, specialStats: { critRate: 30, critDmg: 88, dropRate: 28 }, talents: ['agi', 'int', 'critRate', 'critDmg', 'atk', 'dropRate', 'all'] }
+];
+
+function calcPetBattleBonus() {
+  try {
+    const petStateStr = localStorage.getItem('petSystemStateV2');
+    if (!petStateStr) return { pointsMul: 1, critChance: 0, critBonus: 0, totalPets: 0, petNames: [] };
+    const petState = JSON.parse(petStateStr);
+    const battlePets = petState.battlePets || [];
+    let totalPointsMul = 1, totalCritChance = 0, totalCritDmg = 0, totalPets = 0, petNames = [];
+    battlePets.forEach(petId => {
+      if (!petId) return;
+      const petInfo = petState.pets && petState.pets[petId];
+      if (!petInfo) return;
+      const petData = PETS_DATA.find(p => p.id == petId);
+      if (!petData) return;
+      const lv = petInfo.level || 1, mult = 1 + (lv - 1) * 0.1, multSp = 1 + (lv - 1) * 0.05;
+      const strVal = Math.floor(petData.baseStats.str * mult), intVal = Math.floor(petData.baseStats.int * mult), agiVal = Math.floor(petData.baseStats.agi * mult);
+      totalPointsMul += (strVal + intVal + agiVal) / 100;
+      totalCritChance += Math.floor(petData.specialStats.critRate * multSp);
+      totalCritDmg += Math.floor(petData.specialStats.critDmg * multSp);
+      petInfo.talents && petInfo.talents.forEach(t => {
+        if (t.stat === 'str' || t.stat === 'int' || t.stat === 'agi') totalPointsMul += t.value / 100;
+        if (t.stat === 'critRate') totalCritChance += t.value;
+        if (t.stat === 'critDmg') totalCritDmg += t.value;
+        if (t.stat === 'all') { totalPointsMul += t.value / 100 * 3; totalCritChance += t.value; }
+      });
+      totalPets++;
+      petNames.push(petData.emoji + petData.name);
+    });
+    return { pointsMul: totalPointsMul, critChance: totalCritChance, critBonus: totalCritDmg, totalPets, petNames };
+  } catch (e) { return { pointsMul: 1, critChance: 0, critBonus: 0, totalPets: 0, petNames: [] }; }
 }
 
 function renderAchievementGrid() {

@@ -1,0 +1,2028 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>宠物养成系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(90deg, #f39c12, #e74c3c, #9b59b6, #3498db);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .user-info {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 25px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-box span {
+            color: #f39c12;
+            font-weight: bold;
+        }
+
+        .stat-box.warning {
+            border-color: #e74c3c;
+            background: rgba(231, 76, 60, 0.2);
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-color: transparent;
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 商店系统 */
+        .shop-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .shop-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .gift-box-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .gift-box {
+            width: 180px;
+            height: 180px;
+            margin: 15px auto;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.3s;
+        }
+
+        .gift-box:hover {
+            transform: scale(1.05);
+        }
+
+        .gift-box.opening {
+            animation: shake 0.15s ease infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: rotate(-3deg) scale(1.02); }
+            50% { transform: rotate(3deg) scale(1.02); }
+        }
+
+        .gift-box svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .shop-price {
+            font-size: 1.2em;
+            color: #f39c12;
+            margin: 10px 0;
+        }
+
+        .multi-draw-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+
+        .draw-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: bold;
+            transition: all 0.3s;
+            color: #fff;
+        }
+
+        .draw-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+        }
+
+        .draw-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .draw-btn.single {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        .draw-btn.ten {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+        }
+
+        .draw-btn.hundred {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+        }
+
+        .draw-btn .cost {
+            font-size: 0.8em;
+            opacity: 0.8;
+        }
+
+        .result-display {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 15px;
+            min-height: 120px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .result-display.fragment {
+            background: linear-gradient(135deg, rgba(155, 89, 182, 0.3), rgba(142, 68, 173, 0.3));
+            border: 2px solid #9b59b6;
+        }
+
+        .result-display.food {
+            background: linear-gradient(135deg, rgba(46, 204, 113, 0.3), rgba(39, 174, 96, 0.3));
+            border: 2px solid #2ecc71;
+        }
+
+        .result-display.empty {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .result-display.multi {
+            background: linear-gradient(135deg, rgba(243, 156, 18, 0.2), rgba(230, 126, 34, 0.2));
+            border: 2px solid #f39c12;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .result-emoji {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .result-text {
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .result-encourage {
+            font-size: 0.9em;
+            color: #aaa;
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        .multi-results {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            max-width: 100%;
+        }
+
+        .multi-result-item {
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 0.9em;
+            min-width: 80px;
+        }
+
+        .multi-result-item.fragment {
+            background: rgba(155, 89, 182, 0.3);
+            border: 1px solid #9b59b6;
+        }
+
+        .multi-result-item.food {
+            background: rgba(46, 204, 113, 0.3);
+            border: 1px solid #2ecc71;
+        }
+
+        .multi-result-item.empty {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .multi-stats {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 0.9em;
+            color: #aaa;
+        }
+
+        .fragments-display {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .fragments-title {
+            text-align: center;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #9b59b6;
+        }
+
+        .fragments-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 15px;
+        }
+
+        .fragment-item {
+            background: rgba(155, 89, 182, 0.2);
+            border: 1px solid #9b59b6;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .fragment-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(155, 89, 182, 0.3);
+        }
+
+        .fragment-item .emoji {
+            font-size: 2.5em;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .fragment-item .name {
+            font-size: 0.85em;
+            color: #ccc;
+        }
+
+        .fragment-item .count {
+            color: #f39c12;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .fragment-item .progress-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .fragment-item .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #9b59b6, #e74c3c);
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+
+        /* 宠物列表 */
+        .pets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .pet-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .pet-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .pet-card.owned {
+            border-color: #f39c12;
+            background: rgba(243, 156, 18, 0.1);
+        }
+
+        .pet-card .pet-emoji {
+            font-size: 4em;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .pet-card .pet-name {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .pet-card .pet-rarity {
+            font-size: 0.8em;
+            padding: 3px 10px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .rarity-N { background: #95a5a6; color: #fff; }
+        .rarity-R { background: #2ecc71; color: #fff; }
+        .rarity-SR { background: #3498db; color: #fff; }
+        .rarity-SSR { background: #9b59b6; color: #fff; }
+        .rarity-UR { background: #e67e22; color: #fff; }
+        .rarity-HR { background: linear-gradient(90deg, #f39c12, #e74c3c, #9b59b6); color: #fff; }
+
+        .pet-card .fragments-needed {
+            font-size: 0.85em;
+            color: #aaa;
+        }
+
+        /* 宠物详情弹窗 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .modal-header .pet-emoji {
+            font-size: 5em;
+        }
+
+        .modal-header .info h2 {
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+
+        .modal-header .info .rarity {
+            display: inline-block;
+            padding: 3px 15px;
+            border-radius: 15px;
+            font-size: 0.9em;
+        }
+
+        .modal-section {
+            margin: 20px 0;
+        }
+
+        .modal-section h3 {
+            color: #f39c12;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .stat-item .label {
+            color: #aaa;
+        }
+
+        .stat-item .value {
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        .talents-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .talent-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 15px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            border-left: 3px solid #f39c12;
+        }
+
+        .talent-item .name {
+            color: #e74c3c;
+        }
+
+        .upgrade-section, .feed-section {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        .feed-section {
+            background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(39, 174, 96, 0.1));
+            border: 1px solid #2ecc71;
+        }
+
+        .upgrade-info, .feed-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .level-display, .hunger-display {
+            font-size: 1.1em;
+        }
+
+        .level-display .current, .hunger-display .current {
+            color: #f39c12;
+            font-weight: bold;
+        }
+
+        .hunger-display .warning {
+            color: #e74c3c;
+        }
+
+        .hunger-display .critical {
+            color: #e74c3c;
+            animation: pulse 1s ease infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .fragments-needed-display {
+            color: #9b59b6;
+        }
+
+        .upgrade-btn, .feed-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upgrade-btn {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+        }
+
+        .feed-btn {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+        }
+
+        .upgrade-btn:hover:not(:disabled), .feed-btn:hover:not(:disabled) {
+            transform: scale(1.02);
+        }
+
+        .upgrade-btn:disabled, .feed-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            font-size: 1.5em;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* 我的宠物 */
+        .my-pets-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pet-level-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 0.75em;
+            font-weight: bold;
+        }
+
+        .pet-hunger-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 0.7em;
+        }
+
+        .pet-hunger-badge.full {
+            background: rgba(46, 204, 113, 0.8);
+        }
+
+        .pet-hunger-badge.hungry {
+            background: rgba(241, 196, 15, 0.8);
+        }
+
+        .pet-hunger-badge.starving {
+            background: rgba(231, 76, 60, 0.8);
+            animation: pulse 1s ease infinite;
+        }
+
+        .pet-card-wrapper {
+            position: relative;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #aaa;
+        }
+
+        .empty-state .emoji {
+            font-size: 5em;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        /* 库存 */
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .inventory-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .inventory-item .icon {
+            font-size: 2.5em;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .inventory-item .name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .inventory-item .count {
+            color: #f39c12;
+        }
+
+        /* 动画 */
+        @keyframes sparkle {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .sparkle {
+            animation: sparkle 0.5s ease infinite;
+        }
+
+        /* 提示 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: #fff;
+            padding: 15px 30px;
+            border-radius: 30px;
+            z-index: 2000;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { top: -50px; opacity: 0; }
+            to { top: 20px; opacity: 1; }
+        }
+
+        .toast.success {
+            border: 2px solid #2ecc71;
+        }
+
+        .toast.error {
+            border: 2px solid #e74c3c;
+        }
+
+        .toast.warning {
+            border: 2px solid #f39c12;
+        }
+
+        /* 冷却提示 */
+        .cooldown-indicator {
+            font-size: 0.85em;
+            color: #aaa;
+            margin-top: 10px;
+        }
+
+        .cooldown-indicator.active {
+            color: #f39c12;
+        }
+
+        /* ====== 出战阵容 ====== */
+        .battle-slots {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .battle-slot {
+            width: 160px;
+            height: 220px;
+            border-radius: 16px;
+            border: 2px dashed rgba(255,255,255,0.25);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            background: rgba(255,255,255,0.04);
+        }
+
+        .battle-slot:hover {
+            border-color: #f39c12;
+            background: rgba(243,156,18,0.08);
+            transform: translateY(-3px);
+        }
+
+        .battle-slot .slot-plus {
+            font-size: 2.5em;
+            color: rgba(255,255,255,0.3);
+        }
+
+        .battle-slot .slot-hint {
+            font-size: 0.85em;
+            color: rgba(255,255,255,0.3);
+            margin-top: 8px;
+        }
+
+        .battle-slot.filled {
+            border-style: solid;
+            border-color: #f39c12;
+            background: rgba(243,156,18,0.12);
+        }
+
+        .battle-slot.filled:hover {
+            border-color: #e74c3c;
+            background: rgba(231,76,60,0.1);
+        }
+
+        .battle-slot .slot-pet-emoji {
+            font-size: 3em;
+            margin-bottom: 6px;
+        }
+
+        .battle-slot .slot-pet-name {
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .battle-slot .slot-pet-rarity {
+            font-size: 0.75em;
+            padding: 2px 8px;
+            border-radius: 8px;
+            margin-top: 4px;
+        }
+
+        .battle-slot .slot-pet-level {
+            font-size: 0.8em;
+            color: #aaa;
+            margin-top: 4px;
+        }
+
+        .battle-slot .slot-remove {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: rgba(231,76,60,0.8);
+            color: #fff;
+            font-size: 0.75em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            transition: background 0.2s;
+        }
+
+        .battle-slot .slot-remove:hover {
+            background: #e74c3c;
+        }
+
+        .battle-stats-panel {
+            background: rgba(255,255,255,0.06);
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.15);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .battle-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .battle-stat-item {
+            background: rgba(255,255,255,0.07);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .battle-stat-item .b-stat-label {
+            font-size: 0.8em;
+            color: #aaa;
+            margin-bottom: 4px;
+        }
+
+        .battle-stat-item .b-stat-value {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #f39c12;
+        }
+
+        .battle-bonus-tip {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 10px;
+            background: rgba(103,126,234,0.15);
+            border: 1px solid rgba(103,126,234,0.3);
+            font-size: 0.88em;
+            color: #aaa;
+            text-align: center;
+            display: none;
+        }
+
+        .battle-bonus-tip.show {
+            display: block;
+        }
+
+        /* 选宠弹窗 */
+        .battle-select-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .battle-select-modal.active {
+            display: flex;
+        }
+
+        .battle-select-content {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            padding: 25px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .battle-select-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .battle-select-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 15px;
+        }
+
+        .battle-select-card {
+            background: rgba(255,255,255,0.06);
+            border-radius: 12px;
+            padding: 14px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .battle-select-card:hover {
+            transform: translateY(-3px);
+            border-color: #f39c12;
+        }
+
+        .battle-select-card.already-in {
+            opacity: 0.4;
+            cursor: not-allowed;
+            border-color: transparent;
+            transform: none;
+        }
+
+        .battle-select-card .card-emoji {
+            font-size: 2.5em;
+        }
+
+        .battle-select-card .card-name {
+            font-size: 0.88em;
+            margin-top: 5px;
+        }
+
+        .battle-select-card .card-level {
+            font-size: 0.78em;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🐾 宠物养成系统</h1>
+            <div class="user-info">
+                <div class="stat-box" id="pointsBox">💰 积分: <span id="points">99999999</span></div>
+                <div class="stat-box">🥚 碎片: <span id="totalFragments">0</span></div>
+                <div class="stat-box">🐾 宠物: <span id="petCount">0</span></div>
+                <div class="stat-box">🍖 粮食: <span id="totalFood">0</span></div>
+            </div>
+        </header>
+
+        <nav>
+            <button class="nav-btn active" onclick="showSection('shop')">🎁 宠物商店</button>
+            <button class="nav-btn" onclick="showSection('pets')">🐾 我的宠物</button>
+            <button class="nav-btn" onclick="showSection('battle')">⚔️ 出战阵容</button>
+            <button class="nav-btn" onclick="showSection('inventory')">🎒 库存</button>
+            <button class="nav-btn" onclick="showSection('all-pets')">📖 宠物图鉴</button>
+        </nav>
+
+        <!-- 宠物商店 -->
+        <section id="shop" class="section active">
+            <div class="shop-container">
+                <div class="gift-box-section">
+                    <h2>🎁 宠物礼盒</h2>
+                    <div class="gift-box" id="giftBox">
+                        <svg viewBox="0 0 100 100">
+                            <defs>
+                                <linearGradient id="boxGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#e74c3c"/>
+                                    <stop offset="100%" style="stop-color:#c0392b"/>
+                                </linearGradient>
+                                <linearGradient id="ribbonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#f39c12"/>
+                                    <stop offset="100%" style="stop-color:#d68910"/>
+                                </linearGradient>
+                            </defs>
+                            <rect x="15" y="35" width="70" height="50" rx="5" fill="url(#boxGrad)"/>
+                            <ellipse cx="50" cy="35" rx="20" ry="12" fill="url(#ribbonGrad)"/>
+                            <circle cx="50" cy="35" r="8" fill="#e74c3c"/>
+                            <rect x="45" y="35" width="10" height="50" fill="url(#ribbonGrad)"/>
+                            <rect x="20" y="40" width="15" height="5" rx="2" fill="rgba(255,255,255,0.3)"/>
+                        </svg>
+                    </div>
+                    <div class="shop-price">每次抽奖: 100 💰 积分</div>
+
+                    <div class="multi-draw-buttons">
+                        <button class="draw-btn single" id="draw1" onclick="openGiftBox(1)">
+                            单抽 <span class="cost">(100)</span>
+                        </button>
+                        <button class="draw-btn ten" id="draw10" onclick="openGiftBox(10)">
+                            10连 <span class="cost">(1000)</span>
+                        </button>
+                        <button class="draw-btn hundred" id="draw100" onclick="openGiftBox(100)">
+                            100连 <span class="cost">(10000)</span>
+                        </button>
+                    </div>
+
+                    <div class="cooldown-indicator" id="cooldownIndicator"></div>
+
+                    <div class="result-display" id="resultDisplay">
+                        <div class="result-emoji" id="resultEmoji">🎁</div>
+                        <div class="result-text" id="resultText">谢谢惠顾</div>
+                        <div class="result-encourage" id="resultEncourage">运气也是实力的一部分哦~</div>
+                    </div>
+                </div>
+
+                <div class="fragments-display">
+                    <h2 class="fragments-title">🧩 碎片收集</h2>
+                    <p style="text-align:center;color:#aaa;margin-bottom:15px;">
+                        集齐碎片即可孵化宠物！
+                    </p>
+                    <div class="fragments-grid" id="fragmentsGrid">
+                        <!-- 动态生成 -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 我的宠物 -->
+        <section id="pets" class="section">
+            <h2 style="margin:20px 0;">🐾 我的宠物</h2>
+            <div class="my-pets-container">
+                <div class="pets-grid" id="myPetsGrid">
+                    <!-- 动态生成 -->
+                </div>
+                <div class="empty-state" id="emptyPetsState" style="display:none;">
+                    <div class="emoji">🥚</div>
+                    <h3>还没有宠物</h3>
+                    <p>去商店开礼盒，收集碎片孵化宠物吧！</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 出战阵容 -->
+        <section id="battle" class="section">
+            <h2 style="margin:20px 0;">⚔️ 出战阵容</h2>
+            <p style="color:#aaa;margin-bottom:20px;">最多选择 3 只宠物出战，属性累加后加成答题游戏</p>
+
+            <!-- 出战槽位 -->
+            <div class="battle-slots" id="battleSlots">
+                <div class="battle-slot empty" id="slot0" onclick="openSelectPet(0)">
+                    <div class="slot-plus">＋</div>
+                    <div class="slot-hint">点击选择</div>
+                </div>
+                <div class="battle-slot empty" id="slot1" onclick="openSelectPet(1)">
+                    <div class="slot-plus">＋</div>
+                    <div class="slot-hint">点击选择</div>
+                </div>
+                <div class="battle-slot empty" id="slot2" onclick="openSelectPet(2)">
+                    <div class="slot-plus">＋</div>
+                    <div class="slot-hint">点击选择</div>
+                </div>
+            </div>
+
+            <!-- 总属性面板 -->
+            <div class="battle-stats-panel" id="battleStatsPanel">
+                <h3 style="margin-bottom:15px;">📊 出战总属性</h3>
+                <div class="battle-stats-grid" id="battleStatsGrid">
+                    <!-- 动态生成 -->
+                </div>
+                <div class="battle-bonus-tip" id="battleBonusTip"></div>
+            </div>
+
+            <!-- 选宠弹窗 -->
+            <div class="battle-select-modal" id="battleSelectModal">
+                <div class="battle-select-content">
+                    <div class="battle-select-header">
+                        <h3>选择出战宠物</h3>
+                        <button class="close-btn" onclick="closeBattleSelect()">×</button>
+                    </div>
+                    <div class="battle-select-grid" id="battleSelectGrid">
+                        <!-- 动态生成 -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 库存 -->
+        <section id="inventory" class="section">
+            <h2 style="margin:20px 0;">🎒 库存</h2>
+            <div class="inventory-grid" id="inventoryGrid">
+                <!-- 动态生成 -->
+            </div>
+        </section>
+
+        <!-- 宠物图鉴 -->
+        <section id="all-pets" class="section">
+            <h2 style="margin:20px 0;">📖 宠物图鉴</h2>
+            <div class="pets-grid" id="allPetsGrid">
+                <!-- 动态生成 -->
+            </div>
+        </section>
+    </div>
+
+    <!-- 宠物详情弹窗 -->
+    <div class="modal" id="petModal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal()">×</button>
+            <div class="modal-header">
+                <div class="pet-emoji" id="modalPetEmoji">🐱</div>
+                <div class="info">
+                    <h2 id="modalPetName">小猫</h2>
+                    <span class="rarity" id="modalPetRarity">精致</span>
+                </div>
+            </div>
+
+            <div class="modal-section">
+                <h3>📊 基础属性</h3>
+                <div class="stats-grid" id="modalBaseStats">
+                    <!-- 动态生成 -->
+                </div>
+            </div>
+
+            <div class="modal-section">
+                <h3>⚡ 特殊属性</h3>
+                <div class="stats-grid" id="modalSpecialStats">
+                    <!-- 动态生成 -->
+                </div>
+            </div>
+
+            <div class="modal-section">
+                <h3>✨ 天赋词条</h3>
+                <div class="talents-list" id="modalTalents">
+                    <!-- 动态生成 -->
+                </div>
+            </div>
+
+            <!-- 喂养区域 -->
+            <div class="feed-section" id="feedSection">
+                <div class="feed-info">
+                    <div class="hunger-display">
+                        🍖 饱食度: <span class="current" id="modalPetHunger">100</span>%
+                    </div>
+                    <div style="font-size:0.85em;color:#aaa;">
+                        每次消耗: <span id="modalFoodCost">1</span> 🍖
+                    </div>
+                </div>
+                <button class="feed-btn" id="feedBtn" onclick="feedPet()">
+                    喂 食
+                </button>
+            </div>
+
+            <!-- 升级区域 -->
+            <div class="upgrade-section" id="upgradeSection">
+                <div class="upgrade-info">
+                    <div class="level-display">
+                        等级: <span class="current" id="modalPetLevel">1</span>
+                    </div>
+                    <div class="fragments-needed-display">
+                        升级需要: <span id="modalUpgradeFragments">50</span> 碎片
+                    </div>
+                </div>
+                <button class="upgrade-btn" id="upgradeBtn" onclick="upgradePet()">
+                    升 级
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== 游戏数据 ==========
+
+        // 稀有度配置
+        const RARITY_CONFIG = {
+            N:   { name: '普通', color: '#95a5a6', fragments: 25,  talentCount: 1, prefix: '普通', foodCost: 1 },
+            R:   { name: '精致', color: '#2ecc71', fragments: 20,  talentCount: 2, prefix: '精致', foodCost: 2 },
+            SR:  { name: '完美', color: '#3498db', fragments: 15,  talentCount: 3, prefix: '完美', foodCost: 3 },
+            SSR: { name: '史诗', color: '#9b59b6', fragments: 10,  talentCount: 4, prefix: '史诗', foodCost: 5 },
+            UR:  { name: '传说', color: '#e67e22', fragments: 5,   talentCount: 5, prefix: '传说', foodCost: 8 },
+            HR:  { name: '神话', color: '#f39c12', fragments: 3,   talentCount: 6, prefix: '神话', foodCost: 15 }
+        };
+
+        // 宠物数据（28种）
+        const PETS_DATA = [
+            { id: 1, name: '小鸡崽', emoji: '🐤', rarity: 'N', baseStats: { atk: 5, def: 3, str: 4, agi: 6, int: 2 }, specialStats: { critRate: 1, critDmg: 5, dropRate: 0 }, talents: ['str', 'agi'] },
+            { id: 2, name: '小奶狗', emoji: '🐶', rarity: 'N', baseStats: { atk: 6, def: 4, str: 5, agi: 4, int: 3 }, specialStats: { critRate: 1, critDmg: 5, dropRate: 0 }, talents: ['str', 'def'] },
+            { id: 3, name: '小橘猫', emoji: '🐱', rarity: 'N', baseStats: { atk: 7, def: 3, str: 4, agi: 7, int: 3 }, specialStats: { critRate: 2, critDmg: 6, dropRate: 0 }, talents: ['agi', 'atk'] },
+            { id: 4, name: '小白兔', emoji: '🐰', rarity: 'N', baseStats: { atk: 4, def: 5, str: 3, agi: 8, int: 4 }, specialStats: { critRate: 1, critDmg: 5, dropRate: 0 }, talents: ['agi', 'int'] },
+            { id: 5, name: '小鸭鸭', emoji: '🦆', rarity: 'N', baseStats: { atk: 5, def: 4, str: 5, agi: 5, int: 5 }, specialStats: { critRate: 1, critDmg: 5, dropRate: 0 }, talents: ['int', 'str'] },
+            { id: 6, name: '小仓鼠', emoji: '🐹', rarity: 'R', baseStats: { atk: 10, def: 8, str: 9, agi: 12, int: 7 }, specialStats: { critRate: 3, critDmg: 10, dropRate: 1 }, talents: ['agi', 'atk', 'int'] },
+            { id: 7, name: '小猪猪', emoji: '🐷', rarity: 'R', baseStats: { atk: 8, def: 12, str: 14, agi: 6, int: 8 }, specialStats: { critRate: 2, critDmg: 8, dropRate: 1 }, talents: ['str', 'def', 'atk'] },
+            { id: 8, name: '小刺猬', emoji: '🦔', rarity: 'R', baseStats: { atk: 11, def: 10, str: 8, agi: 10, int: 9 }, specialStats: { critRate: 3, critDmg: 10, dropRate: 1 }, talents: ['def', 'agi', 'str'] },
+            { id: 9, name: '小松鼠', emoji: '🐿️', rarity: 'R', baseStats: { atk: 9, def: 7, str: 8, agi: 15, int: 10 }, specialStats: { critRate: 4, critDmg: 12, dropRate: 1 }, talents: ['agi', 'int', 'atk'] },
+            { id: 10, name: '小狐狸', emoji: '🦊', rarity: 'R', baseStats: { atk: 12, def: 8, str: 10, agi: 13, int: 11 }, specialStats: { critRate: 4, critDmg: 12, dropRate: 2 }, talents: ['agi', 'int', 'critRate'] },
+            { id: 11, name: '小狼崽', emoji: '🐺', rarity: 'SR', baseStats: { atk: 18, def: 14, str: 16, agi: 20, int: 12 }, specialStats: { critRate: 6, critDmg: 18, dropRate: 3 }, talents: ['agi', 'atk', 'str', 'critRate'] },
+            { id: 12, name: '小棕熊', emoji: '🐻', rarity: 'SR', baseStats: { atk: 16, def: 22, str: 24, agi: 10, int: 14 }, specialStats: { critRate: 4, critDmg: 15, dropRate: 3 }, talents: ['str', 'def', 'atk', 'hp'] },
+            { id: 13, name: '小豹子', emoji: '🐆', rarity: 'SR', baseStats: { atk: 20, def: 12, str: 14, agi: 26, int: 13 }, specialStats: { critRate: 8, critDmg: 22, dropRate: 4 }, talents: ['agi', 'critRate', 'critDmg', 'atk'] },
+            { id: 14, name: '小鹰隼', emoji: '🦅', rarity: 'SR', baseStats: { atk: 22, def: 10, str: 16, agi: 24, int: 16 }, specialStats: { critRate: 7, critDmg: 20, dropRate: 4 }, talents: ['agi', 'atk', 'int', 'dropRate'] },
+            { id: 15, name: '小熊猫', emoji: '🐼', rarity: 'SR', baseStats: { atk: 14, def: 18, str: 20, agi: 12, int: 22 }, specialStats: { critRate: 5, critDmg: 16, dropRate: 3 }, talents: ['int', 'str', 'def', 'critDmg'] },
+            { id: 16, name: '小狮子', emoji: '🦁', rarity: 'SSR', baseStats: { atk: 30, def: 26, str: 32, agi: 28, int: 20 }, specialStats: { critRate: 10, critDmg: 30, dropRate: 6 }, talents: ['str', 'atk', 'critRate', 'critDmg', 'def'] },
+            { id: 17, name: '小老虎', emoji: '🐯', rarity: 'SSR', baseStats: { atk: 34, def: 24, str: 28, agi: 32, int: 18 }, specialStats: { critRate: 12, critDmg: 35, dropRate: 7 }, talents: ['agi', 'atk', 'critRate', 'str', 'critDmg'] },
+            { id: 18, name: '小飞龙', emoji: '🐉', rarity: 'SSR', baseStats: { atk: 32, def: 28, str: 26, agi: 30, int: 28 }, specialStats: { critRate: 11, critDmg: 32, dropRate: 8 }, talents: ['int', 'agi', 'atk', 'critRate', 'dropRate'] },
+            { id: 19, name: '小狼王', emoji: '🐺', rarity: 'SSR', baseStats: { atk: 36, def: 22, str: 30, agi: 34, int: 22 }, specialStats: { critRate: 13, critDmg: 38, dropRate: 8 }, talents: ['agi', 'str', 'atk', 'critRate', 'critDmg'] },
+            { id: 20, name: '小象龟', emoji: '🐘', rarity: 'SSR', baseStats: { atk: 20, def: 40, str: 38, agi: 12, int: 26 }, specialStats: { critRate: 6, critDmg: 22, dropRate: 10 }, talents: ['def', 'str', 'hp', 'int', 'dropRate'] },
+            { id: 21, name: '火凤凰', emoji: '🔥', rarity: 'UR', baseStats: { atk: 50, def: 40, str: 45, agi: 55, int: 48 }, specialStats: { critRate: 18, critDmg: 55, dropRate: 12 }, talents: ['agi', 'int', 'atk', 'critRate', 'critDmg', 'dropRate'] },
+            { id: 22, name: '冰霜龙', emoji: '❄️', rarity: 'UR', baseStats: { atk: 55, def: 45, str: 40, agi: 48, int: 52 }, specialStats: { critRate: 16, critDmg: 50, dropRate: 14 }, talents: ['int', 'atk', 'critRate', 'def', 'critDmg', 'dropRate'] },
+            { id: 23, name: '雷霆鹰', emoji: '⚡', rarity: 'UR', baseStats: { atk: 60, def: 35, str: 42, agi: 65, int: 44 }, specialStats: { critRate: 20, critDmg: 58, dropRate: 15 }, talents: ['agi', 'atk', 'critRate', 'str', 'critDmg', 'dropRate'] },
+            { id: 24, name: '暗影豹', emoji: '🌑', rarity: 'UR', baseStats: { atk: 58, def: 38, str: 44, agi: 62, int: 46 }, specialStats: { critRate: 22, critDmg: 60, dropRate: 16 }, talents: ['agi', 'critRate', 'atk', 'critDmg', 'str', 'dropRate'] },
+            { id: 25, name: '神圣独角兽', emoji: '🦄', rarity: 'HR', baseStats: { atk: 80, def: 70, str: 75, agi: 85, int: 90 }, specialStats: { critRate: 28, critDmg: 80, dropRate: 22 }, talents: ['int', 'agi', 'critRate', 'atk', 'critDmg', 'dropRate', 'all'] },
+            { id: 26, name: '混沌麒麟', emoji: '🦎', rarity: 'HR', baseStats: { atk: 85, def: 75, str: 80, agi: 82, int: 88 }, specialStats: { critRate: 26, critDmg: 78, dropRate: 25 }, talents: ['str', 'int', 'agi', 'critRate', 'critDmg', 'dropRate', 'all'] },
+            { id: 27, name: '时间龙龟', emoji: '🐢', rarity: 'HR', baseStats: { atk: 70, def: 95, str: 90, agi: 60, int: 85 }, specialStats: { critRate: 20, critDmg: 65, dropRate: 30 }, talents: ['def', 'str', 'hp', 'int', 'critRate', 'dropRate', 'all'] },
+            { id: 28, name: '星穹凤凰', emoji: '🌟', rarity: 'HR', baseStats: { atk: 95, def: 65, str: 78, agi: 92, int: 95 }, specialStats: { critRate: 30, critDmg: 88, dropRate: 28 }, talents: ['agi', 'int', 'critRate', 'critDmg', 'atk', 'dropRate', 'all'] }
+        ];
+
+        const TALENT_NAMES = {
+            atk: '攻击力', def: '防御力', str: '力量', agi: '敏捷', int: '智力',
+            critRate: '暴击率', critDmg: '暴伤', dropRate: '装备爆率', hp: '生命值', all: '全属性'
+        };
+
+        const ENCOURAGEMENTS = [
+            "运气也是实力的一部分哦~", "下次一定能开出好东西！", "坚持就是胜利！",
+            "好戏还在后头呢~", "这份期待感本身就是奖励！", "你已经很棒了！",
+            "好事多磨嘛~", "继续保持这份好运！"
+        ];
+
+        // ========== 游戏状态 ==========
+
+        let gameState = {
+            points: 99999999,
+            fragments: {},
+            pets: {},
+            inventory: { food: 0 },
+            battlePets: [null, null, null]  // 出战槽位，最多3只
+        };
+
+        // 抽奖冷却
+        let canDraw = true;
+        let drawTimeout = null;
+
+        // ========== 初始化 ==========
+
+        function init() {
+            loadGame();
+            updateUI();
+            renderFragments();
+            renderAllPets();
+            renderMyPets();
+            renderInventory();
+            renderBattleSlots();
+            startHungerTimer();
+        }
+
+        function loadGame() {
+            const saved = localStorage.getItem('petSystemStateV2');
+            if (saved) {
+                gameState = JSON.parse(saved);
+                // 兼容旧存档：确保battlePets字段存在
+                if (!gameState.battlePets) {
+                    gameState.battlePets = [null, null, null];
+                }
+            }
+        }
+
+        function saveGame() {
+            localStorage.setItem('petSystemStateV2', JSON.stringify(gameState));
+        }
+
+        function updateUI() {
+            document.getElementById('points').textContent = gameState.points.toLocaleString();
+
+            let total = 0;
+            for (let key in gameState.fragments) {
+                total += gameState.fragments[key];
+            }
+            document.getElementById('totalFragments').textContent = total;
+            document.getElementById('petCount').textContent = Object.keys(gameState.pets).length;
+            document.getElementById('totalFood').textContent = gameState.inventory.food;
+        }
+
+        // ========== 导航 ==========
+
+        function showSection(section) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(section).classList.add('active');
+            event.target.classList.add('active');
+            // 切到出战页自动刷新
+            if (section === 'battle') renderBattleSlots();
+        }
+
+        // ========== 礼盒系统 ==========
+
+        function openGiftBox(count) {
+            const cost = 100 * count;
+
+            if (gameState.points < cost) {
+                showToast('积分不足！', 'error');
+                return;
+            }
+
+            if (!canDraw) {
+                return;
+            }
+
+            // 开始冷却
+            canDraw = false;
+            setButtonsDisabled(true);
+            updateCooldown();
+
+            // 扣除积分
+            gameState.points -= cost;
+
+            const results = [];
+            let fragmentCount = 0;
+            let foodCount = 0;
+            let hatchCount = 0;
+
+            for (let i = 0; i < count; i++) {
+                const rand = Math.random() * 100;
+
+                if (rand < 20) {
+                    // 20% 碎片
+                    const petData = getRandomPetForFragment();
+                    gameState.fragments[petData.id] = (gameState.fragments[petData.id] || 0) + 1;
+                    fragmentCount++;
+                    results.push({ type: 'fragment', emoji: petData.emoji, text: petData.name + '碎片' });
+
+                    // 检查是否可孵化
+                    const needed = RARITY_CONFIG[petData.rarity].fragments;
+                    if (gameState.fragments[petData.id] >= needed && !gameState.pets[petData.id]) {
+                        hatchPet(petData);
+                        gameState.fragments[petData.id] -= needed;
+                        hatchCount++;
+                    }
+                } else if (rand < 50) {
+                    // 30% 粮食 (20-50)
+                    gameState.inventory.food += 1;
+                    foodCount++;
+                    results.push({ type: 'food', emoji: '🍖', text: '粮食' });
+                } else {
+                    // 50% 谢谢惠顾 (50-100)
+                    results.push({ type: 'empty', emoji: '💫', text: '谢谢惠顾' });
+                }
+            }
+
+            // 显示结果
+            displayResults(results, count, fragmentCount, foodCount, hatchCount);
+
+            saveGame();
+            updateUI();
+            renderFragments();
+            renderMyPets();
+
+            // 0.5秒后解除冷却
+            drawTimeout = setTimeout(() => {
+                canDraw = true;
+                setButtonsDisabled(false);
+                updateCooldown();
+            }, 500);
+        }
+
+        function displayResults(results, total, fragments, foods, hatches) {
+            const display = document.getElementById('resultDisplay');
+            display.style.display = 'flex';
+
+            // 每次都先恢复单抽所需的固定结构
+            display.innerHTML = `
+                <div id="singleResult">
+                    <div class="result-emoji" id="resultEmoji">🎁</div>
+                    <div class="result-text" id="resultText"></div>
+                    <div class="result-encourage" id="resultEncourage" style="display:none;"></div>
+                </div>
+                <div id="multiResult" style="display:none;width:100%;"></div>
+            `;
+
+            if (total === 1) {
+                // 单抽显示
+                display.className = 'result-display ' + results[0].type;
+                document.getElementById('singleResult').style.display = 'flex';
+                document.getElementById('singleResult').style.flexDirection = 'column';
+                document.getElementById('singleResult').style.alignItems = 'center';
+                document.getElementById('resultEmoji').textContent = results[0].emoji;
+                document.getElementById('resultText').textContent = results[0].text;
+                const encourage = results[0].type === 'empty' ? ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)] : '';
+                const encEl = document.getElementById('resultEncourage');
+                encEl.textContent = encourage;
+                encEl.style.display = encourage ? 'block' : 'none';
+            } else {
+                // 多抽显示
+                display.className = 'result-display multi';
+                document.getElementById('singleResult').style.display = 'none';
+                const multiEl = document.getElementById('multiResult');
+                multiEl.style.display = 'block';
+
+                let html = '<div class="multi-results">';
+                results.forEach(r => {
+                    html += `<div class="multi-result-item ${r.type}">${r.emoji} ${r.text}</div>`;
+                });
+                html += '</div>';
+                html += `<div class="multi-stats">共 ${total} 抽 | 碎片 x${fragments} | 粮食 x${foods} | 孵化 x${hatches}</div>`;
+                multiEl.innerHTML = html;
+            }
+
+            if (hatches > 0) {
+                showToast(`🎉 恭喜孵化 ${hatches} 只宠物！`, 'success');
+            }
+        }
+
+        function setButtonsDisabled(disabled) {
+            document.getElementById('draw1').disabled = disabled;
+            document.getElementById('draw10').disabled = disabled;
+            document.getElementById('draw100').disabled = disabled;
+        }
+
+        function updateCooldown() {
+            const indicator = document.getElementById('cooldownIndicator');
+            if (canDraw) {
+                indicator.textContent = '';
+                indicator.className = 'cooldown-indicator';
+            } else {
+                indicator.textContent = '⏳ 冷却中...';
+                indicator.className = 'cooldown-indicator active';
+            }
+        }
+
+        function getRandomPetForFragment() {
+            // 碎片宠物权重分布
+            // 神话0.1% 传说1% 史诗12% 完美20% 精致28% 普通38.9%
+            const weights = [
+                { rarity: 'N', weight: 38.9 },
+                { rarity: 'R', weight: 28 },
+                { rarity: 'SR', weight: 20 },
+                { rarity: 'SSR', weight: 12 },
+                { rarity: 'UR', weight: 1 },
+                { rarity: 'HR', weight: 0.1 }
+            ];
+
+            const totalWeight = weights.reduce((sum, w) => sum + w.weight, 0);
+            let rand = Math.random() * totalWeight;
+
+            for (let w of weights) {
+                rand -= w.weight;
+                if (rand <= 0) {
+                    const pets = PETS_DATA.filter(p => p.rarity === w.rarity);
+                    return pets[Math.floor(Math.random() * pets.length)];
+                }
+            }
+
+            return PETS_DATA[0];
+        }
+
+        function hatchPet(petData) {
+            const talents = generateTalents(petData);
+
+            gameState.pets[petData.id] = {
+                level: 1,
+                talents: talents,
+                hunger: 100, // 饱食度 0-100
+                lastFed: Date.now()
+            };
+        }
+
+        function generateTalents(petData) {
+            const config = RARITY_CONFIG[petData.rarity];
+            const talents = [];
+            const usedStats = new Set();
+
+            // 暴击率/装备爆率是百分比，数值除以10，最小为1；暴击伤害保持原始数值
+            const percentStats = new Set(['critRate', 'dropRate']);
+
+            for (let i = 0; i < config.talentCount; i++) {
+                let stat;
+                const availableStats = petData.talents.filter(s => !usedStats.has(s));
+                if (availableStats.length > 0) {
+                    stat = availableStats[Math.floor(Math.random() * availableStats.length)];
+                } else {
+                    stat = petData.talents[Math.floor(Math.random() * petData.talents.length)];
+                }
+                usedStats.add(stat);
+
+                const range = getTalentRange(petData.rarity);
+                let value = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+
+                // 暴击率/暴伤/装备爆率是百分比，数值除以10，最小为1
+                if (percentStats.has(stat)) {
+                    value = Math.max(1, Math.floor(value / 10));
+                }
+
+                talents.push({ stat, value });
+            }
+
+            return talents;
+        }
+
+        function getTalentRange(rarity) {
+            switch (rarity) {
+                case 'N': return { min: 5, max: 15 };
+                case 'R': return { min: 10, max: 30 };
+                case 'SR': return { min: 20, max: 50 };
+                case 'SSR': return { min: 40, max: 80 };
+                case 'UR': return { min: 80, max: 150 };
+                case 'HR': return { min: 150, max: 300 };
+                default: return { min: 5, max: 15 };
+            }
+        }
+
+        // ========== 饥饿系统 ==========
+
+        function startHungerTimer() {
+            // 每6小时扣1点饱食度
+            // 14天(两星期)下降约56点，从100到44左右
+            // 学生即使两周不登录，宠物也不会饿死
+            setInterval(() => {
+                let changed = false;
+
+                for (let petId in gameState.pets) {
+                    const petInfo = gameState.pets[petId];
+                    petInfo.hunger = Math.max(0, petInfo.hunger - 1);
+                    changed = true;
+
+                    // 饱食度低于30时警告
+                    if (petInfo.hunger === 30) {
+                        const petData = PETS_DATA.find(p => p.id == petId);
+                        showToast(`${petData.emoji} ${petData.name} 饿了！`, 'warning');
+                    }
+                }
+
+                if (changed) {
+                    saveGame();
+                    renderMyPets();
+                }
+            }, 6 * 60 * 60 * 1000); // 6小时
+        }
+
+        function feedPet() {
+            if (!currentPetId) return;
+
+            const petData = PETS_DATA.find(p => p.id == currentPetId);
+            const petInfo = gameState.pets[currentPetId];
+            const config = RARITY_CONFIG[petData.rarity];
+
+            if (gameState.inventory.food < config.foodCost) {
+                showToast('粮食不足！', 'error');
+                return;
+            }
+
+            gameState.inventory.food -= config.foodCost;
+            petInfo.hunger = Math.min(100, petInfo.hunger + 30);
+            petInfo.lastFed = Date.now();
+
+            saveGame();
+            updateUI();
+            renderMyPets();
+            renderInventory();
+            showPetDetail(currentPetId);
+
+            showToast(`${petData.emoji} ${petData.name} 吃饱啦！`, 'success');
+        }
+
+        // ========== 渲染函数 ==========
+
+        function renderFragments() {
+            const grid = document.getElementById('fragmentsGrid');
+            grid.innerHTML = '';
+
+            PETS_DATA.forEach(pet => {
+                const count = gameState.fragments[pet.id] || 0;
+                const needed = RARITY_CONFIG[pet.rarity].fragments;
+                const progress = Math.min(100, (count / needed) * 100);
+
+                const div = document.createElement('div');
+                div.className = 'fragment-item';
+                div.innerHTML = `
+                    <span class="emoji">${pet.emoji}</span>
+                    <div class="name">${pet.name}</div>
+                    <div class="count">${count} / ${needed}</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${progress}%"></div>
+                    </div>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        function renderAllPets() {
+            const grid = document.getElementById('allPetsGrid');
+            grid.innerHTML = '';
+
+            PETS_DATA.forEach(pet => {
+                const owned = !!gameState.pets[pet.id];
+                const config = RARITY_CONFIG[pet.rarity];
+
+                const div = document.createElement('div');
+                div.className = 'pet-card' + (owned ? ' owned' : '');
+                div.onclick = () => showPetDetail(pet.id);
+                div.innerHTML = `
+                    <span class="pet-emoji">${pet.emoji}</span>
+                    <div class="pet-name">${pet.name}</div>
+                    <span class="pet-rarity rarity-${pet.rarity}">${config.name}</span>
+                    <div class="fragments-needed">需要 ${config.fragments} 碎片</div>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        function renderMyPets() {
+            const grid = document.getElementById('myPetsGrid');
+            const emptyState = document.getElementById('emptyPetsState');
+
+            grid.innerHTML = '';
+
+            const petIds = Object.keys(gameState.pets);
+
+            if (petIds.length === 0) {
+                grid.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            grid.style.display = 'grid';
+            emptyState.style.display = 'none';
+
+            petIds.forEach(petId => {
+                const petData = PETS_DATA.find(p => p.id == petId);
+                const petInfo = gameState.pets[petId];
+                const config = RARITY_CONFIG[petData.rarity];
+
+                let hungerClass = 'full';
+                if (petInfo.hunger < 30) hungerClass = 'starving';
+                else if (petInfo.hunger < 60) hungerClass = 'hungry';
+
+                const div = document.createElement('div');
+                div.className = 'pet-card-wrapper';
+                div.innerHTML = `
+                    <div class="pet-card owned" onclick="showPetDetail(${petId})">
+                        <span class="pet-hunger-badge ${hungerClass}">🍖${petInfo.hunger}</span>
+                        <span class="pet-level-badge">Lv.${petInfo.level}</span>
+                        <span class="pet-emoji">${petData.emoji}</span>
+                        <div class="pet-name">${petData.name}</div>
+                        <span class="pet-rarity rarity-${petData.rarity}">${config.name}</span>
+                        <div class="fragments-needed">${petInfo.talents.length} 条词条</div>
+                    </div>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        function renderInventory() {
+            const grid = document.getElementById('inventoryGrid');
+            grid.innerHTML = '';
+
+            const items = [
+                { icon: '🍖', name: '宠物粮食', count: gameState.inventory.food }
+            ];
+
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'inventory-item';
+                div.innerHTML = `
+                    <span class="icon">${item.icon}</span>
+                    <div class="name">${item.name}</div>
+                    <div class="count">x ${item.count}</div>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        // ========== 出战阵容系统 ==========
+
+        let selectingSlotIndex = null;
+
+        function renderBattleSlots() {
+            for (let i = 0; i < 3; i++) {
+                const slotEl = document.getElementById('slot' + i);
+                const petId = gameState.battlePets[i];
+
+                if (!petId) {
+                    slotEl.className = 'battle-slot empty';
+                    slotEl.innerHTML = `
+                        <div class="slot-plus">＋</div>
+                        <div class="slot-hint">点击选择</div>
+                    `;
+                    slotEl.onclick = () => openSelectPet(i);
+                } else {
+                    const petData = PETS_DATA.find(p => p.id == petId);
+                    const petInfo = gameState.pets[petId];
+                    const config = RARITY_CONFIG[petData.rarity];
+
+                    slotEl.className = 'battle-slot filled';
+                    slotEl.innerHTML = `
+                        <button class="slot-remove" onclick="removeBattlePet(event, ${i})" title="撤下">×</button>
+                        <div class="slot-pet-emoji">${petData.emoji}</div>
+                        <div class="slot-pet-name">${petData.name}</div>
+                        <span class="slot-pet-rarity rarity-${petData.rarity}" style="background:${config.color};color:#fff;padding:2px 8px;border-radius:8px;">${config.name}</span>
+                        <div class="slot-pet-level">Lv.${petInfo.level}</div>
+                    `;
+                    slotEl.onclick = () => openSelectPet(i);
+                }
+            }
+            renderBattleStats();
+        }
+
+        function removeBattlePet(event, slotIndex) {
+            event.stopPropagation();
+            gameState.battlePets[slotIndex] = null;
+            saveGame();
+            renderBattleSlots();
+        }
+
+        function openSelectPet(slotIndex) {
+            selectingSlotIndex = slotIndex;
+            const petIds = Object.keys(gameState.pets);
+
+            const grid = document.getElementById('battleSelectGrid');
+            grid.innerHTML = '';
+
+            if (petIds.length === 0) {
+                grid.innerHTML = '<div style="color:#888;text-align:center;grid-column:1/-1;padding:30px;">还没有宠物，去商店抽吧！</div>';
+            } else {
+                petIds.forEach(petId => {
+                    const petData = PETS_DATA.find(p => p.id == petId);
+                    const petInfo = gameState.pets[petId];
+                    const config = RARITY_CONFIG[petData.rarity];
+
+                    // 已在其他槽位则标记不可选
+                    const alreadyIn = gameState.battlePets.some((bp, idx) => bp == petId && idx !== slotIndex);
+
+                    const div = document.createElement('div');
+                    div.className = 'battle-select-card' + (alreadyIn ? ' already-in' : '');
+                    div.innerHTML = `
+                        <div class="card-emoji">${petData.emoji}</div>
+                        <div class="card-name" style="color:${config.color};">${petData.name}</div>
+                        <div class="card-level">Lv.${petInfo.level} · ${config.name}</div>
+                    `;
+                    if (!alreadyIn) {
+                        div.onclick = () => selectBattlePet(petId);
+                    }
+                    grid.appendChild(div);
+                });
+            }
+
+            document.getElementById('battleSelectModal').classList.add('active');
+        }
+
+        function selectBattlePet(petId) {
+            if (selectingSlotIndex === null) return;
+            gameState.battlePets[selectingSlotIndex] = petId;
+            saveGame();
+            closeBattleSelect();
+            renderBattleSlots();
+        }
+
+        function closeBattleSelect() {
+            document.getElementById('battleSelectModal').classList.remove('active');
+            selectingSlotIndex = null;
+        }
+
+        function renderBattleStats() {
+            const grid = document.getElementById('battleStatsGrid');
+            const tipEl = document.getElementById('battleBonusTip');
+            grid.innerHTML = '';
+
+            const filledPets = gameState.battlePets.filter(id => id !== null);
+
+            if (filledPets.length === 0) {
+                grid.innerHTML = '<div style="color:#888;text-align:center;grid-column:1/-1;padding:20px;">尚未选择出战宠物</div>';
+                tipEl.classList.remove('show');
+                return;
+            }
+
+            // 统计各属性总和
+            const total = { atk: 0, def: 0, str: 0, agi: 0, int: 0, critRate: 0, critDmg: 0, dropRate: 0 };
+
+            filledPets.forEach(petId => {
+                const petData = PETS_DATA.find(p => p.id == petId);
+                const petInfo = gameState.pets[petId];
+                const lv = petInfo.level;
+                const mult = 1 + (lv - 1) * 0.1;
+                const multSp = 1 + (lv - 1) * 0.05;
+
+                total.atk += Math.floor(petData.baseStats.atk * mult);
+                total.def += Math.floor(petData.baseStats.def * mult);
+                total.str += Math.floor(petData.baseStats.str * mult);
+                total.agi += Math.floor(petData.baseStats.agi * mult);
+                total.int += Math.floor(petData.baseStats.int * mult);
+                total.critRate += Math.floor(petData.specialStats.critRate * multSp);
+                total.critDmg += Math.floor(petData.specialStats.critDmg * multSp);
+                total.dropRate += Math.floor(petData.specialStats.dropRate * multSp);
+
+                // 加上词条加成
+                petInfo.talents.forEach(t => {
+                    if (t.stat in total) total[t.stat] += t.value;
+                });
+            });
+
+            const statDisplay = [
+                { key: 'atk', label: '⚔️ 攻击力', suffix: '' },
+                { key: 'def', label: '🛡️ 防御力', suffix: '' },
+                { key: 'str', label: '💪 力量', suffix: '' },
+                { key: 'agi', label: '🏃 敏捷', suffix: '' },
+                { key: 'int', label: '🧠 智力', suffix: '' },
+                { key: 'critRate', label: '🎯 暴击率', suffix: '%' },
+                { key: 'critDmg', label: '💥 暴击伤害', suffix: '%' },
+                { key: 'dropRate', label: '🎁 装备爆率', suffix: '%' }
+            ];
+
+            statDisplay.forEach(s => {
+                const div = document.createElement('div');
+                div.className = 'battle-stat-item';
+                div.innerHTML = `
+                    <div class="b-stat-label">${s.label}</div>
+                    <div class="b-stat-value">${total[s.key]}${s.suffix}</div>
+                `;
+                grid.appendChild(div);
+            });
+
+            // 显示提示
+            tipEl.classList.add('show');
+            tipEl.textContent = `已选 ${filledPets.length}/3 只宠物 · 以上属性将加成到线上答题游戏（待接入）`;
+        }
+
+        // ========== 宠物详情 ==========
+
+        let currentPetId = null;
+
+        function showPetDetail(petId) {
+            currentPetId = petId;
+            const petData = PETS_DATA.find(p => p.id == petId);
+            const config = RARITY_CONFIG[petData.rarity];
+            const petInfo = gameState.pets[petId];
+            const isOwned = !!petInfo;
+
+            document.getElementById('modalPetEmoji').textContent = petData.emoji;
+            document.getElementById('modalPetName').textContent = petData.name;
+
+            const rarityEl = document.getElementById('modalPetRarity');
+            rarityEl.textContent = config.name;
+            rarityEl.className = 'pet-rarity rarity-' + petData.rarity;
+            rarityEl.style.background = config.color;
+
+            // 基础属性
+            const baseStats = document.getElementById('modalBaseStats');
+            baseStats.innerHTML = '';
+            ['atk', 'def', 'str', 'agi', 'int'].forEach(stat => {
+                const value = isOwned && petInfo.level > 1
+                    ? Math.floor(petData.baseStats[stat] * (1 + (petInfo.level - 1) * 0.1))
+                    : petData.baseStats[stat];
+                baseStats.innerHTML += `
+                    <div class="stat-item">
+                        <span class="label">${TALENT_NAMES[stat]}</span>
+                        <span class="value">${value}</span>
+                    </div>
+                `;
+            });
+
+            // 特殊属性
+            const specialStats = document.getElementById('modalSpecialStats');
+            specialStats.innerHTML = '';
+            ['critRate', 'critDmg', 'dropRate'].forEach(stat => {
+                const value = isOwned && petInfo.level > 1
+                    ? Math.floor(petData.specialStats[stat] * (1 + (petInfo.level - 1) * 0.05))
+                    : petData.specialStats[stat];
+                specialStats.innerHTML += `
+                    <div class="stat-item">
+                        <span class="label">${TALENT_NAMES[stat]}</span>
+                        <span class="value">${value}%</span>
+                    </div>
+                `;
+            });
+
+            // 天赋词条
+            const talents = document.getElementById('modalTalents');
+            talents.innerHTML = '';
+            if (isOwned) {
+                petInfo.talents.forEach(t => {
+                    talents.innerHTML += `
+                        <div class="talent-item">
+                            <span class="name">${TALENT_NAMES[t.stat]}</span>
+                            <span class="value">+${t.value}</span>
+                        </div>
+                    `;
+                });
+            } else {
+                talents.innerHTML = '<div style="color:#888;text-align:center;">拥有后可查看词条</div>';
+            }
+
+            // 喂养区域
+            const feedSection = document.getElementById('feedSection');
+            if (isOwned) {
+                feedSection.style.display = 'block';
+                document.getElementById('modalPetHunger').textContent = petInfo.hunger;
+                document.getElementById('modalFoodCost').textContent = config.foodCost;
+
+                const hungerSpan = document.querySelector('#feedSection .hunger-display .current');
+                if (petInfo.hunger < 30) {
+                    hungerSpan.className = 'current critical';
+                } else if (petInfo.hunger < 60) {
+                    hungerSpan.className = 'current warning';
+                } else {
+                    hungerSpan.className = 'current';
+                }
+
+                const feedBtn = document.getElementById('feedBtn');
+                if (gameState.inventory.food >= config.foodCost) {
+                    feedBtn.disabled = false;
+                    feedBtn.textContent = `消耗 ${config.foodCost} 🍖 喂食 (+30饱食度)`;
+                } else {
+                    feedBtn.disabled = true;
+                    feedBtn.textContent = `需要 ${config.foodCost} 🍖（已有 ${gameState.inventory.food}）`;
+                }
+            } else {
+                feedSection.style.display = 'none';
+            }
+
+            // 升级区域
+            const upgradeSection = document.getElementById('upgradeSection');
+            if (isOwned) {
+                upgradeSection.style.display = 'block';
+                document.getElementById('modalPetLevel').textContent = petInfo.level;
+
+                const needed = petData.rarity === 'HR' ? config.fragments : config.fragments * Math.pow(2, petInfo.level - 1);
+                document.getElementById('modalUpgradeFragments').textContent = needed;
+
+                const btn = document.getElementById('upgradeBtn');
+                const fragments = gameState.fragments[petId] || 0;
+
+                if (fragments >= needed) {
+                    btn.disabled = false;
+                    btn.textContent = `消耗 ${needed} 碎片升级`;
+                } else {
+                    btn.disabled = true;
+                    btn.textContent = `需要 ${needed} 碎片（已有 ${fragments}）`;
+                }
+            } else {
+                upgradeSection.style.display = 'none';
+            }
+
+            document.getElementById('petModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('petModal').classList.remove('active');
+            currentPetId = null;
+        }
+
+        function upgradePet() {
+            if (!currentPetId) return;
+
+            const petData = PETS_DATA.find(p => p.id == currentPetId);
+            const config = RARITY_CONFIG[petData.rarity];
+            const petInfo = gameState.pets[currentPetId];
+
+            const needed = petData.rarity === 'HR' ? config.fragments : config.fragments * Math.pow(2, petInfo.level - 1);
+            const fragments = gameState.fragments[currentPetId] || 0;
+
+            if (fragments < needed) {
+                showToast('碎片不足！', 'error');
+                return;
+            }
+
+            gameState.fragments[currentPetId] -= needed;
+            gameState.pets[currentPetId].level++;
+
+            saveGame();
+            updateUI();
+            renderFragments();
+            renderMyPets();
+            showPetDetail(currentPetId);
+
+            showToast(`🎊 ${petData.emoji} ${petData.name} 升级到 Lv.${petInfo.level}！`, 'success');
+        }
+
+        // ========== 提示 ==========
+
+        function showToast(message, type = 'success') {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+
+            const toast = document.createElement('div');
+            toast.className = 'toast ' + type;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // ========== 启动 ==========
+
+        init();
+    </script>
+</body>
+</html>
