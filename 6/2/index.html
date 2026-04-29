@@ -955,6 +955,7 @@
       </p>
       <button class="start-btn" onclick="showLoginScreen()">🚀 开始挑战</button>
       <button class="start-btn secondary" onclick="showWrongQuestions()" style="margin-top:12px;background:linear-gradient(135deg,#667eea,#764ba2);"><img src="../../icons/wrong-book.png" class="icon-24"> 错题本</button>
+      <button class="start-btn secondary" onclick="showUploadPasswordPrompt()" style="margin-top:8px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);font-size:0.85em;padding:8px 18px;border:1px solid rgba(255,255,255,0.1);">📤 上传题库</button>
     </div>
     
     <!-- 成就预览 -->
@@ -1783,10 +1784,44 @@ function startLesson(lesson) {
   const lessonId = lesson.id;
   gameState.isReplay = (gameState.lessonProgress && gameState.lessonProgress[lessonId] && gameState.lessonProgress[lessonId] >= 1);
   
-  const allQuestions = [
-    ...lesson.basic.map(q => shuffleQuestionOptions({...q, difficulty: 'basic', difficultyName: '基础题'})),
-    ...lesson.medium.map(q => shuffleQuestionOptions({...q, difficulty: 'medium', difficultyName: '提升题'})),
-    ...lesson.hard.map(q => shuffleQuestionOptions({...q, difficulty: 'hard', difficultyName: '挑战题'}))
+  // ====== 从自定义题库（uploadedQuestions）和内置题库中混编，每课随机10-15题 ======
+  const lessonId = lesson.id;
+  const uploaded = getUploadedQuestions(lessonId);
+  
+  let basicPool = [...lesson.basic];
+  let mediumPool = [...lesson.medium];
+  let hardPool = [...lesson.hard];
+  
+  // 如果有自定义题库，覆盖内置题库
+  if (uploaded && uploaded.basic && uploaded.basic.length > 0) basicPool = uploaded.basic;
+  if (uploaded && uploaded.medium && uploaded.medium.length > 0) mediumPool = uploaded.medium;
+  if (uploaded && uploaded.hard && uploaded.hard.length > 0) hardPool = uploaded.hard;
+  
+  // 随机抽取函数
+  function pickRandom(arr, min, max) {
+    if (!arr || arr.length === 0) return [];
+    const count = Math.min(arr.length, min + Math.floor(Math.random() * (max - min + 1)));
+    const shuffled = [...arr];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled.slice(0, count);
+  }
+  
+  const totalTarget = 10 + Math.floor(Math.random() * 6); // 10-15
+  const basicCount = Math.min(basicPool.length, Math.max(1, Math.round(totalTarget * 0.5)));
+  const mediumCount = Math.min(mediumPool.length, Math.max(1, Math.round(totalTarget * 0.3)));
+  const hardCount = Math.min(hardPool.length, Math.max(0, totalTarget - basicCount - mediumCount));
+  
+  const pickedBasic = pickRandom(basicPool, basicCount, basicCount);
+  const pickedMedium = pickRandom(mediumPool, mediumCount, mediumCount);
+  const pickedHard = pickRandom(hardPool, hardCount, hardCount);
+  
+  let allQuestions = [
+    ...pickedBasic.map(q => shuffleQuestionOptions({...q, difficulty: 'basic', difficultyName: '基础题'})),
+    ...pickedMedium.map(q => shuffleQuestionOptions({...q, difficulty: 'medium', difficultyName: '提升题'})),
+    ...pickedHard.map(q => shuffleQuestionOptions({...q, difficulty: 'hard', difficultyName: '挑战题'}))
   ];
   
   for (let i = allQuestions.length - 1; i > 0; i--) {
@@ -3867,6 +3902,56 @@ document.addEventListener('touchmove', (e) => {
   wrapper.style.bottom = 'auto';
 }, { passive: true });
 document.addEventListener('touchend', () => { isDragging = false; });
+
+// ====== 上传题库（教师用）======
+const UPLOAD_PASSWORD = 'admin';
+
+function showUploadPasswordPrompt() {
+  const pwd = prompt('请输入管理员密码：');
+  if (pwd === null) return;
+  if (pwd.trim() === UPLOAD_PASSWORD) {
+    window.open('upload-questions.html', '_blank');
+  } else {
+    alert('❌ 密码错误');
+  }
+}
+
+// ====== 自定义题库系统（从 localStorage 加载）======
+const UPLOADED_Q_KEY = 'kexvefuxi_uploaded_questions_';
+
+function saveUploadedQuestions(lessonId, questionSet) {
+  try {
+    localStorage.setItem(UPLOADED_Q_KEY + lessonId, JSON.stringify(questionSet));
+    return true;
+  } catch (e) {
+    console.error('保存自定义题库失败:', e);
+    return false;
+  }
+}
+
+function getUploadedQuestions(lessonId) {
+  try {
+    const data = localStorage.getItem(UPLOADED_Q_KEY + lessonId);
+    return data ? JSON.parse(data) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function clearUploadedQuestions(lessonId) {
+  localStorage.removeItem(UPLOADED_Q_KEY + lessonId);
+}
+
+function listUploadedLessons() {
+  const result = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith(UPLOADED_Q_KEY)) {
+      result.push(key.replace(UPLOADED_Q_KEY, ''));
+    }
+  }
+  return result;
+}
 
 </script>
 

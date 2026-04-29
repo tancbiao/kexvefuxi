@@ -427,41 +427,25 @@
     <div class="success-hint" id="successHint">已添加 0 道题目到题库</div>
   </div>
 
-  <!-- 已有题库 -->
+  <!-- 已上传的自定义题库 -->
   <div class="card library-section">
-    <div class="card-title"><span>📦</span> 已有题库</div>
-
-    <div class="library-item">
-      <div class="library-item-left">
-        <span class="library-icon">📘</span>
-        <div>
-          <div class="library-name">四年级下册</div>
-          <div class="library-count">23课 · 4个单元 · 345道题</div>
-        </div>
-      </div>
-      <button class="library-btn">查看</button>
+    <div class="card-title" style="justify-content:space-between;">
+      <span><span style="font-size:1.5em;">📦</span> 已上传题库</span>
+      <button class="library-btn" onclick="clearAllUploaded()" id="clearAllBtn" style="display:none;background:rgba(255,80,80,0.3);border-color:rgba(255,80,80,0.5);">🗑️ 清空全部</button>
     </div>
-
-    <div class="library-item">
-      <div class="library-item-left">
-        <span class="library-icon">📙</span>
-        <div>
-          <div class="library-name">五年级下册</div>
-          <div class="library-count">13课 · 2个单元 · 345道题</div>
-        </div>
-      </div>
-      <button class="library-btn">查看</button>
+    <div id="uploadedLessonList">
+      <p style="text-align:center;color:rgba(255,255,255,0.4);padding:30px 0;" id="emptyUploadedMsg">暂无上传题库</p>
     </div>
+  </div>
 
-    <div class="library-item">
-      <div class="library-item-left">
-        <span class="library-icon">📕</span>
-        <div>
-          <div class="library-name">六年级下册</div>
-          <div class="library-count">23课 · 4个单元 · 203道题</div>
-        </div>
-      </div>
-      <button class="library-btn">查看</button>
+  <!-- 清空确认弹窗 -->
+  <div class="success-msg" id="clearConfirm" style="display:none;">
+    <div class="success-icon">🗑️</div>
+    <div class="success-text">确认清空所有上传题库？</div>
+    <div class="success-hint" style="margin-bottom:20px;">此操作不可撤销</div>
+    <div class="btn-group">
+      <button class="btn btn-secondary" onclick="document.getElementById('clearConfirm').style.display='none'">取消</button>
+      <button class="btn btn-primary" onclick="executeClearAll()" style="background:linear-gradient(135deg,#ff6b6b,#e53935);">确认清空</button>
     </div>
   </div>
 
@@ -681,26 +665,109 @@ function clearFile() {
   uploadedFileName = '';
 }
 
-// 导入题目（这里先模拟，后续对接实际题库）
+// 导入题目到 localStorage（三版本共享）
 function importQuestions() {
   if (!uploadedData || uploadedData.length === 0) {
     alert('请先上传题库文件');
     return;
   }
 
-  // TODO: 这里后续会调用实际的导入函数
-  // 目前只是模拟成功
-  const count = uploadedData.length;
+  // 按课程序号+课程名称 分组
+  const lessonMap = {};
+  
+  uploadedData.forEach(item => {
+    const lessonNum = (item['课程序号'] || '').toString().trim();
+    const lessonName = (item['课程名称'] || '').toString().trim();
+    const lessonKey = lessonNum ? lessonNum : lessonName; // 优先用序号
+    
+    if (!lessonMap[lessonKey]) {
+      lessonMap[lessonKey] = {
+        lessonNum: lessonNum,
+        lessonName: lessonName,
+        basic: [],
+        medium: [],
+        hard: []
+      };
+    }
+    
+    const question = {
+      q: (item['题目'] || '').toString().trim(),
+      options: [],
+      answer: 0,
+      hint: (item['备注'] || '').toString().trim() || '已上传题目'
+    };
+    
+    // 收集选项
+    const opts = [];
+    ['A', 'B', 'C', 'D'].forEach(key => {
+      const val = item['选项' + key];
+      if (val && val.toString().trim()) opts.push(val.toString().trim());
+    });
+    question.options = opts;
+    
+    // 解析正确答案
+    const correctAns = (item['正确答案'] || '').toString().trim().toUpperCase();
+    if (correctAns === 'A') question.answer = 0;
+    else if (correctAns === 'B') question.answer = 1;
+    else if (correctAns === 'C') question.answer = 2;
+    else if (correctAns === 'D') question.answer = 3;
+    else if (correctAns === '√' || correctAns === 'V') question.answer = 0;
+    else if (correctAns === '×' || correctAns === 'X') question.answer = 1;
+    
+    // 按难度归类
+    const diff = (item['难度'] || '').toString().trim();
+    if (diff.includes('提升') || diff.includes('中等')) {
+      lessonMap[lessonKey].medium.push(question);
+    } else if (diff.includes('挑战')) {
+      lessonMap[lessonKey].hard.push(question);
+    } else {
+      lessonMap[lessonKey].basic.push(question);
+    }
+  });
+  
+  // 保存到 localStorage（三版本共用的 key）
+  const baseKey = 'kexvefuxi_uploaded_questions_';
+  let totalSaved = 0;
+  
+  Object.keys(lessonMap).forEach(key => {
+    const data = lessonMap[key];
+    const questionSet = {
+      basic: data.basic,
+      medium: data.medium,
+      hard: data.hard
+    };
+    
+    const lessonId = data.lessonNum || key;
+    const storageKey = baseKey + lessonId;
+    
+    // 合并已存在的
+    let existing = null;
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) existing = JSON.parse(raw);
+    } catch(e) {}
+    
+    if (existing) {
+      // 追加到对应难度
+      questionSet.basic = [...(existing.basic || []), ...questionSet.basic];
+      questionSet.medium = [...(existing.medium || []), ...questionSet.medium];
+      questionSet.hard = [...(existing.hard || []), ...questionSet.hard];
+    }
+    
+    localStorage.setItem(storageKey, JSON.stringify(questionSet));
+    totalSaved += questionSet.basic.length + questionSet.medium.length + questionSet.hard.length;
+  });
+  
+  // 显示成功
   document.getElementById('previewSection').classList.remove('show');
   document.getElementById('successMsg').classList.add('show');
-  document.getElementById('successHint').textContent = `已添加 ${count} 道题目到题库`;
+  document.getElementById('successHint').textContent = `成功导入 ${totalSaved} 道题目（${Object.keys(lessonMap).length} 课）`;
 
-  // 3秒后隐藏成功提示
   setTimeout(() => {
     document.getElementById('successMsg').classList.remove('show');
-  }, 3000);
+  }, 5000);
 
-  console.log('导入的题目数据:', uploadedData);
+  console.log('导入完成:', lessonMap);
 }
 
 // 格式化文件大小
@@ -709,6 +776,97 @@ function formatFileSize(bytes) {
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 }
+
+// ========== 已上传题库列表 ==========
+const STORAGE_KEY_PREFIX = 'kexvefuxi_uploaded_questions_';
+
+function refreshUploadedList() {
+  const list = document.getElementById('uploadedLessonList');
+  const emptyMsg = document.getElementById('emptyUploadedMsg');
+  const clearBtn = document.getElementById('clearAllBtn');
+  
+  // 遍历 localStorage 找出所有上传的题库
+  let items = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith(STORAGE_KEY_PREFIX)) {
+      const lessonId = key.replace(STORAGE_KEY_PREFIX, '');
+      try {
+        const data = JSON.parse(localStorage.getItem(key));
+        const total = (data.basic || []).length + (data.medium || []).length + (data.hard || []).length;
+        items.push({ lessonId, total, data });
+      } catch(e) {}
+    }
+  }
+  
+  if (items.length === 0) {
+    list.innerHTML = '<p style="text-align:center;color:rgba(255,255,255,0.4);padding:30px 0;">暂无上传题库</p>';
+    clearBtn.style.display = 'none';
+    return;
+  }
+  
+  clearBtn.style.display = '';
+  list.innerHTML = items.map(item => {
+    const basicCnt = (item.data.basic || []).length;
+    const medCnt = (item.data.medium || []).length;
+    const hardCnt = (item.data.hard || []).length;
+    return `<div class="library-item">
+      <div class="library-item-left">
+        <span class="library-icon">📋</span>
+        <div>
+          <div class="library-name">课程 ${item.lessonId}</div>
+          <div class="library-count">共 ${item.total} 题（基础${basicCnt}/提升${medCnt}/挑战${hardCnt}）</div>
+        </div>
+      </div>
+      <button class="library-btn" onclick="clearLesson('${item.lessonId}')" style="background:rgba(255,80,80,0.3);border-color:rgba(255,80,80,0.5);">删除</button>
+    </div>`;
+  }).join('');
+}
+
+function clearLesson(lessonId) {
+  if (confirm(`确认删除课程 ${lessonId} 的上传题库？`)) {
+    localStorage.removeItem(STORAGE_KEY_PREFIX + lessonId);
+    refreshUploadedList();
+  }
+}
+
+function clearAllUploaded() {
+  document.getElementById('clearConfirm').style.display = 'block';
+}
+
+function executeClearAll() {
+  const keys = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith(STORAGE_KEY_PREFIX)) {
+      keys.push(key);
+    }
+  }
+  keys.forEach(k => localStorage.removeItem(k));
+  document.getElementById('clearConfirm').style.display = 'none';
+  refreshUploadedList();
+}
+
+function toggleClearConfirm() {
+  const el = document.getElementById('clearConfirm');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+// 密码验证成功后刷新列表
+const originalCheckPassword = checkPassword;
+checkPassword = function() {
+  originalCheckPassword();
+  if (document.getElementById('mainContent').style.display === 'block') {
+    refreshUploadedList();
+  }
+};
+
+// 导入成功后刷新列表
+const originalImportQuestions = importQuestions;
+importQuestions = function() {
+  originalImportQuestions();
+  setTimeout(refreshUploadedList, 500);
+};
 
 // 拖拽上传
 const uploadZone = document.getElementById('uploadZone');
