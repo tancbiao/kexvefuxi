@@ -1248,6 +1248,10 @@
       <span class="status-icon">⭐</span>
       <span>积分: <span class="status-value" id="totalPoints">0</span></span>
     </div>
+    <div class="status-item" id="staminaStatusItem" style="display:none;">
+      <span class="status-icon">⚡</span>
+      <span>体力: <span class="status-value" id="dailyStaminaDisplay">20</span>/20</span>
+    </div>
     <div class="status-item">
       <span class="status-icon streak-fire">🔥</span>
       <span>连击: <span class="status-value" id="streak">0</span></span>
@@ -1386,6 +1390,13 @@
     <button class="login-btn primary" id="loginBtn"><img src="../../icons/bag.png" class="icon-24"> 登录存档</button>
     <button class="login-btn secondary" id="guestBtn">🚶 游客试玩</button>
     <p class="login-hint">学号将用于识别你的存档，同一学号可跨设备同步</p>
+    <div style="background:rgba(255,180,0,0.12);border:1px solid rgba(255,180,0,0.3);border-radius:10px;padding:12px;margin-top:16px;font-size:0.85em;color:rgba(255,255,255,0.75);text-align:left;">
+      ⚡ <strong>每日体力系统</strong><br>
+      每位同学每天有 <strong style="color:#ffd700">20 点体力</strong>，<br>
+      每答题 <strong>1 次</strong>消耗 <strong>1 点体力</strong>，<br>
+      体力消耗完<strong style="color:#ff6b6b">当天不再获得积分</strong>。<br>
+      每天 00:00 体力自动恢复。
+    </div>
   </div>
 </div>
 
@@ -1555,7 +1566,7 @@
   </div>
 </div>
 
-<script src="../../equipment-gen.js?v=20260428"></script>
+<script src="../../equipment-gen.js?v=20260429"></script>
 
 <script>
 // ========== 装备系统（兼容层）==========
@@ -1616,6 +1627,10 @@ const gameState = {
   maxStreak: 0,
   hintsRemaining: 3,
   hintsUsed: 0,
+  // ====== 防沉迷体力系统 ======
+  dailyStamina: 20,         // 当日剩余体力（每天重置）
+  lastStaminaDate: null,     // 上次体力重置日期（YYYY-MM-DD）
+  // ==============================
   currentLesson: null,  // 当前课程对象
   currentQuestions: [], // 当前题库的题目
   currentQuestion: 0,
@@ -1678,6 +1693,48 @@ const gameState = {
     { id: 'all_complete', icon: '<img src="../../icons/trophy.png" class="icon-32">', name: '科学探险家', desc: '完成所有关卡', tier: '🏆', bonus: { pointsMul: 1.50, dropBonus: 0.30, hintExtra: 3 } },
   ]
 };
+
+// ========== 防沉迷体力系统 ==========
+function getTodayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function checkAndResetStamina() {
+  const today = getTodayStr();
+  if (gameState.lastStaminaDate !== today) {
+    // 新的一天，重置体力
+    gameState.dailyStamina = 20;
+    gameState.lastStaminaDate = today;
+    updateStaminaDisplay();
+  }
+}
+
+function updateStaminaDisplay() {
+  const el = document.getElementById('staminaStatusItem');
+  const display = document.getElementById('dailyStaminaDisplay');
+  if (!el || !display) return;
+  const stamina = gameState.dailyStamina || 0;
+  display.textContent = stamina;
+  // 体力≤5时显示红色警告
+  const color = stamina === 0 ? '#ff4444' : stamina <= 5 ? '#ff8c00' : '#ffd700';
+  display.style.color = color;
+  el.style.display = 'inline-flex';
+}
+
+// 体力耗尽时的反馈（正确也不给分）
+function showFeedbackNoPoints(question) {
+  const overlay = document.getElementById('feedbackOverlay');
+  document.getElementById('feedbackIcon').textContent = '✅';
+  document.getElementById('feedbackTitle').textContent = '回答正确！';
+  document.getElementById('feedbackTitle').style.color = '#4caf50';
+  document.getElementById('feedbackText').innerHTML =
+    `<span style="color:#ff8c00">⚠️ 今日体力已耗尽，本题不获得积分</span><br><br>` +
+    `<small>每天00:00体力自动恢复20点</small>`;
+  document.getElementById('feedbackPoints').style.display = 'none';
+  overlay.classList.add('show');
+}
+// ======================================
 
 // 重置游戏状态（登录时调用，确保账号独立）
 function tryDropEquip(isUnitComplete, penalty) {
@@ -1840,6 +1897,8 @@ function loginWithId() {
   
   // 加载该学号的存档
   loadUserData();
+  checkAndResetStamina();
+  updateStaminaDisplay();
   updateUserBadge();
   updateStatusBar();
 }
@@ -1847,6 +1906,9 @@ function loginWithId() {
 function loginAsGuest() {
   gameState.studentId = null;
   gameState.isGuest = true;
+  // 游客：每次会话20点体力，不跨天保留
+  checkAndResetStamina();
+  updateStaminaDisplay();
   hideLoginScreen();
   updateUserBadge();
 }
@@ -1946,6 +2008,9 @@ function saveUserData() {
     totalQuestionsAnswered: gameState.totalQuestionsAnswered,
     lessonProgress: gameState.lessonProgress || {},
     wrongQuestions: gameState.wrongQuestions || [],
+    // 防沉迷体力
+    dailyStamina: gameState.dailyStamina,
+    lastStaminaDate: gameState.lastStaminaDate,
     lastUpdated: Date.now()
   };
   localStorage.setItem(saveKey, JSON.stringify(data));
@@ -2514,6 +2579,10 @@ function applyUserData(data) {
   gameState.totalQuestionsAnswered = data.totalQuestionsAnswered || 0;
   gameState.lessonProgress = data.lessonProgress || {};
   gameState.wrongQuestions = data.wrongQuestions || [];
+  // 防沉迷体力（加载后会自动跨天重置）
+  gameState.dailyStamina = data.dailyStamina !== undefined ? data.dailyStamina : 20;
+  gameState.lastStaminaDate = data.lastStaminaDate || null;
+  updateStaminaDisplay();
   updateUI();
   renderAchievementPreview();
 }// 安全取值器，防止旧装备无 rarity 字段导致 NaN → Undefined
@@ -3823,6 +3892,7 @@ document.addEventListener('click', function(e) {
 function updateStatusBar() {
   document.getElementById('totalPoints').textContent = gameState.totalPoints;
   document.getElementById('streak').textContent = gameState.maxStreak;
+  updateStaminaDisplay();
   document.getElementById('achievementCount').textContent = gameState.unlockedAchievements.length;
   // 装备计数
   initInventory42();
@@ -4207,6 +4277,9 @@ function submitSortAnswer() {
 
 // ========== 检查答案 ==========
 function checkAnswer(isCorrect) {
+  // ====== 防沉迷：每日体力检查 ======
+  checkAndResetStamina();
+
   const q = gameState.currentQuestions[gameState.currentQuestion];
 
   if (isCorrect) {
@@ -4227,6 +4300,17 @@ function checkAnswer(isCorrect) {
       if (gameState.retrySuccessCount >= 3 && !gameState.unlockedAchievements.includes('retry_3')) unlockAchievement('retry_3');
     }
 
+    // ====== 防沉迷：体力耗尽则不得积分 ======
+    if (gameState.dailyStamina <= 0) {
+      // 体力用完：正确也只给反馈，不给积分
+      gameState.currentStreak = 0;
+      recordWrongQuestion(q, '');
+      showFeedbackNoPoints(q);
+      document.getElementById('nextBtn').classList.add('show');
+      saveUserData();
+      return;
+    }
+
     // 计算得分
     let points = 10;
     if (gameState.hintsUsed === 0) points += 5; // 无提示加成
@@ -4245,6 +4329,9 @@ function checkAnswer(isCorrect) {
     }
     
     gameState.totalPoints += points;
+    // ====== 扣减体力 ======
+    gameState.dailyStamina = Math.max(0, gameState.dailyStamina - 1);
+    updateStaminaDisplay();
     updateStatusBar(); // 立即更新顶部积分显示
     
     showFeedback(true, points, q);
