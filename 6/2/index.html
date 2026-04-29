@@ -893,6 +893,10 @@
       <span class="status-icon">⭐</span>
       <span>积分: <span class="status-value" id="totalPoints">0</span></span>
     </div>
+    <div class="status-item" id="staminaStatusItem" style="display:none;">
+      <span class="status-icon">⚡</span>
+      <span>体力: <span class="status-value" id="dailyStaminaDisplay">20</span>/20</span>
+    </div>
     <div class="status-item">
       <span class="status-icon streak-fire" id="streakIcon">🔥</span>
       <span>连击: <span class="status-value" id="currentStreak">0</span></span>
@@ -1003,7 +1007,7 @@
   </div>
 </div>
 
-<script src="../../equipment-gen.js?v=20260428"></script>
+<script src="../../equipment-gen.js?v=20260429"></script>
 
 <script>
 
@@ -1477,6 +1481,10 @@ const gameState = {
   studentId: null,
   isGuest: true,
   totalPoints: 0,
+  // ====== 防沉迷体力系统 ======
+  dailyStamina: 20,
+  lastStaminaDate: null,
+  // ==============================
   currentStreak: 0,
   maxStreak: 0,
   hintsRemaining: 3,
@@ -1573,6 +1581,8 @@ function loginWithId() {
   gameState.isGuest = false;
   hideLoginScreen();
   loadUserData();
+  checkAndResetStamina();
+  updateStaminaDisplay();
   showLevelSelect();
 }
 
@@ -1580,6 +1590,8 @@ function loginAsGuest() {
   gameState.studentId = null;
   gameState.isGuest = true;
   hideLoginScreen();
+  checkAndResetStamina();
+  updateStaminaDisplay();
   showLevelSelect();
 }
 
@@ -1852,6 +1864,16 @@ function selectOption(idx) {
       if (gameState.retrySuccessCount >= 3 && !gameState.unlockedAchievements.includes('retry_3')) unlockAchievement('retry_3');
     }
 
+    // ====== 防沉迷：体力耗尽则不得积分 ======
+    if (gameState.dailyStamina <= 0) {
+      gameState.currentStreak = 0;
+      recordWrongQuestion(q, '');
+      showFeedbackNoPoints(q);
+      document.getElementById('nextBtn').classList.add('show');
+      saveUserData();
+      return;
+    }
+
     // 闪电侠：3秒内答对
     if (gameState.questionStartTime && (Date.now() - gameState.questionStartTime) < 3000
         && !gameState.unlockedAchievements.includes('fast_correct')) {
@@ -1875,6 +1897,8 @@ function selectOption(idx) {
     }
     
     gameState.totalPoints += points;
+    gameState.dailyStamina = Math.max(0, gameState.dailyStamina - 1);
+    updateStaminaDisplay();
     checkAchievements();
   } else {
     gameState.currentStreak = 0;
@@ -2017,6 +2041,45 @@ function finishQuiz() {
   
   showScreen('resultScreen');
 }
+
+// ========== 防沉迷体力系统 ==========
+function getTodayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function checkAndResetStamina() {
+  const today = getTodayStr();
+  if (gameState.lastStaminaDate !== today) {
+    gameState.dailyStamina = 20;
+    gameState.lastStaminaDate = today;
+    updateStaminaDisplay();
+  }
+}
+
+function updateStaminaDisplay() {
+  const el = document.getElementById('staminaStatusItem');
+  const display = document.getElementById('dailyStaminaDisplay');
+  if (!el || !display) return;
+  const stamina = gameState.dailyStamina || 0;
+  display.textContent = stamina;
+  const color = stamina === 0 ? '#ff4444' : stamina <= 5 ? '#ff8c00' : '#ffd700';
+  display.style.color = color;
+  el.style.display = 'inline-flex';
+}
+
+function showFeedbackNoPoints(question) {
+  const overlay = document.getElementById('feedbackOverlay');
+  document.getElementById('feedbackIcon').textContent = '✅';
+  document.getElementById('feedbackTitle').textContent = '回答正确！';
+  document.getElementById('feedbackTitle').style.color = '#4caf50';
+  document.getElementById('feedbackText').innerHTML =
+    `<span style="color:#ff8c00">⚠️ 今日体力已耗尽，本题不获得积分</span><br><br>` +
+    `<small>每天00:00体力自动恢复20点</small>`;
+  document.getElementById('feedbackPoints').style.display = 'none';
+  overlay.classList.add('show');
+}
+// ======================================
 
 // 装备掉落函数
 // streakRatio = maxStreak / totalQuestions（0~1），连击率越高品质越好
@@ -2307,6 +2370,8 @@ function saveUserData() {
     equipment: gameState.equipment,
     equipDropped: gameState.equipDropped || {},
     wrongQuestions: gameState.wrongQuestions || [],
+    dailyStamina: gameState.dailyStamina,
+    lastStaminaDate: gameState.lastStaminaDate,
     lastUpdated: Date.now()
   };
   localStorage.setItem('scienceGame6_user_' + gameState.studentId, JSON.stringify(data));
@@ -2846,7 +2911,10 @@ function applyUserData(data) {
   }
   gameState.equipDropped = data.equipDropped || {};
   gameState.wrongQuestions = data.wrongQuestions || [];
+  gameState.dailyStamina = (data.dailyStamina !== undefined) ? data.dailyStamina : 20;
+  gameState.lastStaminaDate = data.lastStaminaDate || null;
   updateStatusBar();
+  updateStaminaDisplay();
   renderAchievementPreview();
 }
 document.getElementById('loginBtn').addEventListener('click', loginWithId);
