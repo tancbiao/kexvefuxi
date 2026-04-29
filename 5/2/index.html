@@ -36,6 +36,11 @@
     90% { opacity: 1; }
     100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
   }
+  @keyframes popIn {
+    0% { transform: scale(0.8); opacity: 0; }
+    70% { transform: scale(1.05); }
+    100% { transform: scale(1); opacity: 1; }
+  }
   @keyframes flyUp {
     0% { opacity: 1; transform: translateY(0) scale(1); }
     50% { opacity: 1; transform: translateY(-30px) scale(1.2); }
@@ -1164,7 +1169,7 @@
   </div>
 </div>
 
-<script src="../../equipment-gen.js?v=20260428"></script>
+<script src="../../equipment-gen.js?v=20260429"></script>
 
 <script>
 // ========== 五年级题库 - 按单元和课程（教师版 2026-04-23） ==========
@@ -3422,8 +3427,13 @@ function unequipFromSlot52(idx) {
 
 // 某idx是否已穿戴
 function isEquippedIdx52(idx) {
+  // 检查宝物槽（数组）
   if (bpEquippedSlots52.treasure.includes(idx)) return true;
-  return Object.values(bpEquippedSlots52).slice(0, -1).includes(idx);
+  // 检查普通槽：遍历所有非 treasure 的槽，比较值
+  for (const slot of ['weapon','hat','top','bottom','glove','cape','shield','shoes','face','eyes']) {
+    if (bpEquippedSlots52[slot] === idx) return true;
+  }
+  return false;
 }
 
 // 槽位标签（中英双语）
@@ -3913,45 +3923,53 @@ function getPetSystemState() {
 
 // 计算宠物出战总加成
 function calcPetBattleBonus() {
-  const petState = getPetSystemState();
-  if (!petState || !petState.battlePets) return { total:0, pets:[], stats:{} };
+  try {
+    const petState = getPetSystemState();
+    if (!petState || !petState.battlePets) return { total:0, pets:[], stats:{} };
+    if (!Array.isArray(petState.battlePets)) return { total:0, pets:[], stats:{} };
 
-  const stats = { atk:0, def:0, str:0, agi:0, int:0, critRate:0, critDmg:0, dropRate:0 };
-  const pets = [];
+    const stats = { atk:0, def:0, str:0, agi:0, int:0, critRate:0, critDmg:0, dropRate:0 };
+    const pets = [];
 
-  petState.battlePets.forEach(petId => {
-    if (!petId) return;
-    const petData = PETSYS_PETS_DATA.find(p => p.id == petId);
-    const petInfo = petState.pets && petState.pets[petId];
-    if (!petData || !petInfo) return;
+    petState.battlePets.forEach(petId => {
+      if (!petId) return;
+      const petData = PETSYS_PETS_DATA && PETSYS_PETS_DATA.find(p => p.id == petId);
+      const petInfo = petState.pets && petState.pets[petId];
+      if (!petData || !petInfo) return;
+      if (!petData.baseStats) return;
 
-    const lv = petInfo.level || 1;
-    const mult = 1 + (lv - 1) * 0.1;
-    const multSp = 1 + (lv - 1) * 0.05;
+      const lv = petInfo.level || 1;
+      const mult = 1 + (lv - 1) * 0.1;
+      const multSp = 1 + (lv - 1) * 0.05;
 
-    const petStats = {
-      atk: Math.floor(petData.baseStats.atk * mult),
-      def: Math.floor(petData.baseStats.def * mult),
-      str: Math.floor(petData.baseStats.str * mult),
-      agi: Math.floor(petData.baseStats.agi * mult),
-      int: Math.floor(petData.baseStats.int * mult),
-      critRate: Math.floor(petData.specialStats.critRate * multSp),
-      critDmg: Math.floor(petData.specialStats.critDmg * multSp),
-      dropRate: Math.floor(petData.specialStats.dropRate * multSp)
-    };
+      const base = petData.baseStats || {};
+      const sp = petData.specialStats || {};
+      const petStats = {
+        atk: Math.floor((base.atk || 0) * mult),
+        def: Math.floor((base.def || 0) * mult),
+        str: Math.floor((base.str || 0) * mult),
+        agi: Math.floor((base.agi || 0) * mult),
+        int: Math.floor((base.int || 0) * mult),
+        critRate: Math.floor((sp.critRate || 0) * multSp),
+        critDmg: Math.floor((sp.critDmg || 0) * multSp),
+        dropRate: Math.floor((sp.dropRate || 0) * multSp)
+      };
 
-    // 加上词条
-    if (petInfo.talents) {
-      petInfo.talents.forEach(t => {
-        if (t.stat in petStats) petStats[t.stat] += t.value;
-      });
-    }
+      if (petInfo.talents && Array.isArray(petInfo.talents)) {
+        petInfo.talents.forEach(t => {
+          if (t.stat in petStats) petStats[t.stat] += t.value;
+        });
+      }
 
-    for (const k in stats) stats[k] += petStats[k];
-    pets.push({ petData, petInfo, petStats });
-  });
+      for (const k in stats) stats[k] += petStats[k];
+      pets.push({ petData, petInfo, petStats });
+    });
 
-  return { total: pets.length, pets, stats };
+    return { total: pets.length, pets, stats };
+  } catch(e) {
+    console.error('calcPetBattleBonus error:', e);
+    return { total:0, pets:[], stats:{} };
+  }
 }
 
 // 渲染背包界面中的宠物出战区块
@@ -3962,7 +3980,7 @@ function renderBpPetSlots() {
   if (!slotsEl || !bonusEl || !petSection) return;
 
   const petState = getPetSystemState();
-  const bonus = calcPetBattleBonus();
+  const bonus = calcPetBattleBonus() || { total:0, pets:[], stats:{} };
 
   // 渲染3个槽位
   let html = '';
@@ -3998,7 +4016,7 @@ function renderBpPetSlots() {
       <div class="bp-bonus-sep">──────── 宠物加成 ────────</div>
       <div class="bp-bonus-empty">尚未选择出战宠物</div>`;
   } else {
-    const s = bonus.stats;
+    const s = bonus.stats || {};
     const rows = [];
     if (s.atk) rows.push(`⚔️ <span class="bp-bonus-val">+${s.atk}</span> 攻`);
     if (s.def) rows.push(`🛡️ <span class="bp-bonus-val">+${s.def}</span> 防`);
@@ -4072,17 +4090,25 @@ function closeBpPetDetail() {
 
 // 打开宠物系统（跳转到pet-system.html）
 function showPetBattle() {
-  const modal = document.getElementById('petModal');
-  const iframe = document.getElementById('petIframe');
-  document.getElementById('petModalPoints').textContent = (gameState.totalPoints || 0).toLocaleString();
-  modal.classList.add('show');
-  setTimeout(() => {
-    iframe.contentWindow.postMessage({
-      type: 'init_pet',
-      studentId: gameState.studentId,
-      points: gameState.totalPoints || 0
-    }, '*');
-  }, 300);
+  console.log('showPetBattle 被调用');
+  try {
+    const modal = document.getElementById('petModal');
+    const iframe = document.getElementById('petIframe');
+    console.log('找到宠物弹窗:', modal, '和iframe:', iframe);
+    document.getElementById('petModalPoints').textContent = (gameState.totalPoints || 0).toLocaleString();
+    modal.classList.add('show');
+    console.log('已添加 show 类');
+    setTimeout(() => {
+      iframe.contentWindow.postMessage({
+        type: 'init_pet',
+        studentId: gameState.studentId,
+        points: gameState.totalPoints || 0
+      }, '*');
+    }, 300);
+  } catch(e) {
+    console.error('宠物系统打开失败:', e);
+    alert('宠物系统打开失败: ' + e.message);
+  }
 }
 
 function closePetModal() {
@@ -4167,14 +4193,30 @@ function bpUnequip52(equipId) {
 }
 
 function showBackpack() {
-  initInventory52();
-  loadEquippedState52();
-  updateCharPanel52();
-  updateRarityCounts52();
-  renderInventoryGrid52();
-  updateEquippedSlots52();
-  renderBpPetSlots(); // 宠物出战区块
-  document.getElementById('backpackOverlay').classList.add('show');
+  console.log('showBackpack 被调用');
+  try {
+    initInventory52();
+    console.log('initInventory52 完成');
+    loadEquippedState52();
+    console.log('loadEquippedState52 完成');
+    updateCharPanel52();
+    console.log('updateCharPanel52 完成');
+    updateRarityCounts52();
+    console.log('updateRarityCounts52 完成');
+    renderInventoryGrid52();
+    console.log('renderInventoryGrid52 完成');
+    updateEquippedSlots52();
+    console.log('updateEquippedSlots52 完成');
+    renderBpPetSlots(); // 宠物出战区块
+    console.log('renderBpPetSlots 完成');
+    const overlay = document.getElementById('backpackOverlay');
+    console.log('找到背包弹窗:', overlay);
+    overlay.classList.add('show');
+    console.log('已添加 show 类');
+  } catch(e) {
+    console.error('背包打开失败:', e);
+    alert('背包打开失败: ' + e.message);
+  }
 }
 
 function closeBackpack() {
@@ -4374,8 +4416,18 @@ function renderAchievementGrid() {
 }
 
 function showAchievements() {
-  renderAchievementGrid();
-  document.getElementById('achievementOverlay').classList.add('show');
+  console.log('showAchievements 被调用');
+  try {
+    renderAchievementGrid();
+    console.log('renderAchievementGrid 完成');
+    const overlay = document.getElementById('achievementOverlay');
+    console.log('找到成就弹窗:', overlay);
+    overlay.classList.add('show');
+    console.log('已添加 show 类');
+  } catch(e) {
+    console.error('成就打开失败:', e);
+    alert('成就打开失败: ' + e.message);
+  }
 }
 
 function closeAchievements() {
