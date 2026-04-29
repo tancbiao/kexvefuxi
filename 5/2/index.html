@@ -4039,6 +4039,16 @@ function showBpPetDetail(petId) {
     return `<div class="bp-pet-talent-row"><span class="talent-name">✦ ${name}</span><span class="talent-val">+${val}</span></div>`;
   }).join('');
 
+  // 动态创建弹窗（避免静态元素遮挡屏幕）
+  let overlay = document.getElementById('bpPetDetailOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'bpPetDetailOverlay';
+    overlay.className = 'bp-detail-overlay';
+    overlay.onclick = function(e) { if (e.target === overlay) closeBpPetDetail(); };
+    overlay.innerHTML = '<div class="bp-detail-card" id="bpPetDetailCard"></div>';
+    document.body.appendChild(overlay);
+  }
   document.getElementById('bpPetDetailCard').innerHTML = `
     <div class="bp-pet-detail-header">
       <div class="bp-pet-detail-emoji">${petData.emoji}</div>
@@ -4052,11 +4062,12 @@ function showBpPetDetail(petId) {
       ${talentRows || '<div style="color:#555;font-size:0.8em;text-align:center;">无词条</div>'}
     </div>
     <div style="font-size:0.75em;color:#555;text-align:center;margin-top:4px;">点击外部关闭 · 查看完整详情请前往宠物系统</div>`;
-  document.getElementById('bpPetDetailOverlay').classList.add('show');
+  overlay.classList.add('show');
 }
 
 function closeBpPetDetail() {
-  document.getElementById('bpPetDetailOverlay').classList.remove('show');
+  const overlay = document.getElementById('bpPetDetailOverlay');
+  if (overlay) overlay.classList.remove('show');
 }
 
 // 打开宠物系统（跳转到pet-system.html）
