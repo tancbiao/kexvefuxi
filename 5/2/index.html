@@ -270,22 +270,47 @@
 
   /* ========== 角色装备穿戴区（五年级） ========== */
   .bp-equipped-section {
-    margin-top: 12px;
-    padding-top: 12px;
+    margin-top: 10px;
+    padding-top: 10px;
     border-top: 1px solid rgba(255,255,255,0.1);
   }
   .bp-equipped-title {
-    font-size: 0.8em;
+    font-size: 0.75em;
     color: #ffd700;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     text-align: center;
     font-weight: bold;
   }
   .bp-equipped-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
   }
+  .bp-slot-box.treasure-slot {
+    grid-column: span 4;
+    flex-direction: row;
+    gap: 12px;
+    padding: 6px 10px;
+    justify-content: center;
+  }
+  .bp-treasure-subs {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .bp-treasure-sub {
+    font-size: 1.4em;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.1);
+    transition: border-color 0.2s;
+  }
+  .bp-treasure-sub:hover { border-color: rgba(255,215,0,0.4); }
   .bp-slot-box {
     background: rgba(0,0,0,0.4);
     border: 2px solid rgba(255,255,255,0.1);
@@ -3042,11 +3067,21 @@ function updateCharPanel52() {
   if (equippedList) {
     let html = '';
     for (const slot in bpEquippedSlots52) {
-      const idx = bpEquippedSlots52[slot];
-      if (idx !== null && gameState.equipment && gameState.equipment[idx]) {
-        const e = gameState.equipment[idx];
-        const color = getRarityColor52(e);
-        html += `<div onclick="showEquipDetail52(gameState.equipment[${idx}],${idx})" title="${e.name || '装备'}" style="cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.06);border-radius:6px;border:1px solid ${color}40;font-size:1.1em;">${e.icon || '📦'}</div>`;
+      if (slot === 'treasure') {
+        for (const idx of bpEquippedSlots52.treasure) {
+          if (idx !== null && gameState.equipment && gameState.equipment[idx]) {
+            const e = gameState.equipment[idx];
+            const color = getRarityColor52(e);
+            html += `<div onclick="showEquipDetail52(gameState.equipment[${idx}],${idx})" title="${e.name || '宝物'}" style="cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.06);border-radius:6px;border:1px solid ${color}40;font-size:1.1em;">${e.icon || '📦'}</div>`;
+          }
+        }
+      } else {
+        const idx = bpEquippedSlots52[slot];
+        if (idx !== null && gameState.equipment && gameState.equipment[idx]) {
+          const e = gameState.equipment[idx];
+          const color = getRarityColor52(e);
+          html += `<div onclick="showEquipDetail52(gameState.equipment[${idx}],${idx})" title="${e.name || '装备'}" style="cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.06);border-radius:6px;border:1px solid ${color}40;font-size:1.1em;">${e.icon || '📦'}</div>`;
+        }
       }
     }
     equippedList.innerHTML = html;
@@ -3058,16 +3093,114 @@ function updateCharPanel52() {
 }
 
 // ========== 五年级装备穿戴系统 ==========
-const bpEquippedSlots52 = { hat: null, top: null, bottom: null, other: null };
+// 每种类型可装备一件；宝物可装备2件
+const bpEquippedSlots52 = {
+  weapon: null, hat: null, top: null, bottom: null,
+  glove: null, cape: null, shield: null, shoes: null,
+  face: null, eyes: null,
+  treasure: [null, null]  // 科学宝物：2个槽位
+};
+
+// 装备名称关键字 -> 槽位类型映射
+const SLOT_MAP_52 = {
+  weapon:   ['weapon','武器','剑','弓','杖','魔杖','短剑','长矛','矛','刀'],
+  hat:      ['hat','帽','冠','盔','头'],
+  top:      ['top','衣','服','衫','袍','连衣裙'],   // 包含连衣裙
+  bottom:   ['bottom','裤','裙','下装'],
+  glove:    ['glove','手套','护手','手'],
+  cape:     ['cape','披风','斗篷'],
+  shield:   ['shield','盾牌','魔法盾','护盾'],
+  shoes:    ['shoes','鞋','靴','鞋子'],
+  face:     ['face','脸饰','面具'],
+  eyes:     ['eyes','眼饰','眼罩','隐形眼镜','眼镜'],
+  treasure: ['宝物','科学']
+};
 
 function getEquipSlotType52(equip) {
-  if (!equip) return 'other';
-  const slot = (equip.slot || equip.type || 'other').toLowerCase();
-  if (slot.includes('hat') || slot.includes('帽') || slot.includes('冠') || slot.includes('盔')) return 'hat';
-  if (slot.includes('top') || slot.includes('衣') || slot.includes('服') || slot.includes('衫')) return 'top';
-  if (slot.includes('bottom') || slot.includes('裤') || slot.includes('裙') || slot.includes('下装')) return 'bottom';
-  return 'other';
+  if (!equip) return null;
+  const s = (equip.slot || equip.type || '').toLowerCase();
+  for (const [type, keywords] of Object.entries(SLOT_MAP_52)) {
+    if (keywords.some(k => s.includes(k))) return type;
+  }
+  return null;  // 未识别类型，不允许穿戴
 }
+
+// 判断某件装备是否是连衣裙（特殊：会占 top，且阻止 bottom 穿戴）
+function isDressEquip52(equip) {
+  if (!equip) return false;
+  const s = (equip.slot || equip.type || '').toLowerCase();
+  return s.includes('连衣裙') || (s.includes('衣') && s.includes('裙'));
+}
+
+// 获取某类型槽当前已穿戴的装备idx（treasure返回数组索引，其他返回idx）
+function getEquippedIdx52(slotType) {
+  if (slotType === 'treasure') return null;  // 特殊处理见下
+  return bpEquippedSlots52[slotType];
+}
+
+// 装备一件装备（自动分配到正确槽位）
+function equipToSlot52(idx) {
+  const e = gameState.equipment[idx];
+  if (!e) return false;
+  const slotType = getEquipSlotType52(e);
+  if (!slotType) return false;  // 无法识别的装备类型，不允许穿戴
+
+  if (slotType === 'treasure') {
+    // 科学宝物：找空位
+    if (bpEquippedSlots52.treasure[0] === null) {
+      bpEquippedSlots52.treasure[0] = idx;
+    } else if (bpEquippedSlots52.treasure[1] === null) {
+      bpEquippedSlots52.treasure[1] = idx;
+    } else {
+      return false;  // 宝物槽满了
+    }
+  } else {
+    // 连衣裙特殊逻辑：穿连衣裙时清空下装
+    if (isDressEquip52(e)) {
+      bpEquippedSlots52.bottom = null;
+    }
+    // 下装特殊逻辑：穿下装时，如果是连衣裙占了top则清空top
+    const topIdx = bpEquippedSlots52.top;
+    if (topIdx !== null) {
+      const topEquip = gameState.equipment[topIdx];
+      if (isDressEquip52(topEquip)) {
+        bpEquippedSlots52.top = null;
+      }
+    }
+    bpEquippedSlots52[slotType] = idx;
+  }
+  return true;
+}
+
+// 卸下一件装备（知道其idx）
+function unequipFromSlot52(idx) {
+  for (const [type, val] of Object.entries(bpEquippedSlots52)) {
+    if (type === 'treasure') {
+      if (val[0] === idx) { bpEquippedSlots52.treasure[0] = null; return true; }
+      if (val[1] === idx) { bpEquippedSlots52.treasure[1] = null; return true; }
+    } else {
+      if (val === idx) { bpEquippedSlots52[type] = null; return true; }
+    }
+  }
+  return false;
+}
+
+// 某idx是否已穿戴
+function isEquippedIdx52(idx) {
+  if (bpEquippedSlots52.treasure.includes(idx)) return true;
+  return Object.values(bpEquippedSlots52).slice(0, -1).includes(idx);
+}
+
+// 槽位标签（中英双语）
+const SLOT_LABELS_52 = {
+  weapon: '⚔️ 武器', hat: '🎩 帽子', top: '👕 上衣', bottom: '👖 下衣',
+  glove: '🧤 手套', cape: '🧣 披风', shield: '🛡️ 盾牌', shoes: '👟 鞋子',
+  face: '🎭 脸饰', eyes: '👁️ 眼饰',
+  treasure: ['🔬 科学宝物 1', '🔬 科学宝物 2']
+};
+
+// 槽位列表（决定显示顺序）
+const SLOT_ORDER_52 = ['weapon','hat','top','bottom','glove','cape','shield','shoes','face','eyes','treasure'];
 
 function saveEquippedState52() {
   const userId = gameState.studentId || 'guest';
@@ -3081,9 +3214,22 @@ function loadEquippedState52() {
     try {
       const state = JSON.parse(saved);
       for (const slot in state) {
-        const idx = state[slot];
-        if (idx !== null && (!gameState.equipment[idx] || gameState.equipment[idx] === null)) {
-          state[slot] = null;
+        if (slot === 'treasure') {
+          // treasure 是数组，验证每个元素
+          state.treasure = [null, null];
+          if (Array.isArray(state.treasure)) {
+            for (let t = 0; t < 2; t++) {
+              const idx = state.treasure[t];
+              if (idx !== null && gameState.equipment[idx]) {
+                state.treasure[t] = idx;
+              }
+            }
+          }
+        } else {
+          const idx = state[slot];
+          if (idx !== null && (!gameState.equipment[idx] || gameState.equipment[idx] === null)) {
+            state[slot] = null;
+          }
         }
       }
       Object.assign(bpEquippedSlots52, state);
@@ -3093,16 +3239,22 @@ function loadEquippedState52() {
 
 function calcEquippedBonus52() {
   const bonus = { str: 0, dex: 0, int: 0, hp: 0, mp: 0, pointMul: 1 };
+  const addBonus = (idx) => {
+    if (idx === null || !gameState.equipment[idx]) return;
+    const e = gameState.equipment[idx];
+    bonus.str += e.str || 0;
+    bonus.dex += e.dex || 0;
+    bonus.int += e.int || 0;
+    bonus.hp += e.hpBonus || 0;
+    bonus.mp += e.mpBonus || 0;
+    if (e.multiplier) bonus.pointMul += (e.multiplier >= 2 ? e.multiplier - 1 : e.multiplier - 1);
+  };
   for (const slot in bpEquippedSlots52) {
-    const idx = bpEquippedSlots52[slot];
-    if (idx !== null && gameState.equipment[idx]) {
-      const e = gameState.equipment[idx];
-      bonus.str += e.str || 0;
-      bonus.dex += e.dex || 0;
-      bonus.int += e.int || 0;
-      bonus.hp += e.hpBonus || 0;
-      bonus.mp += e.mpBonus || 0;
-      if (e.multiplier) bonus.pointMul += (e.multiplier >= 2 ? e.multiplier - 1 : e.multiplier - 1);
+    if (slot === 'treasure') {
+      addBonus(bpEquippedSlots52.treasure[0]);
+      addBonus(bpEquippedSlots52.treasure[1]);
+    } else {
+      addBonus(bpEquippedSlots52[slot]);
     }
   }
   return bonus;
@@ -3112,7 +3264,10 @@ function updateTotalBonusBar52() {
   const bar = document.getElementById('bpTotalBonusBar');
   if (!bar) return;
   const bonus = calcEquippedBonus52();
-  const hasEquip = Object.values(bpEquippedSlots52).some(v => v !== null);
+  const hasEquip = Object.keys(bpEquippedSlots52).some(slot => {
+    if (slot === 'treasure') return bpEquippedSlots52.treasure.some(v => v !== null);
+    return bpEquippedSlots52[slot] !== null;
+  });
   if (!hasEquip) {
     bar.innerHTML = `<div class="bp-total-bonus-title">✨ 已穿戴装备加成</div><div class="bp-total-bonus-empty">尚未穿戴任何装备</div>`;
     return;
@@ -3128,76 +3283,136 @@ function updateTotalBonusBar52() {
 }
 
 function updateEquippedSlots52() {
-  const slotLabels = { hat: '🎩 帽子', top: '👕 上衣', bottom: '👖 下衣', other: '🎒 其他' };
-  for (const slot in bpEquippedSlots52) {
+  for (const slot of SLOT_ORDER_52) {
     const box = document.querySelector(`.bp-slot-box[data-slot="${slot}"]`);
     if (!box) continue;
-    const idx = bpEquippedSlots52[slot];
     const iconEl = box.querySelector('.bp-slot-icon');
     const nameEl = box.querySelector('.bp-slot-name');
-    if (idx !== null && gameState.equipment[idx]) {
-      const e = gameState.equipment[idx];
-      const color = e.rarityColor || '#ffd700';
-      box.classList.add('equipped');
-      iconEl.innerHTML = e.icon || '📦';
-      iconEl.style.color = color;
-      nameEl.textContent = e.name || '';
-      nameEl.style.color = color;
+    if (slot === 'treasure') {
+      // 科学宝物槽：显示 2 个子格
+      const subSlots = box.querySelectorAll('.bp-treasure-sub');
+      const treasures = bpEquippedSlots52.treasure;
+      for (let t = 0; t < 2; t++) {
+        const sub = subSlots[t];
+        if (!sub) continue;
+        const idx = treasures[t];
+        if (idx !== null && gameState.equipment[idx]) {
+          const e = gameState.equipment[idx];
+          sub.textContent = e.icon || '📦';
+          sub.style.color = e.rarityColor || '#ffd700';
+          sub.title = e.name;
+        } else {
+          sub.textContent = '空';
+          sub.style.color = 'rgba(255,255,255,0.2)';
+          sub.title = '';
+        }
+      }
+      const hasAny = treasures[0] !== null || treasures[1] !== null;
+      box.classList.toggle('equipped', hasAny);
+      // 宝物总数
+      const count = treasures.filter(i => i !== null).length;
+      nameEl.textContent = count > 0 ? `${count}/2` : '';
+      nameEl.style.color = count > 0 ? '#ffd700' : '#aaa';
     } else {
-      box.classList.remove('equipped');
-      iconEl.innerHTML = '空';
-      iconEl.className = 'bp-slot-icon bp-slot-empty';
-      nameEl.textContent = '';
+      const idx = bpEquippedSlots52[slot];
+      if (idx !== null && gameState.equipment[idx]) {
+        const e = gameState.equipment[idx];
+        const color = e.rarityColor || '#ffd700';
+        box.classList.add('equipped');
+        iconEl.innerHTML = `<span style="color:${color}">${e.icon || '📦'}</span>`;
+        nameEl.textContent = e.name || '';
+        nameEl.style.color = color;
+      } else {
+        box.classList.remove('equipped');
+        iconEl.innerHTML = '<span class="bp-slot-empty">空</span>';
+        nameEl.textContent = '';
+        nameEl.style.color = '#aaa';
+      }
     }
   }
   updateTotalBonusBar52();
 }
 
 function openEquipSelector52(slotType) {
-  const slotLabels = { hat: '🎩 帽子', top: '👕 上衣', bottom: '👖 下衣', other: '🎒 其他' };
-  const equips = gameState.equipment.map((e, i) => ({ equip: e, idx: i }))
-    .filter(item => {
-      if (!item.equip) return false;
-      const type = getEquipSlotType52(item.equip);
-      return type === slotType;
-    })
-    .sort((a, b) => (b.equip.rarity || 1) - (a.equip.rarity || 1));
-
-  const equippedIdx = bpEquippedSlots52[slotType];
+  const label = Array.isArray(SLOT_LABELS_52[slotType]) ? SLOT_LABELS_52[slotType][0] : SLOT_LABELS_52[slotType] || slotType;
   let html = `<div class="bp-detail-overlay" onclick="closeEquipSelector52(event)">
     <div class="bp-detail-card" style="border-color:#ffd700;max-height:80vh;overflow-y:auto;" onclick="event.stopPropagation()">
-      <div class="bp-detail-name" style="color:#ffd700">选择${slotLabels[slotType]}</div>
+      <div class="bp-detail-name" style="color:#ffd700">选择${label}</div>
       <div class="bp-detail-type">点击装备进行穿戴</div>`;
 
-  if (equippedIdx !== null) {
-    html += `<button class="bp-detail-btn bp-detail-unequip" style="margin-bottom:12px;" onclick="unequipBySlot52('${slotType}')">卸下当前装备</button>`;
-  }
-  if (equippedIdx !== null && gameState.equipment[equippedIdx]) {
-    const e = gameState.equipment[equippedIdx];
-    html += `<div style="border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px;margin-bottom:10px;opacity:0.6;">
-      <div style="font-size:0.8em;color:#666;">当前穿戴</div>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:1.5em;">${e.icon || '📦'}</span>
-        <span style="color:${e.rarityColor || '#fff'}">${e.name}</span>
-      </div>
-    </div>`;
-  }
-  if (equips.length === 0) {
-    html += `<div style="text-align:center;color:#666;padding:20px;">背包中没有${slotLabels[slotType]}类装备</div>`;
+  if (slotType === 'treasure') {
+    // 科学宝物：分 2 个子槽显示
+    const treasures = bpEquippedSlots52.treasure;
+    for (let t = 0; t < 2; t++) {
+      const subLabel = SLOT_LABELS_52.treasure[t];
+      const idx = treasures[t];
+      const curEquip = idx !== null ? gameState.equipment[idx] : null;
+      if (curEquip) {
+        html += `<div style="border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 10px;margin-bottom:6px;opacity:0.7;display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:1.3em;">${curEquip.icon || '📦'}</span>
+            <span style="color:${curEquip.rarityColor || '#fff'}">${curEquip.name}</span>
+          </div>
+          <button class="bp-detail-btn bp-detail-unequip" onclick="unequipTreasureSlot52(${t})">卸下</button>
+        </div>`;
+      } else {
+        html += `<div style="border:1px dashed rgba(255,255,255,0.15);border-radius:8px;padding:8px 10px;margin-bottom:6px;text-align:center;color:#555;">${subLabel}（空）</div>`;
+      }
+    }
+    // 显示背包中的科学宝物
+    const allTreasures = gameState.equipment.map((e, i) => ({ equip: e, idx: i }))
+      .filter(item => item.equip && getEquipSlotType52(item.equip) === 'treasure')
+      .sort((a, b) => (b.equip.rarity || 1) - (a.equip.rarity || 1));
+    if (allTreasures.length === 0) {
+      html += `<div style="text-align:center;color:#666;padding:16px;">背包中没有科学宝物</div>`;
+    } else {
+      html += `<div style="margin-top:6px;font-size:0.75em;color:#888;margin-bottom:6px;">选择装备到空槽位：</div>`;
+      html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(75px,1fr));gap:8px;">`;
+      allTreasures.forEach(item => {
+        const e = item.equip;
+        const color = e.rarityColor || '#9e9e9e';
+        const alreadyEquipped = treasures.includes(item.idx);
+        html += `<div class="inventory-slot ${alreadyEquipped ? 'equipped' : ''}"
+          style="border-color:${color}40;padding:8px;cursor:pointer;${alreadyEquipped ? 'background:rgba(255,215,0,0.15);' : ''}"
+          onclick="bpEquipTreasure52(${item.idx});closeEquipSelector52();">
+          <div style="font-size:1.4em;">${e.icon || '📦'}</div>
+          <div style="font-size:0.58em;color:${color};text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${e.name}</div>
+        </div>`;
+      });
+      html += `</div>`;
+    }
   } else {
-    html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px;margin-top:10px;">`;
-    equips.forEach(item => {
-      const e = item.equip;
-      const color = e.rarityColor || '#9e9e9e';
-      const isEquipped = item.idx === equippedIdx;
-      html += `<div class="inventory-slot ${isEquipped ? 'equipped' : ''}"
-        style="border-color:${color}40;padding:8px;cursor:pointer;${isEquipped ? 'background:rgba(255,215,0,0.15);' : ''}"
-        onclick="bpEquipByIdx52(${item.idx});closeEquipSelector52();">
-        <div style="font-size:1.5em;">${e.icon || '📦'}</div>
-        <div style="font-size:0.6em;color:${color};text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${e.name}</div>
+    const equips = gameState.equipment.map((e, i) => ({ equip: e, idx: i }))
+      .filter(item => item.equip && getEquipSlotType52(item.equip) === slotType)
+      .sort((a, b) => (b.equip.rarity || 1) - (a.equip.rarity || 1));
+    const equippedIdx = bpEquippedSlots52[slotType];
+    if (equippedIdx !== null && gameState.equipment[equippedIdx]) {
+      const e = gameState.equipment[equippedIdx];
+      html += `<div style="border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 10px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:1.3em;">${e.icon || '📦'}</span>
+          <span style="color:${e.rarityColor || '#fff'}">${e.name}</span>
+        </div>
+        <button class="bp-detail-btn bp-detail-unequip" onclick="unequipBySlot52('${slotType}')">卸下</button>
       </div>`;
-    });
-    html += `</div>`;
+    }
+    if (equips.length === 0) {
+      html += `<div style="text-align:center;color:#666;padding:20px;">背包中没有${label}类装备</div>`;
+    } else {
+      html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(75px,1fr));gap:8px;margin-top:8px;">`;
+      equips.forEach(item => {
+        const e = item.equip;
+        const color = e.rarityColor || '#9e9e9e';
+        const isEquipped = item.idx === equippedIdx;
+        html += `<div class="inventory-slot ${isEquipped ? 'equipped' : ''}"
+          style="border-color:${color}40;padding:8px;cursor:pointer;${isEquipped ? 'background:rgba(255,215,0,0.15);' : ''}"
+          onclick="bpEquipByIdx52(${item.idx});closeEquipSelector52();">
+          <div style="font-size:1.4em;">${e.icon || '📦'}</div>
+          <div style="font-size:0.58em;color:${color};text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${e.name}</div>
+        </div>`;
+      });
+      html += `</div>`;
+    }
   }
   html += `<button class="bp-detail-close-btn" onclick="closeEquipSelector52()" style="margin-top:12px;">关闭</button></div></div>`;
   document.getElementById('bpDetailContainer').innerHTML = html;
@@ -3208,7 +3423,9 @@ function closeEquipSelector52(e) {
   document.getElementById('bpDetailContainer').innerHTML = '';
 }
 
+// 卸下指定槽位的装备（普通槽）
 function unequipBySlot52(slotType) {
+  if (slotType === 'treasure') return;
   bpEquippedSlots52[slotType] = null;
   saveEquippedState52();
   closeEquipSelector52();
@@ -3217,28 +3434,56 @@ function unequipBySlot52(slotType) {
   updateEquippedSlots52();
 }
 
+// 穿装备（装备 idx，自动分配到正确槽位，含连衣裙↔下装互斥）
 function bpEquipByIdx52(idx) {
   const e = gameState.equipment[idx];
   if (!e) return;
   const slotType = getEquipSlotType52(e);
-  bpEquippedSlots52[slotType] = idx;
+  if (!slotType) return;
+  equipToSlot52(idx);
   saveEquippedState52();
   updateCharPanel52();
   renderInventoryGrid52();
   updateEquippedSlots52();
 }
 
+// 卸下指定 idx 的装备
 function bpUnequipByIdx52(idx) {
-  const e = gameState.equipment[idx];
-  if (!e) return;
-  const slotType = getEquipSlotType52(e);
-  if (bpEquippedSlots52[slotType] === idx) {
-    bpEquippedSlots52[slotType] = null;
+  if (unequipFromSlot52(idx)) {
     saveEquippedState52();
     updateCharPanel52();
     renderInventoryGrid52();
     updateEquippedSlots52();
   }
+}
+
+// 装备科学宝物到第一个空槽
+function bpEquipTreasure52(idx) {
+  const e = gameState.equipment[idx];
+  if (!e || getEquipSlotType52(e) !== 'treasure') return;
+  // 如果已经穿戴则先卸下
+  unequipFromSlot52(idx);
+  if (bpEquippedSlots52.treasure[0] === null) {
+    bpEquippedSlots52.treasure[0] = idx;
+  } else if (bpEquippedSlots52.treasure[1] === null) {
+    bpEquippedSlots52.treasure[1] = idx;
+  } else {
+    return; // 满了，替换第一个？暂时不替换
+  }
+  saveEquippedState52();
+  updateCharPanel52();
+  renderInventoryGrid52();
+  updateEquippedSlots52();
+}
+
+// 卸下科学宝物指定子槽
+function unequipTreasureSlot52(subIdx) {
+  bpEquippedSlots52.treasure[subIdx] = null;
+  saveEquippedState52();
+  closeEquipSelector52();
+  updateCharPanel52();
+  renderInventoryGrid52();
+  updateEquippedSlots52();
 }
 
 // 更新稀有度统计
@@ -3269,7 +3514,7 @@ function renderInventoryGrid52() {
     slot.className = 'inventory-slot';
     const item = inv[i];
     if (item) {
-      const isEquipped = Object.values(bpEquippedSlots52).includes(i);
+      const isEquipped = isEquippedIdx52(i);
       if (isEquipped) {
         slot.style.background = 'rgba(255,215,0,0.15)';
         slot.style.borderColor = 'rgba(255,215,0,0.6)';
@@ -3301,7 +3546,7 @@ function showEquipDetail52(item, idx) {
   const container = document.getElementById('bpDetailContainer');
   const RARITY_NAMES = ['common','exquisite','good','rare','epic','legendary','mythic'];
   const rKey = RARITY_NAMES[item.rarity - 1] || 'common';
-  const isEquipped = Object.values(bpEquippedSlots52).includes(idx);
+  const isEquipped = isEquippedIdx52(idx);
   const affixHtml = item.affixes && item.affixes.length > 0
     ? '<div style="margin-top:8px;font-size:0.75em;color:#888;">' + item.affixes.map(a => '<span style="color:'+a.color+'">✦ '+a.effect+'</span>').join(' · ') + '</div>'
     : '';
@@ -3380,12 +3625,22 @@ function bpExport52() {
 function bpClear52() {
   if (!confirm('确定清空所有装备？此操作不可恢复！')) return;
   gameState.equipment = new Array(100).fill(null);
-  // 重置已穿戴
-  Object.keys(equipped).forEach(k => { equipped[k] = null; });
-  renderEquipItems();
+  // 重置已穿戴（new 11-type 系统）
+  bpEquippedSlots52.weapon = null;
+  bpEquippedSlots52.hat = null;
+  bpEquippedSlots52.top = null;
+  bpEquippedSlots52.bottom = null;
+  bpEquippedSlots52.glove = null;
+  bpEquippedSlots52.cape = null;
+  bpEquippedSlots52.shield = null;
+  bpEquippedSlots52.shoes = null;
+  bpEquippedSlots52.face = null;
+  bpEquippedSlots52.eyes = null;
+  bpEquippedSlots52.treasure = [null, null];
   renderInventoryGrid52();
   updateRarityCounts52();
   updateCharPanel52();
+  updateEquippedSlots52();
 }
 
 // 兼容旧的 bpEquip52 / bpUnequip52（保留给冒险岛换装面板点击用）
@@ -3758,24 +4013,66 @@ document.addEventListener('touchend', () => { isDragging = false; });
     <div class="bp-equipped-section">
       <div class="bp-equipped-title">🎽 角色装备</div>
       <div class="bp-equipped-grid" id="bpEquippedGrid">
+        <!-- 第一行 -->
+        <div class="bp-slot-box" data-slot="weapon" onclick="openEquipSelector52('weapon')">
+          <div class="bp-slot-label">⚔️ 武器</div>
+          <div class="bp-slot-icon"><span class="bp-slot-empty">空</span></div>
+          <div class="bp-slot-name"></div>
+        </div>
         <div class="bp-slot-box" data-slot="hat" onclick="openEquipSelector52('hat')">
           <div class="bp-slot-label">🎩 帽子</div>
-          <div class="bp-slot-icon bp-slot-empty">空</div>
+          <div class="bp-slot-icon"><span class="bp-slot-empty">空</span></div>
           <div class="bp-slot-name"></div>
         </div>
         <div class="bp-slot-box" data-slot="top" onclick="openEquipSelector52('top')">
           <div class="bp-slot-label">👕 上衣</div>
-          <div class="bp-slot-icon bp-slot-empty">空</div>
+          <div class="bp-slot-icon"><span class="bp-slot-empty">空</span></div>
           <div class="bp-slot-name"></div>
         </div>
         <div class="bp-slot-box" data-slot="bottom" onclick="openEquipSelector52('bottom')">
           <div class="bp-slot-label">👖 下衣</div>
-          <div class="bp-slot-icon bp-slot-empty">空</div>
+          <div class="bp-slot-icon"><span class="bp-slot-empty">空</span></div>
           <div class="bp-slot-name"></div>
         </div>
-        <div class="bp-slot-box" data-slot="other" onclick="openEquipSelector52('other')">
-          <div class="bp-slot-label">🎒 其他</div>
-          <div class="bp-slot-icon bp-slot-empty">空</div>
+        <!-- 第二行 -->
+        <div class="bp-slot-box" data-slot="glove" onclick="openEquipSelector52('glove')">
+          <div class="bp-slot-label">🧤 手套</div>
+          <div class="bp-slot-icon"><span class="bp-slot-empty">空</span></div>
+          <div class="bp-slot-name"></div>
+        </div>
+        <div class="bp-slot-box" data-slot="cape" onclick="openEquipSelector52('cape')">
+          <div class="bp-slot-label">🧣 披风</div>
+          <div class="bp-slot-icon"><span class="bp-slot-empty">空</span></div>
+          <div class="bp-slot-name"></div>
+        </div>
+        <div class="bp-slot-box" data-slot="shield" onclick="openEquipSelector52('shield')">
+          <div class="bp-slot-label">🛡️ 盾牌</div>
+          <div class="bp-slot-icon"><span class="bp-slot-empty">空</span></div>
+          <div class="bp-slot-name"></div>
+        </div>
+        <div class="bp-slot-box" data-slot="shoes" onclick="openEquipSelector52('shoes')">
+          <div class="bp-slot-label">👟 鞋子</div>
+          <div class="bp-slot-icon"><span class="bp-slot-empty">空</span></div>
+          <div class="bp-slot-name"></div>
+        </div>
+        <!-- 第三行 -->
+        <div class="bp-slot-box" data-slot="face" onclick="openEquipSelector52('face')">
+          <div class="bp-slot-label">🎭 脸饰</div>
+          <div class="bp-slot-icon"><span class="bp-slot-empty">空</span></div>
+          <div class="bp-slot-name"></div>
+        </div>
+        <div class="bp-slot-box" data-slot="eyes" onclick="openEquipSelector52('eyes')">
+          <div class="bp-slot-label">👁️ 眼饰</div>
+          <div class="bp-slot-icon"><span class="bp-slot-empty">空</span></div>
+          <div class="bp-slot-name"></div>
+        </div>
+        <!-- 第四行：科学宝物（双槽） -->
+        <div class="bp-slot-box treasure-slot" data-slot="treasure" onclick="openEquipSelector52('treasure')">
+          <div class="bp-slot-label">🔬 科学宝物</div>
+          <div class="bp-treasure-subs">
+            <div class="bp-treasure-sub" title="宝物1">空</div>
+            <div class="bp-treasure-sub" title="宝物2">空</div>
+          </div>
           <div class="bp-slot-name"></div>
         </div>
       </div>
