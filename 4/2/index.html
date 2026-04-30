@@ -2071,6 +2071,8 @@ async function loadFromCloud(studentId) {
 
 function saveUserData() {
   const saveKey = 'scienceGame_user_' + (gameState.studentId || 'guest');
+  // 读取当前账号隔离的宠物存档
+  const petState = getPetSystemState();
   const data = {
     studentId: gameState.studentId,
     isGuest: gameState.isGuest,
@@ -2085,6 +2087,8 @@ function saveUserData() {
     // 防沉迷体力
     dailyStamina: gameState.dailyStamina,
     lastStaminaDate: gameState.lastStaminaDate,
+    // 宠物数据
+    petSystem: petState,
     lastUpdated: Date.now()
   };
   localStorage.setItem(saveKey, JSON.stringify(data));
@@ -2593,6 +2597,32 @@ function practiceWrongQuestions() {
 }
 
 
+// ========== 宠物系统账号隔离（必须在 applyUserData 之前定义）==========
+const PETSYS_STORE_KEY = 'petSystemStateV2';
+
+function getPetSystemState() {
+  try {
+    const studentId = gameState.studentId;
+    if (!studentId || gameState.isGuest) return null;
+    const key = 'petSystemStateV2_' + studentId;
+    let raw = localStorage.getItem(key);
+    if (!raw) {
+      const oldRaw = localStorage.getItem(PETSYS_STORE_KEY);
+      if (oldRaw) { localStorage.setItem(key, oldRaw); raw = oldRaw; }
+    }
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+
+function savePetSystemState(state) {
+  try {
+    const studentId = gameState.studentId;
+    if (!studentId || gameState.isGuest) return;
+    const key = 'petSystemStateV2_' + studentId;
+    localStorage.setItem(key, JSON.stringify(state));
+  } catch(e) {}
+}
+
 function mergeUserData(localData, cloudData) {
   if (!cloudData) return localData;
   if (!localData) return cloudData;
@@ -2614,6 +2644,11 @@ function mergeUserData(localData, cloudData) {
     [...(localData.wrongQuestions || []), ...(cloudData.wrongQuestions || [])].forEach(wq => { wqMap[wq.question + '|' + wq.correctAnswer] = wq; });
     merged.wrongQuestions = Object.values(wqMap);
   }
+  // 宠物数据：以时间戳最新的为准
+  const localPetTs = localData.petSystem && localData.petSystem.lastUpdated || 0;
+  const cloudPetTs = cloudData.petSystem && cloudData.petSystem.lastUpdated || 0;
+  if (cloudPetTs > localPetTs) { merged.petSystem = cloudData.petSystem; }
+  else if (localData.petSystem) { merged.petSystem = localData.petSystem; }
   return merged;
 }
 
@@ -2665,11 +2700,37 @@ function applyUserData(data) {
   renderAchievementPreview();
   // 恢复装备槽（从隔离的 localStorage 键读入，防止云端存档覆盖内存状态）
   loadEquippedState42();
+  // 恢复宠物数据
+  if (data.petSystem) savePetSystemState(data.petSystem);
   updateUserBadge();
   updateStatusBar();
   saveUserData();
 }
 const RARITY_COLORS42 = ['#9e9e9e','#4caf50','#2196f3','#9c27b0','#e91e63','#ffd700','#ff5722'];
+const RARITY_NAMES42 = ['普通','精致','良好','稀有','史诗','传说','神话'];
+
+function getRarityColor42(e) {
+  if (!e) return '#9e9e9e';
+  const r = e.rarity || 1;
+  return RARITY_COLORS42[r - 1] || '#9e9e9e';
+}
+
+const bpEquippedSlots42 = {
+  weapon: null, hat: null, top: null, bottom: null, glove: null,
+  cape: null, shield: null, shoes: null, face: null, eyes: null,
+  treasure: [null, null]
+};
+const SLOT_MAP_42 = {
+  weapon:'weapon', hat:'hat', top:'top', bottom:'bottom',
+  glove:'glove', cape:'cape', shield:'shield', shoes:'shoes',
+  face:'face', eyes:'eyes', treasure:'treasure'
+};
+const SLOT_LABELS_42 = {
+  weapon:'武器', hat:'帽子', top:'上衣', bottom:'裤子',
+  glove:'手套', cape:'披风', shield:'盾牌', shoes:'鞋子',
+  face:'面部', eyes:'眼睛', treasure:'宝物'
+};
+const SLOT_ORDER_42 = ['weapon','hat','top','bottom','glove','cape','shield','shoes','face','eyes','treasure'];
 
 function initInventory42() {
   if (!gameState.equipment) {
@@ -2841,16 +2902,6 @@ function closeBpDetail(e) {
 }
 
 // ========== 装备穿戴系统 ==========
-// 记录已穿戴的装备槽位（装备slot -> 背包数组索引）
-const bpEquippedSlots42 = {
-  weapon: null, hat: null, top: null, bottom: null,
-  glove: null, cape: null, shield: null, shoes: null,
-  face: null, eyes: null,
-  treasure: [null, null]
-};
-
-// 装备类型映射表（子串匹配）
-const SLOT_MAP_42 = {
   weapon:   ['weapon','武器','剑','弓','杖','魔杖','短剑','长矛','矛','刀'],
   hat:      ['hat','帽','冠','盔','头'],
   top:      ['top','衣','服','衫','袍','连衣裙'],
@@ -2957,32 +3008,10 @@ function bpUnequip42(slotIdx) {
 }
 
 // 保存穿戴状态到localStorage
-// 槽位标签映射
-const SLOT_LABELS_42 = {
-  weapon: '⚔️ 武器', hat: '🎩 帽子', top: '👕 上衣', bottom: '👖 下衣',
-  glove: '🧤 手套', cape: '🧣 披风', shield: '🛡️ 盾牌', shoes: '👟 鞋子',
-  face: '🎭 脸饰', eyes: '👁️ 眼饰',
-  treasure: ['🔬 科学宝物 1', '🔬 科学宝物 2']
-};
-
-// 槽位列表（决定显示顺序）
-const SLOT_ORDER_42 = ['weapon','hat','top','bottom','glove','cape','shield','shoes','face','eyes','treasure'];
 
 function saveEquippedState42() {
   const userId = gameState.studentId || 'guest';
   localStorage.setItem('bpEquipped_4_' + userId, JSON.stringify(bpEquippedSlots42));
-}
-
-// 加载穿戴状态
-function loadEquippedState42() {
-  const userId = gameState.studentId || 'guest';
-  const stored = localStorage.getItem('bpEquipped_4_' + userId);
-  if (stored) {
-    try {
-      const parsed = JSON.parse(stored);
-      Object.assign(bpEquippedSlots42, parsed);
-    } catch(e) {}
-  }
 }
 
 // 计算已穿戴装备的总加成
@@ -4100,12 +4129,10 @@ const PETS_DATA = [
   { id: 27, name: '时间龙龟', emoji: '🐢', rarity: 'HR', baseStats: { atk: 70, def: 95, str: 90, agi: 60, int: 85 }, specialStats: { critRate: 20, critDmg: 65, dropRate: 30 }, talents: ['def', 'str', 'hp', 'int', 'critRate', 'dropRate', 'all'] },
   { id: 28, name: '星穹凤凰', emoji: '🌟', rarity: 'HR', baseStats: { atk: 95, def: 65, str: 78, agi: 92, int: 95 }, specialStats: { critRate: 30, critDmg: 88, dropRate: 28 }, talents: ['agi', 'int', 'critRate', 'critDmg', 'atk', 'dropRate', 'all'] }
 ];
-
 function calcPetBattleBonus() {
   try {
-    const petStateStr = localStorage.getItem('petSystemStateV2');
-    if (!petStateStr) return { pointsMul: 1, critChance: 0, critBonus: 0, totalPets: 0, petNames: [] };
-    const petState = JSON.parse(petStateStr);
+    const petState = getPetSystemState();
+    if (!petState) return { pointsMul: 1, critChance: 0, critBonus: 0, totalPets: 0, petNames: [] };
     const battlePets = petState.battlePets || [];
     let totalPointsMul = 1, totalCritChance = 0, totalCritDmg = 0, totalPets = 0, petNames = [];
     battlePets.forEach(petId => {
