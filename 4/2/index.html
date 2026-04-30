@@ -2068,6 +2068,8 @@ async function loadFromCloud(studentId) {
 function saveUserData() {
   const saveKey = 'scienceGame_user_' + (gameState.studentId || 'guest');
   const data = {
+    studentId: gameState.studentId,
+    isGuest: gameState.isGuest,
     totalPoints: gameState.totalPoints,
     unlockedAchievements: gameState.unlockedAchievements,
     unitProgress: gameState.unitProgress,
@@ -2629,6 +2631,8 @@ function loadUserData() {
 }
 
 function applyUserData(data) {
+  gameState.studentId = data.studentId || null;
+  gameState.isGuest = data.isGuest !== undefined ? data.isGuest : true;
   gameState.totalPoints = data.totalPoints || 0;
   gameState.unlockedAchievements = data.unlockedAchievements || [];
   gameState.unitProgress = data.unitProgress || [0, 0, 0, 0];
@@ -2657,6 +2661,8 @@ function applyUserData(data) {
   renderAchievementPreview();
   // 恢复装备槽（从隔离的 localStorage 键读入，防止云端存档覆盖内存状态）
   loadEquippedState42();
+  updateUserBadge();
+  updateStatusBar();
   saveUserData();
 }
 const RARITY_COLORS42 = ['#9e9e9e','#4caf50','#2196f3','#9c27b0','#e91e63','#ffd700','#ff5722'];
