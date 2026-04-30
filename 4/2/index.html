@@ -1309,7 +1309,7 @@
       <p style="color: rgba(255,255,255,0.6); margin: 15px 0; font-size: 0.95em;">
         粤教粤科版 · 四大单元 · 趣味答题 · 成就解锁
       </p>
-      <button class="start-btn" onclick="showLevelSelect()">🚀 开始探险</button>
+      <button class="start-btn" onclick="showLoginScreen()">🚀 开始探险</button>
       <button class="start-btn secondary" onclick="showWrongQuestions()" style="margin-top:12px;background:linear-gradient(135deg,#667eea,#764ba2);"><img src="../../icons/wrong-book.png" class="icon-24"> 错题本</button>
       <button class="start-btn secondary" id="uploadQBtn42" style="margin-top:8px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);font-size:0.85em;padding:8px 18px;border:1px solid rgba(255,255,255,0.1);">📤 上传题库</button>
     </div>
@@ -1410,7 +1410,7 @@
 </div>
 
 <!-- 登录弹窗 -->
-<div class="login-overlay show" id="loginOverlay">
+<div class="login-overlay" id="loginOverlay">
   <div class="login-card">
     <div class="login-title">🎮 欢迎来到科学探险家</div>
     <p style="color:rgba(255,255,255,0.6);margin-bottom:25px;font-size:0.95em;">
@@ -1963,6 +1963,9 @@ function loginWithId() {
   gameState.isGuest = false;
   hideLoginScreen();
   
+  // 登录成功后显示选关卡
+  showLevelSelect();
+  
   // 加载该学号的存档
   loadUserData();
   checkAndResetStamina();
@@ -1978,6 +1981,7 @@ function loginAsGuest() {
   checkAndResetStamina();
   updateStaminaDisplay();
   hideLoginScreen();
+  showLevelSelect();
   updateUserBadge();
 }
 
@@ -3993,10 +3997,6 @@ function init() {
   renderAchievementPreview();
   updateStatusBar();
   updateUserBadge();
-  
-  // 默认显示登录弹窗
-  showLoginScreen();
-  console.log('login screen shown');
 }
 
 // 创建粒子背景
