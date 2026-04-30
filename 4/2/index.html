@@ -2902,19 +2902,6 @@ function closeBpDetail(e) {
 }
 
 // ========== 装备穿戴系统 ==========
-  weapon:   ['weapon','武器','剑','弓','杖','魔杖','短剑','长矛','矛','刀'],
-  hat:      ['hat','帽','冠','盔','头'],
-  top:      ['top','衣','服','衫','袍','连衣裙'],
-  bottom:   ['bottom','裤','裙','下装'],
-  glove:    ['glove','手套','护手','手'],
-  cape:     ['cape','披风','斗篷'],
-  shield:   ['shield','盾牌','魔法盾','护盾'],
-  shoes:    ['shoes','鞋','靴','鞋子'],
-  face:     ['face','脸饰','面具'],
-  eyes:     ['eyes','眼饰','眼罩','隐形眼镜','眼镜'],
-  treasure: ['宝物','科学']
-};
-
 function getEquipSlotType42(equip) {
   if (!equip) return null;
   const s = (equip.slot || equip.type || '').toLowerCase();
@@ -4824,7 +4811,7 @@ function finishQuiz() {
   gameState.equipDropped[dropKey] = true;
   tryDropEquip(false, isFirstDrop ? 1 : 0.5);
   checkEquipAchievements();
-  }
+}
 
   saveUserData();
   
