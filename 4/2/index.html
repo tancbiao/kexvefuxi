@@ -5155,7 +5155,36 @@ function listUploadedLessons() {
   return result;
 }
 
-</script>
+</script>
+
+function loadEquippedState42() {
+  const userId = gameState.studentId || 'guest';
+  const saved = localStorage.getItem('bpEquipped_4_' + userId);
+  if (saved) {
+    try {
+      const state = JSON.parse(saved);
+      for (const slot in state) {
+        if (slot === 'treasure') {
+          // treasure 是数组，验证每个元素（复用已有数组引用，保护 updateEquippedSlots42 的 DOM 绑定）
+          if (!Array.isArray(state.treasure) || state.treasure.length < 2) {
+            state.treasure = [null, null];
+          } else {
+            state.treasure[0] = (state.treasure[0] !== null && gameState.equipment[state.treasure[0]]) ? state.treasure[0] : null;
+            state.treasure[1] = (state.treasure[1] !== null && gameState.equipment[state.treasure[1]]) ? state.treasure[1] : null;
+          }
+        } else {
+          const idx = state[slot];
+          if (idx !== null && (!gameState.equipment[idx] || gameState.equipment[idx] === null)) {
+            state[slot] = null;
+          }
+        }
+      }
+      Object.assign(bpEquippedSlots42, state);
+    } catch (e) {}
+  }
+}
+
+
 
   <!-- Q版可拖动人物 + 装备层叠系统 -->
   <div class="char-wrapper" id="charWrapper">
@@ -5205,30 +5234,4 @@ function listUploadedLessons() {
   </div>
 
 </body>
-</html>
-function loadEquippedState42() {
-  const userId = gameState.studentId || 'guest';
-  const saved = localStorage.getItem('bpEquipped_4_' + userId);
-  if (saved) {
-    try {
-      const state = JSON.parse(saved);
-      for (const slot in state) {
-        if (slot === 'treasure') {
-          // treasure 是数组，验证每个元素（复用已有数组引用，保护 updateEquippedSlots42 的 DOM 绑定）
-          if (!Array.isArray(state.treasure) || state.treasure.length < 2) {
-            state.treasure = [null, null];
-          } else {
-            state.treasure[0] = (state.treasure[0] !== null && gameState.equipment[state.treasure[0]]) ? state.treasure[0] : null;
-            state.treasure[1] = (state.treasure[1] !== null && gameState.equipment[state.treasure[1]]) ? state.treasure[1] : null;
-          }
-        } else {
-          const idx = state[slot];
-          if (idx !== null && (!gameState.equipment[idx] || gameState.equipment[idx] === null)) {
-            state[slot] = null;
-          }
-        }
-      }
-      Object.assign(bpEquippedSlots42, state);
-    } catch (e) {}
-  }
-}
+</html>
