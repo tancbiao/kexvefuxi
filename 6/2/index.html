@@ -1785,7 +1785,6 @@ function startLesson(lesson) {
   gameState.isReplay = (gameState.lessonProgress && gameState.lessonProgress[lessonId] && gameState.lessonProgress[lessonId] >= 1);
   
   // ====== 从自定义题库（uploadedQuestions）和内置题库中混编，每课随机10-15题 ======
-  const lessonId = lesson.id;
   const uploaded = getUploadedQuestions(lessonId);
   
   let basicPool = [...lesson.basic];
@@ -3462,7 +3461,8 @@ function updateCharPanel62() {
       }
     }
     equippedList.innerHTML = html || '';
-  
+  }
+
   // 更新总加成文字
   updateTotalBonusBar62();
   // 稀有度计数（用安全取值器）

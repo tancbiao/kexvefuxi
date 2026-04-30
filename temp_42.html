@@ -2964,14 +2964,6 @@ function saveEquippedState42() {
 }
 
 // 加载穿戴状态
-function loadEquippedState42() {
-  const userId = gameState.studentId || 'guest';
-  const stored = localStorage.getItem('bpEquipped_4_' + userId);
-  if (stored) {
-    try {
-      const parsed = JSON.parse(stored);
-      Object.assign(bpEquippedSlots42, parsed);
-    } catch(e) {}
   }
 }
 
@@ -4863,7 +4855,6 @@ function checkAchievements() {
   // 满分答卷
   if (accuracy >= 1 && !gameState.unlockedAchievements.includes('perfect')) {
     unlockAchievement('perfect');
-  }
 
   // 天才少年：首次做某课时就满分通关
   const lessonId = gameState.currentLesson.id;
