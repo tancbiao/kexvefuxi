@@ -4715,10 +4715,15 @@ document.addEventListener('touchmove', (e) => {
 document.addEventListener('touchend', () => { isDragging = false; });
 
 // 绑定上传题库按钮
-window.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('uploadQBtn42');
+    if (btn) btn.onclick = showUploadPasswordPrompt;
+  });
+} else {
   const btn = document.getElementById('uploadQBtn42');
   if (btn) btn.onclick = showUploadPasswordPrompt;
-});
+}
 
 // ====== 上传题库（教师用）======
 const UPLOAD_PASSWORD = 'admin';
