@@ -221,6 +221,23 @@
     cursor: pointer; font-size: 1.1em; transition: all 0.3s;
   }
   .backpack-close:hover { background: rgba(255,100,100,0.2); color: #ff6b6b; }
+  
+  /* ====== 上传题库弹窗 ====== */
+  .upload-overlay { position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:none;justify-content:center;align-items:center;z-index:3000;animation:fadeIn 0.3s; }
+  .upload-overlay.show { display:flex; }
+  .upload-modal { background:rgba(15,15,25,0.97);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:28px;width:360px;max-width:95%;box-shadow:0 20px 60px rgba(0,0,0,0.5); }
+  .upload-modal-title { font-size:1.2em;font-weight:900;color:#aaa;text-align:center;margin-bottom:20px; }
+  .upload-modal-input { width:100%;padding:10px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:#fff;font-size:1em;box-sizing:border-box;margin-bottom:12px; }
+  .upload-modal-input:focus { outline:none;border-color:#66bb6a; }
+  .upload-modal-btns { display:flex;gap:10px; }
+  .upload-modal-btn { flex:1;padding:10px;border-radius:10px;border:none;font-size:0.95em;cursor:pointer;font-weight:600; }
+  .upload-modal-btn.confirm { background:#4caf50;color:#fff; }
+  .upload-modal-btn.confirm:hover { background:#43a047; }
+  .upload-modal-btn.cancel { background:rgba(255,255,255,0.08);color:#aaa; }
+  .upload-modal-btn.cancel:hover { background:rgba(255,255,255,0.15); }
+  .upload-modal-error { color:#ff6b6b;font-size:0.85em;text-align:center;margin-top:8px;min-height:20px; }
+  .upload-modal-hint { text-align:center;font-size:0.8em;color:#666;margin-top:12px; }
+
 
   /* 两栏布局：左侧角色面板 + 右侧背包 */
   .bp-layout { display: grid; grid-template-columns: 240px 1fr; gap: 20px; height: calc(85vh - 80px); }
@@ -4728,13 +4745,30 @@ if (document.readyState === 'loading') {
 const UPLOAD_PASSWORD = 'admin';
 
 function showUploadPasswordPrompt() {
-  const pwd = prompt('请输入管理员密码：');
-  if (pwd === null) return;
-  if (pwd.trim() === UPLOAD_PASSWORD) {
+  var overlay = document.getElementById('uploadPwdOverlay');
+  var input = document.getElementById('uploadPwdInput');
+  var err = document.getElementById('uploadPwdError');
+  if (input) input.value = '';
+  if (err) err.textContent = '';
+  if (overlay) { overlay.classList.add('show'); setTimeout(function(){ if(input)input.focus(); }, 50); }
+}
+
+function checkUploadPassword() {
+  var input = document.getElementById('uploadPwdInput');
+  var err = document.getElementById('uploadPwdError');
+  var pwd = input ? input.value.trim() : '';
+  if (pwd === UPLOAD_PASSWORD) {
+    closeUploadPwdOverlay();
     location.href = 'upload-questions.html';
   } else {
-    alert('❌ 密码错误，请联系管理员');
+    if (err) err.textContent = '密码错误，请联系管理员';
+    if (input) { input.value = ''; input.focus(); }
   }
+}
+
+function closeUploadPwdOverlay() {
+  var overlay = document.getElementById('uploadPwdOverlay');
+  if (overlay) overlay.classList.remove('show');
 }
 
 // ====== 自定义题库系统（从 localStorage 加载，覆盖内置题目）======
@@ -5021,6 +5055,19 @@ function listUploadedLessons() {
       <div class="char-panel-items" id="items-eyes"></div>
     </div>
   </div>
+
+<div class="upload-overlay" id="uploadPwdOverlay" onclick="if(event.target.id==='uploadPwdOverlay')closeUploadPwdOverlay()">
+  <div class="upload-modal">
+    <div class="upload-modal-title">🔐 上传题库管理入口</div>
+    <input type="password" id="uploadPwdInput" class="upload-modal-input" placeholder="输入管理员密码" onkeypress="if(event.key==='Enter')checkUploadPassword()">
+    <div class="upload-modal-btns">
+      <button class="upload-modal-btn confirm" onclick="checkUploadPassword()">确认</button>
+      <button class="upload-modal-btn cancel" onclick="closeUploadPwdOverlay()">取消</button>
+    </div>
+    <div class="upload-modal-error" id="uploadPwdError"></div>
+    <div class="upload-modal-hint">默认密码: admin</div>
+  </div>
+</div>
 
 </body>
 </html>
