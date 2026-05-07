@@ -2860,13 +2860,14 @@ function loadUserData() {
   }
 
   // 【安全修复】从宠物系统的 localStorage 同步积分
-  // 宠物系统用 petSystemStateV2 存储，答题系统用 scienceGame4_user_ 存储
-  // 如果宠物系统有抽过（points > 0），则以宠物系统的积分为准，防止刷新后积分"恢复"
+  // petSystemStateV2 是全局键，必须校验 studentId 防串号
   try {
     const petRaw = localStorage.getItem('petSystemStateV2');
     if (petRaw) {
       const petState = JSON.parse(petRaw);
-      if (petState && petState.points > 0 && petState.points > (gameState.totalPoints || 0)) {
+      // 必须 studentId 匹配，否则会串到别人的积分
+      if (petState && petState.studentId === gameState.studentId &&
+          petState.points > 0 && petState.points > (gameState.totalPoints || 0)) {
         gameState.totalPoints = petState.points;
         localStorage.setItem(saveKey, JSON.stringify(Object.assign({}, localData || {}, { totalPoints: gameState.totalPoints })));
         console.log('已从宠物系统同步积分:', gameState.totalPoints);
