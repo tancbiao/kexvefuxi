@@ -1,1216 +1,538 @@
-﻿<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🌟 科学探险家 · 四年级科学趣味闯关</title>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  
-  body {
-    font-family: "微软雅黑", "PingFang SC", sans-serif;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-    min-height: 100vh;
-    color: #fff;
-    overflow-x: hidden;
-  }
 
-  .particles {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    pointer-events: none;
-    overflow: hidden;
-    z-index: 0;
-  }
-  .particle {
-    position: absolute;
-    width: 6px; height: 6px;
-    background: rgba(255,255,255,0.3);
-    border-radius: 50%;
-    animation: float 15s infinite;
-  }
-  @keyframes float {
-    0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 1; }
-    100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
-  }
-  @keyframes popIn {
-    0% { transform: scale(0.8); opacity: 0; }
-    70% { transform: scale(1.05); }
-    100% { transform: scale(1); opacity: 1; }
-  }
-  @keyframes flyUp {
-    0% { opacity: 1; transform: translateY(0) scale(1); }
-    50% { opacity: 1; transform: translateY(-30px) scale(1.2); }
-    100% { opacity: 0; transform: translateY(-60px) scale(0.8); }
-  }
-
-  .game-container {
-    position: relative;
-    z-index: 1;
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 20px;
-  }
-
-  .status-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: rgba(255,255,255,0.1);
-    backdrop-filter: blur(10px);
-    border-radius: 16px;
-    padding: 12px 20px;
-    margin-bottom: 20px;
-    border: 1px solid rgba(255,255,255,0.15);
-  }
-  .status-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 1.1em;
-  }
-  .status-icon { font-size: 1.3em; }
-  .status-value { font-weight: 700; color: #ffd700; }
-  .streak-fire { animation: pulse 1s infinite; }
-  @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.2); }
-  }
-
-  .screen { display: none; animation: fadeIn 0.4s ease; }
-  .screen.active { display: block; }
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .hero-section { text-align: center; padding: 40px 20px; }
-  .hero-title {
-    font-size: 2.8em;
-    font-weight: 900;
-    background: linear-gradient(135deg, #ffd700, #ff6b6b, #4ecdc4);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 10px;
-  }
-  .hero-subtitle { font-size: 1.2em; color: rgba(255,255,255,0.7); margin-bottom: 30px; }
-  .hero-mascot { font-size: 6em; margin: 20px 0; animation: bounce 2s infinite; }
-  
-  /* ========== 成就预览 ========== */
-  .achievements-section {
-    margin-top: 30px;
-    padding: 20px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 16px;
-  }
-  .achievements-title { font-size: 1.1em; font-weight: 700; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
-  .achievements-grid { display: flex; flex-wrap: wrap; gap: 10px; }
-  .achievement-badge {
-    background: rgba(255,255,255,0.1);
-    padding: 10px 15px;
-    border-radius: 12px;
-    font-size: 0.9em;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    border: 2px solid transparent;
-    cursor: pointer;
-    transition: all 0.3s;
-  }
-  .achievement-badge.unlocked { background: linear-gradient(135deg, #ffd700, #ff8c00); border-color: #ffd700; color: #1a1a2e; }
-  .achievement-badge.locked { opacity: 0.4; filter: grayscale(1); }
-  .achievement-badge:hover { transform: scale(1.05); }
-  
-  /* ========== 成就殿堂弹窗 ========== */
-  .achievement-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.85); display: none; justify-content: center;
-    align-items: center; z-index: 2000; animation: fadeIn 0.3s;
-  }
-  .achievement-overlay.show { display: flex; }
-  .achievement-card {
-    background: rgba(20,20,40,0.95); backdrop-filter: blur(20px);
-    border-radius: 24px; padding: 30px; max-width: 650px;
-    width: 90%; max-height: 80vh; overflow-y: auto; animation: popIn 0.4s;
-  }
-  .achievement-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-  .achievement-card-title { font-size: 1.5em; font-weight: 900; }
-  .achievement-close {
-    background: rgba(255,255,255,0.1); border: none; color: #fff;
-    width: 36px; height: 36px; border-radius: 50%;
-    cursor: pointer; font-size: 1.2em; transition: all 0.3s;
-  }
-  .achievement-close:hover { background: rgba(255,255,255,0.2); }
-  .achievement-stats { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
-  .achievement-stat { background: rgba(255,255,255,0.08); border-radius: 12px; padding: 12px 18px; display: flex; align-items: center; gap: 10px; }
-  .achievement-stat-icon { font-size: 1.5em; }
-  .achievement-stat-info { text-align: left; }
-  .achievement-stat-label { font-size: 0.75em; color: rgba(255,255,255,0.5); }
-  .achievement-stat-value { font-size: 1.2em; font-weight: 700; }
-  .achievement-tier-filter { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-  .tier-btn {
-    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
-    color: #fff; padding: 6px 14px; border-radius: 20px; cursor: pointer;
-    font-size: 0.85em; transition: all 0.3s;
-  }
-  .tier-btn.active, .tier-btn:hover { background: rgba(255,215,0,0.3); border-color: #ffd700; }
-  .achievement-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
-  .ach-item {
-    background: rgba(255,255,255,0.06); border-radius: 16px; padding: 16px;
-    text-align: center; border: 2px solid transparent; transition: all 0.3s;
-  }
-  .ach-item:hover { transform: scale(1.03); }
-  .ach-item.unlocked { border-color: #ffd700; background: rgba(255,215,0,0.08); }
-  .ach-item.locked { opacity: 0.4; filter: grayscale(0.8); }
-  .ach-item.tier-common.unlocked { border-color: #9e9e9e; }
-  .ach-item.tier-rare.unlocked { border-color: #9c27b0; background: rgba(156,39,176,0.08); }
-  .ach-item.tier-epic.unlocked { border-color: #e91e63; background: rgba(233,30,99,0.08); }
-  .ach-item.tier-legendary.unlocked { border-color: #ffd700; background: rgba(255,215,0,0.1); }
-  .ach-item.tier-mythic.unlocked { border-color: #ff5722; background: rgba(255,87,34,0.1); box-shadow: 0 0 20px rgba(255,87,34,0.3); }
-  .ach-icon { font-size: 2.2em; margin-bottom: 6px; }
-  .ach-name { font-weight: 700; font-size: 0.95em; margin-bottom: 4px; }
-  .ach-tier { font-size: 0.7em; margin-bottom: 4px; }
-  .ach-desc { font-size: 0.8em; color: rgba(255,255,255,0.6); margin-bottom: 6px; }
-  .ach-bonus { font-size: 0.75em; color: #4caf50; }
-  .ach-locked-text { font-size: 0.8em; color: rgba(255,255,255,0.3); font-style: italic; }
-  
-  /* ========== 成就解锁动画 ========== */
-  .achievement-unlock {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.8);
-    display: none; justify-content: center; align-items: center;
-    z-index: 9999;
-    animation: fadeIn 0.3s;
-  }
-  .achievement-unlock.show { display: flex; }
-  .achievement-unlock .title { font-weight: 900; font-size: 1.2em; margin-bottom: 10px; }
-  .achievement-unlock .icon { font-size: 3em; margin: 15px 0; animation: bounce 0.5s; }
-  .achievement-unlock .name { font-weight: 700; color: #ffd700; }
-  
-  /* ========== 背包弹窗（暗黑风格 100格网格） ========== */
-  .backpack-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.85);
-    display: none; justify-content: center; align-items: center;
-    z-index: 2000;
-    animation: fadeIn 0.3s;
-  }
-  .backpack-overlay.show { display: flex; }
-  .backpack-card {
-    background: rgba(15,15,25,0.97);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 20px;
-    padding: 24px;
-    max-width: 880px;
-    width: 95%;
-    max-height: 85vh;
-    overflow: hidden;
-    animation: popIn 0.4s;
-    display: flex;
-    flex-direction: column;
-  }
-  .backpack-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-  .backpack-title { font-size: 1.3em; font-weight: 900; color: #aaa; }
-  .backpack-close {
-    background: rgba(255,255,255,0.08); border: none; color: #fff;
-    width: 36px; height: 36px; border-radius: 50%;
-    cursor: pointer; font-size: 1.1em; transition: all 0.3s;
-  }
-  .backpack-close:hover { background: rgba(255,100,100,0.2); color: #ff6b6b; }
-  
-  /* ====== 上传题库弹窗 ====== */
-  .upload-overlay { position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:none;justify-content:center;align-items:center;z-index:3000;animation:fadeIn 0.3s; }
-  .upload-overlay.show { display:flex; }
-  .upload-modal { background:rgba(15,15,25,0.97);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:28px;width:360px;max-width:95%;box-shadow:0 20px 60px rgba(0,0,0,0.5); }
-  .upload-modal-title { font-size:1.2em;font-weight:900;color:#aaa;text-align:center;margin-bottom:20px; }
-  .upload-modal-input { width:100%;padding:10px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:#fff;font-size:1em;box-sizing:border-box;margin-bottom:12px; }
-  .upload-modal-input:focus { outline:none;border-color:#66bb6a; }
-  .upload-modal-btns { display:flex;gap:10px; }
-  .upload-modal-btn { flex:1;padding:10px;border-radius:10px;border:none;font-size:0.95em;cursor:pointer;font-weight:600; }
-  .upload-modal-btn.confirm { background:#4caf50;color:#fff; }
-  .upload-modal-btn.confirm:hover { background:#43a047; }
-  .upload-modal-btn.cancel { background:rgba(255,255,255,0.08);color:#aaa; }
-  .upload-modal-btn.cancel:hover { background:rgba(255,255,255,0.15); }
-  .upload-modal-error { color:#ff6b6b;font-size:0.85em;text-align:center;margin-top:8px;min-height:20px; }
-  .upload-modal-hint { text-align:center;font-size:0.8em;color:#666;margin-top:12px; }
-
-
-  /* 两栏布局：左侧角色面板 + 右侧背包 */
-  .bp-layout { display: grid; grid-template-columns: 240px 1fr; gap: 20px; height: calc(85vh - 80px); }
-
-  /* 角色属性面板 */
-  .bp-char-panel {
-    background: rgba(20,20,30,0.8);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 16px;
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    overflow-y: auto;
-  }
-  .bp-char-avatar {
-    text-align: center; margin-bottom: 12px;
-  }
-  .bp-char-avatar-inner {
-    width: 72px; height: 72px; border-radius: 50%;
-    background: linear-gradient(135deg, #1a1a2e, #2d2d44);
-    margin: 0 auto 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 2.5em;
-    border: 3px solid #333;
-    position: relative; overflow: hidden;
-  }
-  .bp-char-avatar-inner::after {
-    content: ''; position: absolute; top: 0; left: -100%;
-    width: 50%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
-    animation: shimmer 3s infinite;
-  }
-  .bp-char-level { font-size: 0.8em; color: #666; }
-  .bp-stat-row { margin-bottom: 8px; }
-  .bp-stat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; font-size: 0.75em; }
-  .bp-stat-name { display: flex; align-items: center; gap: 4px; }
-  .bp-stat-bar { height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
-  .bp-stat-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
-  .bp-str-fill { background: linear-gradient(90deg, #ff6b6b, #ee5a5a); }
-  .bp-dex-fill { background: linear-gradient(90deg, #4ecdc4, #45b7aa); }
-  .bp-int-fill { background: linear-gradient(90deg, #a78bfa, #8b5cf6); }
-  .bp-hp-fill { background: linear-gradient(90deg, #ef4444, #dc2626); }
-  .bp-mp-fill { background: linear-gradient(90deg, #3b82f6, #2563eb); }
-  .bp-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 10px 0; }
-  .bp-rarity-counts { display: flex; flex-direction: column; gap: 4px; font-size: 0.75em; }
-  .bp-rarity-row { display: flex; justify-content: space-between; align-items: center; }
-  .bp-rarity-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
-  .bp-equip-bonus { font-size: 0.75em; color: #666; text-align: center; padding-top: 8px; }
-  .bp-actions { display: flex; flex-direction: column; gap: 6px; margin-top: auto; padding-top: 12px; }
-  .bp-action-btn {
-    padding: 6px 12px; background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1); border-radius: 6px;
-    color: #888; font-size: 0.8em; cursor: pointer; transition: all 0.3s; text-align: center;
-  }
-  .bp-action-btn:hover { background: rgba(255,100,100,0.15); color: #ff6b6b; border-color: rgba(255,100,100,0.3); }
-
-  /* ========== 角色装备穿戴区（四年级） ========== */
-  .bp-equipped-section {
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid rgba(255,255,255,0.1);
-  }
-  .bp-equipped-title {
-    font-size: 0.75em;
-    color: #ffd700;
-    margin-bottom: 6px;
-    text-align: center;
-    font-weight: bold;
-  }
-  .bp-equipped-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 5px;
-  }
-  .bp-slot-box.treasure-slot {
-    grid-column: span 4;
-    flex-direction: row;
-    gap: 12px;
-    padding: 6px 10px;
-    justify-content: center;
-  }
-  .bp-treasure-subs {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-  }
-  .bp-treasure-sub {
-    font-size: 1.4em;
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    border-radius: 6px;
-    border: 1px solid rgba(255,255,255,0.1);
-    transition: border-color 0.2s;
-  }
-  .bp-treasure-sub:hover { border-color: rgba(255,215,0,0.4); }
-  .bp-slot-box {
-    background: rgba(0,0,0,0.4);
-    border: 2px solid rgba(255,255,255,0.1);
-    border-radius: 10px;
-    padding: 6px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    cursor: pointer;
-    transition: all 0.3s;
-    min-height: 70px;
-    position: relative;
-  }
-  .bp-slot-box:hover {
-    border-color: rgba(255,215,0,0.4);
-    background: rgba(255,215,0,0.05);
-  }
-  .bp-slot-box.equipped {
-    border-color: rgba(255,215,0,0.6);
-    background: rgba(255,215,0,0.08);
-  }
-  .bp-slot-label {
-    font-size: 0.65em;
-    color: #888;
-    text-align: center;
-  }
-  .bp-slot-icon {
-    font-size: 1.8em;
-    line-height: 1;
-    min-height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .bp-slot-empty { color: rgba(255,255,255,0.2); font-size: 1.5em; }
-  .bp-slot-name {
-    font-size: 0.6em;
-    color: #aaa;
-    text-align: center;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  /* ========== 装备总加成显示条（四年级） ========== */
-  .bp-total-bonus-bar {
-    background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,150,0,0.1));
-    border: 1px solid rgba(255,215,0,0.3);
-    border-radius: 10px;
-    padding: 10px 12px;
-    margin-bottom: 10px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px 16px;
-    align-items: center;
-    justify-content: center;
-  }
-  .bp-total-bonus-title {
-    width: 100%;
-    text-align: center;
-    font-size: 0.75em;
-    color: #ffd700;
-    font-weight: bold;
-    margin-bottom: 4px;
-  }
-  .bp-total-bonus-item {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 0.8em;
-    color: #fff;
-  }
-  .bp-total-bonus-value { color: #ffd700; font-weight: bold; }
-  .bp-total-bonus-empty { color: #666; font-size: 0.8em; }
-
-  /* 背包右侧区域 */
-  .bp-inventory-area { display: flex; flex-direction: column; overflow: hidden; }
-  .bp-inventory-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-shrink: 0; }
-  .bp-inventory-title { font-size: 0.9em; color: #888; }
-  .bp-inventory-count { color: #ffd700; font-weight: bold; }
-
-  /* 100格网格 */
-  .backpack-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); gap: 6px; overflow-y: auto; flex: 1; padding-right: 4px; }
-  .backpack-grid::-webkit-scrollbar { width: 4px; }
-  .backpack-grid::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
-  .inventory-slot {
-    aspect-ratio: 1;
-    background: rgba(0,0,0,0.3);
-    border: 2px dashed rgba(255,255,255,0.08);
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.6em;
-    cursor: pointer;
-    transition: all 0.3s;
-    position: relative;
-    min-height: 62px;
-  }
-  .inventory-slot:hover { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.05); transform: scale(1.05); }
-  .inventory-slot.empty { color: #222; }
-  .inventory-slot[data-rarity="6"] { animation: legendaryGlow 2s ease-in-out infinite; }
-  .inventory-slot[data-rarity="7"] { animation: mythicGlow 1.5s ease-in-out infinite; }
-  .inventory-slot .bp-tooltip {
-    display: none; position: absolute; bottom: 110%; left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0,0,0,0.97); padding: 8px 10px; border-radius: 6px;
-    font-size: 0.65em; white-space: nowrap; z-index: 100;
-    border: 1px solid rgba(255,255,255,0.2);
-    pointer-events: none;
-  }
-  .inventory-slot:hover .bp-tooltip { display: block; }
-  .bp-tooltip-name { font-weight: bold; }
-  .bp-tooltip-stats { color: #ffd700; margin-top: 2px; }
-  .bp-tooltip-affix { color: #888; margin-top: 2px; }
-
-  /* 传说/神话光效动画 */
-  @keyframes legendaryGlow {
-    0%, 100% { box-shadow: 0 0 12px rgba(255,215,0,0.4); }
-    50% { box-shadow: 0 0 25px rgba(255,215,0,0.7); }
-  }
-  @keyframes mythicGlow {
-    0%, 100% { box-shadow: 0 0 18px rgba(255,87,34,0.5); }
-    50% { box-shadow: 0 0 35px rgba(255,87,34,0.9), 0 0 60px rgba(255,102,0,0.4); }
-  }
-  @keyframes shimmer { 100% { left: 200%; } }
-
-  /* 装备详情弹窗 */
-  .bp-detail-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center;
-    z-index: 3000; animation: fadeIn 0.2s;
-  }
-  .bp-detail-card {
-    background: rgba(15,15,25,0.98); border-radius: 16px; padding: 24px;
-    max-width: 320px; width: 90%; text-align: center;
-    border: 2px solid;
-    animation: bounceIn 0.4s;
-  }
-  .bp-detail-icon { font-size: 3em; margin-bottom: 8px; }
-  .bp-detail-name { font-size: 1.1em; font-weight: bold; margin-bottom: 4px; }
-  .bp-detail-type { font-size: 0.8em; color: #666; margin-bottom: 12px; }
-  .bp-detail-stats { background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; margin-bottom: 10px; text-align: left; font-size: 0.85em; }
-  .bp-detail-stat-row { display: flex; justify-content: space-between; padding: 2px 0; }
-  .bp-detail-mult { background: linear-gradient(135deg, rgba(0,212,255,0.15), rgba(124,58,237,0.15)); border-radius: 6px; padding: 6px; font-size: 0.9em; }
-  .bp-detail-mult span { color: #ffd700; font-weight: bold; }
-  .bp-detail-btns { display: flex; gap: 8px; margin-top: 12px; }
-  .bp-detail-btn { flex: 1; padding: 8px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85em; font-weight: bold; transition: all 0.3s; }
-  .bp-detail-wear { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #1a1a2e; }
-  .bp-detail-unequip { background: rgba(255,255,255,0.1); color: #aaa; }
-  .bp-detail-close-btn { margin-top: 8px; padding: 6px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #888; cursor: pointer; font-size: 0.8em; }
-
-  /* 稀有度装备卡（详情模式） */
-  .equip-item { display: none; }
-  .equip-icon { display: none; }
-  .equip-name { display: none; }
-  .equip-level { display: none; }
-  .equip-effect { display: none; }
-  .equip-empty { display: none; }
-  @keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-20px); }
-  }
-  .start-btn {
-    background: linear-gradient(135deg, #ffd700, #ff8c00);
-    color: #1a1a2e;
-    font-size: 1.4em;
-    font-weight: 900;
-    padding: 16px 50px;
-    border: none;
-    border-radius: 50px;
-    cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 8px 30px rgba(255,215,0,0.4);
-  }
-  .start-btn:hover { transform: scale(1.08); box-shadow: 0 12px 40px rgba(255,215,0,0.6); }
-
-  .level-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-    margin-top: 20px;
-  }
-  .level-card {
-    background: rgba(255,255,255,0.08);
-    border-radius: 20px;
-    padding: 24px 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s;
-    border: 2px solid transparent;
-    position: relative;
-    overflow: hidden;
-  }
-  .level-card:hover:not(.locked) {
-    transform: translateY(-5px);
-    border-color: var(--card-color);
-    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-  }
-  .level-card.completed { border-color: #4ecdc4; background: rgba(78,205,196,0.1); }
-  .level-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 4px;
-    background: var(--card-color);
-  }
-  .level-icon { font-size: 3em; margin-bottom: 10px; }
-  .level-name { font-size: 1.1em; font-weight: 700; margin-bottom: 6px; }
-  .level-stars { font-size: 1.4em; margin: 8px 0; }
-  .level-badge {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.8em;
-    font-weight: 700;
-  }
-  .badge-easy { background: #4caf50; color: white; }
-  .badge-locked { background: #666; color: #ccc; }
-
-  .unit-title {
-    grid-column: 1 / -1;
-    font-size: 1.4em;
-    font-weight: 900;
-    text-align: left;
-    padding: 15px 20px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 12px;
-    margin-top: 10px;
-  }
-  .unit-title span { margin-right: 10px; }
-
-  .quiz-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  .back-btn {
-    background: rgba(255,255,255,0.1);
-    border: none;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 10px;
-    cursor: pointer;
-    font-size: 1em;
-    transition: all 0.3s;
-  }
-  .back-btn:hover { background: rgba(255,255,255,0.2); }
-  .quiz-progress { font-size: 1.1em; color: rgba(255,255,255,0.8); }
-
-  .question-card {
-    background: rgba(255,255,255,0.08);
-    border-radius: 20px;
-    padding: 30px;
-    margin-bottom: 20px;
-    border: 1px solid rgba(255,255,255,0.1);
-  }
-  .question-type {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.85em;
-    margin-bottom: 15px;
-  }
-  .type-choice { background: #2196f3; }
-  .type-judge { background: #ff9800; }
-  .question-text { font-size: 1.3em; line-height: 1.6; margin-bottom: 25px; }
-  .options { display: flex; flex-direction: column; gap: 12px; }
-  .option {
-    background: rgba(255,255,255,0.1);
-    border: 2px solid rgba(255,255,255,0.2);
-    border-radius: 12px;
-    padding: 15px 20px;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-size: 1.1em;
-    text-align: left;
-  }
-  .option:hover:not(.selected):not(.correct):not(.wrong) {
-    background: rgba(255,255,255,0.15);
-    border-color: #ffd700;
-  }
-  .option.correct { border-color: #4caf50; background: rgba(76,175,80,0.3); }
-  .option.wrong { border-color: #f44336; background: rgba(244,67,54,0.3); }
-  .option.disabled { pointer-events: none; opacity: 0.7; }
-
-  .btn-group { display: flex; gap: 12px; margin-top: 20px; }
-  .btn {
-    flex: 1;
-    padding: 14px 24px;
-    border: none;
-    border-radius: 12px;
-    font-size: 1.1em;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s;
-  }
-  .btn-primary {
-    background: linear-gradient(135deg, #ffd700, #ff8c00);
-    color: #1a1a2e;
-  }
-  .btn-primary:hover { transform: scale(1.02); box-shadow: 0 5px 20px rgba(255,215,0,0.4); }
-  .btn-secondary {
-    background: rgba(255,255,255,0.1);
-    color: white;
-    border: 2px solid rgba(255,255,255,0.3);
-  }
-  .btn-secondary:hover { background: rgba(255,255,255,0.2); }
-
-  .result-card {
-    background: rgba(255,255,255,0.1);
-    border-radius: 20px;
-    padding: 40px;
-    text-align: center;
-    margin-top: 20px;
-  }
-  .result-icon { font-size: 5em; margin-bottom: 20px; }
-  .result-title { font-size: 2em; font-weight: 900; margin-bottom: 15px; }
-  .result-score { font-size: 3em; font-weight: 900; color: #ffd700; margin: 20px 0; }
-  .result-stats { display: flex; justify-content: center; gap: 30px; margin: 25px 0; font-size: 1.1em; }
-  .stat-item { display: flex; flex-direction: column; gap: 5px; }
-  .stat-value { font-size: 1.5em; font-weight: 700; color: #ffd700; }
-  .stat-label { color: rgba(255,255,255,0.7); }
-
-  .hint-btn {
-    background: linear-gradient(135deg, #9c27b0, #e91e63);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 0.95em;
-    margin-top: 15px;
-  }
-  .hint-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .hint-box {
-    background: rgba(156,39,176,0.2);
-    border: 1px solid #9c27b0;
-    border-radius: 12px;
-    padding: 15px;
-    margin-top: 15px;
-    font-size: 0.95em;
-    display: none;
-  }
-  .hint-box.show { display: block; }
-
-  .achievement-popup {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    background: linear-gradient(135deg, #ffd700, #ff8c00);
-    color: #1a1a2e;
-    padding: 20px 30px;
-    border-radius: 15px;
-    font-weight: 700;
-    font-size: 1.1em;
-    z-index: 200;
-    animation: slideIn 0.5s ease;
-    box-shadow: 0 10px 40px rgba(255,215,0,0.4);
-  }
-  @keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-  }
-
-  /* ========== 宠物弹窗 ========== */
-  .pet-modal {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.85); z-index: 5000;
-    display: none; justify-content: center; align-items: center;
-    animation: fadeIn 0.3s;
-  }
-  .pet-modal.show { display: flex; }
-  .pet-modal-content {
-    background: #1a1a2e; border-radius: 20px;
-    width: 95%; max-width: 1200px; height: 90vh;
-    position: relative; overflow: hidden;
-    border: 2px solid rgba(255,255,255,0.1);
-  }
-  .pet-modal-header {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 12px 20px; background: rgba(0,0,0,0.3);
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-  }
-  .pet-modal-title { font-size: 1.2em; font-weight: 700; }
-  .pet-modal-close {
-    background: rgba(255,255,255,0.1); border: none; color: #fff;
-    width: 32px; height: 32px; border-radius: 50%;
-    cursor: pointer; font-size: 1.1em;
-  }
-  .pet-modal-close:hover { background: rgba(255,255,255,0.2); }
-  .pet-modal iframe { width: 100%; height: calc(100% - 50px); border: none; display: block; }
-  .pet-modal-points {
-    display: flex; align-items: center; gap: 6px;
-    background: rgba(243,156,18,0.2); padding: 6px 14px;
-    border-radius: 20px; border: 1px solid rgba(243,156,18,0.4);
-  }
-  .pet-modal-points .icon { font-size: 1.1em; }
-  .pet-modal-points .val { color: #f39c12; font-weight: 700; }
-
-  @media (max-width: 600px) {
-    .level-grid { grid-template-columns: 1fr; }
-    .hero-title { font-size: 2em; }
-    .status-bar { flex-wrap: wrap; gap: 10px; }
-    .result-stats { flex-wrap: wrap; }
-  }
-
-  .overlay {
-    display: none;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.8);
-    z-index: 3000;
-    justify-content: center;
-    align-items: center;
-  }
-  .overlay.show { display: flex; }
-  .login-box {
-    background: linear-gradient(135deg, #1a1a2e, #16213e);
-    border-radius: 24px;
-    padding: 40px;
-    text-align: center;
-    max-width: 400px;
-    width: 90%;
-    border: 2px solid rgba(255,255,255,0.1);
-  }
-  .login-title { font-size: 1.5em; font-weight: 900; margin-bottom: 25px; }
-  .login-input {
-    width: 100%;
-    padding: 14px 20px;
-    border: 2px solid rgba(255,255,255,0.2);
-    border-radius: 12px;
-    background: rgba(255,255,255,0.1);
-    color: white;
-    font-size: 1.1em;
-    text-align: center;
-    margin-bottom: 15px;
-  }
-  .login-input::placeholder { color: rgba(255,255,255,0.5); }
-  .login-input:focus { outline: none; border-color: #ffd700; }
-  .login-btn {
-    width: 100%;
-    padding: 14px;
-    background: linear-gradient(135deg, #ffd700, #ff8c00);
-    color: #1a1a2e;
-    border: none;
-    border-radius: 12px;
-    font-size: 1.1em;
-    font-weight: 700;
-    cursor: pointer;
-    margin-bottom: 10px;
-    transition: all 0.3s;
-  }
-  .login-btn:hover { transform: scale(1.02); }
-  .guest-btn {
-    width: 100%;
-    padding: 14px;
-    background: rgba(255,255,255,0.1);
-    color: white;
-    border: 2px solid rgba(255,255,255,0.3);
-    border-radius: 12px;
-    font-size: 1em;
-    cursor: pointer;
-    transition: all 0.3s;
-  }
-  .guest-btn:hover { background: rgba(255,255,255,0.2); }
-
-  /* ============ Q版可拖动人物 + 装备系统 ============ */
-  .char-wrapper {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 120px;
-    height: 160px;
-    cursor: grab;
-    z-index: 9999;
-    user-select: none;
-  }
-  .char-wrapper:active { cursor: grabbing; }
-
-  .char-base {
-    position: absolute;
-    bottom: 0; left: 50%;
-    transform: translateX(-50%);
-    width: 80px;
-    height: 120px;
-    background: linear-gradient(180deg, #FFD700 0%, #FF8C00 100%);
-    border-radius: 12px 12px 8px 8px;
-    border: 3px solid #FF6B00;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding-top: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  }
-
-  .char-body::before {
-    content: "";
-    position: absolute;
-    top: -36px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 44px;
-    height: 44px;
-    background: #FFD700;
-    border-radius: 50%;
-    border: 3px solid #FF6B00;
-    background-image:
-      radial-gradient(circle at 30% 35%, #fff 4px, transparent 4px),
-      radial-gradient(circle at 70% 35%, #fff 4px, transparent 4px),
-      radial-gradient(circle at 30% 35%, #000 2px, transparent 2px),
-      radial-gradient(circle at 70% 35%, #000 2px, transparent 2px),
-      radial-gradient(circle at 50% 58%, #FF6B00 8px, transparent 8px);
-  }
-  .char-body {
-    position: relative;
-    width: 100%;
-    height: 100%;
-  }
-
-  .char-equip {
-    position: absolute;
-    bottom: 0; left: 50%;
-    transform: translateX(-50%);
-    max-width: 120px;
-    max-height: 160px;
-    pointer-events: none;
-  }
-  #equip-hat   { bottom: 100px; z-index: 6; }
-  #equip-cape  { bottom: 0; z-index: 0; }
-  #equip-top   { bottom: 30px; z-index: 3; }
-  #equip-bottom{ bottom: 0; z-index: 2; }
-  #equip-face  { bottom: 90px; z-index: 5; }
-  #equip-eyes  { bottom: 100px; z-index: 6; }
-
-  .char-toggle-btn {
-    position: fixed;
-    bottom: 20px;
-    left: 20px;
-    background: linear-gradient(135deg, rgba(0,212,255,0.3), rgba(124,58,237,0.3));
-    border: 1px solid rgba(0,212,255,0.5);
-    border-radius: 10px;
-    color: #fff;
-    padding: 8px 14px;
-    font-size: 0.8em;
-    cursor: pointer;
-    z-index: 9999;
-    font-family: inherit;
-    transition: all 0.3s;
-  }
-  .char-toggle-btn:hover {
-    background: linear-gradient(135deg, rgba(0,212,255,0.5), rgba(124,58,237,0.5));
-  }
-
-  .char-panel {
-    position: fixed;
-    bottom: 55px;
-    left: 20px;
-    width: 200px;
-    max-height: 320px;
-    overflow-y: auto;
-    background: rgba(0,0,0,0.85);
-    border: 1px solid rgba(0,212,255,0.4);
-    border-radius: 12px;
-    padding: 10px;
-    z-index: 9999;
-  }
-  .char-panel::-webkit-scrollbar { width: 4px; }
-  .char-panel::-webkit-scrollbar-thumb { background: rgba(0,212,255,0.3); border-radius: 2px; }
-  .char-panel-section { margin-bottom: 8px; }
-  .char-panel-title {
-    font-size: 0.75em;
-    color: rgba(255,255,255,0.6);
-    margin-bottom: 4px;
-    padding-bottom: 2px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-  }
-  .char-panel-items { display: flex; flex-wrap: wrap; gap: 4px; }
-  .char-item {
-    width: 36px; height: 36px;
-    border: 2px solid rgba(255,255,255,0.15);
-    border-radius: 6px;
-    cursor: pointer;
-    object-fit: contain;
-    background: rgba(255,255,255,0.05);
-    transition: all 0.2s;
-    padding: 2px;
-  }
-  .char-item:hover { border-color: rgba(0,212,255,0.6); background: rgba(0,212,255,0.1); }
-  .char-item.selected { border-color: #00d4ff; background: rgba(0,212,255,0.2); }
-  .char-item.none-btn {
-    font-size: 0.65em;
-    color: rgba(255,255,255,0.4);
-    display: flex; align-items: center; justify-content: center;
-  }
-
-
-/* SVG 图标样式 */
-.icon-svg { display: inline-block; vertical-align: middle; }
-.icon-32 { width: 32px; height: 32px; }
-.icon-48 { width: 48px; height: 48px; }
-.icon-24 { width: 24px; height: 24px; }
-.lesson-icon img, .unit-icon img { width: 100%; height: 100%; object-fit: contain; }
-
-/* ========== 宠物出战区块（内嵌在背包界面） ========== */
-.bp-pet-section {
-  margin-bottom: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-}
-.bp-pet-title {
-  font-size: 0.85em;
-  font-weight: bold;
-  color: #ff6b9d;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.bp-pet-slots {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 8px;
-}
-.bp-pet-slot {
-  width: 70px;
-  height: 80px;
-  border-radius: 10px;
-  border: 1px dashed rgba(255,107,157,0.3);
-  background: rgba(255,107,157,0.05);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 0.75em;
-  color: rgba(255,107,157,0.4);
-}
-.bp-pet-slot:hover {
-  border-color: #ff6b9d;
-  background: rgba(255,107,157,0.1);
-  transform: translateY(-2px);
-}
-.bp-pet-slot.empty .bp-pet-slot-emoji { font-size: 1.8em; }
-.bp-pet-slot.empty .bp-pet-slot-hint { margin-top: 2px; }
-.bp-pet-slot.filled {
-  border-style: solid;
-  border-color: rgba(255,107,157,0.5);
-  background: rgba(255,107,157,0.08);
-  color: #fff;
-}
-.bp-pet-slot.filled:hover {
-  border-color: #ff4757;
-  background: rgba(255,71,87,0.1);
-}
-.bp-pet-slot-emoji { font-size: 2.2em; }
-.bp-pet-slot-name { font-size: 0.7em; font-weight: bold; margin-top: 2px; }
-.bp-pet-slot-level { font-size: 0.65em; color: #aaa; }
-.bp-pet-bonus {
-  background: rgba(255,107,157,0.06);
-  border: 1px solid rgba(255,107,157,0.15);
-  border-radius: 8px;
-  padding: 8px 10px;
-}
-.bp-bonus-sep {
-  font-size: 0.7em;
-  color: rgba(255,107,157,0.5);
-  text-align: center;
-  margin-bottom: 6px;
-}
-.bp-bonus-empty {
-  font-size: 0.8em;
-  color: rgba(255,255,255,0.25);
-  text-align: center;
-}
-.bp-pet-bonus-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 12px;
-  justify-content: center;
-}
-.bp-pet-bonus-item {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 0.78em;
-  color: #ff6b9d;
-}
-.bp-pet-bonus-item .bp-bonus-val { color: #fff; font-weight: bold; }
-
-/* 宠物详情弹窗 */
-.bp-pet-detail-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 16px;
-}
-.bp-pet-detail-emoji { font-size: 4em; }
-.bp-pet-detail-info .bp-pet-detail-name { font-size: 1.2em; font-weight: bold; }
-.bp-pet-detail-info .bp-pet-detail-level { font-size: 0.85em; color: #aaa; margin-top: 2px; }
-.bp-pet-detail-talents {
-  background: rgba(255,107,157,0.08);
-  border-radius: 8px;
-  padding: 10px;
-  margin-bottom: 12px;
-}
-.bp-pet-detail-talents-title { font-size: 0.78em; color: #ff6b9d; margin-bottom: 6px; }
-.bp-pet-talent-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.82em;
-  padding: 2px 0;
-}
-.bp-pet-talent-row .talent-name { color: #aaa; }
-.bp-pet-talent-row .talent-val { color: #fff; font-weight: bold; }
-
-</style>
-</head>
-<body>
-
-<div class="particles" id="particles"></div>
-
-<div class="game-container">
-  <div class="status-bar">
-    <div class="status-item">
-      <span class="status-icon">👤</span>
-      <span id="userBadge">游客</span>
-    </div>
-    <div class="status-item">
-      <span class="status-icon">⭐</span>
-      <span>积分: <span class="status-value" id="totalPoints">0</span></span>
-    </div>
-    <div class="status-item" id="staminaStatusItem" style="display:none;">
-      <span class="status-icon">⚡</span>
-      <span>体力: <span class="status-value" id="dailyStaminaDisplay">20</span>/20</span>
-    </div>
-    <div class="status-item">
-      <span class="status-icon streak-fire" id="streakIcon">🔥</span>
-      <span>连击: <span class="status-value" id="currentStreak">0</span></span>
-    </div>
-    <div class="status-item" style="cursor:pointer;" onclick="showAchievements()">
-      <span class="status-icon">🏆</span>
-      <span>成就: <span class="status-value" id="achievementCount">0</span></span>
-    </div>
-    <div class="status-item" id="backpackBtn" style="cursor:pointer;" onclick="showBackpack()">
-      <span class="status-icon">🎒</span>
-      <span>背包 <span id="statusEquipCount" style="color:#ffd700">0</span></span>
-    </div>
-
-    <div class="status-item" id="petBtn" style="cursor:pointer;" onclick="showPetBattle()" title="宠物加成">
-      <span class="status-icon">🐾</span>
-      <span id="statusPetInfo" style="color:#ff6b9d;font-size:0.85em">无加成</span>
-    </div>
-    <div class="status-item" id="wrongQBtn" style="cursor:pointer;" onclick="showWrongQuestions()" title="错题本">
-      <span class="status-icon">📝</span>
-      <span style="color:#a78bfa">错题本</span>
-    </div>
-  </div>
-
-  <div class="screen active" id="startScreen">
-    <div class="hero-section">
-      <div class="hero-mascot">🔬</div>
-      <h1 class="hero-title">科学探险家</h1>
-      <p class="hero-subtitle">四年级下册 · 趣味闯关</p>
-      <p style="color: rgba(255,255,255,0.6); margin: 15px 0; font-size: 0.95em;">
-        粤教粤科版 · 两单元 · 趣味答题 · 成就解锁
-      </p>
-      <button class="start-btn" onclick="showLoginScreen()">🚀 开始挑战</button>
-      <button class="start-btn secondary" onclick="showWrongQuestions()" style="margin-top:12px;background:linear-gradient(135deg,#667eea,#764ba2);"><img src="../../icons/wrong-book.png" class="icon-24"> 错题本</button>
-      <button class="start-btn secondary" id="uploadQBtn42" onclick="showUploadPasswordPrompt()" style="margin-top:8px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);font-size:0.85em;padding:8px 18px;border:1px solid rgba(255,255,255,0.1);">📤 上传题库</button>
-    </div>
-    
-    <!-- 成就预览 -->
-    <div class="achievements-section">
-      <div class="achievements-title" style="cursor:pointer;" onclick="showAchievements()">🏅 成就殿堂（点击查看）</div>
-      <div class="achievements-grid" id="achievementPreview"></div>
-    </div>
-  </div>
-
-  <div class="screen" id="levelScreen">
-    <div class="level-grid" id="levelGrid"></div>
-  </div>
-
-  <div class="screen" id="quizScreen">
-    <div class="quiz-header">
-      <button class="back-btn" onclick="showLevelSelect()">← 返回</button>
-      <span class="quiz-progress" id="quizProgress">1/10</span>
-    </div>
-    <div class="question-card" id="questionCard">
-      <span class="question-type type-choice" id="questionType">单选题</span>
-      <p class="question-text" id="questionText">题目加载中...</p>
-      <div class="options" id="optionsContainer"></div>
-      <button class="hint-btn" id="hintBtn" onclick="showHint()"><img src="../../icons/lightbulb.png" class="icon-24"> 提示 (3)</button>
-      <div class="hint-box" id="hintBox"></div>
-    </div>
-    <div class="btn-group">
-      <button class="btn btn-secondary" id="prevBtn" onclick="prevQuestion()">← 上一题</button>
-      <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">下一题 →</button>
-    </div>
-  </div>
-
-  <div class="screen" id="resultScreen">
-    <div class="result-card">
-      <div class="result-icon" id="resultIcon">🎉</div>
-      <h2 class="result-title" id="resultTitle">恭喜完成！</h2>
-      <div class="result-score" id="resultScore">0分</div>
-      <div class="result-stats">
-        <div class="stat-item">
-          <span class="stat-value" id="correctCount">0</span>
-          <span class="stat-label">正确</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-value" id="accuracy">0%</span>
-          <span class="stat-label">正确率</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-value" id="maxStreakResult">0</span>
-          <span class="stat-label">最高连胜</span>
-        </div>
-      </div>
-      <div class="btn-group">
-        <button class="btn btn-secondary" onclick="showLevelSelect()">返回关卡</button>
-        <button class="btn btn-primary" onclick="restartQuiz()">再玩一次</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="overlay" id="loginOverlay">
-  <div class="login-box">
-    <h2 class="login-title">🔐 输入学号登录</h2>
-    <input type="text" class="login-input" id="studentIdInput" placeholder="请输入8位学号" maxlength="8" onkeypress="if(event.key==='Enter')loginWithId()">
-    <button class="login-btn" id="loginBtn" onclick="loginWithId()">登录存档</button>
-    <button class="guest-btn" id="guestBtn" onclick="loginAsGuest()">游客试玩</button>
-    <div style="margin-top:16px;padding:12px 14px;background:rgba(255,180,0,0.12);border:1px solid rgba(255,180,0,0.3);border-radius:10px;font-size:0.85em;line-height:1.8;text-align:left;color:rgba(255,255,255,0.85);">
-      ⚡ <strong>每日体力系统</strong><br>
-      每位同学每天有 <strong style="color:#ffd700">20 点体力</strong>，<br>
-      每<strong>进入一课</strong>消耗 <strong>1 点体力</strong>，<br>
-      体力消耗完<strong style="color:#ff6b6b">当天不再获得积分</strong>。<br>
-      每天 00:00 体力自动恢复。
-    </div>
-  </div>
-</div>
-
-<!-- 宠物养成弹窗（iframe嵌入式） -->
-<div class="pet-modal" id="petModal">
-  <div class="pet-modal-content">
-    <div class="pet-modal-header">
-      <div class="pet-modal-title">🐾 宠物养成系统</div>
-      <div class="pet-modal-points">
-        <span class="icon">⭐</span>
-        <span>答题积分：</span>
-        <span class="val" id="petModalPoints">0</span>
-      </div>
-      <button class="pet-modal-close" onclick="closePetModal()">✕</button>
-    </div>
-    <iframe id="petIframe" src="../../pet-system.html"></iframe>
-  </div>
-</div>
-
-<script src="../../equipment-gen.js?v=20260429"></script>
-
-<script>
-// ========== 四年级题库 - 按单元和课程（教师版 2026-04-23） ==========
-// ========== 四年级题库 - 按单元和课程（教师版 2026-04-23） ==========
-// questionData 由 data/4-2-lessons.js 动态加载，首次进入选课界面时填充
-var questionData = {};
-
+// ========== 五年级题库 - 按单元和课程（教师版 2026-04-23） ==========
+// ========== 五年级题库 - 按单元和课程（教师版 2026-04-23） ==========
+const questionData = {
+  unit1: {
+    name: '第一单元 身边的桥梁',
+    icon: '🌉',
+    lessons: [
+      { id: 'u1l1', name: '梁桥结构与承重', icon: '<img src="../../icons/book.png" class="icon-32">',
+        basic: [
+          {"q": "平直梁和拱形梁哪种承重能力更强？", "options": ["平直梁", "拱形梁", "一样强", "无法比较"], "answer": 1, "hint": "拱形结构的承重优势"},
+          {"q": "梁桥的基本结构主要包括什么？", "options": ["只有桥面", "桥墩和桥面", "只有桥墩", "桥梁和桥面"], "answer": 1, "hint": "梁桥的基本组成"},
+          {"q": "在相同条件下，拱形结构比平直结构", "options": ["承重能力弱", "承重能力强", "承重能力相同", "无法承重"], "answer": 1, "hint": "拱形结构的力学原理"},
+          {"q": "梁桥的桥墩主要起什么作用？", "options": ["美观", "支撑桥面", "装饰", "行走"], "answer": 1, "hint": "桥墩的功能"},
+          {"q": "拱形结构能够承受更大的重量，是因为", "options": ["材料更厚", "力能够分散到拱形结构的各个部分", "形状好看", "面积更大"], "answer": 1, "hint": "拱形结构的力学原理"},
+          {"q": "拱形结构的承重能力比平直结构强。", "options": ["√", "×"], "answer": 0, "hint": "拱形结构的优势"},
+          {"q": "梁桥只需要桥面，不需要桥墩。", "options": ["√", "×"], "answer": 1, "hint": "梁桥的结构"},
+          {"q": "拱形结构可以把力分散到各个部分。", "options": ["√", "×"], "answer": 0, "hint": "拱形结构的力学原理"}
+        ],
+        medium: [
+          {"q": "下列哪种结构承重能力最强？", "options": ["平直梁", "单拱梁", "双拱梁", "薄板"], "answer": 2, "hint": "结构承重能力比较"},
+          {"q": "测试梁的承重能力时，应该怎样进行？", "options": ["一次加很多重物", "逐个增加重物，记录承重数量", "不需要记录", "随意测试"], "answer": 1, "hint": "科学实验方法"},
+          {"q": "拱形结构在建筑中广泛应用的原因是", "options": ["美观", "承重能力强", "制作简单", "材料便宜"], "answer": 1, "hint": "拱形结构的应用价值"},
+          {"q": "梁桥设计中，增加桥墩数量可以", "options": ["降低成本", "增加承重能力", "减少承重", "没有影响"], "answer": 1, "hint": "桥墩与承重的关系"},
+          {"q": "桥梁的承重能力与什么因素有关？", "options": ["只与材料有关", "只与形状有关", "材料和形状都有关", "与两者无关"], "answer": 2, "hint": "影响承重能力的因素"},
+          {"q": "测试承重能力时应该一次性加很多重物。", "options": ["√", "×"], "answer": 1, "hint": "科学实验方法"},
+          {"q": "桥梁的承重能力与材料有关。", "options": ["√", "×"], "answer": 0, "hint": "影响承重能力的因素"}
+        ],
+        hard: [],
+      },
+      { id: 'u1l2', name: '拱桥特点与优势', icon: '<img src="../../icons/book.png" class="icon-32">',
+        basic: [
+          {"q": "拱桥的主要特点是什么？", "options": ["只有桥面", "有拱形结构", "没有桥墩", "只有一根柱子"], "answer": 1, "hint": "拱桥的定义特征"},
+          {"q": "赵州桥是什么类型的桥梁？", "options": ["梁桥", "拱桥", "吊桥", "浮桥"], "answer": 1, "hint": "中国古桥知识"},
+          {"q": "拱桥相比梁桥的优势是", "options": ["更美观", "承重能力更强", "更便宜", "更容易建造"], "answer": 1, "hint": "拱桥的优势"},
+          {"q": "赵州桥建于哪个朝代？", "options": ["唐朝", "隋朝", "宋朝", "明朝"], "answer": 1, "hint": "赵州桥的历史"},
+          {"q": "拱桥的拱形结构可以将压力", "options": ["集中到一点", "分散到桥墩和桥台", "完全消除", "传递到空中"], "answer": 1, "hint": "拱桥的力学原理"},
+          {"q": "赵州桥是中国古代著名的拱桥。", "options": ["√", "×"], "answer": 0, "hint": "赵州桥的类型"},
+          {"q": "拱桥的承重能力比梁桥弱。", "options": ["√", "×"], "answer": 1, "hint": "拱桥与梁桥承重比较"},
+          {"q": "拱桥可以将压力分散到桥墩和桥台。", "options": ["√", "×"], "answer": 0, "hint": "拱桥的力学原理"}
+        ],
+        medium: [
+          {"q": "下列哪座桥是著名的拱桥？", "options": ["南京长江大桥", "赵州桥", "金门大桥", "港珠澳大桥"], "answer": 1, "hint": "著名拱桥识别"},
+          {"q": "拱桥的跨度可以比梁桥", "options": ["更小", "更大", "一样", "无法确定"], "answer": 1, "hint": "拱桥的跨度优势"},
+          {"q": "拱桥适合建造在什么地形？", "options": ["平原", "山谷、河流", "沙漠", "任何地形"], "answer": 1, "hint": "拱桥的应用环境"},
+          {"q": "拱桥的桥面通常位于拱的什么位置？", "options": ["拱的上方", "拱的下方", "拱的中间", "任意位置"], "answer": 0, "hint": "拱桥的结构形式"},
+          {"q": "拱桥的主要承重结构是", "options": ["桥面", "拱圈", "栏杆", "桥墩"], "answer": 1, "hint": "拱桥的承重结构"},
+          {"q": "拱桥只能建造在小河上。", "options": ["√", "×"], "answer": 1, "hint": "拱桥的应用范围"},
+          {"q": "拱桥的拱圈是主要的承重结构。", "options": ["√", "×"], "answer": 0, "hint": "拱桥的结构"}
+        ],
+        hard: [],
+      },
+      { id: 'u1l3', name: '拼接拱桥', icon: '<img src="../../icons/book.png" class="icon-32">',
+        basic: [
+          {"q": "拼接拱桥时，梯形构件和方形构件哪个更好？", "options": ["方形构件", "梯形构件", "一样好", "都不好"], "answer": 1, "hint": "构件形状与拱桥稳定性"},
+          {"q": "科学探究的基本步骤是什么？", "options": ["提出问题→作出假设→制订计划→搜集证据→得出结论", "得出结论→提出问题→制订计划", "制订计划→搜集证据→提出问题", "随意进行"], "answer": 0, "hint": "科学探究的基本流程"},
+          {"q": "梯形构件在拼接拱桥时的优势是", "options": ["更美观", "更容易拼接成拱形", "更便宜", "更轻"], "answer": 1, "hint": "梯形构件的特点"},
+          {"q": "拼接拱桥实验中，我们主要探究什么？", "options": ["桥的美观程度", "不同构件对拱桥稳定性的影响", "桥的颜色", "桥的长度"], "answer": 1, "hint": "实验目的"},
+          {"q": "在科学探究中，作出假设是指", "options": ["随便猜测", "根据已有知识和经验进行推测", "不需要思考", "得出结论"], "answer": 1, "hint": "假设的含义"},
+          {"q": "科学探究需要按照一定步骤进行。", "options": ["√", "×"], "answer": 0, "hint": "科学探究的规范性"},
+          {"q": "梯形构件比方形构件更容易拼接成拱形。", "options": ["√", "×"], "answer": 0, "hint": "构件形状特点"},
+          {"q": "科学探究中不需要作出假设。", "options": ["√", "×"], "answer": 1, "hint": "假设的重要性"}
+        ],
+        medium: [
+          {"q": "科学探究的最后一步是什么？", "options": ["提出问题", "制订计划", "得出结论", "作出假设"], "answer": 2, "hint": "科学探究的步骤"},
+          {"q": "拼接拱桥时，构件之间的连接方式", "options": ["不重要", "很重要，影响稳定性", "只影响美观", "不需要考虑"], "answer": 1, "hint": "连接方式的重要性"},
+          {"q": "拱桥的稳定性与什么有关？", "options": ["只与构件数量有关", "只与构件形状有关", "构件数量、形状和连接方式都有关", "与这些都无关"], "answer": 2, "hint": "影响稳定性的因素"},
+          {"q": "在实验中，为什么要重复实验？", "options": ["浪费时间", "确保数据的准确性", "不需要重复", "增加难度"], "answer": 1, "hint": "重复实验的意义"},
+          {"q": "拼接拱桥实验中，控制变量是指", "options": ["保持某些条件不变", "随意改变所有条件", "不需要控制", "同时改变多个条件"], "answer": 0, "hint": "控制变量法"},
+          {"q": "重复实验是为了确保数据的准确性。", "options": ["√", "×"], "answer": 0, "hint": "重复实验的意义"},
+          {"q": "拼接拱桥时，构件的连接方式不重要。", "options": ["√", "×"], "answer": 1, "hint": "连接方式的影响"}
+        ],
+        hard: [],
+      },
+      { id: 'u1l4', name: '悬索桥与斜拉桥', icon: '<img src="../../icons/book.png" class="icon-32">',
+        basic: [
+          {"q": "悬索桥的主要承重结构是什么？", "options": ["桥墩", "悬索（缆索）", "桥面", "桥台"], "answer": 1, "hint": "悬索桥的承重结构"},
+          {"q": "斜拉桥的主要特点是什么？", "options": ["没有桥塔", "有斜拉索连接桥塔和桥面", "没有桥面", "只有一根柱子"], "answer": 1, "hint": "斜拉桥的特征"},
+          {"q": "昂船洲大桥是什么类型的桥梁？", "options": ["梁桥", "拱桥", "斜拉桥", "悬索桥"], "answer": 2, "hint": "著名桥梁类型"},
+          {"q": "四渡河大桥位于哪个省份？", "options": ["广东省", "湖北省", "江苏省", "浙江省"], "answer": 1, "hint": "著名桥梁位置"},
+          {"q": "悬索桥适合建造在什么地形？", "options": ["小河", "宽阔的江河或海峡", "平原", "沙漠"], "answer": 1, "hint": "悬索桥的应用环境"},
+          {"q": "悬索桥的主要承重结构是悬索。", "options": ["√", "×"], "answer": 0, "hint": "悬索桥的承重结构"},
+          {"q": "斜拉桥没有斜拉索。", "options": ["√", "×"], "answer": 1, "hint": "斜拉桥的特征"},
+          {"q": "昂船洲大桥是斜拉桥。", "options": ["√", "×"], "answer": 0, "hint": "著名桥梁类型"}
+        ],
+        medium: [
+          {"q": "斜拉桥的斜拉索有什么作用？", "options": ["美观", "拉住桥面，分担重量", "装饰", "行走"], "answer": 1, "hint": "斜拉索的功能"},
+          {"q": "悬索桥的桥塔主要起什么作用？", "options": ["美观", "支撑悬索", "行走", "装饰"], "answer": 1, "hint": "桥塔的功能"},
+          {"q": "与梁桥相比，悬索桥可以建造", "options": ["更短的跨度", "更长的跨度", "一样的跨度", "更低的桥面"], "answer": 1, "hint": "悬索桥的跨度优势"},
+          {"q": "斜拉桥与悬索桥的主要区别是", "options": ["都有桥塔", "斜拉索直接连接桥塔和桥面，悬索桥有主缆和吊索", "都有桥面", "没有区别"], "answer": 1, "hint": "斜拉桥与悬索桥的区别"},
+          {"q": "世界上跨度最大的桥梁类型是", "options": ["梁桥", "拱桥", "悬索桥", "浮桥"], "answer": 2, "hint": "桥梁跨度比较"},
+          {"q": "悬索桥适合建造在宽阔的江河或海峡上。", "options": ["√", "×"], "answer": 0, "hint": "悬索桥的应用"},
+          {"q": "悬索桥的跨度不能超过梁桥。", "options": ["√", "×"], "answer": 1, "hint": "桥梁跨度比较"}
+        ],
+        hard: [],
+      },
+      { id: 'u1l5', name: '框架结构三角形稳定性', icon: '<img src="../../icons/book.png" class="icon-32">',
+        basic: [
+          {"q": "框架结构中，什么形状最稳定？", "options": ["正方形", "长方形", "三角形", "圆形"], "answer": 2, "hint": "三角形的稳定性"},
+          {"q": "钱塘江大桥的设计者是谁？", "options": ["茅以升", "李春", "鲁班", "詹天佑"], "answer": 0, "hint": "钱塘江大桥的历史"},
+          {"q": "电线塔为什么采用三角形结构？", "options": ["美观", "稳定性好", "省材料", "容易建造"], "answer": 1, "hint": "三角形结构的工程应用"},
+          {"q": "三角形框架比四边形框架", "options": ["更不稳定", "更稳定", "一样稳定", "无法比较"], "answer": 1, "hint": "形状与稳定性"},
+          {"q": "框架结构的稳定性与什么有关？", "options": ["只与材料有关", "只与形状有关", "材料和形状都有关", "与两者无关"], "answer": 2, "hint": "影响稳定性的因素"},
+          {"q": "三角形是最稳定的形状。", "options": ["√", "×"], "answer": 0, "hint": "三角形的稳定性"},
+          {"q": "钱塘江大桥的设计者是茅以升。", "options": ["√", "×"], "answer": 0, "hint": "钱塘江大桥的历史"},
+          {"q": "四边形比三角形更稳定。", "options": ["√", "×"], "answer": 1, "hint": "形状与稳定性"}
+        ],
+        medium: [
+          {"q": "增加框架结构稳定性的方法是", "options": ["减少三角形数量", "增加三角形结构", "减少材料", "增加重量"], "answer": 1, "hint": "提高稳定性的方法"},
+          {"q": "下列哪个建筑使用了框架结构？", "options": ["钱塘江大桥", "赵州桥", "金字塔", "长城"], "answer": 0, "hint": "框架结构的应用"},
+          {"q": "三角形稳定的原理是", "options": ["三条边长度相等", "三角形具有稳定性，不易变形", "面积小", "重量轻"], "answer": 1, "hint": "三角形稳定性的原理"},
+          {"q": "在框架结构中添加斜撑可以", "options": ["增加美观", "增加稳定性", "减少稳定性", "没有作用"], "answer": 1, "hint": "斜撑的作用"},
+          {"q": "电线塔、起重机等使用框架结构的原因是", "options": ["美观、稳定、省材料", "只是为了美观", "只是为了省材料", "没有原因"], "answer": 0, "hint": "框架结构的优点"},
+          {"q": "电线塔使用三角形结构是为了稳定性。", "options": ["√", "×"], "answer": 0, "hint": "三角形结构的应用"},
+          {"q": "框架结构的稳定性与形状无关。", "options": ["√", "×"], "answer": 1, "hint": "影响稳定性的因素"}
+        ],
+        hard: [],
+      },
+      { id: 'u1l6', name: '设计制作小桥', icon: '<img src="../../icons/book.png" class="icon-32">',
+        basic: [
+          {"q": "工程设计的基本流程是什么？", "options": ["明确问题→设计方案→制作模型→测试改进", "制作模型→设计方案→明确问题", "测试改进→设计方案→制作模型", "随意进行"], "answer": 0, "hint": "工程设计流程"},
+          {"q": "赵州桥是一座什么类型的桥？", "options": ["梁桥", "拱桥", "斜拉桥", "悬索桥"], "answer": 1, "hint": "赵州桥的类型"},
+          {"q": "港珠澳大桥连接哪些地区？", "options": ["广东、香港、澳门", "广东、福建、台湾", "上海、江苏、浙江", "北京、天津、河北"], "answer": 0, "hint": "港珠澳大桥的位置"},
+          {"q": "设计制作小桥时，首先要做什么？", "options": ["制作模型", "明确问题", "测试", "改进"], "answer": 1, "hint": "工程设计的第一步"},
+          {"q": "帕德玛大桥位于哪个国家？", "options": ["中国", "印度", "孟加拉国", "巴基斯坦"], "answer": 2, "hint": "帕德玛大桥的位置"},
+          {"q": "工程设计需要按照一定流程进行。", "options": ["√", "×"], "answer": 0, "hint": "工程设计的规范性"},
+          {"q": "赵州桥是拱桥。", "options": ["√", "×"], "answer": 0, "hint": "赵州桥的类型"},
+          {"q": "港珠澳大桥连接广东、香港和澳门。", "options": ["√", "×"], "answer": 0, "hint": "港珠澳大桥的位置"}
+        ],
+        medium: [
+          {"q": "测试小桥时，主要测试什么？", "options": ["美观程度", "承重能力和稳定性", "颜色", "长度"], "answer": 1, "hint": "桥梁测试内容"},
+          {"q": "设计方案时需要考虑什么？", "options": ["只考虑材料", "材料、结构、成本等多方面因素", "只考虑美观", "只考虑时间"], "answer": 1, "hint": "设计考虑因素"},
+          {"q": "制作模型后，如果测试不通过应该怎样？", "options": ["放弃", "分析原因，改进设计", "不需要改进", "重新开始"], "answer": 1, "hint": "工程改进"},
+          {"q": "港珠澳大桥是世界上最长的什么类型的桥梁？", "options": ["梁桥", "拱桥", "跨海大桥", "悬索桥"], "answer": 2, "hint": "港珠澳大桥的特点"},
+          {"q": "设计制作小桥的目的是", "options": ["学习工程设计流程", "只是玩耍", "浪费材料", "没有目的"], "answer": 0, "hint": "设计制作的目的"},
+          {"q": "设计方案时不需要考虑成本。", "options": ["√", "×"], "answer": 1, "hint": "设计考虑因素"},
+          {"q": "测试不通过时，应该分析原因并改进设计。", "options": ["√", "×"], "answer": 0, "hint": "工程改进"}
+        ],
+        hard: [],
+      },
+    ],
+  },
+  unit2: {
+    name: '第二单元 微观生命世界',
+    icon: '<img src="../../icons/microscope.png" class="icon-32">',
+    lessons: [
+      { id: 'u2l7', name: '放大镜', icon: '<img src="../../icons/book.png" class="icon-32">',
+        basic: [
+          {"q": "放大镜是什么类型的透镜？", "options": ["凹透镜", "凸透镜", "平面镜", "凹面镜"], "answer": 1, "hint": "放大镜的类型"},
+          {"q": "放大镜的放大倍数与什么有关？", "options": ["镜框的颜色", "凸透镜的凸起程度", "镜柄的长度", "透镜的厚度"], "answer": 1, "hint": "放大倍数的影响因素"},
+          {"q": "放大镜的放大倍数越大，视野范围", "options": ["越大", "越小", "不变", "无关"], "answer": 1, "hint": "放大倍数与视野的关系"},
+          {"q": "正确使用放大镜观察物体的方法是", "options": ["把放大镜贴着眼睛", "把放大镜移近物体，调整距离直到图像清晰", "随意使用", "不需要调整"], "answer": 1, "hint": "放大镜的正确使用方法"},
+          {"q": "放大镜可以把物体的图像", "options": ["变小", "放大", "变模糊", "不变"], "answer": 1, "hint": "放大镜的功能"},
+          {"q": "放大镜是凸透镜。", "options": ["√", "×"], "answer": 0, "hint": "放大镜的类型"},
+          {"q": "放大镜的放大倍数越大，视野范围越大。", "options": ["√", "×"], "answer": 1, "hint": "放大倍数与视野的关系"},
+          {"q": "放大镜可以把物体的图像放大。", "options": ["√", "×"], "answer": 0, "hint": "放大镜的功能"}
+        ],
+        medium: [
+          {"q": "放大镜的镜片特点是", "options": ["中间薄、边缘厚", "中间厚、边缘薄", "厚度均匀", "不透明"], "answer": 1, "hint": "凸透镜的结构特点"},
+          {"q": "放大镜不能用来观察什么？", "options": ["昆虫", "细菌", "细胞", "太阳（直接观察）"], "answer": 3, "hint": "放大镜的安全使用"},
+          {"q": "放大镜的放大倍数与视野范围的关系是", "options": ["成正比", "成反比", "无关", "相等"], "answer": 1, "hint": "放大倍数与视野的关系"},
+          {"q": "使用放大镜时，如果图像不清晰，应该怎样？", "options": ["更换放大镜", "调整放大镜与物体的距离", "放弃观察", "不需要调整"], "answer": 1, "hint": "放大镜的调整方法"},
+          {"q": "放大镜的主要用途是", "options": ["照明", "放大物体图像，便于观察细节", "装饰", "玩耍"], "answer": 1, "hint": "放大镜的用途"},
+          {"q": "放大镜可以直接观察太阳。", "options": ["√", "×"], "answer": 1, "hint": "放大镜的安全使用"},
+          {"q": "放大镜的镜片中间厚、边缘薄。", "options": ["√", "×"], "answer": 0, "hint": "凸透镜的结构"}
+        ],
+        hard: [],
+      },
+      { id: 'u2l8', name: '显微镜结构与操作', icon: '<img src="../../icons/book.png" class="icon-32">',
+        basic: [
+          {"q": "显微镜的主要结构不包括", "options": ["目镜", "物镜", "镜框", "载物台"], "answer": 2, "hint": "显微镜的结构"},
+          {"q": "使用显微镜的正确步骤是什么？", "options": ["观察→取镜→对光→放片", "取镜安放→对光→放片→观察→收镜", "放片→对光→观察", "随意使用"], "answer": 1, "hint": "显微镜的使用步骤"},
+          {"q": "显微镜的目镜和物镜都是什么透镜？", "options": ["凹透镜", "凸透镜", "平面镜", "凹面镜"], "answer": 1, "hint": "显微镜的透镜类型"},
+          {"q": "使用显微镜时，物像的放大倍数等于", "options": ["目镜倍数", "物镜倍数", "目镜倍数×物镜倍数", "目镜倍数+物镜倍数"], "answer": 2, "hint": "显微镜的放大倍数"},
+          {"q": "从目镜中看到的物像是怎样的？", "options": ["正立的", "倒立的", "倾斜的", "不确定"], "answer": 1, "hint": "显微镜成像特点"},
+          {"q": "显微镜的目镜和物镜都是凸透镜。", "options": ["√", "×"], "answer": 0, "hint": "显微镜的透镜类型"},
+          {"q": "使用显微镜时应该按照正确步骤操作。", "options": ["√", "×"], "answer": 0, "hint": "显微镜的使用规范"},
+          {"q": "从显微镜中看到的物像是正立的。", "options": ["√", "×"], "answer": 1, "hint": "显微镜成像特点"}
+        ],
+        medium: [
+          {"q": "使用显微镜时，如果光线太暗，应该怎样？", "options": ["更换显微镜", "调节反光镜或光源", "放弃观察", "不需要调整"], "answer": 1, "hint": "显微镜的光线调节"},
+          {"q": "使用显微镜时，应该用什么眼睛观察？", "options": ["左眼", "右眼", "两眼都睁开", "任意一只眼睛"], "answer": 0, "hint": "显微镜的观察方法"},
+          {"q": "放置玻片标本时，应该放在哪里？", "options": ["物镜下方", "载物台上", "目镜上方", "任意位置"], "answer": 1, "hint": "玻片的放置位置"},
+          {"q": "调节显微镜焦距时，应该先调节哪个螺旋？", "options": ["细准焦螺旋", "粗准焦螺旋", "任意一个", "不需要调节"], "answer": 1, "hint": "显微镜的调焦方法"},
+          {"q": "显微镜使用完毕后，应该怎样收镜？", "options": ["随意放置", "清洁擦拭，放回镜箱", "不需要收镜", "丢在桌上"], "answer": 1, "hint": "显微镜的保养"},
+          {"q": "使用显微镜时，物像的放大倍数是目镜倍数×物镜倍数。", "options": ["√", "×"], "answer": 0, "hint": "放大倍数的计算"},
+          {"q": "显微镜使用完毕后不需要收镜。", "options": ["√", "×"], "answer": 1, "hint": "显微镜的保养"}
+        ],
+        hard: [],
+      },
+      { id: 'u2l9', name: '显微镜观察', icon: '<img src="../../icons/book.png" class="icon-32">',
+        basic: [
+          {"q": "制作玻片标本时，需要什么材料？", "options": ["载玻片和盖玻片", "只有载玻片", "只有盖玻片", "不需要"], "answer": 0, "hint": "玻片标本的制作材料"},
+          {"q": "细胞是生物体的什么单位？", "options": ["最大单位", "基本单位", "无关单位", "不确定"], "answer": 1, "hint": "细胞的定义"},
+          {"q": "使用显微镜观察时，如果物像不在视野中央，应该怎样？", "options": ["移动玻片", "更换显微镜", "放弃观察", "不需要调整"], "answer": 0, "hint": "显微镜观察技巧"},
+          {"q": "制作玻片标本时，为什么要用盖玻片？", "options": ["美观", "保护标本，防止污染镜头", "增加重量", "没有用处"], "answer": 1, "hint": "盖玻片的作用"},
+          {"q": "植物细胞和动物细胞的主要区别是什么？", "options": ["大小不同", "植物细胞有细胞壁，动物细胞没有", "颜色不同", "形状相同"], "answer": 1, "hint": "植物细胞与动物细胞的区别"},
+          {"q": "细胞是生物体的基本单位。", "options": ["√", "×"], "answer": 0, "hint": "细胞的定义"},
+          {"q": "制作玻片标本需要载玻片和盖玻片。", "options": ["√", "×"], "answer": 0, "hint": "玻片标本的制作"},
+          {"q": "植物细胞和动物细胞完全相同。", "options": ["√", "×"], "answer": 1, "hint": "细胞类型比较"}
+        ],
+        medium: [
+          {"q": "显微镜下观察到的细胞有什么特点？", "options": ["都是一样的", "不同生物的细胞形态不同", "没有细胞核", "都没有细胞壁"], "answer": 1, "hint": "细胞的多样性"},
+          {"q": "制作玻片标本时，滴水的目的是", "options": ["清洁", "让标本保持湿润，便于观察", "没有目的", "增加重量"], "answer": 1, "hint": "制作玻片的方法"},
+          {"q": "显微镜下观察到的植物细胞通常包括哪些结构？", "options": ["只有细胞核", "细胞壁、细胞膜、细胞核、细胞质等", "只有细胞壁", "只有细胞膜"], "answer": 1, "hint": "植物细胞的结构"},
+          {"q": "在显微镜下，细胞核通常呈现什么颜色？", "options": ["无色", "较深的颜色（染色后）", "绿色", "红色"], "answer": 1, "hint": "细胞核的观察"},
+          {"q": "观察洋葱表皮细胞时，应该取洋葱的哪个部位？", "options": ["根部", "内表皮", "外皮", "任意部位"], "answer": 1, "hint": "洋葱表皮细胞的取材"},
+          {"q": "植物细胞有细胞壁，动物细胞没有。", "options": ["√", "×"], "answer": 0, "hint": "植物细胞与动物细胞的区别"},
+          {"q": "显微镜下观察到的细胞都是一样的。", "options": ["√", "×"], "answer": 1, "hint": "细胞的多样性"}
+        ],
+        hard: [],
+      },
+      { id: 'u2l10', name: '水中微生物', icon: '<img src="../../icons/book.png" class="icon-32">',
+        basic: [
+          {"q": "下列哪种生物是水中微生物？", "options": ["金鱼", "草履虫", "青蛙", "蜻蜓"], "answer": 1, "hint": "水中微生物识别"},
+          {"q": "水绵是什么类型的生物？", "options": ["动物", "植物（藻类）", "细菌", "真菌"], "answer": 1, "hint": "水绵的分类"},
+          {"q": "衣藻有什么结构可以让它运动？", "options": ["翅膀", "鞭毛", "足", "鳍"], "answer": 1, "hint": "衣藻的运动结构"},
+          {"q": "硅藻是什么类型的生物？", "options": ["动物", "植物（藻类）", "细菌", "真菌"], "answer": 1, "hint": "硅藻的分类"},
+          {"q": "草履虫的身体形状像什么？", "options": ["圆形", "草鞋", "方形", "三角形"], "answer": 1, "hint": "草履虫的形态特征"},
+          {"q": "水中微生物个体微小，肉眼难以看见。", "options": ["√", "×"], "answer": 0, "hint": "微生物的特点"},
+          {"q": "草履虫是水中微生物。", "options": ["√", "×"], "answer": 0, "hint": "草履虫的分类"},
+          {"q": "衣藻没有鞭毛。", "options": ["√", "×"], "answer": 1, "hint": "衣藻的结构"}
+        ],
+        medium: [
+          {"q": "观察水中微生物时，需要用什么工具？", "options": ["放大镜", "显微镜", "眼睛直接看", "望远镜"], "answer": 1, "hint": "观察微生物的工具"},
+          {"q": "水中微生物的特点是", "options": ["个体较大", "个体微小，肉眼难以看见", "没有生命", "不需要水"], "answer": 1, "hint": "微生物的特点"},
+          {"q": "水蚤属于什么类型的生物？", "options": ["植物", "动物", "细菌", "真菌"], "answer": 1, "hint": "水蚤的分类"},
+          {"q": "水中微生物对水生生态系统有什么作用？", "options": ["没有作用", "是食物链的重要组成部分", "有害无益", "不确定"], "answer": 1, "hint": "微生物的生态作用"},
+          {"q": "下列哪种微生物有叶绿体？", "options": ["草履虫", "衣藻", "水蚤", "变形虫"], "answer": 1, "hint": "微生物的叶绿体"},
+          {"q": "观察水中微生物需要使用显微镜。", "options": ["√", "×"], "answer": 0, "hint": "观察微生物的方法"},
+          {"q": "水中微生物对水生生态系统没有作用。", "options": ["√", "×"], "answer": 1, "hint": "微生物的生态作用"}
+        ],
+        hard: [],
+      },
+      { id: 'u2l11', name: '霉菌', icon: '<img src="../../icons/book.png" class="icon-32">',
+        basic: [
+          {"q": "霉菌属于什么类型的生物？", "options": ["植物", "动物", "真菌", "细菌"], "answer": 2, "hint": "霉菌的分类"},
+          {"q": "霉菌生长的适宜环境是", "options": ["温暖、潮湿、阴暗", "寒冷、干燥、明亮", "高温、干燥", "任意环境"], "answer": 0, "hint": "霉菌的生长环境"},
+          {"q": "霉菌的颜色通常是怎样的？", "options": ["只有白色", "有多种颜色，如黑色、绿色、白色等", "只有绿色", "无色"], "answer": 1, "hint": "霉菌的形态特征"},
+          {"q": "防止食物发霉的方法不包括", "options": ["干燥保存", "低温保存", "放在潮湿环境中", "真空保存"], "answer": 2, "hint": "防霉方法"},
+          {"q": "霉菌的形状特点是", "options": ["圆形", "菌丝状", "方形", "三角形"], "answer": 1, "hint": "霉菌的形态"},
+          {"q": "霉菌属于真菌。", "options": ["√", "×"], "answer": 0, "hint": "霉菌的分类"},
+          {"q": "霉菌生长需要温暖、潮湿、阴暗的环境。", "options": ["√", "×"], "answer": 0, "hint": "霉菌的生长环境"},
+          {"q": "霉菌只有害处，没有益处。", "options": ["√", "×"], "answer": 1, "hint": "霉菌的作用"}
+        ],
+        medium: [
+          {"q": "霉菌对人类有什么作用？", "options": ["只有有害作用", "既有有害作用，也有有益作用（如制作食品）", "只有有益作用", "没有作用"], "answer": 1, "hint": "霉菌的作用"},
+          {"q": "下列哪种食物容易发霉？", "options": ["干燥的饼干", "潮湿的面包", "真空包装食品", "冷冻食品"], "answer": 1, "hint": "食物发霉条件"},
+          {"q": "霉菌通过什么方式繁殖？", "options": ["种子", "孢子", "根", "茎"], "answer": 1, "hint": "霉菌的繁殖方式"},
+          {"q": "观察霉菌时，使用什么工具？", "options": ["放大镜或显微镜", "望远镜", "眼睛直接看", "不需要工具"], "answer": 0, "hint": "观察霉菌的工具"},
+          {"q": "霉菌的生长需要什么条件？", "options": ["只需要水分", "温暖、潮湿、有营养物质", "只需要温度", "不需要条件"], "answer": 1, "hint": "霉菌的生长条件"},
+          {"q": "防止食物发霉可以采用干燥保存的方法。", "options": ["√", "×"], "answer": 0, "hint": "防霉方法"},
+          {"q": "霉菌通过孢子繁殖。", "options": ["√", "×"], "answer": 0, "hint": "霉菌的繁殖方式"}
+        ],
+        hard: [],
+      },
+      { id: 'u2l12', name: '微生物与健康', icon: '<img src="../../icons/book.png" class="icon-32">',
+        basic: [
+          {"q": "酵母菌属于什么类型的微生物？", "options": ["细菌", "真菌", "病毒", "藻类"], "answer": 1, "hint": "酵母菌的分类"},
+          {"q": "细菌和病毒的区别是", "options": ["细菌较大，病毒更小", "细菌更小，病毒较大", "大小相同", "没有区别"], "answer": 0, "hint": "细菌与病毒的区别"},
+          {"q": "预防传染病的三项措施是什么？", "options": ["控制传染源、切断传播途径、保护易感人群", "只需要隔离", "只需要打针", "不需要预防"], "answer": 0, "hint": "传染病预防措施"},
+          {"q": "下列哪种微生物对人体有益？", "options": ["流感病毒", "乳酸菌", "结核杆菌", "痢疾杆菌"], "answer": 1, "hint": "有益微生物"},
+          {"q": "传染病流行的三个环节是", "options": ["传染源、传播途径、易感人群", "细菌、病毒、真菌", "空气、水、食物", "不确定"], "answer": 0, "hint": "传染病流行的环节"},
+          {"q": "微生物中有些对人体有益，有些有害。", "options": ["√", "×"], "answer": 0, "hint": "微生物的作用"},
+          {"q": "预防传染病需要控制传染源、切断传播途径、保护易感人群。", "options": ["√", "×"], "answer": 0, "hint": "传染病预防措施"},
+          {"q": "所有细菌都是有害的。", "options": ["√", "×"], "answer": 1, "hint": "细菌的作用"}
+        ],
+        medium: [
+          {"q": "切断传播途径的方法包括", "options": ["戴口罩、勤洗手、通风消毒", "不需要做任何事", "只需要打针", "只需要吃药"], "answer": 0, "hint": "切断传播途径的方法"},
+          {"q": "保护易感人群的方法包括", "options": ["接种疫苗、增强体质", "不需要做任何事", "只需要戴口罩", "只需要隔离"], "answer": 0, "hint": "保护易感人群的方法"},
+          {"q": "细菌的特点是", "options": ["没有细胞结构", "有细胞结构", "没有生命", "都是害虫"], "answer": 1, "hint": "细菌的特点"},
+          {"q": "病毒的特点是", "options": ["有细胞结构", "没有细胞结构，需要寄生在活细胞中", "独立生活", "都是益虫"], "answer": 1, "hint": "病毒的特点"},
+          {"q": "微生物与人类健康的关系是", "options": ["所有微生物都有害", "有些微生物有益，有些有害", "所有微生物都有益", "与人类健康无关"], "answer": 1, "hint": "微生物与人类健康"},
+          {"q": "病毒没有细胞结构，需要寄生在活细胞中。", "options": ["√", "×"], "answer": 0, "hint": "病毒的特点"},
+          {"q": "接种疫苗可以保护易感人群。", "options": ["√", "×"], "answer": 0, "hint": "疫苗的作用"}
+        ],
+        hard: [],
+      },
+      { id: 'u2l13', name: '发酵食品', icon: '<img src="../../icons/book.png" class="icon-32">',
+        basic: [
+          {"q": "发酵食品是利用什么制作的？", "options": ["化学物质", "微生物", "植物", "动物"], "answer": 1, "hint": "发酵食品的制作原理"},
+          {"q": "制作酸笋、酸豇豆等发酵食品主要利用什么微生物？", "options": ["酵母菌", "乳酸菌", "霉菌", "病毒"], "answer": 1, "hint": "乳酸菌发酵"},
+          {"q": "发酵食品的种类不包括", "options": ["酸奶", "馒头", "生肉", "泡菜"], "answer": 2, "hint": "发酵食品的种类"},
+          {"q": "酵母菌在发酵过程中产生什么？", "options": ["二氧化碳和酒精", "只有二氧化碳", "只有酒精", "没有产物"], "answer": 0, "hint": "酵母菌发酵产物"},
+          {"q": "谷类豆类发酵可以制作什么食品？", "options": ["酸奶", "酱油、豆瓣酱", "泡菜", "奶酪"], "answer": 1, "hint": "谷类豆类发酵食品"},
+          {"q": "发酵食品是利用微生物制作的。", "options": ["√", "×"], "answer": 0, "hint": "发酵食品的制作原理"},
+          {"q": "酵母菌发酵可以产生二氧化碳和酒精。", "options": ["√", "×"], "answer": 0, "hint": "酵母菌发酵产物"},
+          {"q": "所有食品都可以发酵。", "options": ["√", "×"], "answer": 1, "hint": "发酵食品的范围"}
+        ],
+        medium: [
+          {"q": "制作发酵食品时，需要注意什么？", "options": ["卫生条件", "温度控制", "时间控制", "以上都需要"], "answer": 3, "hint": "发酵食品的制作条件"},
+          {"q": "乳酸菌发酵产生的物质是", "options": ["酒精", "乳酸", "二氧化碳", "糖"], "answer": 1, "hint": "乳酸菌发酵产物"},
+          {"q": "发酵食品的优点是", "options": ["增加风味", "延长保质期", "增加营养", "以上都是"], "answer": 3, "hint": "发酵食品的优点"},
+          {"q": "制作馒头时，酵母菌的作用是", "options": ["让馒头变甜", "产生二氧化碳，使馒头松软", "让馒头变色", "没有作用"], "answer": 1, "hint": "酵母菌在馒头制作中的作用"},
+          {"q": "发酵技术在生活中的应用不包括", "options": ["制作酸奶", "制作面包", "制作塑料", "酿酒"], "answer": 2, "hint": "发酵技术的应用"},
+          {"q": "发酵食品可以延长保质期。", "options": ["√", "×"], "answer": 0, "hint": "发酵食品的优点"},
+          {"q": "制作发酵食品时不需要注意卫生。", "options": ["√", "×"], "answer": 1, "hint": "发酵食品的制作条件"}
+        ],
+        hard: [],
+      },
+    ],
+  },
+  unit3: {
+    name: '第三单元 火山与地震',
+    icon: '🌋',
+    lessons: [
+      { id: 'u3l14', name: '变化着的地壳', icon: '<img src="../../icons/book.png" class="icon-32">',
+        basic: [
+          {"q": "我们有时会在高山上见到整块断裂的岩石层，这些断裂面上往往会有什么现象？", "options": ["平整光滑", "不规则的弯曲现象", "完全消失", "变成沙子"], "answer": 1, "hint": "岩石层的变形"},
+          {"q": "岩层在构造运动作用下，因受力而发生弯曲变形，这种现象叫做", "options": ["断层", "褶皱", "侵蚀", "沉积"], "answer": 1, "hint": "褶皱的定义"},
+          {"q": "地球的表面分布着陆地和海洋，其中陆地约占地球表面的", "options": ["29%", "50%", "71%", "90%"], "answer": 0, "hint": "地球表面海陆比例"},
+          {"q": "板块构造学说将全球的岩石圈划分为几大板块？", "options": ["四大板块", "五大板块", "六大板块", "七大板块"], "answer": 2, "hint": "板块构造学说"},
+          {"q": "科学家在喜马拉雅山采集到海洋生物的化石，这说明喜马拉雅山地区曾经是", "options": ["高山", "沙漠", "汪洋大海", "草原"], "answer": 2, "hint": "地壳运动证据"},
+          {"q": "地壳的运动非常快速，我们随时都能感觉到。", "options": ["√", "×"], "answer": 1, "hint": "地壳运动的特点"},
+          {"q": "海洋底部也分布着坚硬的岩石层。", "options": ["√", "×"], "answer": 0, "hint": "海底地壳"},
+          {"q": "地核由液态的外核和固态的内核组成。", "options": ["√", "×"], "answer": 0, "hint": "地核的结构"}
+        ],
+        medium: [
+          {"q": "地球的内部构造可以分为几层？", "options": ["两层", "三层", "四层", "五层"], "answer": 1, "hint": "地球内部结构"},
+          {"q": "地球内部结构中，主要由岩石组成、是地球坚硬表面的是", "options": ["地核", "地幔", "地壳", "地心"], "answer": 2, "hint": "地壳的特点"},
+          {"q": "地球的内部结构像一个煮熟的鸡蛋，蛋白相当于地球的", "options": ["地壳", "地幔", "地核", "地表"], "answer": 1, "hint": "地球内部结构类比"},
+          {"q": "根据岩石形成的原因，岩石可分为几大类？", "options": ["两类", "三类", "四类", "五类"], "answer": 1, "hint": "岩石的分类"},
+          {"q": "下列哪种岩石属于岩浆岩？", "options": ["页岩", "大理岩", "花岗岩", "石英岩"], "answer": 2, "hint": "岩浆岩识别"},
+          {"q": "沉积岩是由岩浆冷却凝固形成的。", "options": ["√", "×"], "answer": 1, "hint": "沉积岩的形成"},
+          {"q": "岩石不是永恒不变的，三大类岩石可以相互转换。", "options": ["√", "×"], "answer": 0, "hint": "岩石循环"}
+        ],
+        hard: [],
+      },
+      { id: 'u3l15', name: '火山的喷发', icon: '<img src="../../icons/book.png" class="icon-32">',
+        basic: [
+          {"q": "火山喷发是一种什么现象？", "options": ["人为现象", "自然现象", "偶然现象", "神秘现象"], "answer": 1, "hint": "火山喷发的性质"},
+          {"q": "当地壳不能阻止岩浆向上运动时，岩浆会沿着地壳的什么地带向地表上升？", "options": ["坚固地带", "薄弱地带", "平坦地带", "干燥地带"], "answer": 1, "hint": "岩浆上升通道"},
+          {"q": "火山喷发时，温度极高的岩浆喷出地表，形成什么？", "options": ["洪水", "炽热的熔岩流", "泥石流", "沙尘暴"], "answer": 1, "hint": "火山喷发的产物"},
+          {"q": "火山喷发时喷出的物质不包括以下哪项？", "options": ["岩浆", "气体", "火山灰", "淡水"], "answer": 3, "hint": "火山喷发物"},
+          {"q": "火山灰降落到地面，会造成什么危害？", "options": ["增加土壤肥力", "埋没附近的城市、农田、森林", "净化空气", "降低气温"], "answer": 1, "hint": "火山灰的危害"},
+          {"q": "火山喷发只有危害，没有好处。", "options": ["√", "×"], "answer": 1, "hint": "火山喷发的利弊"},
+          {"q": "火山喷发时会喷出气体、岩石碎块和火山灰。", "options": ["√", "×"], "answer": 0, "hint": "火山喷发物"},
+          {"q": "长白山天池是由火山喷发形成的火山口湖。", "options": ["√", "×"], "answer": 0, "hint": "长白山天池的形成"}
+        ],
+        medium: [
+          {"q": "火山喷发对人类的好处不包括以下哪项？", "options": ["火山灰含有农作物所需的多种养分", "把地下深处的矿物带到地面", "产生地热", "破坏城市和农田"], "answer": 3, "hint": "火山喷发的利弊"},
+          {"q": "火山喷发会改变地球表面的地形，以下哪种地形不是火山喷发形成的？", "options": ["火山岩小山", "火山岛", "火山口湖", "平原"], "answer": 3, "hint": "火山地形"},
+          {"q": "长白山天池是什么类型的湖泊？", "options": ["人工湖", "火山口湖", "冰川湖", "咸水湖"], "answer": 1, "hint": "长白山天池的类型"},
+          {"q": "模拟火山喷发实验中，用什么物质模拟炽热的岩浆？", "options": ["白醋", "红墨水", "苏打粉", "沙子"], "answer": 1, "hint": "火山喷发模拟实验"},
+          {"q": "火山喷发时，岩浆中压力极大的气体会带着什么物质冲上天空？", "options": ["水蒸气", "岩石碎块和火山灰", "氧气", "氮气"], "answer": 1, "hint": "火山喷发过程"},
+          {"q": "火山灰对人类完全没有用处。", "options": ["√", "×"], "answer": 1, "hint": "火山灰的用途"},
+          {"q": "火山喷发会形成火山岩小山、火山岛等地形。", "options": ["√", "×"], "answer": 0, "hint": "火山地形"}
+        ],
+        hard: [],
+      },
+      { id: 'u3l16', name: '大地的震动', icon: '<img src="../../icons/book.png" class="icon-32">',
+        basic: [
+          {"q": "地震是一种什么现象？", "options": ["人为现象", "自然现象", "神秘现象", "偶然现象"], "answer": 1, "hint": "地震的性质"},
+          {"q": "多数的地震是由什么造成的？", "options": ["火山喷发", "地下的岩层断裂", "洪水", "风灾"], "answer": 1, "hint": "地震的成因"},
+          {"q": "地下岩石最先开始破裂的部位叫做什么？", "options": ["震中", "震源", "地核", "地幔"], "answer": 1, "hint": "震源的定义"},
+          {"q": "地震时，应该采取的正确避震方法是", "options": ["站在窗边", "躲在结实的桌子下面", "乘坐电梯", "跑到阳台"], "answer": 1, "hint": "地震避险方法"},
+          {"q": "地震时，以下哪种做法是错误的？", "options": ["靠墙角蹲下", "用双手保护头和颈", "乘坐电梯逃生", "躲在桌子下面"], "answer": 2, "hint": "地震避险误区"},
+          {"q": "地震是由地壳运动引起的地表震动。", "options": ["√", "×"], "answer": 0, "hint": "地震的定义"},
+          {"q": "地震时可以乘坐电梯快速逃生。", "options": ["√", "×"], "answer": 1, "hint": "地震避险误区"},
+          {"q": "地震波在不同的岩石中传播速度不同。", "options": ["√", "×"], "answer": 0, "hint": "地震波的传播"}
+        ],
+        medium: [
+          {"q": "海底地震可能会引发什么灾害？", "options": ["台风", "海啸", "洪水", "火山喷发"], "answer": 1, "hint": "海底地震的危害"},
+          {"q": "科学家利用什么来探测地球内部的结构？", "options": ["光波", "声波", "地震波", "无线电波"], "answer": 2, "hint": "探测地球内部的方法"},
+          {"q": "地震波在不同的岩石中传播时，速度会怎样？", "options": ["完全相同", "有快有慢", "都很慢", "都很快"], "answer": 1, "hint": "地震波的传播"},
+          {"q": "地震对地表的改变是怎样的？", "options": ["缓慢的", "剧烈的", "没有改变", "微小的"], "answer": 1, "hint": "地震对地表的影响"},
+          {"q": "制作地球内部构造模型时，用什么颜色的橡皮泥制作地核？", "options": ["蓝色", "橙色", "红色", "绿色"], "answer": 2, "hint": "地球内部模型制作"},
+          {"q": "地震只能在短时间内破坏道路和建筑物。", "options": ["√", "×"], "answer": 1, "hint": "地震的破坏力"},
+          {"q": "地震时应该用双手保护头和颈，避免被坠物砸伤。", "options": ["√", "×"], "answer": 0, "hint": "地震避险方法"}
+        ],
+        hard: [],
+      },
+    ],
+  },
+  unit4: {
+    name: '第四单元 地球运动与宇宙',
+    icon: '🌍',
+    lessons: [
+      { id: 'u4l17', name: '地球上的昼与夜', icon: '<img src="../../icons/book.png" class="icon-32">',
+        basic: [
+          {"q": "同一时刻地球上不同地区的昼夜情况", "options": ["完全相同", "可能不一样", "一定相反", "都是白天"], "answer": 1, "hint": "昼夜分布"},
+          {"q": "地球是一个什么样的球体？", "options": ["发光的", "透明的", "既不发光又不透明", "发热的"], "answer": 2, "hint": "地球的特点"},
+          {"q": "阳光只能照亮地球的多少？", "options": ["全部", "一小部分", "一半", "三分之一"], "answer": 2, "hint": "阳光照亮地球的范围"},
+          {"q": "当北京是白天时，巴西的里约热内卢是什么时候？", "options": ["白天", "黑夜", "黄昏", "黎明"], "answer": 1, "hint": "地球不同地区的昼夜"},
+          {"q": "我国嫦娥三号月球探测器从月球拍摄地球照片，可以看到地球", "options": ["全部被照亮", "只有朝向太阳的一面被照亮", "完全黑暗", "一半发红"], "answer": 1, "hint": "从月球看地球"},
+          {"q": "同一时刻地球上所有地区都是白天。", "options": ["√", "×"], "answer": 1, "hint": "昼夜分布"},
+          {"q": "地球是一个既不发光又不透明的球体。", "options": ["√", "×"], "answer": 0, "hint": "地球的特点"},
+          {"q": "阳光只能照亮半个地球，形成昼夜现象。", "options": ["√", "×"], "answer": 0, "hint": "昼夜的形成"}
+        ],
+        medium: [
+          {"q": "地球上被阳光照亮的一半是", "options": ["黑夜", "白昼", "黄昏", "黎明"], "answer": 1, "hint": "昼夜的形成"},
+          {"q": "地球上没有被阳光照亮的一半是", "options": ["白昼", "黑夜", "黄昏", "黎明"], "answer": 1, "hint": "昼夜的形成"},
+          {"q": "白天和黑夜是", "options": ["人为现象", "自然现象", "偶然现象", "神秘现象"], "answer": 1, "hint": "昼夜现象的性质"},
+          {"q": "同一时刻，纽约和里约热内卢的昼夜情况", "options": ["完全相反", "基本一致", "没有关系", "有时相同有时不同"], "answer": 3, "hint": "不同地区的昼夜"},
+          {"q": "地球上不同地区的昼夜情况不同的原因是", "options": ["地球是球体且不透明", "地球自转", "地球公转", "地球有大气层"], "answer": 0, "hint": "昼夜差异的原因"},
+          {"q": "当北京是白天时，纽约也是白天。", "options": ["√", "×"], "answer": 1, "hint": "地球不同地区的昼夜"},
+          {"q": "白天和黑夜是自然现象。", "options": ["√", "×"], "answer": 0, "hint": "昼夜现象的性质"}
+        ],
+        hard: [],
+      },
+      { id: 'u4l18', name: '昼夜与地球自转', icon: '<img src="../../icons/book.png" class="icon-32">',
+        basic: [
+          {"q": "我们看到日月星辰东升西落，这是由什么造成的？", "options": ["天体绕地球旋转", "地球自转", "地球公转", "月球运动"], "answer": 1, "hint": "天体视运动的原因"},
+          {"q": "地球自转的方向是", "options": ["自东向西", "自西向东", "自南向北", "自北向南"], "answer": 1, "hint": "地球自转方向"},
+          {"q": "地球自转一周的时间是多少？", "options": ["12小时", "24小时", "一个月", "一年"], "answer": 1, "hint": "地球自转周期"},
+          {"q": "地球围绕着一个假想轴进行自转，这个轴叫做", "options": ["赤道", "地轴", "经线", "纬线"], "answer": 1, "hint": "地轴的定义"},
+          {"q": "地轴贯穿地球的哪里？", "options": ["赤道两端", "南北两极", "东西两端", "海洋中心"], "answer": 1, "hint": "地轴的位置"},
+          {"q": "日月星辰东升西落是天体在绕地球旋转。", "options": ["√", "×"], "answer": 1, "hint": "天体视运动的原因"},
+          {"q": "地球自转一周的时间是24小时。", "options": ["√", "×"], "answer": 0, "hint": "地球自转周期"},
+          {"q": "地球自西向东绕地轴自转。", "options": ["√", "×"], "answer": 0, "hint": "地球自转方向"}
+        ],
+        medium: [
+          {"q": "地轴的状态是", "options": ["垂直的", "水平的", "倾斜的", "不存在的"], "answer": 2, "hint": "地轴的倾斜"},
+          {"q": "上海和乌鲁木齐哪个城市先迎来黎明？", "options": ["同时", "上海", "乌鲁木齐", "不确定"], "answer": 1, "hint": "日出时间的差异"},
+          {"q": "我国采用什么时间作为全国统一使用时间？", "options": ["东六区区时", "东七区区时", "东八区区时", "东九区区时"], "answer": 2, "hint": "中国标准时间"},
+          {"q": "中国国土跨越了几个时区？", "options": ["三个", "四个", "五个", "六个"], "answer": 2, "hint": "中国时区跨度"},
+          {"q": "不同地区的日出时间可能不同，这是因为", "options": ["地球自转", "地球公转", "地球是圆的", "地球有引力"], "answer": 0, "hint": "日出时间差异的原因"},
+          {"q": "地轴是垂直的，不倾斜。", "options": ["√", "×"], "answer": 1, "hint": "地轴的倾斜"},
+          {"q": "东部的城市比西部的城市先迎来黎明。", "options": ["√", "×"], "answer": 0, "hint": "日出时间的差异"}
+        ],
+        hard: [],
+      },
+      { id: 'u4l19', name: '四季与地球公转', icon: '<img src="../../icons/book.png" class="icon-32">',
+        basic: [
+          {"q": "从北极上空看，地球公转的方向是", "options": ["顺时针", "逆时针", "直线运动", "不运动"], "answer": 1, "hint": "地球公转方向"},
+          {"q": "地球公转一周需要多长时间？", "options": ["一天", "一周", "一个月", "约一年"], "answer": 3, "hint": "地球公转周期"},
+          {"q": "每年7月初，地球运行到什么位置？", "options": ["近日点", "远日点", "春分点", "秋分点"], "answer": 1, "hint": "地球在轨道上的位置"},
+          {"q": "每年1月初，地球到达什么位置？", "options": ["近日点", "远日点", "春分点", "秋分点"], "answer": 0, "hint": "地球在轨道上的位置"},
+          {"q": "地球距离太阳的远近是造成冬冷夏热的原因吗？", "options": ["是主要原因", "不是原因", "是唯一原因", "不确定"], "answer": 1, "hint": "四季成因"},
+          {"q": "地球距离太阳的远近是造成冬冷夏热的原因。", "options": ["√", "×"], "answer": 1, "hint": "四季成因"},
+          {"q": "当北半球是夏天时，南半球是冬天。", "options": ["√", "×"], "answer": 0, "hint": "南北半球季节相反"},
+          {"q": "光线直射时，物体温度变化快；光线斜射时，物体温度变化慢。", "options": ["√", "×"], "answer": 0, "hint": "阳光直射与斜射"}
+        ],
+        medium: [
+          {"q": "当北半球是夏天时，南半球是什么季节？", "options": ["春天", "夏天", "秋天", "冬天"], "answer": 3, "hint": "南北半球季节相反"},
+          {"q": "相同的阳光照射到不同地区时，与地面所成的角度", "options": ["完全相同", "可能不同", "一定相同", "无法测量"], "answer": 1, "hint": "阳光照射角度"},
+          {"q": "光线直射时与斜射时，地面接收到的热量", "options": ["相同", "不一样", "直射更少", "无法比较"], "answer": 1, "hint": "阳光直射与斜射"},
+          {"q": "阳光直射时，物体温度变化", "options": ["快", "慢", "不变", "无法确定"], "answer": 0, "hint": "阳光直射与温度"},
+          {"q": "四季变化是由什么引起的？", "options": ["地球自转", "地球公转和地轴倾斜", "月球运动", "太阳活动"], "answer": 1, "hint": "四季成因"},
+          {"q": "地球公转轨道是正圆形的。", "options": ["√", "×"], "answer": 1, "hint": "地球公转轨道"},
+          {"q": "四季变化与地球公转和地轴倾斜有关。", "options": ["√", "×"], "answer": 0, "hint": "四季成因"}
+        ],
+        hard: [],
+      },
+      { id: 'u4l20', name: '四季星空', icon: '<img src="../../icons/book.png" class="icon-32">',
+        basic: [
+          {"q": "人们把星空划分成若干区域，每个区域里的恒星组成了一个", "options": ["行星", "星系", "星座", "星云"], "answer": 2, "hint": "星座的定义"},
+          {"q": "在不同季节，人们看到的星座不同的原因是", "options": ["地球自转", "地球公转", "星座运动", "月球运动"], "answer": 1, "hint": "四季星空的原因"},
+          {"q": "一年四季都可以见到的星座是", "options": ["天蝎座", "仙后座", "猎户座", "大熊座"], "answer": 3, "hint": "全年可见星座"},
+          {"q": "天蝎座中最显眼的红色亮星叫什么？", "options": ["北极星", "北斗星", "心宿二", "天狼星"], "answer": 2, "hint": "天蝎座的亮星"},
+          {"q": "仙后座中有几颗较亮的星呈明显的W形或M形？", "options": ["3颗", "4颗", "5颗", "6颗"], "answer": 2, "hint": "仙后座的形状"},
+          {"q": "在不同季节，人们看到的星座是相同的。", "options": ["√", "×"], "answer": 1, "hint": "四季星空"},
+          {"q": "北极星总是在天空的正北方，可以帮助人们辨认方向。", "options": ["√", "×"], "answer": 0, "hint": "北极星的作用"},
+          {"q": "天蝎座是夏季非常显眼的星座。", "options": ["√", "×"], "answer": 0, "hint": "天蝎座观测时间"}
+        ],
+        medium: [
+          {"q": "猎户座最佳观测月份是几月？", "options": ["1月", "4月", "7月", "10月"], "answer": 0, "hint": "猎户座观测时间"},
+          {"q": "北极星总是在天空的什么方向？", "options": ["正东方", "正西方", "正南方", "正北方"], "answer": 3, "hint": "北极星的位置"},
+          {"q": "我们可以通过什么星座来寻找北极星？", "options": ["天蝎座", "猎户座", "北斗星", "仙后座"], "answer": 2, "hint": "寻找北极星的方法"},
+          {"q": "北斗星的斗口始终指向", "options": ["北极星", "天蝎座", "猎户座", "仙后座"], "answer": 0, "hint": "北斗星指向北极星"},
+          {"q": "到室外观察星空时，应该怎样做？", "options": ["独自前往", "有家长或老师陪同", "只带手电筒", "随时都可以"], "answer": 1, "hint": "观察星空的安全"},
+          {"q": "猎户座只能在夏季看到。", "options": ["√", "×"], "answer": 1, "hint": "猎户座观测时间"},
+          {"q": "可以独自到室外观察星空，不需要大人陪同。", "options": ["√", "×"], "answer": 1, "hint": "观察星空的安全"}
+        ],
+        hard: [],
+      },
+      { id: 'u4l21', name: '太阳家族', icon: '<img src="../../icons/book.png" class="icon-32">',
+        basic: [
+          {"q": "太阳是什么类型的天体？", "options": ["行星", "卫星", "恒星", "彗星"], "answer": 2, "hint": "太阳的分类"},
+          {"q": "太阳系以什么为中心？", "options": ["地球", "月球", "太阳", "木星"], "answer": 2, "hint": "太阳系的中心"},
+          {"q": "太阳系中有几颗行星？", "options": ["六颗", "七颗", "八颗", "九颗"], "answer": 2, "hint": "太阳系行星数量"},
+          {"q": "八颗行星中距离太阳最近的是", "options": ["金星", "水星", "地球", "火星"], "answer": 1, "hint": "行星与太阳的距离"},
+          {"q": "八颗行星中距离太阳最远的是", "options": ["天王星", "海王星", "土星", "木星"], "answer": 1, "hint": "行星与太阳的距离"},
+          {"q": "太阳是离我们最近的恒星。", "options": ["√", "×"], "answer": 0, "hint": "太阳的地位"},
+          {"q": "太阳系中有九颗行星。", "options": ["√", "×"], "answer": 1, "hint": "太阳系行星数量"},
+          {"q": "行星围绕太阳运转，卫星围绕行星运转。", "options": ["√", "×"], "answer": 0, "hint": "天体的运行"}
+        ],
+        medium: [
+          {"q": "太阳的直径大约是地球直径的多少倍？", "options": ["10倍", "50倍", "109倍多", "500倍"], "answer": 2, "hint": "太阳与地球的大小比较"},
+          {"q": "月球的平均直径约为地球直径的多少？", "options": ["1/2", "1/4", "1/10", "1/100"], "answer": 1, "hint": "月球与地球的大小比较"},
+          {"q": "在太阳系中，卫星围绕什么运转？", "options": ["太阳", "行星", "彗星", "流星体"], "answer": 1, "hint": "卫星的运行"},
+          {"q": "地球公转的周期是", "options": ["一天", "一周", "一个月", "一年"], "answer": 3, "hint": "地球公转周期"},
+          {"q": "月球绕地球公转的周期约为", "options": ["一天", "一周", "一个月", "一年"], "answer": 2, "hint": "月球公转周期"},
+          {"q": "太阳的体积大约是地球体积的130万倍。", "options": ["√", "×"], "answer": 0, "hint": "太阳与地球的大小比较"},
+          {"q": "月球绕地球公转是受到地球引力的影响。", "options": ["√", "×"], "answer": 0, "hint": "月球公转的原因"}
+        ],
+        hard: [],
+      },
+      { id: 'u4l22', name: '星系', icon: '<img src="../../icons/book.png" class="icon-32">',
+        basic: [
+          {"q": "谁第一次用望远镜观察银河，发现银河是由许多恒星聚集在一起组成的？", "options": ["哥白尼", "伽利略", "牛顿", "爱因斯坦"], "answer": 1, "hint": "银河的发现"},
+          {"q": "整个银河系是一个包含了多少颗恒星的星系？", "options": ["几百万颗", "几千万颗", "几千亿颗", "几万亿颗"], "answer": 2, "hint": "银河系的恒星数量"},
+          {"q": "太阳在银河系中的地位是", "options": ["中心恒星", "最大恒星", "一颗普通的恒星", "不属于银河系"], "answer": 2, "hint": "太阳在银河系中的地位"},
+          {"q": "银河系的直径超过多少光年？", "options": ["1万光年", "5万光年", "10万光年", "100万光年"], "answer": 2, "hint": "银河系的大小"},
+          {"q": "在银河系以外，还有很多和银河系类似的星系，统称为", "options": ["太阳系", "河外星系", "行星系", "卫星系"], "answer": 1, "hint": "河外星系"},
+          {"q": "银河就是银河系的全部。", "options": ["√", "×"], "answer": 1, "hint": "银河与银河系"},
+          {"q": "太阳是银河系中一颗普通的恒星。", "options": ["√", "×"], "answer": 0, "hint": "太阳在银河系中的地位"},
+          {"q": "光年是时间单位，表示光传播一年需要的时间。", "options": ["√", "×"], "answer": 1, "hint": "光年的定义"}
+        ],
+        medium: [
+          {"q": "人们估计河外星系的总数在多少个以上？", "options": ["百万个", "千万个", "千亿个", "万亿个"], "answer": 2, "hint": "河外星系的数量"},
+          {"q": "仙女座星系距离我们有多远？", "options": ["数百万光年", "数万光年", "数千光年", "数百光年"], "answer": 0, "hint": "仙女座星系的距离"},
+          {"q": "光年是什么单位？", "options": ["时间单位", "长度单位", "速度单位", "质量单位"], "answer": 1, "hint": "光年的定义"},
+          {"q": "光传播一年的距离约为多少千米？", "options": ["946亿千米", "9460亿千米", "9.46万亿千米", "94.6万亿千米"], "answer": 2, "hint": "光年的距离"},
+          {"q": "银河系的形状特点是", "options": ["中间厚、边缘薄", "中间薄、边缘厚", "厚度均匀", "不规则形状"], "answer": 0, "hint": "银河系的形状"},
+          {"q": "仙女座星系是我们肉眼可见的最遥远的天体之一。", "options": ["√", "×"], "answer": 0, "hint": "仙女座星系"},
+          {"q": "银河系中间厚、边缘薄。", "options": ["√", "×"], "answer": 0, "hint": "银河系的形状"}
+        ],
+        hard: [],
+      },
+      { id: 'u4l23', name: '探索宇宙', icon: '<img src="../../icons/book.png" class="icon-32">',
+        basic: [
+          {"q": "什么工具的发明让我们可以更好地观察宇宙？", "options": ["显微镜", "望远镜", "放大镜", "指南针"], "answer": 1, "hint": "观察宇宙的工具"},
+          {"q": "目前只有什么工具可以把仪器和人送入太空？", "options": ["飞机", "直升机", "运载火箭", "汽车"], "answer": 2, "hint": "太空运输工具"},
+          {"q": "运载火箭靠什么飞行？", "options": ["燃料燃烧", "发动机产生的反作用力", "风力", "太阳能"], "answer": 1, "hint": "火箭的飞行原理"},
+          {"q": "水火箭发射的方向与喷出水流的方向", "options": ["相同", "相反", "垂直", "无关"], "answer": 1, "hint": "水火箭的原理"},
+          {"q": "中国是古代火箭的故乡，早在哪个朝代人们就发明了军事用途的火箭？", "options": ["唐代", "宋代", "明代", "清代"], "answer": 1, "hint": "古代火箭的历史"},
+          {"q": "运载火箭是人类探索宇宙的有力工具。", "options": ["√", "×"], "answer": 0, "hint": "火箭的作用"},
+          {"q": "中国是古代火箭的故乡。", "options": ["√", "×"], "answer": 0, "hint": "火箭的历史"},
+          {"q": "水火箭发射的方向与喷出水流的方向相同。", "options": ["√", "×"], "answer": 1, "hint": "水火箭的原理"}
+        ],
+        medium: [
+          {"q": "我国研制的世界上最大的射电望远镜位于哪里？", "options": ["北京", "上海", "贵州平塘县", "云南"], "answer": 2, "hint": "中国射电望远镜"},
+          {"q": "我国自主研发的导航系统是什么？", "options": ["GPS", "北斗卫星导航系统", "伽利略系统", "格洛纳斯系统"], "answer": 1, "hint": "中国导航系统"},
+          {"q": "我国载人飞船的名称是什么？", "options": ["天宫系列", "嫦娥系列", "神舟系列", "天问系列"], "answer": 2, "hint": "中国载人飞船"},
+          {"q": "我国空间站的名称是什么？", "options": ["国际空间站", "天宫空间站", "嫦娥空间站", "天问空间站"], "answer": 1, "hint": "中国空间站"},
+          {"q": "我国火星车的名称是什么？", "options": ["玉兔号", "祝融号", "嫦娥号", "天问号"], "answer": 1, "hint": "中国火星车"},
+          {"q": "北斗卫星导航系统是我国自主研发的导航系统。", "options": ["√", "×"], "answer": 0, "hint": "中国导航系统"},
+          {"q": "探索宇宙给人类带来了深远的影响。", "options": ["√", "×"], "answer": 0, "hint": "探索宇宙的意义"}
+        ],
+        hard: [],
+      },
+    ],
+  },
+};
 // ========== 装备系统（兼容层）==========
 // 将旧 levelKey（common/exquisite/good/rare/epic/legendary/mythic）映射到新 rarity（1-7）
 const LEVEL_TO_RARITY = {
@@ -1382,49 +704,14 @@ function loginAsGuest() {
   showLevelSelect();
 }
 
-// 记录 lesson 数据是否已加载（避免重复请求）
-var _lessonsLoaded = false;
-
 function showLevelSelect() {
-  // 首次进入选课界面时，加载 lesson 题库
-  if (!_lessonsLoaded) {
-    const grid = document.getElementById('levelGrid');
-    grid.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#aaa;font-size:1.1em;">📚 正在加载题库...</div>';
-    loadLessons42(function() {
-      _lessonsLoaded = true;
-      renderLevelGrid();
-    });
-  } else {
-    renderLevelGrid();
-  }
+  renderLevelGrid();
   showScreen('levelScreen');
-}
-
-function loadLessons42(callback) {
-  var script = document.createElement('script');
-  script.src = '../../data/4-2-lessons.js?v=20260507';
-  script.onload = function() {
-    // 将外部文件的单元数据合并到 questionData
-    if (window.QUESTION_BANK_4_2_LESSONS) {
-      Object.assign(questionData, window.QUESTION_BANK_4_2_LESSONS);
-    }
-    callback && callback();
-  };
-  script.onerror = function() {
-    document.getElementById('levelGrid').innerHTML =
-      '<div style="text-align:center;padding:40px;color:#ff6b6b;">题库加载失败，请刷新重试</div>';
-  };
-  document.head.appendChild(script);
 }
 
 function renderLevelGrid() {
   const grid = document.getElementById('levelGrid');
   grid.innerHTML = '';
-
-  if (!questionData || Object.keys(questionData).length === 0) {
-    grid.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">题库未加载</div>';
-    return;
-  }
   
   for (const [unitKey, unit] of Object.entries(questionData)) {
     const title = document.createElement('div');
@@ -1459,7 +746,7 @@ function updateStatusBar() {
   document.getElementById('streakIcon').style.display = gameState.currentStreak >= 2 ? 'inline' : 'none';
   document.getElementById('userBadge').textContent = gameState.isGuest ? '🚶 游客' : `👤 ${gameState.studentId}`;
   // 装备数量
-  initInventory42();
+  initInventory52();
   const count = (gameState.equipment || []).filter(Boolean).length;
   document.getElementById('statusEquipCount').textContent = count > 0 ? '(' + count + ')' : '0';
   // 宠物加成状态
@@ -1509,10 +796,6 @@ function shuffleQuestionOptions(q) {
 }
 
 function startLesson(lesson) {
-  // 确保 lesson 数据已加载（直接访问题库时兜底）
-  if (!_lessonsLoaded) {
-    Object.assign(questionData, window.QUESTION_BANK_4_2_LESSONS || {});
-  }
   gameState.currentLesson = lesson;
   gameState.currentQuestion = 0;
   gameState.correctCount = 0;
@@ -1577,16 +860,6 @@ function startLesson(lesson) {
     [allQuestions[i], allQuestions[j]] = [allQuestions[j], allQuestions[i]];
   }
   gameState.currentQuestions = allQuestions;
-
-  // ====== 防沉迷：进入课程时立即扣1点体力 ======
-  checkAndResetStamina();
-  if (gameState.dailyStamina > 0) {
-    gameState.dailyStamina = Math.max(0, gameState.dailyStamina - 1);
-    updateStaminaDisplay();
-    saveUserData();
-  }
-  // 体力为0时仍可进入课程，但答题不得分（checkAnswer中处理）
-
   showScreen('quizScreen');
   renderQuestion();
 }
@@ -1715,7 +988,7 @@ function selectOption(idx) {
       }
     }
     gameState.totalPoints += points;
-    // 体力扣除已移至 startLesson（进入课程时立即扣1点）
+    // 体力扣除已移至 finishQuiz（每课时完成扣1点）
     updateStatusBar(); // 立即更新顶部积分显示
     checkAchievements();
     
@@ -1799,8 +1072,12 @@ function finishQuiz() {
     gameState.lessonProgress[lessonId] = Math.min(3, (gameState.lessonProgress[lessonId] || 0) + 1);
   }
   
-  // ====== 课时完成：体力扣减已在进入课程时处理，此处无需再扣 ======
-  // （原体力扣减逻辑已移至 startLesson，避免刷分漏洞）
+  // ====== 课时完成：扣减体力 ======
+  if (accuracy >= 60) {
+    gameState.dailyStamina = Math.max(0, gameState.dailyStamina - 1);
+    updateStaminaDisplay();
+    saveUserData();
+  }
 
   checkUnitAchievements();
 
@@ -2136,7 +1413,7 @@ function checkTotalQuestionsAchievements() {
 
 // ========== 装备成就检查 ==========
 function checkEquipAchievements() {
-  initInventory42();
+  initInventory52();
   const inv = gameState.equipment || [];
   const items = inv.filter(Boolean);
   const RARITY_NAMES = ['common','exquisite','good','rare','epic','legendary','mythic'];
@@ -2310,7 +1587,7 @@ function saveUserData() {
     // 每次保存都更新时间戳，用于判断新旧
     lastUpdated: Date.now()
   };
-  localStorage.setItem('scienceGame4_user_' + gameState.studentId, JSON.stringify(data));
+  localStorage.setItem('scienceGame5_user_' + gameState.studentId, JSON.stringify(data));
   // 同时云同步
   saveToCloud(gameState.studentId, data);
 }
@@ -2657,10 +1934,6 @@ function renderWrongQuestionList() {
   document.getElementById('wrongLessonCount').textContent = lessons.length;
 
   const unitSelect = document.getElementById('wrongFilterUnit');
-  // 确保 lesson 数据已加载
-  if (!_lessonsLoaded) {
-    Object.assign(questionData, window.QUESTION_BANK_4_2_LESSONS || {});
-  }
   const bank = questionData;
 
   if (bank && unitSelect.options.length <= 1) {
@@ -2849,7 +2122,7 @@ function mergeUserData(localData, cloudData) {
 
 function loadUserData() {
   if (gameState.isGuest) return;
-  const saveKey = 'scienceGame4_user_' + gameState.studentId;
+  const saveKey = 'scienceGame5_user_' + gameState.studentId;
   const saved = localStorage.getItem(saveKey);
   const localData = saved ? JSON.parse(saved) : null;
 
@@ -2858,21 +2131,6 @@ function loadUserData() {
     applyUserData(localData);
     console.log('使用本地存档');
   }
-
-  // 【安全修复】从宠物系统的 localStorage 同步积分
-  // 宠物系统用 petSystemStateV2 存储，答题系统用 scienceGame4_user_ 存储
-  // 如果宠物系统有抽过（points > 0），则以宠物系统的积分为准，防止刷新后积分"恢复"
-  try {
-    const petRaw = localStorage.getItem('petSystemStateV2');
-    if (petRaw) {
-      const petState = JSON.parse(petRaw);
-      if (petState && petState.points > 0 && petState.points > (gameState.totalPoints || 0)) {
-        gameState.totalPoints = petState.points;
-        localStorage.setItem(saveKey, JSON.stringify(Object.assign({}, localData || {}, { totalPoints: gameState.totalPoints })));
-        console.log('已从宠物系统同步积分:', gameState.totalPoints);
-      }
-    }
-  } catch (e) { /* ignore */ }
 
   // 异步拉取云端，比较时间戳后合并
   loadFromCloud(gameState.studentId).then(cloudData => {
@@ -2911,7 +2169,7 @@ function applyUserData(data) {
     savePetSystemState(data.petSystem);
   }
   // 恢复装备槽（从隔离的 localStorage 键读入，防止云端存档覆盖内存状态）
-  loadEquippedState42();
+  loadEquippedState52();
   updateStatusBar();
   renderAchievementPreview();
 }
@@ -2931,12 +2189,12 @@ function showAchievementUnlock(achievement) {
 }
 
 // 安全取值器，防止旧装备无 rarity 字段导致 NaN → Undefined
-function getRarityColor42(e) { return ['#9e9e9e','#4caf50','#2196f3','#9c27b0','#e91e63','#ffd700','#ff5722'][(e && e.rarity ? e.rarity : 1) - 1] || '#9e9e9e'; }
+function getRarityColor52(e) { return ['#9e9e9e','#4caf50','#2196f3','#9c27b0','#e91e63','#ffd700','#ff5722'][(e && e.rarity ? e.rarity : 1) - 1] || '#9e9e9e'; }
 
 // ========== 背包系统（暗黑100格网格版） ==========
 
 // 初始化100格背包数组，兼容旧数据
-function initInventory42() {
+function initInventory52() {
   if (!gameState.equipment) gameState.equipment = new Array(100).fill(null);
   if (Array.isArray(gameState.equipment) && gameState.equipment.length <= 100) {
     // 旧格式无 null 间隙，直接转100格
@@ -2948,7 +2206,7 @@ function initInventory42() {
 }
 
 // 计算角色属性加成（来自所有装备）
-function recalcCharStats42() {
+function recalcCharStats52() {
   const bonus = { str: 0, dex: 0, int: 0 };
   let hpBonus = 0, mpBonus = 0;
   const inv = gameState.equipment || [];
@@ -2972,8 +2230,8 @@ function recalcCharStats42() {
 }
 
 // 更新角色属性面板
-function updateCharPanel42() {
-  const s = recalcCharStats42();
+function updateCharPanel52() {
+  const s = recalcCharStats52();
   document.getElementById('bpStrVal').textContent = s.totalStr;
   document.getElementById('bpDexVal').textContent = s.totalDex;
   document.getElementById('bpIntVal').textContent = s.totalInt;
@@ -2991,35 +2249,35 @@ function updateCharPanel42() {
   const equippedList = document.getElementById('bpEquippedList');
   if (equippedList) {
     let html = '';
-    for (const slot in bpEquippedSlots42) {
+    for (const slot in bpEquippedSlots52) {
       if (slot === 'treasure') {
-        for (const idx of bpEquippedSlots42.treasure) {
+        for (const idx of bpEquippedSlots52.treasure) {
           if (idx !== null && gameState.equipment && gameState.equipment[idx]) {
             const e = gameState.equipment[idx];
-            const color = getRarityColor42(e);
-            html += `<div onclick="showEquipDetail42(gameState.equipment[${idx}],${idx})" title="${e.name || '宝物'}" style="cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.06);border-radius:6px;border:1px solid ${color}40;font-size:1.1em;">${e.icon || '📦'}</div>`;
+            const color = getRarityColor52(e);
+            html += `<div onclick="showEquipDetail52(gameState.equipment[${idx}],${idx})" title="${e.name || '宝物'}" style="cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.06);border-radius:6px;border:1px solid ${color}40;font-size:1.1em;">${e.icon || '📦'}</div>`;
           }
         }
       } else {
-        const idx = bpEquippedSlots42[slot];
+        const idx = bpEquippedSlots52[slot];
         if (idx !== null && gameState.equipment && gameState.equipment[idx]) {
           const e = gameState.equipment[idx];
-          const color = getRarityColor42(e);
-          html += `<div onclick="showEquipDetail42(gameState.equipment[${idx}],${idx})" title="${e.name || '装备'}" style="cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.06);border-radius:6px;border:1px solid ${color}40;font-size:1.1em;">${e.icon || '📦'}</div>`;
+          const color = getRarityColor52(e);
+          html += `<div onclick="showEquipDetail52(gameState.equipment[${idx}],${idx})" title="${e.name || '装备'}" style="cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.06);border-radius:6px;border:1px solid ${color}40;font-size:1.1em;">${e.icon || '📦'}</div>`;
         }
       }
     }
     equippedList.innerHTML = html;
   }
   // 更新总加成文字
-  updateTotalBonusBar42();
+  updateTotalBonusBar52();
   // 稀有度统计
-  updateRarityCounts42();
+  updateRarityCounts52();
 }
 
-// ========== 四年级装备穿戴系统 ==========
+// ========== 五年级装备穿戴系统 ==========
 // 每种类型可装备一件；宝物可装备2件
-const bpEquippedSlots42 = {
+const bpEquippedSlots52 = {
   weapon: null, hat: null, top: null, bottom: null,
   glove: null, cape: null, shield: null, shoes: null,
   face: null, eyes: null,
@@ -3027,7 +2285,7 @@ const bpEquippedSlots42 = {
 };
 
 // 装备名称关键字 -> 槽位类型映射
-const SLOT_MAP_42 = {
+const SLOT_MAP_52 = {
   weapon:   ['weapon','武器','剑','弓','杖','魔杖','短剑','长矛','矛','刀'],
   hat:      ['hat','帽','冠','盔','头'],
   top:      ['top','衣','服','衫','袍','连衣裙'],   // 包含连衣裙
@@ -3041,88 +2299,88 @@ const SLOT_MAP_42 = {
   treasure: ['宝物','科学']
 };
 
-function getEquipSlotType42(equip) {
+function getEquipSlotType52(equip) {
   if (!equip) return null;
   const s = (equip.slot || equip.type || '').toLowerCase();
-  for (const [type, keywords] of Object.entries(SLOT_MAP_42)) {
+  for (const [type, keywords] of Object.entries(SLOT_MAP_52)) {
     if (keywords.some(k => s.includes(k))) return type;
   }
   return null;  // 未识别类型，不允许穿戴
 }
 
 // 判断某件装备是否是连衣裙（特殊：会占 top，且阻止 bottom 穿戴）
-function isDressEquip42(equip) {
+function isDressEquip52(equip) {
   if (!equip) return false;
   const s = (equip.slot || equip.type || '').toLowerCase();
   return s.includes('连衣裙') || (s.includes('衣') && s.includes('裙'));
 }
 
 // 获取某类型槽当前已穿戴的装备idx（treasure返回数组索引，其他返回idx）
-function getEquippedIdx42(slotType) {
+function getEquippedIdx52(slotType) {
   if (slotType === 'treasure') return null;  // 特殊处理见下
-  return bpEquippedSlots42[slotType];
+  return bpEquippedSlots52[slotType];
 }
 
 // 装备一件装备（自动分配到正确槽位）
-function equipToSlot42(idx) {
+function equipToSlot52(idx) {
   const e = gameState.equipment[idx];
   if (!e) return false;
-  const slotType = getEquipSlotType42(e);
+  const slotType = getEquipSlotType52(e);
   if (!slotType) return false;  // 无法识别的装备类型，不允许穿戴
 
   if (slotType === 'treasure') {
     // 科学宝物：找空位
-    if (bpEquippedSlots42.treasure[0] === null) {
-      bpEquippedSlots42.treasure[0] = idx;
-    } else if (bpEquippedSlots42.treasure[1] === null) {
-      bpEquippedSlots42.treasure[1] = idx;
+    if (bpEquippedSlots52.treasure[0] === null) {
+      bpEquippedSlots52.treasure[0] = idx;
+    } else if (bpEquippedSlots52.treasure[1] === null) {
+      bpEquippedSlots52.treasure[1] = idx;
     } else {
       return false;  // 宝物槽满了
     }
   } else {
     // 连衣裙特殊逻辑：穿连衣裙时清空下装
-    if (isDressEquip42(e)) {
-      bpEquippedSlots42.bottom = null;
+    if (isDressEquip52(e)) {
+      bpEquippedSlots52.bottom = null;
     }
     // 下装特殊逻辑：穿下装时，如果是连衣裙占了top则清空top
-    const topIdx = bpEquippedSlots42.top;
+    const topIdx = bpEquippedSlots52.top;
     if (topIdx !== null) {
       const topEquip = gameState.equipment[topIdx];
-      if (isDressEquip42(topEquip)) {
-        bpEquippedSlots42.top = null;
+      if (isDressEquip52(topEquip)) {
+        bpEquippedSlots52.top = null;
       }
     }
-    bpEquippedSlots42[slotType] = idx;
+    bpEquippedSlots52[slotType] = idx;
   }
   return true;
 }
 
 // 卸下一件装备（知道其idx）
-function unequipFromSlot42(idx) {
-  for (const [type, val] of Object.entries(bpEquippedSlots42)) {
+function unequipFromSlot52(idx) {
+  for (const [type, val] of Object.entries(bpEquippedSlots52)) {
     if (type === 'treasure') {
-      if (val[0] === idx) { bpEquippedSlots42.treasure[0] = null; return true; }
-      if (val[1] === idx) { bpEquippedSlots42.treasure[1] = null; return true; }
+      if (val[0] === idx) { bpEquippedSlots52.treasure[0] = null; return true; }
+      if (val[1] === idx) { bpEquippedSlots52.treasure[1] = null; return true; }
     } else {
-      if (val === idx) { bpEquippedSlots42[type] = null; return true; }
+      if (val === idx) { bpEquippedSlots52[type] = null; return true; }
     }
   }
   return false;
 }
 
 // 某idx是否已穿戴
-function isEquippedIdx42(idx) {
+function isEquippedIdx52(idx) {
   // 检查宝物槽（数组）
-  if (bpEquippedSlots42.treasure.includes(idx)) return true;
+  if (bpEquippedSlots52.treasure.includes(idx)) return true;
   // 检查普通槽：遍历所有非 treasure 的槽，比较值
   for (const slot of ['weapon','hat','top','bottom','glove','cape','shield','shoes','face','eyes']) {
-    if (bpEquippedSlots42[slot] === idx) return true;
+    if (bpEquippedSlots52[slot] === idx) return true;
   }
   return false;
 }
 
 // 槽位标签（中英双语）
-const SLOT_LABELS_42 = {
+const SLOT_LABELS_52 = {
   weapon: '⚔️ 武器', hat: '🎩 帽子', top: '👕 上衣', bottom: '👖 下衣',
   glove: '🧤 手套', cape: '🧣 披风', shield: '🛡️ 盾牌', shoes: '👟 鞋子',
   face: '🎭 脸饰', eyes: '👁️ 眼饰',
@@ -3130,14 +2388,14 @@ const SLOT_LABELS_42 = {
 };
 
 // 槽位列表（决定显示顺序）
-const SLOT_ORDER_42 = ['weapon','hat','top','bottom','glove','cape','shield','shoes','face','eyes','treasure'];
+const SLOT_ORDER_52 = ['weapon','hat','top','bottom','glove','cape','shield','shoes','face','eyes','treasure'];
 
-function saveEquippedState42() {
+function saveEquippedState52() {
   const userId = gameState.studentId || 'guest';
-  localStorage.setItem('bpEquipped_5_' + userId, JSON.stringify(bpEquippedSlots42));
+  localStorage.setItem('bpEquipped_5_' + userId, JSON.stringify(bpEquippedSlots52));
 }
 
-function loadEquippedState42() {
+function loadEquippedState52() {
   const userId = gameState.studentId || 'guest';
   const saved = localStorage.getItem('bpEquipped_5_' + userId);
   if (saved) {
@@ -3145,7 +2403,7 @@ function loadEquippedState42() {
       const state = JSON.parse(saved);
       for (const slot in state) {
         if (slot === 'treasure') {
-          // treasure 是数组，验证每个元素（复用已有数组引用，保护 updateEquippedSlots42 的 DOM 绑定）
+          // treasure 是数组，验证每个元素（复用已有数组引用，保护 updateEquippedSlots52 的 DOM 绑定）
           if (!Array.isArray(state.treasure) || state.treasure.length < 2) {
             state.treasure = [null, null];
           } else {
@@ -3159,12 +2417,12 @@ function loadEquippedState42() {
           }
         }
       }
-      Object.assign(bpEquippedSlots42, state);
+      Object.assign(bpEquippedSlots52, state);
     } catch (e) {}
   }
 }
 
-function calcEquippedBonus42() {
+function calcEquippedBonus52() {
   const bonus = { str: 0, dex: 0, int: 0, hp: 0, mp: 0, pointMul: 1 };
   const addBonus = (idx) => {
     if (idx === null || !gameState.equipment[idx]) return;
@@ -3176,24 +2434,24 @@ function calcEquippedBonus42() {
     bonus.mp += e.mpBonus || 0;
     if (e.multiplier) bonus.pointMul += (e.multiplier >= 2 ? e.multiplier - 1 : e.multiplier - 1);
   };
-  for (const slot in bpEquippedSlots42) {
+  for (const slot in bpEquippedSlots52) {
     if (slot === 'treasure') {
-      addBonus(bpEquippedSlots42.treasure[0]);
-      addBonus(bpEquippedSlots42.treasure[1]);
+      addBonus(bpEquippedSlots52.treasure[0]);
+      addBonus(bpEquippedSlots52.treasure[1]);
     } else {
-      addBonus(bpEquippedSlots42[slot]);
+      addBonus(bpEquippedSlots52[slot]);
     }
   }
   return bonus;
 }
 
-function updateTotalBonusBar42() {
+function updateTotalBonusBar52() {
   const bar = document.getElementById('bpTotalBonusBar');
   if (!bar) return;
-  const bonus = calcEquippedBonus42();
-  const hasEquip = Object.keys(bpEquippedSlots42).some(slot => {
-    if (slot === 'treasure') return bpEquippedSlots42.treasure.some(v => v !== null);
-    return bpEquippedSlots42[slot] !== null;
+  const bonus = calcEquippedBonus52();
+  const hasEquip = Object.keys(bpEquippedSlots52).some(slot => {
+    if (slot === 'treasure') return bpEquippedSlots52.treasure.some(v => v !== null);
+    return bpEquippedSlots52[slot] !== null;
   });
   if (!hasEquip) {
     bar.innerHTML = `<div class="bp-total-bonus-title">✨ 已穿戴装备加成</div><div class="bp-total-bonus-empty">尚未穿戴任何装备</div>`;
@@ -3209,8 +2467,8 @@ function updateTotalBonusBar42() {
   bar.innerHTML = html;
 }
 
-function updateEquippedSlots42() {
-  for (const slot of SLOT_ORDER_42) {
+function updateEquippedSlots52() {
+  for (const slot of SLOT_ORDER_52) {
     const box = document.querySelector(`.bp-slot-box[data-slot="${slot}"]`);
     if (!box) continue;
     const iconEl = box.querySelector('.bp-slot-icon');
@@ -3218,7 +2476,7 @@ function updateEquippedSlots42() {
     if (slot === 'treasure') {
       // 科学宝物槽：显示 2 个子格
       const subSlots = box.querySelectorAll('.bp-treasure-sub');
-      const treasures = bpEquippedSlots42.treasure;
+      const treasures = bpEquippedSlots52.treasure;
       for (let t = 0; t < 2; t++) {
         const sub = subSlots[t];
         if (!sub) continue;
@@ -3241,7 +2499,7 @@ function updateEquippedSlots42() {
       nameEl.textContent = count > 0 ? `${count}/2` : '';
       nameEl.style.color = count > 0 ? '#ffd700' : '#aaa';
     } else {
-      const idx = bpEquippedSlots42[slot];
+      const idx = bpEquippedSlots52[slot];
       if (idx !== null && gameState.equipment[idx]) {
         const e = gameState.equipment[idx];
         const color = e.rarityColor || '#ffd700';
@@ -3257,21 +2515,21 @@ function updateEquippedSlots42() {
       }
     }
   }
-  updateTotalBonusBar42();
+  updateTotalBonusBar52();
 }
 
-function openEquipSelector42(slotType) {
-  const label = Array.isArray(SLOT_LABELS_42[slotType]) ? SLOT_LABELS_42[slotType][0] : SLOT_LABELS_42[slotType] || slotType;
-  let html = `<div class="bp-detail-overlay" onclick="closeEquipSelector42(event)">
+function openEquipSelector52(slotType) {
+  const label = Array.isArray(SLOT_LABELS_52[slotType]) ? SLOT_LABELS_52[slotType][0] : SLOT_LABELS_52[slotType] || slotType;
+  let html = `<div class="bp-detail-overlay" onclick="closeEquipSelector52(event)">
     <div class="bp-detail-card" style="border-color:#ffd700;max-height:80vh;overflow-y:auto;" onclick="event.stopPropagation()">
       <div class="bp-detail-name" style="color:#ffd700">选择${label}</div>
       <div class="bp-detail-type">点击装备进行穿戴</div>`;
 
   if (slotType === 'treasure') {
     // 科学宝物：分 2 个子槽显示
-    const treasures = bpEquippedSlots42.treasure;
+    const treasures = bpEquippedSlots52.treasure;
     for (let t = 0; t < 2; t++) {
-      const subLabel = SLOT_LABELS_42.treasure[t];
+      const subLabel = SLOT_LABELS_52.treasure[t];
       const idx = treasures[t];
       const curEquip = idx !== null ? gameState.equipment[idx] : null;
       if (curEquip) {
@@ -3280,7 +2538,7 @@ function openEquipSelector42(slotType) {
             <span style="font-size:1.3em;">${curEquip.icon || '📦'}</span>
             <span style="color:${curEquip.rarityColor || '#fff'}">${curEquip.name}</span>
           </div>
-          <button class="bp-detail-btn bp-detail-unequip" onclick="unequipTreasureSlot42(${t})">卸下</button>
+          <button class="bp-detail-btn bp-detail-unequip" onclick="unequipTreasureSlot52(${t})">卸下</button>
         </div>`;
       } else {
         html += `<div style="border:1px dashed rgba(255,255,255,0.15);border-radius:8px;padding:8px 10px;margin-bottom:6px;text-align:center;color:#555;">${subLabel}（空）</div>`;
@@ -3288,7 +2546,7 @@ function openEquipSelector42(slotType) {
     }
     // 显示背包中的科学宝物
     const allTreasures = gameState.equipment.map((e, i) => ({ equip: e, idx: i }))
-      .filter(item => item.equip && getEquipSlotType42(item.equip) === 'treasure')
+      .filter(item => item.equip && getEquipSlotType52(item.equip) === 'treasure')
       .sort((a, b) => (b.equip.rarity || 1) - (a.equip.rarity || 1));
     if (allTreasures.length === 0) {
       html += `<div style="text-align:center;color:#666;padding:16px;">背包中没有科学宝物</div>`;
@@ -3301,7 +2559,7 @@ function openEquipSelector42(slotType) {
         const alreadyEquipped = treasures.includes(item.idx);
         html += `<div class="inventory-slot ${alreadyEquipped ? 'equipped' : ''}"
           style="border-color:${color}40;padding:8px;cursor:pointer;${alreadyEquipped ? 'background:rgba(255,215,0,0.15);' : ''}"
-          onclick="bpEquipTreasure42(${item.idx});closeEquipSelector42();">
+          onclick="bpEquipTreasure52(${item.idx});closeEquipSelector52();">
           <div style="font-size:1.4em;">${e.icon || '📦'}</div>
           <div style="font-size:0.58em;color:${color};text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${e.name}</div>
         </div>`;
@@ -3310,9 +2568,9 @@ function openEquipSelector42(slotType) {
     }
   } else {
     const equips = gameState.equipment.map((e, i) => ({ equip: e, idx: i }))
-      .filter(item => item.equip && getEquipSlotType42(item.equip) === slotType)
+      .filter(item => item.equip && getEquipSlotType52(item.equip) === slotType)
       .sort((a, b) => (b.equip.rarity || 1) - (a.equip.rarity || 1));
-    const equippedIdx = bpEquippedSlots42[slotType];
+    const equippedIdx = bpEquippedSlots52[slotType];
     if (equippedIdx !== null && gameState.equipment[equippedIdx]) {
       const e = gameState.equipment[equippedIdx];
       html += `<div style="border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 10px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;">
@@ -3320,7 +2578,7 @@ function openEquipSelector42(slotType) {
           <span style="font-size:1.3em;">${e.icon || '📦'}</span>
           <span style="color:${e.rarityColor || '#fff'}">${e.name}</span>
         </div>
-        <button class="bp-detail-btn bp-detail-unequip" onclick="unequipBySlot42('${slotType}')">卸下</button>
+        <button class="bp-detail-btn bp-detail-unequip" onclick="unequipBySlot52('${slotType}')">卸下</button>
       </div>`;
     }
     if (equips.length === 0) {
@@ -3333,7 +2591,7 @@ function openEquipSelector42(slotType) {
         const isEquipped = item.idx === equippedIdx;
         html += `<div class="inventory-slot ${isEquipped ? 'equipped' : ''}"
           style="border-color:${color}40;padding:8px;cursor:pointer;${isEquipped ? 'background:rgba(255,215,0,0.15);' : ''}"
-          onclick="bpEquipByIdx42(${item.idx});closeEquipSelector42();">
+          onclick="bpEquipByIdx52(${item.idx});closeEquipSelector52();">
           <div style="font-size:1.4em;">${e.icon || '📦'}</div>
           <div style="font-size:0.58em;color:${color};text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${e.name}</div>
         </div>`;
@@ -3341,80 +2599,80 @@ function openEquipSelector42(slotType) {
       html += `</div>`;
     }
   }
-  html += `<button class="bp-detail-close-btn" onclick="closeEquipSelector42()" style="margin-top:12px;">关闭</button></div></div>`;
+  html += `<button class="bp-detail-close-btn" onclick="closeEquipSelector52()" style="margin-top:12px;">关闭</button></div></div>`;
   document.getElementById('bpDetailContainer').innerHTML = html;
 }
 
-function closeEquipSelector42(e) {
+function closeEquipSelector52(e) {
   if (e && e.target !== e.currentTarget) return;
   document.getElementById('bpDetailContainer').innerHTML = '';
 }
 
 // 卸下指定槽位的装备（普通槽）
-function unequipBySlot42(slotType) {
+function unequipBySlot52(slotType) {
   if (slotType === 'treasure') return;
-  bpEquippedSlots42[slotType] = null;
-  saveEquippedState42();
-  closeEquipSelector42();
-  updateCharPanel42();
-  renderInventoryGrid42();
-  updateEquippedSlots42();
+  bpEquippedSlots52[slotType] = null;
+  saveEquippedState52();
+  closeEquipSelector52();
+  updateCharPanel52();
+  renderInventoryGrid52();
+  updateEquippedSlots52();
 }
 
 // 穿装备（装备 idx，自动分配到正确槽位，含连衣裙↔下装互斥）
-function bpEquipByIdx42(idx) {
+function bpEquipByIdx52(idx) {
   const e = gameState.equipment[idx];
   if (!e) return;
-  const slotType = getEquipSlotType42(e);
+  const slotType = getEquipSlotType52(e);
   if (!slotType) return;
-  equipToSlot42(idx);
-  saveEquippedState42();
-  updateCharPanel42();
-  renderInventoryGrid42();
-  updateEquippedSlots42();
+  equipToSlot52(idx);
+  saveEquippedState52();
+  updateCharPanel52();
+  renderInventoryGrid52();
+  updateEquippedSlots52();
 }
 
 // 卸下指定 idx 的装备
-function bpUnequipByIdx42(idx) {
-  if (unequipFromSlot42(idx)) {
-    saveEquippedState42();
-    updateCharPanel42();
-    renderInventoryGrid42();
-    updateEquippedSlots42();
+function bpUnequipByIdx52(idx) {
+  if (unequipFromSlot52(idx)) {
+    saveEquippedState52();
+    updateCharPanel52();
+    renderInventoryGrid52();
+    updateEquippedSlots52();
   }
 }
 
 // 装备科学宝物到第一个空槽
-function bpEquipTreasure42(idx) {
+function bpEquipTreasure52(idx) {
   const e = gameState.equipment[idx];
-  if (!e || getEquipSlotType42(e) !== 'treasure') return;
+  if (!e || getEquipSlotType52(e) !== 'treasure') return;
   // 如果已经穿戴则先卸下
-  unequipFromSlot42(idx);
-  if (bpEquippedSlots42.treasure[0] === null) {
-    bpEquippedSlots42.treasure[0] = idx;
-  } else if (bpEquippedSlots42.treasure[1] === null) {
-    bpEquippedSlots42.treasure[1] = idx;
+  unequipFromSlot52(idx);
+  if (bpEquippedSlots52.treasure[0] === null) {
+    bpEquippedSlots52.treasure[0] = idx;
+  } else if (bpEquippedSlots52.treasure[1] === null) {
+    bpEquippedSlots52.treasure[1] = idx;
   } else {
     return; // 满了，替换第一个？暂时不替换
   }
-  saveEquippedState42();
-  updateCharPanel42();
-  renderInventoryGrid42();
-  updateEquippedSlots42();
+  saveEquippedState52();
+  updateCharPanel52();
+  renderInventoryGrid52();
+  updateEquippedSlots52();
 }
 
 // 卸下科学宝物指定子槽
-function unequipTreasureSlot42(subIdx) {
-  bpEquippedSlots42.treasure[subIdx] = null;
-  saveEquippedState42();
-  closeEquipSelector42();
-  updateCharPanel42();
-  renderInventoryGrid42();
-  updateEquippedSlots42();
+function unequipTreasureSlot52(subIdx) {
+  bpEquippedSlots52.treasure[subIdx] = null;
+  saveEquippedState52();
+  closeEquipSelector52();
+  updateCharPanel52();
+  renderInventoryGrid52();
+  updateEquippedSlots52();
 }
 
 // 更新稀有度统计
-function updateRarityCounts42() {
+function updateRarityCounts52() {
   const RARITY_NAMES = ['common','exquisite','good','rare','epic','legendary','mythic'];
   const RARITY_LABELS = { common:'普通', exquisite:'精致', good:'良好', rare:'稀有', epic:'史诗', legendary:'传说', mythic:'神话' };
   const RARITY_COLORS = { common:'#9e9e9e', exquisite:'#4caf50', good:'#2196f3', rare:'#9c27b0', epic:'#e91e63', legendary:'#ffd700', mythic:'#ff6600' };
@@ -3432,7 +2690,7 @@ function updateRarityCounts42() {
 }
 
 // 渲染100格背包网格
-function renderInventoryGrid42() {
+function renderInventoryGrid52() {
   const grid = document.getElementById('backpackGrid');
   const inv = gameState.equipment || [];
   grid.innerHTML = '';
@@ -3441,7 +2699,7 @@ function renderInventoryGrid42() {
     slot.className = 'inventory-slot';
     const item = inv[i];
     if (item) {
-      const isEquipped = isEquippedIdx42(i);
+      const isEquipped = isEquippedIdx52(i);
       if (isEquipped) {
         slot.style.background = 'rgba(255,215,0,0.15)';
         slot.style.borderColor = 'rgba(255,215,0,0.6)';
@@ -3457,7 +2715,7 @@ function renderInventoryGrid42() {
       const affixText = item.affixes && item.affixes.length > 0 ? '<div class="bp-tooltip-affix" style="color:#888;margin-top:2px;">'+item.affixes.map(a=>a.name).join('、')+'</div>' : '';
       const equipTag = isEquipped ? '<div style="color:#ffd700;margin-top:2px;">【已穿戴】</div>' : '';
       slot.innerHTML += '<div class="bp-tooltip"><div class="bp-tooltip-name" style="color:'+(item.rarityColor||'#fff')+'">'+item.name+'</div><div class="bp-tooltip-stats">'+st.join(' · ')+'</div>'+equipTag+affixText+'</div>';
-      slot.onclick = () => showEquipDetail42(item, i);
+      slot.onclick = () => showEquipDetail52(item, i);
     } else {
       slot.classList.add('empty');
     }
@@ -3469,11 +2727,11 @@ function renderInventoryGrid42() {
 }
 
 // 显示装备详情弹窗
-function showEquipDetail42(item, idx) {
+function showEquipDetail52(item, idx) {
   const container = document.getElementById('bpDetailContainer');
   const RARITY_NAMES = ['common','exquisite','good','rare','epic','legendary','mythic'];
   const rKey = RARITY_NAMES[item.rarity - 1] || 'common';
-  const isEquipped = isEquippedIdx42(idx);
+  const isEquipped = isEquippedIdx52(idx);
   const affixHtml = item.affixes && item.affixes.length > 0
     ? '<div style="margin-top:8px;font-size:0.75em;color:#888;">' + item.affixes.map(a => '<span style="color:'+a.color+'">✦ '+a.effect+'</span>').join(' · ') + '</div>'
     : '';
@@ -3495,8 +2753,8 @@ function showEquipDetail42(item, idx) {
         <div class="bp-detail-mult">积分倍率 <span>${item.multiplier.toFixed(2)}x</span></div>
         <div class="bp-detail-btns">
           ${isEquipped
-            ? '<button class="bp-detail-btn bp-detail-wear" disabled style="opacity:0.5;cursor:not-allowed;">已装备</button><button class="bp-detail-btn bp-detail-unequip" onclick="bpUnequipByIdx42('+idx+')" style="background:rgba(255,100,100,0.3);">卸下</button>'
-            : '<button class="bp-detail-btn bp-detail-wear" onclick="bpEquipByIdx42('+idx+')" style="background:rgba(76,175,80,0.3);">装备</button><button class="bp-detail-btn bp-detail-unequip" disabled style="opacity:0.5;cursor:not-allowed;">卸下</button>'
+            ? '<button class="bp-detail-btn bp-detail-wear" disabled style="opacity:0.5;cursor:not-allowed;">已装备</button><button class="bp-detail-btn bp-detail-unequip" onclick="bpUnequipByIdx52('+idx+')" style="background:rgba(255,100,100,0.3);">卸下</button>'
+            : '<button class="bp-detail-btn bp-detail-wear" onclick="bpEquipByIdx52('+idx+')" style="background:rgba(76,175,80,0.3);">装备</button><button class="bp-detail-btn bp-detail-unequip" disabled style="opacity:0.5;cursor:not-allowed;">卸下</button>'
           }
           <button class="bp-detail-btn bp-detail-unequip" onclick="closeBpDetail()">关闭</button>
         </div>
@@ -3508,16 +2766,16 @@ function closeBpDetail(e) {
   if (e && e.target !== e.currentTarget) return;
   document.getElementById('bpDetailContainer').innerHTML = '';
 }
-function bpEquipDetail42(equipId) {
+function bpEquipDetail52(equipId) {
   const equip = (gameState.equipment || []).find(e => e && e.id === equipId);
   if (!equip || !equip.slot) return;
   equipItem(equip.slot, equip.id);
   closeBpDetail();
   showBackpack();
 }
-function bpUnequipDetail42(equipId) {
-  for (const key of Object.keys(bpEquippedSlots42)) {
-    const v = bpEquippedSlots42[key];
+function bpUnequipDetail52(equipId) {
+  for (const key of Object.keys(bpEquippedSlots52)) {
+    const v = bpEquippedSlots52[key];
     if (Array.isArray(v)) { if (v.includes(equipId)) { equipItem(key, null); closeBpDetail(); showBackpack(); return; } }
     else { if (v === equipId) { equipItem(key, null); closeBpDetail(); showBackpack(); return; } }
   }
@@ -3525,7 +2783,7 @@ function bpUnequipDetail42(equipId) {
 }
 
 // 排序装备（稀有度→属性）
-function bpSort42() {
+function bpSort52() {
   const inv = gameState.equipment || [];
   const items = inv.filter(Boolean);
   items.sort((a, b) => {
@@ -3535,13 +2793,13 @@ function bpSort42() {
   const newInv = new Array(100).fill(null);
   items.forEach((item, i) => { newInv[i] = item; });
   gameState.equipment = newInv;
-  renderInventoryGrid42();
-  updateRarityCounts42();
-  updateCharPanel42();
+  renderInventoryGrid52();
+  updateRarityCounts52();
+  updateCharPanel52();
 }
 
 // 导出装备
-function bpExport42() {
+function bpExport52() {
   const data = JSON.stringify((gameState.equipment || []).filter(Boolean), null, 2);
   const blob = new Blob([data], { type: 'application/json' });
   const a = document.createElement('a');
@@ -3822,15 +3080,15 @@ function closePetModal() {
 }
 
 // ========== Firebase 云同步 ==========
-const CLOUD_CONFIG42 = {
+const CLOUD_CONFIG52 = {
   databaseURL: 'https://kexvefuxi-default-rtdb.asia-southeast1.firebasedatabase.app'
 };
 
-async function saveToCloud42(studentId, data) {
+async function saveToCloud52(studentId, data) {
   if (!studentId || studentId === 'guest') return;
   try {
     const recordKey = 'grade5_' + studentId;
-    const url = CLOUD_CONFIG42.databaseURL + '/students/' + recordKey + '.json';
+    const url = CLOUD_CONFIG52.databaseURL + '/students/' + recordKey + '.json';
     await fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
   } catch (e) { console.error('云同步失败:', e); }
 }
@@ -3851,8 +3109,8 @@ function saveUserData() {
     lastStaminaDate: gameState.lastStaminaDate,
     lastUpdated: Date.now()
   };
-  localStorage.setItem('scienceGame4_user_' + gameState.studentId, JSON.stringify(data));
-  saveToCloud42(gameState.studentId, data);
+  localStorage.setItem('scienceGame5_user_' + gameState.studentId, JSON.stringify(data));
+  saveToCloud52(gameState.studentId, data);
 }
 
 // ========== 监听宠物系统的积分变动 ==========
@@ -3867,35 +3125,35 @@ window.addEventListener('message', function(e) {
 });
 
 // 清空装备
-function bpClear42() {
+function bpClear52() {
   if (!confirm('确定清空所有装备？此操作不可恢复！')) return;
   gameState.equipment = new Array(100).fill(null);
   // 重置已穿戴（new 11-type 系统）
-  bpEquippedSlots42.weapon = null;
-  bpEquippedSlots42.hat = null;
-  bpEquippedSlots42.top = null;
-  bpEquippedSlots42.bottom = null;
-  bpEquippedSlots42.glove = null;
-  bpEquippedSlots42.cape = null;
-  bpEquippedSlots42.shield = null;
-  bpEquippedSlots42.shoes = null;
-  bpEquippedSlots42.face = null;
-  bpEquippedSlots42.eyes = null;
-  bpEquippedSlots42.treasure = [null, null];
-  renderInventoryGrid42();
-  updateRarityCounts42();
-  updateCharPanel42();
-  updateEquippedSlots42();
+  bpEquippedSlots52.weapon = null;
+  bpEquippedSlots52.hat = null;
+  bpEquippedSlots52.top = null;
+  bpEquippedSlots52.bottom = null;
+  bpEquippedSlots52.glove = null;
+  bpEquippedSlots52.cape = null;
+  bpEquippedSlots52.shield = null;
+  bpEquippedSlots52.shoes = null;
+  bpEquippedSlots52.face = null;
+  bpEquippedSlots52.eyes = null;
+  bpEquippedSlots52.treasure = [null, null];
+  renderInventoryGrid52();
+  updateRarityCounts52();
+  updateCharPanel52();
+  updateEquippedSlots52();
 }
 
-// 兼容旧的 bpEquip42 / bpUnequip42（保留给冒险岛换装面板点击用）
-function bpEquip42(equipId) {
+// 兼容旧的 bpEquip52 / bpUnequip52（保留给冒险岛换装面板点击用）
+function bpEquip52(equipId) {
   const equip = (gameState.equipment || []).find(e => e && e.id === equipId);
   if (!equip || !equip.slot) return;
   equipItem(equip.slot, equip.id);
   showBackpack();
 }
-function bpUnequip42(equipId) {
+function bpUnequip52(equipId) {
   const slot = Object.keys(equipped).find(k => equipped[k] === equipId);
   if (slot) equipItem(slot, null);
   showBackpack();
@@ -3904,18 +3162,18 @@ function bpUnequip42(equipId) {
 function showBackpack() {
   console.log('showBackpack 被调用');
   try {
-    initInventory42();
-    console.log('initInventory42 完成');
-    loadEquippedState42();
-    console.log('loadEquippedState42 完成');
-    updateCharPanel42();
-    console.log('updateCharPanel42 完成');
-    updateRarityCounts42();
-    console.log('updateRarityCounts42 完成');
-    renderInventoryGrid42();
-    console.log('renderInventoryGrid42 完成');
-    updateEquippedSlots42();
-    console.log('updateEquippedSlots42 完成');
+    initInventory52();
+    console.log('initInventory52 完成');
+    loadEquippedState52();
+    console.log('loadEquippedState52 完成');
+    updateCharPanel52();
+    console.log('updateCharPanel52 完成');
+    updateRarityCounts52();
+    console.log('updateRarityCounts52 完成');
+    renderInventoryGrid52();
+    console.log('renderInventoryGrid52 完成');
+    updateEquippedSlots52();
+    console.log('updateEquippedSlots52 完成');
     renderBpPetSlots(); // 宠物出战区块
     console.log('renderBpPetSlots 完成');
     const overlay = document.getElementById('backpackOverlay');
@@ -4162,7 +3420,7 @@ const EQUIP_DATA = {
   hat: {
     label: '帽子',
     folder: '帽子',
-    ids: ['1000011','1000095','1000206','1001019','1001036','1001066','1001142','1002016','1002024','1002059','1002081','1002115','1002131','1002208','1002284','1002346','1002391','1002403']
+    ids: ['1000011','1000095','1000206','1001019','1001036','1001066','1001152','1002016','1002024','1002059','1002081','1002115','1002131','1002208','1002284','1002346','1002391','1002403']
   },
   top: {
     label: '上衣',
@@ -4275,11 +3533,11 @@ document.addEventListener('touchend', () => { isDragging = false; });
 // 绑定上传题库按钮
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
-    const btn = document.getElementById('uploadQBtn42');
+    const btn = document.getElementById('uploadQBtn52');
     if (btn) btn.onclick = showUploadPasswordPrompt;
   });
 } else {
-  const btn = document.getElementById('uploadQBtn42');
+  const btn = document.getElementById('uploadQBtn52');
   if (btn) btn.onclick = showUploadPasswordPrompt;
 }
 
@@ -4357,259 +3615,3 @@ function listUploadedLessons() {
   return result;
 }
 
-</script>
-
-<!-- 成就殿堂弹窗 -->
-<div class="achievement-overlay" id="achievementOverlay">
-  <div class="achievement-card">
-    <div class="achievement-header">
-      <div class="achievement-card-title">🏅 成就殿堂</div>
-      <button class="achievement-close" onclick="closeAchievements()">✕</button>
-    </div>
-    <div class="achievement-stats">
-      <div class="achievement-stat">
-        <div class="achievement-stat-icon">🏆</div>
-        <div class="achievement-stat-info">
-          <div class="achievement-stat-label">已解锁</div>
-          <div class="achievement-stat-value" id="achUnlockedCount">0/30</div>
-        </div>
-      </div>
-      <div class="achievement-stat">
-        <div class="achievement-stat-icon">⚡</div>
-        <div class="achievement-stat-info">
-          <div class="achievement-stat-label">总积分加成</div>
-          <div class="achievement-stat-value" id="achPointsBonus">+0%</div>
-        </div>
-      </div>
-      <div class="achievement-stat">
-        <div class="achievement-stat-icon">🎁</div>
-        <div class="achievement-stat-info">
-          <div class="achievement-stat-label">掉率加成</div>
-          <div class="achievement-stat-value" id="achDropBonus">+0%</div>
-        </div>
-      </div>
-    </div>
-    <div class="achievement-tier-filter">
-      <button class="tier-btn active" onclick="filterAchievements('all')">全部</button>
-      <button class="tier-btn" onclick="filterAchievements('unlocked')">已解锁</button>
-      <button class="tier-btn" onclick="filterAchievements('⭐')">⭐普通</button>
-      <button class="tier-btn" onclick="filterAchievements('⭐⭐')">⭐⭐稀有</button>
-      <button class="tier-btn" onclick="filterAchievements('⭐⭐⭐')">⭐⭐⭐史诗</button>
-      <button class="tier-btn" onclick="filterAchievements('👑')">👑传说</button>
-      <button class="tier-btn" onclick="filterAchievements('🏆')">🏆神话</button>
-    </div>
-    <div class="achievement-grid" id="achievementGrid"></div>
-  </div>
-</div>
-
-<!-- 背包弹窗（暗黑100格网格版） -->
-<div class="backpack-overlay" id="backpackOverlay">
-  <div class="backpack-card">
-    <div class="backpack-header">
-      <div class="backpack-title">🎒 我的背包 <span id="bpSlotCount" style="font-size:0.8em;color:#666;font-weight:normal;"></span></div>
-      <button class="backpack-close" onclick="closeBackpack()">✕</button>
-    </div>
-    <div class="bp-layout">
-      <!-- 左侧角色属性面板 -->
-      <div class="bp-char-panel">
-        <div class="bp-char-avatar">
-          <div class="bp-char-avatar-inner" id="bpCharAvatar">🧪</div>
-          <div class="bp-char-level">Lv.<span id="bpCharLevel">1</span></div>
-        </div>
-        <!-- 装备总加成显示 -->
-        <div class="bp-total-bonus-bar" id="bpTotalBonusBar">
-          <div class="bp-total-bonus-title">✨ 已穿戴装备</div>
-          <div class="bp-total-bonus-empty">尚未穿戴任何装备</div>
-        </div>
-        <!-- 穿戴装备图标行 -->
-        <div id="bpEquippedList" style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-bottom:8px;min-height:32px;"></div>
-        <!-- 属性条 -->
-        <div class="bp-stat-row">
-          <div class="bp-stat-header"><span class="bp-stat-name">💪 力量</span><span id="bpStrVal">10</span></div>
-          <div class="bp-stat-bar"><div class="bp-stat-bar-fill bp-str-fill" id="bpStrBar" style="width:10%"></div></div>
-        </div>
-        <div class="bp-stat-row">
-          <div class="bp-stat-header"><span class="bp-stat-name">🏃 敏捷</span><span id="bpDexVal">10</span></div>
-          <div class="bp-stat-bar"><div class="bp-stat-bar-fill bp-dex-fill" id="bpDexBar" style="width:10%"></div></div>
-        </div>
-        <div class="bp-stat-row">
-          <div class="bp-stat-header"><span class="bp-stat-name">🧠 智力</span><span id="bpIntVal">10</span></div>
-          <div class="bp-stat-bar"><div class="bp-stat-bar-fill bp-int-fill" id="bpIntBar" style="width:10%"></div></div>
-        </div>
-        <div class="bp-divider"></div>
-        <div class="bp-stat-row">
-          <div class="bp-stat-header"><span class="bp-stat-name">❤️ HP</span><span id="bpHpVal">100</span></div>
-          <div class="bp-stat-bar"><div class="bp-stat-bar-fill bp-hp-fill" id="bpHpBar" style="width:100%"></div></div>
-        </div>
-        <div class="bp-stat-row">
-          <div class="bp-stat-header"><span class="bp-stat-name">💧 MP</span><span id="bpMpVal">50</span></div>
-          <div class="bp-stat-bar"><div class="bp-stat-bar-fill bp-mp-fill" id="bpMpBar" style="width:50%"></div></div>
-        </div>
-        <div class="bp-divider"></div>
-        <!-- 稀有度统计 -->
-        <div class="bp-rarity-counts" id="bpRarityCounts"></div>
-        <div class="bp-equip-bonus">装备加成：<span id="bpEquipBonus">+0</span> 属性</div>
-        <!-- 操作按钮 -->
-        <div class="bp-actions">
-          <div class="bp-action-btn" onclick="bpSort42()">🔄 排序</div>
-          <div class="bp-action-btn" onclick="bpExport42()">📤 导出</div>
-          <div class="bp-action-btn" onclick="bpClear42()">🗑️ 清空</div>
-        </div>
-      </div>
-      <!-- 右侧100格背包 -->
-      <div class="bp-inventory-area">
-        <div class="bp-inventory-header">
-          <span class="bp-inventory-title">已获得装备</span>
-          <span class="bp-inventory-count"><span id="bpEquipCount">0</span>/100</span>
-        </div>
-        <div class="backpack-grid" id="backpackGrid"></div>
-      </div>
-    </div>
-    <!-- 角色装备穿戴区 -->
-    <div class="bp-equipped-section">
-      <div class="bp-equipped-title">🎽 角色装备</div>
-      <div class="bp-equipped-grid" id="bpEquippedGrid">
-        <!-- 第一行 -->
-        <div class="bp-slot-box" data-slot="weapon" onclick="openEquipSelector42('weapon')">
-          <div class="bp-slot-label">⚔️ 武器</div>
-          <div class="bp-slot-icon"><span class="bp-slot-empty">空</span></div>
-          <div class="bp-slot-name"></div>
-        </div>
-        <div class="bp-slot-box" data-slot="hat" onclick="openEquipSelector42('hat')">
-          <div class="bp-slot-label">🎩 帽子</div>
-          <div class="bp-slot-icon"><span class="bp-slot-empty">空</span></div>
-          <div class="bp-slot-name"></div>
-        </div>
-        <div class="bp-slot-box" data-slot="top" onclick="openEquipSelector42('top')">
-          <div class="bp-slot-label">👕 上衣</div>
-          <div class="bp-slot-icon"><span class="bp-slot-empty">空</span></div>
-          <div class="bp-slot-name"></div>
-        </div>
-        <div class="bp-slot-box" data-slot="bottom" onclick="openEquipSelector42('bottom')">
-          <div class="bp-slot-label">👖 下衣</div>
-          <div class="bp-slot-icon"><span class="bp-slot-empty">空</span></div>
-          <div class="bp-slot-name"></div>
-        </div>
-        <!-- 第二行 -->
-        <div class="bp-slot-box" data-slot="glove" onclick="openEquipSelector42('glove')">
-          <div class="bp-slot-label">🧤 手套</div>
-          <div class="bp-slot-icon"><span class="bp-slot-empty">空</span></div>
-          <div class="bp-slot-name"></div>
-        </div>
-        <div class="bp-slot-box" data-slot="cape" onclick="openEquipSelector42('cape')">
-          <div class="bp-slot-label">🧣 披风</div>
-          <div class="bp-slot-icon"><span class="bp-slot-empty">空</span></div>
-          <div class="bp-slot-name"></div>
-        </div>
-        <div class="bp-slot-box" data-slot="shield" onclick="openEquipSelector42('shield')">
-          <div class="bp-slot-label">🛡️ 盾牌</div>
-          <div class="bp-slot-icon"><span class="bp-slot-empty">空</span></div>
-          <div class="bp-slot-name"></div>
-        </div>
-        <div class="bp-slot-box" data-slot="shoes" onclick="openEquipSelector42('shoes')">
-          <div class="bp-slot-label">👟 鞋子</div>
-          <div class="bp-slot-icon"><span class="bp-slot-empty">空</span></div>
-          <div class="bp-slot-name"></div>
-        </div>
-        <!-- 第三行 -->
-        <div class="bp-slot-box" data-slot="face" onclick="openEquipSelector42('face')">
-          <div class="bp-slot-label">🎭 脸饰</div>
-          <div class="bp-slot-icon"><span class="bp-slot-empty">空</span></div>
-          <div class="bp-slot-name"></div>
-        </div>
-        <div class="bp-slot-box" data-slot="eyes" onclick="openEquipSelector42('eyes')">
-          <div class="bp-slot-label">👁️ 眼饰</div>
-          <div class="bp-slot-icon"><span class="bp-slot-empty">空</span></div>
-          <div class="bp-slot-name"></div>
-        </div>
-        <!-- 第四行：科学宝物（双槽） -->
-        <div class="bp-slot-box treasure-slot" data-slot="treasure" onclick="openEquipSelector42('treasure')">
-          <div class="bp-slot-label">🔬 科学宝物</div>
-          <div class="bp-treasure-subs">
-            <div class="bp-treasure-sub" title="宝物1">空</div>
-            <div class="bp-treasure-sub" title="宝物2">空</div>
-          </div>
-          <div class="bp-slot-name"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 宠物出战区块（显示在装备区上方） -->
-    <div class="bp-pet-section" id="bpPetSection">
-      <div class="bp-pet-title">🐾 出战宠物</div>
-      <div class="bp-pet-slots" id="bpPetSlots">
-        <!-- 动态生成3个槽位 -->
-      </div>
-      <div class="bp-pet-bonus" id="bpPetBonus">
-        <div class="bp-bonus-sep">──────── 宠物加成 ────────</div>
-        <div class="bp-bonus-empty">尚未选择出战宠物</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- 装备详情弹窗 -->
-<div id="bpDetailContainer"></div>
-
-<!-- 成就解锁动画 -->
-<div class="achievement-unlock" id="achievementUnlock">
-  <div class="title">🎊 成就解锁！</div>
-  <div class="icon" id="unlockIcon">🏆</div>
-  <div class="name" id="unlockName">成就名称</div>
-</div>
-
-  <!-- Q版可拖动人物 + 装备层叠系统 -->
-  <div class="char-wrapper" id="charWrapper">
-    <div class="char-base" id="charBase">
-      <div class="char-body"></div>
-    </div>
-    <img class="char-equip" id="equip-top" src="" style="display:none">
-    <img class="char-equip" id="equip-bottom" src="" style="display:none">
-    <img class="char-equip" id="equip-hat" src="" style="display:none">
-    <img class="char-equip" id="equip-cape" src="" style="display:none">
-    <img class="char-equip" id="equip-face" src="" style="display:none">
-    <img class="char-equip" id="equip-eyes" src="" style="display:none">
-  </div>
-  <button class="char-toggle-btn" id="charToggleBtn" onclick="toggleCharPanel()">💪 换装</button>
-  <div class="char-panel" id="charPanel" style="display:none">
-    <div class="char-panel-section">
-      <div class="char-panel-title">🧥 上衣</div>
-      <div class="char-panel-items" id="items-top"></div>
-    </div>
-    <div class="char-panel-section">
-      <div class="char-panel-title">👖 裤裙</div>
-      <div class="char-panel-items" id="items-bottom"></div>
-    </div>
-    <div class="char-panel-section">
-      <div class="char-panel-title">🎩 帽子</div>
-      <div class="char-panel-items" id="items-hat"></div>
-    </div>
-    <div class="char-panel-section">
-      <div class="char-panel-title"><img src="../../icons/bag.png" class="icon-24"> 披风</div>
-      <div class="char-panel-items" id="items-cape"></div>
-    </div>
-    <div class="char-panel-section">
-      <div class="char-panel-title">😷 脸饰</div>
-      <div class="char-panel-items" id="items-face"></div>
-    </div>
-    <div class="char-panel-section">
-      <div class="char-panel-title">👓 眼饰</div>
-      <div class="char-panel-items" id="items-eyes"></div>
-    </div>
-  </div>
-
-<div class="upload-overlay" id="uploadPwdOverlay" onclick="if(event.target.id==='uploadPwdOverlay')closeUploadPwdOverlay()">
-  <div class="upload-modal">
-    <div class="upload-modal-title">🔐 上传题库管理入口</div>
-    <input type="password" id="uploadPwdInput" class="upload-modal-input" placeholder="输入管理员密码" onkeypress="if(event.key==='Enter')checkUploadPassword()">
-    <div class="upload-modal-btns">
-      <button class="upload-modal-btn confirm" onclick="checkUploadPassword()">确认</button>
-      <button class="upload-modal-btn cancel" onclick="closeUploadPwdOverlay()">取消</button>
-    </div>
-    <div class="upload-modal-error" id="uploadPwdError"></div>
-    <div class="upload-modal-hint">请输入管理员密码</div>
-  </div>
-</div>
-
-</body>
-</html>

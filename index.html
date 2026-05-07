@@ -85,7 +85,7 @@
     filter: grayscale(100%);
     transition: all 0.3s;
   }
-  .achievement-badge.unlocked {
+  .achievement-badge.un {
     opacity: 1;
     filter: grayscale(0%);
   }
@@ -178,8 +178,8 @@
     border-color: rgba(0,212,255,0.5);
     box-shadow: 0 8px 32px rgba(0,212,255,0.2);
   }
-  .grade-card.locked { opacity: 0.5; cursor: not-allowed; }
-  .grade-card.locked:hover { transform: none; border-color: rgba(255,255,255,0.15); box-shadow: none; }
+  .grade-card. { opacity: 0.5; cursor: not-allowed; }
+  .grade-card.:hover { transform: none; border-color: rgba(255,255,255,0.15); box-shadow: none; }
 
   .grade-icon { font-size: 48px; margin-bottom: 12px; }
   .grade-name { font-size: 1.4em; font-weight: bold; margin-bottom: 6px; }
@@ -220,7 +220,7 @@
     border-color: rgba(0,212,255,0.6);
     transform: scale(1.02);
   }
-  .semester-btn.locked { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+  .semester-btn. { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
 
   .sem-icon { font-size: 32px; margin-bottom: 8px; }
   .sem-name { font-size: 1.1em; font-weight: bold; }
@@ -494,7 +494,7 @@
   .achievement-badge {
     transition: all 0.3s;
   }
-  .achievement-badge.unlocked {
+  .achievement-badge.un {
     animation: pulse 2s infinite;
   }
   @keyframes pulse {
@@ -506,11 +506,11 @@
   .semester-btn {
     transition: all 0.3s ease;
   }
-  .semester-btn:hover:not(.locked) {
+  .semester-btn:hover:not(.) {
     transform: scale(1.02);
     box-shadow: 0 8px 25px rgba(0,0,0,0.2);
   }
-  .semester-btn.locked {
+  .semester-btn. {
     opacity: 0.5;
     cursor: not-allowed;
   }
@@ -761,11 +761,11 @@
     background: rgba(255,255,255,0.1);
     transform: translateY(-2px);
   }
-  .achievement-card.locked {
+  .achievement-card. {
     opacity: 0.4;
     filter: grayscale(100%);
   }
-  .achievement-card.unlocked {
+  .achievement-card.un {
     border-color: #ffd700;
     box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
   }
@@ -977,10 +977,10 @@
   <!-- 单人模式入口 -->
   <div id="gradePanel">
     <div class="grade-grid">
-      <div class="grade-card locked">
-        <div class="grade-icon"><img src="icons/book-green.png" alt="四年级"></div>
+      <div class="grade-card" onclick="selectGrade(3)">
+        <div class="grade-icon"><img src="icons/book-green.png" alt="三年级"></div>
         <div class="grade-name">三年级</div>
-        <div class="grade-status locked">施工中</div>
+        <div class="grade-status available">已上线</div>
       </div>
 
       <div class="grade-card" onclick="selectGrade(4)">
@@ -1023,10 +1023,10 @@
     <div class="semester-title">📘 四年级 · 选择学期</div>
     <div class="semester-grid">
       <!-- 4/1 = 上学期 -->
-      <a class="semester-btn locked" href="#">
+      <a class="semester-btn " href="#">
         <div class="sem-icon"><img src="icons/spring.png" alt="上学期"></div>
         <div class="sem-name">上学期</div>
-        <div class="sem-desc">四年级上册科学 · 施工中</div>
+        <div class="sem-desc">四年级上册科学 · 已上线</div>
       </a>
       <!-- 4/2 = 下学期（四年级下册已做好） -->
       <a class="semester-btn" href="4/2/">
@@ -1042,8 +1042,8 @@
     <button class="back-btn" onclick="showGrades()">← 返回选择年级</button>
     <div class="semester-title">📗 三年级 · 选择学期</div>
     <div class="semester-grid">
-      <a class="semester-btn locked" href="#"><div class="sem-icon"><img src="icons/spring.png" alt="上学期"></div><div class="sem-name">上学期</div><div class="sem-desc">施工中</div></a>
-      <a class="semester-btn locked" href="#"><div class="sem-icon"><img src="icons/autumn.png" alt="下学期"></div><div class="sem-name">下学期</div><div class="sem-desc">施工中</div></a>
+      <a class="semester-btn " href="#"><div class="sem-icon"><img src="icons/spring.png" alt="上学期"></div><div class="sem-name">上学期</div><div class="sem-desc">即将上线</div></a>
+      <a class="semester-btn " href="3/2/"><div class="sem-icon"><img src="icons/autumn.png" alt="下学期"></div><div class="sem-name">下学期</div><div class="sem-desc">已上线</div></a>
     </div>
   </div>
 
@@ -1052,7 +1052,7 @@
     <button class="back-btn" onclick="showGrades()">← 返回选择年级</button>
     <div class="semester-title">📙 五年级 · 选择学期</div>
     <div class="semester-grid">
-      <a class="semester-btn locked" href="#"><div class="sem-icon"><img src="icons/spring.png" alt="上学期"></div><div class="sem-name">上学期</div><div class="sem-desc">施工中</div></a>
+      <a class="semester-btn " href="#"><div class="sem-icon"><img src="icons/spring.png" alt="上学期"></div><div class="sem-name">上学期</div><div class="sem-desc">已上线</div></a>
       <a class="semester-btn" href="5/2/"><div class="sem-icon"><img src="icons/autumn.png" alt="下学期"></div><div class="sem-name">下学期</div><div class="sem-desc">五年级下册科学 · 第一二单元</div></a>
     </div>
   </div>
@@ -1062,7 +1062,7 @@
     <button class="back-btn" onclick="showGrades()">← 返回选择年级</button>
     <div class="semester-title">📕 六年级 · 选择学期</div>
     <div class="semester-grid">
-      <a class="semester-btn locked" href="#"><div class="sem-icon"><img src="icons/spring.png" alt="上学期"></div><div class="sem-name">上学期</div><div class="sem-desc">施工中</div></a>
+      <a class="semester-btn " href="#"><div class="sem-icon"><img src="icons/spring.png" alt="上学期"></div><div class="sem-name">上学期</div><div class="sem-desc">已上线</div></a>
       <a class="semester-btn" href="6/2/"><div class="sem-icon"><img src="icons/autumn.png" alt="下学期"></div><div class="sem-name">下学期</div><div class="sem-desc">六年级下册科学 · 4单元23课</div></a>
     </div>
   </div>
@@ -1092,7 +1092,7 @@
 
   // 从各年级localStorage收集成就
   function loadAchievements() {
-    const unlockedIds = new Set();
+    const unIds = new Set();
     const grades = [4, 5, 6];
     
     const gradePrefixes = ['scienceGame4_user_', 'scienceGame5_user_', 'scienceGame6_user_', 'scienceGame_user_'];
@@ -1102,38 +1102,38 @@
         if (key && key.includes(prefix)) {
           try {
             const data = JSON.parse(localStorage.getItem(key));
-            if (data && data.unlockedAchievements) {
-              data.unlockedAchievements.forEach(id => unlockedIds.add(id));
+            if (data && data.unAchievements) {
+              data.unAchievements.forEach(id => unIds.add(id));
             }
           } catch(e) {}
         }
       }
     });
     
-    return Array.from(unlockedIds);
+    return Array.from(unIds);
   }
 
   // 渲染成就展示
   function renderAchievements() {
     const container = document.getElementById('achievementBar');
-    const unlockedIds = loadAchievements();
+    const unIds = loadAchievements();
     
-    if (unlockedIds.length === 0) {
+    if (unIds.length === 0) {
       container.innerHTML = '<div class="achievement-stats">开始游戏解锁成就！</div>';
       return;
     }
     
     let html = '';
     ALL_ACHIEVEMENTS.forEach(a => {
-      const unlocked = unlockedIds.includes(a.id);
+      const un = unIds.includes(a.id);
       html += `
-        <div class="achievement-badge ${unlocked ? 'unlocked' : ''}">
+        <div class="achievement-badge ${un ? 'un' : ''}">
           ${a.icon}
           <div class="tooltip">${a.name}<br><small>${a.desc}</small></div>
         </div>
       `;
     });
-    html += `<div class="achievement-stats">已解锁 <span>${unlockedIds.length}</span> / ${ALL_ACHIEVEMENTS.length} 个成就</div>`;
+    html += `<div class="achievement-stats">已解锁 <span>${unIds.length}</span> / ${ALL_ACHIEVEMENTS.length} 个成就</div>`;
     container.innerHTML = html;
   }
 
@@ -1466,13 +1466,13 @@
   // ============ 成就网格渲染 ============
   function renderAchievementsGrid() {
     const grid = document.getElementById('achievementsGrid');
-    const unlockedIds = loadAchievements();
+    const unIds = loadAchievements();
     
     let html = '';
     ALL_ACHIEVEMENTS.forEach(a => {
-      const unlocked = unlockedIds.includes(a.id);
+      const un = unIds.includes(a.id);
       html += `
-        <div class="achievement-card ${unlocked ? 'unlocked' : 'locked'}">
+        <div class="achievement-card ${un ? 'un' : ''}">
           <div class="achievement-icon">${a.icon}</div>
           <div class="achievement-name">${a.name}</div>
           <div class="achievement-desc">${a.desc}</div>
