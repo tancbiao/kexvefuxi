@@ -2844,6 +2844,17 @@ function mergeUserData(localData, cloudData) {
     merged.petSystem = localData.petSystem;
   }
 
+  // 课次进度：合并并集（每个key取较大值，进度只增不减）
+  const lpLocal = localData.lessonProgress || {};
+  const lpCloud = cloudData.lessonProgress || {};
+  const allLessonKeys = new Set([...Object.keys(lpLocal), ...Object.keys(lpCloud)]);
+  if (allLessonKeys.size > 0) {
+    merged.lessonProgress = {};
+    allLessonKeys.forEach(key => {
+      merged.lessonProgress[key] = Math.max(lpLocal[key] || 0, lpCloud[key] || 0);
+    });
+  }
+
   return merged;
 }
 
