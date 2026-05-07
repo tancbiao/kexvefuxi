@@ -885,8 +885,68 @@
 .icon-24 { width: 24px; height: 24px; }
 .lesson-icon img, .unit-icon img { width: 100%; height: 100%; object-fit: contain; }
 
-/* ========== 宠物弹窗 ========== */
-.pet-modal {
+/* ========== 排行榜弹窗 ========== */
+  .ranking-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85); display: none; justify-content: center;
+    align-items: center; z-index: 3000; animation: fadeIn 0.3s;
+  }
+  .ranking-overlay.show { display: flex; }
+  .ranking-card {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    width: 92%; max-width: 580px; max-height: 85vh;
+    border-radius: 20px; padding: 24px; position: relative;
+    border: 1px solid rgba(255,215,0,0.3); color: #fff;
+    overflow-y: auto;
+  }
+  .ranking-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 18px;
+  }
+  .ranking-title { font-size: 1.3em; font-weight: 700; color: #ffd700; }
+  .ranking-close {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(255,255,255,0.1); border: none; color: #fff;
+    font-size: 1.3em; cursor: pointer; display: flex;
+    align-items: center; justify-content: center; transition: background 0.2s;
+  }
+  .ranking-close:hover { background: rgba(255,255,255,0.2); }
+  .ranking-tabs {
+    display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .ranking-tab {
+    padding: 6px 14px; border-radius: 20px; font-size: 0.85em;
+    background: rgba(255,255,255,0.08); border: 1px solid transparent;
+    color: rgba(255,255,255,0.7); cursor: pointer; transition: all 0.2s;
+  }
+  .ranking-tab.active { background: rgba(255,215,0,0.2); border-color: #ffd700; color: #ffd700; }
+  .ranking-tab:hover { background: rgba(255,255,255,0.15); }
+  .ranking-list { display: flex; flex-direction: column; gap: 8px; }
+  .ranking-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px; background: rgba(255,255,255,0.06);
+    border-radius: 12px; transition: background 0.2s;
+  }
+  .ranking-item:hover { background: rgba(255,255,255,0.1); }
+  .ranking-item.me {
+    background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.3);
+  }
+  .ranking-pos {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.9em; flex-shrink: 0;
+  }
+  .ranking-pos-1 { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #1a1a2e; }
+  .ranking-pos-2 { background: linear-gradient(135deg, #c0c0c0, #a9a9a9); color: #1a1a2e; }
+  .ranking-pos-3 { background: linear-gradient(135deg, #cd7f32, #a0522d); color: #1a1a2e; }
+  .ranking-pos-n { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); }
+  .ranking-name { flex: 1; font-size: 0.95em; }
+  .ranking-value { font-weight: 700; color: #ffd700; font-size: 0.95em; }
+  .ranking-loading { text-align: center; padding: 30px; color: rgba(255,255,255,0.5); }
+  .ranking-empty { text-align: center; padding: 30px; color: rgba(255,255,255,0.5); }
+
+  /* ========== 宠物弹窗 ========== */
+  .pet-modal {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
   background: rgba(0,0,0,0.85); z-index: 5000;
   display: none; justify-content: center; align-items: center;
@@ -955,6 +1015,10 @@
     <div class="status-item" id="petBtn" style="cursor:pointer;" onclick="showPetBattle()">
       <span class="status-icon">🐾</span>
       <span id="statusPetInfo" style="color:#ff6b9d;font-size:0.85em">无加成</span>
+    </div>
+    <div class="status-item" id="rankingBtn" style="cursor:pointer;" onclick="showRanking()" title="排行榜">
+      <span class="status-icon">🏆</span>
+      <span>排行榜</span>
     </div>
     <div class="status-item" id="wrongQBtn" style="cursor:pointer;" onclick="showWrongQuestions()" title="错题本">
       <span class="status-icon">📝</span>
@@ -1064,6 +1128,27 @@
 </div>
 
 <script src="../../equipment-gen.js?v=20260429"></script>
+
+<!-- ====== 排行榜弹窗 ====== -->
+<div class="ranking-overlay" id="rankingOverlay">
+  <div class="ranking-card">
+    <div class="ranking-header">
+      <div class="ranking-title">🏆 排行榜</div>
+      <button class="ranking-close" onclick="closeRanking()">✕</button>
+    </div>
+    <div class="ranking-tabs">
+      <div class="ranking-tab active" onclick="switchRankingTab('points', this)">📊 积分</div>
+      <div class="ranking-tab" onclick="switchRankingTab('pet', this)">🐾 宠物战力</div>
+      <div class="ranking-tab" onclick="switchRankingTab('equip', this)">⚔ 装备加成</div>
+      <div class="ranking-tab" onclick="switchRankingTab('ach', this)">🏅 成就</div>
+      <div class="ranking-tab" onclick="switchRankingTab('questions', this)">📝 总答题</div>
+      <div class="ranking-tab" onclick="switchRankingTab('accuracy', this)">🎯 正确率</div>
+    </div>
+    <div class="ranking-list" id="rankingList">
+      <div class="ranking-loading">加载中...</div>
+    </div>
+  </div>
+</div>
 
 <script>
 
@@ -1175,6 +1260,7 @@ const gameState = {
   equipment: [], // 装备背包
   wrongQuestions: [], // 错题本
   totalQuestionsAnswered: 0,
+  totalCorrectAnswers: 0, // 累计答对题数
   retrySuccessCount: 0,
   consecutivePerfectLessons: 0,
   equipDupeCount: 0,
@@ -1260,6 +1346,7 @@ function loginWithId() {
   gameState.isGuest = false;
   hideLoginScreen();
   loadUserData();
+  pushRankingData();
   checkAndResetStamina();
   updateStaminaDisplay();
   showLevelSelect();
@@ -1571,6 +1658,7 @@ function selectOption(idx) {
     // 累计答题数（非重刷）
     if (!gameState.isReplay && !gameState.isWrongQuestionPractice) {
       gameState.totalQuestionsAnswered = (gameState.totalQuestionsAnswered || 0) + 1;
+      gameState.totalCorrectAnswers = (gameState.totalCorrectAnswers || 0) + 1;
       checkTotalQuestionsAchievements();
     }
 
@@ -1617,6 +1705,10 @@ function selectOption(idx) {
     checkAchievements();
   } else {
     gameState.currentStreak = 0;
+    // 累计答题数（错题也计入总数）
+    if (!gameState.isReplay && !gameState.isWrongQuestionPractice) {
+      gameState.totalQuestionsAnswered = (gameState.totalQuestionsAnswered || 0) + 1;
+    }
     // 开门黑：第一题就答错
     if (gameState.currentQuestion === 0 && !gameState.unlockedAchievements.includes('wrong_start')) {
       unlockAchievement('wrong_start');
@@ -2025,11 +2117,13 @@ function saveUserData() {
     equipment: gameState.equipment || [],
     equipDropped: gameState.equipDropped || {},
     totalQuestionsAnswered: gameState.totalQuestionsAnswered || 0,
+    totalCorrectAnswers: gameState.totalCorrectAnswers || 0,
     wrongQuestions: gameState.wrongQuestions || [],
     lastUpdated: Date.now()
   };
   localStorage.setItem(saveKey, JSON.stringify(data));
   saveToCloud(gameState.studentId, data);
+  pushRankingData();
 }
 
 // 保存到云端（Firebase Realtime Database）
@@ -2658,6 +2752,9 @@ function applyUserData(data) {
   }
   gameState.equipDropped = data.equipDropped || {};
   gameState.wrongQuestions = data.wrongQuestions || [];
+  // 答题统计
+  gameState.totalQuestionsAnswered = data.totalQuestionsAnswered || 0;
+  gameState.totalCorrectAnswers = data.totalCorrectAnswers || 0;
   gameState.dailyStamina = (data.dailyStamina !== undefined) ? data.dailyStamina : 20;
   gameState.lastStaminaDate = data.lastStaminaDate || null;
   updateStatusBar();
@@ -3270,6 +3367,149 @@ function showBackpack() {
   document.getElementById('backpackOverlay').classList.add('show');
 }
 
+// ========== 排行榜系统 ==========
+const RANKING_CONFIG = {
+  databaseURL: 'https://kexvefuxi-default-rtdb.asia-southeast1.firebasedatabase.app',
+  getPath(grade) { return this.databaseURL + '/rankings_' + grade + '.json'; },
+  getStudentPath(grade, sid) { return this.databaseURL + '/rankings_' + grade + '/' + sid + '.json'; }
+};
+
+// 计算并推送当前用户的排名数据到 Firebase
+async function pushRankingData() {
+  if (gameState.isGuest || !gameState.studentId) return;
+  try {
+    const petInfo = (typeof calcPetBattleBonus === 'function') ? calcPetBattleBonus() : { total: 0 };
+    const equipInfo = (typeof calcEquippedBonus62 === 'function') ? calcEquippedBonus62() : { pointMul: 1 };
+    const totalQ = gameState.totalQuestionsAnswered || 0;
+    const totalC = gameState.totalCorrectAnswers || 0;
+    const accuracyRate = totalQ >= 200 ? (totalQ > 0 ? (totalC / totalQ * 100).toFixed(1) : 0) : -1;
+    const data = {
+      studentId: gameState.studentId,
+      totalPoints: gameState.totalPoints || 0,
+      petPower: petInfo.total || 0,
+      equipBonus: equipInfo.pointMul || 1,
+      achievementCount: (gameState.unlockedAchievements || []).length,
+      lessonCount: Object.values(gameState.lessonProgress || {}).filter(v => v >= 1).length,
+      totalStars: Object.values(gameState.lessonProgress || {}).reduce((a, b) => a + (b || 0), 0),
+      totalQuestionsAnswered: totalQ,
+      totalCorrectAnswers: totalC,
+      accuracyRate: accuracyRate,
+      lastUpdated: Date.now()
+    };
+    const url = RANKING_CONFIG.getStudentPath('grade62', gameState.studentId);
+    await fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+  } catch(e) { console.error('推送排名数据失败:', e); }
+}
+
+// 显示排行榜
+async function showRanking() {
+  document.getElementById('rankingOverlay').classList.add('show');
+  document.querySelectorAll('#rankingOverlay .ranking-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('#rankingOverlay .ranking-tab').classList.add('active');
+  await loadAndRenderRanking('points');
+}
+
+// 关闭排行榜
+function closeRanking() {
+  document.getElementById('rankingOverlay').classList.remove('show');
+}
+
+// 切换排行榜Tab
+async function switchRankingTab(tab, el) {
+  document.querySelectorAll('#rankingOverlay .ranking-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  await loadAndRenderRanking(tab);
+}
+
+// 加载并渲染排行榜
+async function loadAndRenderRanking(type) {
+  const listEl = document.getElementById('rankingList');
+  listEl.innerHTML = '<div class="ranking-loading">加载中...</div>';
+  try {
+    const url = RANKING_CONFIG.getPath('grade62');
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('加载失败');
+    const allData = await res.json();
+    if (!allData) { listEl.innerHTML = '<div class="ranking-empty">暂无排行数据</div>'; return; }
+
+    let arr = Object.values(allData);
+    const myId = gameState.studentId;
+    let sortField = 'totalPoints';
+    if (type === 'pet') sortField = 'petPower';
+    else if (type === 'equip') sortField = 'equipBonus';
+    else if (type === 'ach') sortField = 'achievementCount';
+    else if (type === 'questions') sortField = 'totalQuestionsAnswered';
+    else if (type === 'accuracy') {
+      arr = arr.filter(item => item.accuracyRate !== undefined && item.accuracyRate >= 0);
+      arr.sort((a, b) => (b.accuracyRate || 0) - (a.accuracyRate || 0));
+      renderAccuracyRankList(listEl, arr, myId);
+      return;
+    }
+
+    arr.sort((a, b) => (b[sortField] || 0) - (a[sortField] || 0));
+    renderRankList(listEl, arr, sortField, myId);
+  } catch(e) {
+    listEl.innerHTML = '<div class="ranking-empty">加载失败，请稍后重试</div>';
+  }
+}
+
+// 渲染正确率排行榜
+function renderAccuracyRankList(listEl, arr, myId) {
+  if (!arr || arr.length === 0) {
+    listEl.innerHTML = '<div class="ranking-empty">暂无排行数据（需完成200题以上）</div>';
+    return;
+  }
+  let html = '<div style="text-align:center;font-size:0.85em;color:rgba(255,255,255,0.5);margin-bottom:12px;">🎯 正确率榜 · 需完成200题以上</div>';
+  arr.forEach((item, idx) => {
+    const rank = idx + 1;
+    const posClass = rank <= 3 ? 'ranking-pos-' + rank : 'ranking-pos-n';
+    const sid = item.studentId || '';
+    let displayName = sid;
+    if (sid.length >= 5) displayName = sid.substring(0, 2) + '**' + sid.substring(sid.length - 2);
+    const isMe = (item.studentId === myId);
+    const accuracy = item.accuracyRate || 0;
+    const totalQ = item.totalQuestionsAnswered || 0;
+    const totalC = item.totalCorrectAnswers || 0;
+    const accColor = accuracy >= 90 ? '#4ade80' : accuracy >= 80 ? '#ffd700' : accuracy >= 70 ? '#ff9800' : '#ff6b6b';
+    html += '<div class="ranking-item' + (isMe ? ' me' : '') + '">' +
+      '<div class="ranking-pos ' + posClass + '">' + rank + '</div>' +
+      '<div class="ranking-name">' + displayName + (isMe ? '（我）' : '') + '</div>' +
+      '<div class="ranking-value" style="color:' + accColor + '">' + accuracy + '%</div>' +
+      '<div style="font-size:0.75em;color:rgba(255,255,255,0.4);">' + totalC + '/' + totalQ + '题</div>' +
+      '</div>';
+  });
+  listEl.innerHTML = html;
+}
+
+// 渲染排名列表
+function renderRankList(listEl, arr, sortField, myId) {
+  if (!arr || arr.length === 0) {
+    listEl.innerHTML = '<div class="ranking-empty">暂无排行数据</div>';
+    return;
+  }
+
+  let html = '';
+  arr.forEach((item, idx) => {
+    const rank = idx + 1;
+    const posClass = rank <= 3 ? 'ranking-pos-' + rank : 'ranking-pos-n';
+    const sid = item.studentId || '';
+    let displayName = sid;
+    if (sid.length >= 5) {
+      displayName = sid.substring(0, 2) + '**' + sid.substring(sid.length - 2);
+    }
+    const isMe = (item.studentId === myId);
+    const val = item[sortField] || 0;
+    const valStr = (sortField === 'equipBonus') ? '×' + val.toFixed(2) : val.toLocaleString();
+
+    html += '<div class="ranking-item' + (isMe ? ' me' : '') + '">' +
+      '<div class="ranking-pos ' + posClass + '">' + rank + '</div>' +
+      '<div class="ranking-name">' + displayName + (isMe ? '（我）' : '') + '</div>' +
+      '<div class="ranking-value">' + valStr + '</div>' +
+      '</div>';
+  });
+  listEl.innerHTML = html;
+}
+
 function showPetBattle() {
   const modal = document.getElementById('petModal');
   const iframe = document.getElementById('petIframe');
@@ -3657,6 +3897,51 @@ function listUploadedLessons() {
   }
   return result;
 }
+
+// ========== Win7 32位系统图标兼容 ==========
+(function() {
+  const iconFallbacks = {
+    'lightbulb': '💡', 'target': '🎯', 'lightning': '⚡', 'fire': '🔥',
+    'star': '⭐', 'crown': '👑', 'legendary': '✨', 'battle': '⚔️',
+    'rocket': '🚀', 'trophy': '🏆', 'bag': '🎒', 'microscope': '🔬',
+    'check': '✅', 'cross': '❌', 'wrong-book': '📝', 'book': '📖', 'pants': '👖'
+  };
+  function replaceWithEmoji(img) {
+    const src = (img.src || '').toLowerCase();
+    let emoji = '📌';
+    for (const [key, val] of Object.entries(iconFallbacks)) {
+      if (src.includes(key)) { emoji = val; break; }
+    }
+    img.style.display = 'none';
+    const span = document.createElement('span');
+    span.className = 'icon-fallback';
+    span.textContent = emoji;
+    img.parentNode.insertBefore(span, img);
+  }
+  function checkAllImages() {
+    document.querySelectorAll('img[src*="icons/"], img[src*="generated-assets/"], img[src*="maplestory_sprites/"]').forEach(img => {
+      if (!img.complete || img.naturalWidth === 0) replaceWithEmoji(img);
+    });
+  }
+  window.addEventListener('load', function() { setTimeout(checkAllImages, 1000); });
+  if (typeof MutationObserver !== 'undefined') {
+    const observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        mutation.addedNodes.forEach(function(node) {
+          if (node.nodeType === 1 && node.tagName === 'IMG') {
+            if (!node.complete || node.naturalWidth === 0) replaceWithEmoji(node);
+          }
+          if (node.nodeType === 1) {
+            node.querySelectorAll && node.querySelectorAll('img').forEach(function(img) {
+              if (!img.complete || img.naturalWidth === 0) replaceWithEmoji(img);
+            });
+          }
+        });
+      });
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+})();
 
 </script>
 
