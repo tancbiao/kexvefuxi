@@ -1177,6 +1177,13 @@
     <input type="text" class="login-input" id="studentIdInput" placeholder="请输入8位学号" maxlength="8" onkeypress="if(event.key==='Enter')loginWithId()">
     <button class="login-btn" id="loginBtn" onclick="loginWithId()">登录存档</button>
     <button class="guest-btn" id="guestBtn" onclick="loginAsGuest()">游客试玩</button>
+    <div style="margin-top:16px;padding:12px 14px;background:rgba(255,180,0,0.12);border:1px solid rgba(255,180,0,0.3);border-radius:10px;font-size:0.85em;line-height:1.8;text-align:left;color:rgba(255,255,255,0.85);">
+      ⚡ <strong>每日体力系统</strong><br>
+      每位同学每天有 <strong style="color:#ffd700">20 点体力</strong>，<br>
+      每<strong>进入一课</strong>消耗 <strong>1 点体力</strong>，<br>
+      体力消耗完<strong style="color:#ff6b6b">当天不再获得积分</strong>。<br>
+      每天 00:00 体力自动恢复。
+    </div>
   </div>
 </div>
 
@@ -2060,6 +2067,16 @@ function startLesson(lesson) {
     [allQuestions[i], allQuestions[j]] = [allQuestions[j], allQuestions[i]];
   }
   gameState.currentQuestions = allQuestions;
+
+  // ====== 防沉迷：进入课程时立即扣1点体力 ======
+  checkAndResetStamina();
+  if (gameState.dailyStamina > 0) {
+    gameState.dailyStamina = Math.max(0, gameState.dailyStamina - 1);
+    updateStaminaDisplay();
+    saveUserData();
+  }
+  // 体力为0时仍可进入课程，但答题不得分（checkAnswer中处理）
+
   showScreen('quizScreen');
   renderQuestion();
 }
@@ -2188,7 +2205,7 @@ function selectOption(idx) {
       }
     }
     gameState.totalPoints += points;
-    // 体力扣除已移至 finishQuiz（每课时完成扣1点）
+    // 体力扣除已移至 startLesson（进入课程时立即扣1点）
     updateStatusBar(); // 立即更新顶部积分显示
     checkAchievements();
     
@@ -2272,12 +2289,8 @@ function finishQuiz() {
     gameState.lessonProgress[lessonId] = Math.min(3, (gameState.lessonProgress[lessonId] || 0) + 1);
   }
   
-  // ====== 课时完成：扣减体力 ======
-  if (accuracy >= 60) {
-    gameState.dailyStamina = Math.max(0, gameState.dailyStamina - 1);
-    updateStaminaDisplay();
-    saveUserData();
-  }
+  // ====== 课时完成：体力扣减已在进入课程时处理，此处无需再扣 ======
+  // （原体力扣减逻辑已移至 startLesson，避免刷分漏洞）
 
   checkUnitAchievements();
 
