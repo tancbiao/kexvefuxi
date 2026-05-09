@@ -1,152 +1,21 @@
 /**
  * cloud-config.js - 云存储配置模块
  * 
- * 使用 JSONBin.io v3 API 实现：
+ * 使用腾讯云轻量服务器自建 API 实现：
  * - 排行榜数据读写
  * - 学生进度云同步
  * 
- * ===== 配置方法 =====
- * 1. 登录 https://jsonbin.io → Settings → API Keys
- * 2. 复制你的 Master Key（原始字符串，不是哈希）
- * 3. 填入下方 JSONBIN_MASTER_KEY 变量
- * 
- * Collection ID: 69e9771aaaba8821972a04b6
+ * 服务器地址：http://159.75.134.151:5000
  */
 
 // ==================== 配置区 ====================
 
-// ⚠️ JSONBin Master Key（已硬编码，学生无需手动输入）
-const JSONBIN_MASTER_KEY = localStorage.getItem('cloud_jsonbin_key') || '$2a$10$3d.vTCheq4ohLZxKkNPUZOUr6rbQU4MzVe.cAcnvuOCKYBAd.UU9K';
+const API_BASE = 'http://159.75.134.151:5000/api';
 
-const COLLECTION_ID = '69e9771aaaba8821972a04b6';
-const API_BASE = 'https://api.jsonbin.io/v3';
+// ==================== 兼容旧函数（空实现） ====================
 
-// 存储类型对应的 bin 名称
-const BIN_NAMES = {
-  RANKINGS: 'kexvefuxi_rankings',
-  STUDENTS: 'kexvefuxi_students'
-};
-
-// ==================== 内部缓存 ====================
-let _binCache = {}; // { binName: binId }
-
-/**
- * 设置/更新 JSONBin Master Key（存入 localStorage）
- */
-function setCloudKey(key) {
-  localStorage.setItem('cloud_jsonbin_key', key);
-}
-
-function getCloudKey() {
-  return localStorage.getItem('cloud_jsonbin_key') || JSONBIN_MASTER_KEY;
-}
-
-/**
- * 获取请求头
- */
-function _headers() {
-  const key = getCloudKey();
-  const h = { 'Content-Type': 'application/json' };
-  if (key) h['X-Master-Key'] = key;
-  return h;
-}
-
-/**
- * 通过名称查找或创建 bin
- */
-async function _getOrCreateBin(binName) {
-  // 先从缓存查
-  if (_binCache[binName]) return _binCache[binName];
-
-  const key = getCloudKey();
-  if (!key) throw new Error('未配置 JSONBin Master Key，请设置');
-
-  try {
-    // 列出集合中的所有 bin
-    const listUrl = `${API_BASE}/c/${COLLECTION_ID}/bins`;
-    const listRes = await fetch(listUrl, { headers: { 'X-Master-Key': key } });
-    
-    if (listRes.ok) {
-      const bins = await listRes.json();
-      // 查找匹配名称的 bin
-      const found = (bins.record || bins).find(b => b.snippetName === binName || b.name === binName);
-      if (found) {
-        _binCache[binName] = found.snippetId || found.id;
-        return _binCache[binName];
-      }
-    }
-
-    // 没找到，创建新的
-    const createUrl = `${API_BASE}/b`;
-    const createRes = await fetch(createUrl, {
-      method: 'POST',
-      headers: {
-        'X-Master-Key': key,
-        'X-Bin-Name': binName,
-        'X-Collection-Id': COLLECTION_ID,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({})
-    });
-
-    if (createRes.ok) {
-      const created = await createRes.json();
-      const binId = created.metadata?.id || created.id;
-      _binCache[binName] = binId;
-      return binId;
-    }
-    throw new Error('创建 bin 失败');
-  } catch (e) {
-    console.error('JSONBin 错误:', e);
-    throw e;
-  }
-}
-
-/**
- * 读取一个 bin 的数据
- */
-async function readBin(binName) {
-  const key = getCloudKey();
-  if (!key) throw new Error('未配置 JSONBin Master Key');
-
-  try {
-    const binId = await _getOrCreateBin(binName);
-    const url = `${API_BASE}/b/${binId}/latest`;
-    const res = await fetch(url, { headers: { 'X-Master-Key': key } });
-    if (!res.ok) throw new Error(`读取失败: ${res.status}`);
-    const data = await res.json();
-    return data.record || data;
-  } catch (e) {
-    console.error('readBin 错误:', e);
-    throw e;
-  }
-}
-
-/**
- * 写入一个 bin 的数据（全量替换）
- */
-async function writeBin(binName, data) {
-  const key = getCloudKey();
-  if (!key) throw new Error('未配置 JSONBin Master Key');
-
-  try {
-    const binId = await _getOrCreateBin(binName);
-    const url = `${API_BASE}/b/${binId}`;
-    const res = await fetch(url, {
-      method: 'PUT',
-      headers: {
-        'X-Master-Key': key,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data)
-    });
-    if (!res.ok) throw new Error(`写入失败: ${res.status}`);
-    return true;
-  } catch (e) {
-    console.error('writeBin 错误:', e);
-    throw e;
-  }
-}
+function setCloudKey(key) {}
+function getCloudKey() { return ''; }
 
 // ==================== 排行榜 API ====================
 
@@ -157,8 +26,9 @@ async function writeBin(binName, data) {
  */
 async function getRanking(gradeKey) {
   try {
-    const allRankings = await readBin(BIN_NAMES.RANKINGS);
-    return allRankings[gradeKey] || {};
+    const res = await fetch(`${API_BASE}/ranking/${gradeKey}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
   } catch (e) {
     console.error('获取排行榜失败:', e);
     return {};
@@ -173,15 +43,12 @@ async function getRanking(gradeKey) {
  */
 async function updateRanking(gradeKey, studentId, data) {
   try {
-    let allRankings = {};
-    try {
-      allRankings = await readBin(BIN_NAMES.RANKINGS);
-    } catch (e) {
-      // 首次读取可能为空
-    }
-    if (!allRankings[gradeKey]) allRankings[gradeKey] = {};
-    allRankings[gradeKey][studentId] = data;
-    await writeBin(BIN_NAMES.RANKINGS, allRankings);
+    const res = await fetch(`${API_BASE}/ranking/${gradeKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return true;
   } catch (e) {
     console.error('更新排行榜失败:', e);
@@ -196,13 +63,12 @@ async function updateRanking(gradeKey, studentId, data) {
  */
 async function saveStudent(gradeKey, studentId, data) {
   try {
-    let allStudents = {};
-    try {
-      allStudents = await readBin(BIN_NAMES.STUDENTS);
-    } catch (e) {}
-    const recordKey = gradeKey + '_' + studentId;
-    allStudents[recordKey] = data;
-    await writeBin(BIN_NAMES.STUDENTS, allStudents);
+    const res = await fetch(`${API_BASE}/student/${gradeKey}/${studentId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return true;
   } catch (e) {
     console.error('云同步保存失败:', e);
@@ -215,9 +81,10 @@ async function saveStudent(gradeKey, studentId, data) {
  */
 async function loadStudent(gradeKey, studentId) {
   try {
-    const allStudents = await readBin(BIN_NAMES.STUDENTS);
-    const recordKey = gradeKey + '_' + studentId;
-    return allStudents[recordKey] || null;
+    const res = await fetch(`${API_BASE}/student/${gradeKey}/${studentId}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    return data && Object.keys(data).length > 0 ? data : null;
   } catch (e) {
     console.error('云同步加载失败:', e);
     return null;
