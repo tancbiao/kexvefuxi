@@ -933,7 +933,6 @@
   #equip-cape  { bottom: 0; z-index: 0; }
   #equip-top   { bottom: 30px; z-index: 3; }
   #equip-bottom{ bottom: 0; z-index: 2; }
-  #equip-shoes { bottom: 0; z-index: 1; }
   #equip-face  { bottom: 90px; z-index: 5; }
   #equip-eyes  { bottom: 100px; z-index: 6; }
 
@@ -1277,31 +1276,6 @@
     <iframe id="petIframe" src="../../pet-system.html"></iframe>
 </div>
 
-<!-- ====== JSONBin Key 配置弹窗 ====== -->
-<div class="ranking-overlay" id="cloudKeyOverlay" style="z-index:9999;">
-  <div class="ranking-card" style="max-width:480px;">
-    <div class="ranking-header">
-      <div class="ranking-title">🔑 配置云存储密钥</div>
-      <button class="ranking-close" onclick="closeCloudKeyModal()">✕</button>
-    </div>
-    <div style="padding:20px;text-align:left;font-size:0.9em;color:rgba(255,255,255,0.8);line-height:1.7;">
-      <p>排行榜和云同步需要 JSONBin Master Key 才能工作。</p>
-      <p style="margin:8px 0 4px;font-size:0.85em;color:rgba(255,255,255,0.5);">1. 登录 <a href="https://jsonbin.io" target="_blank" style="color:#ffa94d;">jsonbin.io</a> → Settings → API Keys</p>
-      <p style="font-size:0.85em;color:rgba(255,255,255,0.5);">2. 复制你的 Master Key，粘贴到下方：</p>
-      <input id="cloudKeyInput" type="text" placeholder="粘贴 Master Key..." style="width:100%;padding:10px 14px;border-radius:10px;border:2px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.1);color:#fff;font-size:14px;margin:10px 0 4px;outline:none;">
-      <div id="cloudKeyStatus" style="font-size:0.8em;margin:4px 0;height:18px;"></div>
-      <button onclick="saveCloudKey()" style="width:100%;padding:10px;border:none;border-radius:10px;background:linear-gradient(135deg,#ff6b9d,#ffa94d);color:#fff;font-size:15px;font-weight:bold;cursor:pointer;margin-top:4px;">💾 保存密钥</button>
-    </div>
-  </div>
-</div>
-
-<script src="../../equipment-gen.js?v=20260429"></script>
-<script src="../../js/cloud-config.js"></script>
-<script src="../../admin/reward-collector.js"></script>
-
-<!-- ====== 排行榜弹窗 ====== -->
-<div class="ranking-overlay" id="rankingOverlay">
-  <div class="ranking-card">
     <div class="ranking-header">
       <div class="ranking-title">🏆 排行榜</div>
       <button class="ranking-close" onclick="closeRanking()">✕</button>
@@ -2375,8 +2349,7 @@ const CLOUD_GRADE_KEY = 'grade4';
 async function saveToCloud(studentId, data) {
   if (!studentId || studentId === 'guest') return;
   try {
-    if (typeof getCloudKey !== 'function' || !getCloudKey()) return;
-    await saveStudent(CLOUD_GRADE_KEY, studentId, data);
+        await saveStudent(CLOUD_GRADE_KEY, studentId, data);
     console.log('云端同步成功:', CLOUD_GRADE_KEY + '_' + studentId);
   } catch (e) {
     console.error('云端同步失败:', e);
@@ -2387,7 +2360,7 @@ async function saveToCloud(studentId, data) {
 async function loadFromCloud(studentId) {
   if (!studentId || studentId === 'guest') return null;
   try {
-    if (typeof getCloudKey !== 'function' || !getCloudKey()) return null;
+     null;
     const data = await loadStudent(CLOUD_GRADE_KEY, studentId);
     if (data) {
       console.log('从云端加载成功:', CLOUD_GRADE_KEY + '_' + studentId);
@@ -3922,8 +3895,7 @@ const RANKING_GRADE_KEY = 'grade42';
 async function pushRankingData() {
   if (gameState.isGuest || !gameState.studentId) return;
   try {
-    if (typeof getCloudKey !== 'function' || !getCloudKey()) return;
-    const petInfo = (typeof calcPetBattleBonus === 'function') ? calcPetBattleBonus() : { total: 0 };
+        const petInfo = (typeof calcPetBattleBonus === 'function') ? calcPetBattleBonus() : { total: 0 };
     const equipInfo = (typeof calcEquippedBonus42 === 'function') ? calcEquippedBonus42() : { pointMul: 1 };
     const totalQ = gameState.totalQuestionsAnswered || 0;
     const totalC = gameState.totalCorrectAnswers || 0;
@@ -3945,31 +3917,6 @@ async function pushRankingData() {
   } catch(e) { console.error('推送排名数据失败:', e); }
 }
 
-// 显示/关闭 JSONBin Key 配置弹窗
-function showCloudKeyModal() {
-  document.getElementById('cloudKeyOverlay').classList.add('show');
-  const saved = getCloudKey ? getCloudKey() : '';
-  document.getElementById('cloudKeyInput').value = saved;
-  document.getElementById('cloudKeyStatus').textContent = saved ? '✓ 已有密钥' : '';
-}
-function closeCloudKeyModal() {
-  document.getElementById('cloudKeyOverlay').classList.remove('show');
-}
-
-// 保存 JSONBin Key
-function saveCloudKey() {
-  const key = document.getElementById('cloudKeyInput').value.trim();
-  const status = document.getElementById('cloudKeyStatus');
-  if (!key) { status.textContent = '⚠️ 请输入密钥'; status.style.color = '#ff6b6b'; return; }
-  if (typeof setCloudKey === 'function') setCloudKey(key);
-  status.textContent = '✓ 密钥已保存！';
-  status.style.color = '#4ade80';
-  setTimeout(() => closeCloudKeyModal(), 1000);
-}
-
-// 显示排行榜
-async function showRanking() {
-  document.getElementById('rankingOverlay').classList.add('show');
   // 默认显示积分榜
   document.querySelectorAll('#rankingOverlay .ranking-tab').forEach(t => t.classList.remove('active'));
   document.querySelector('#rankingOverlay .ranking-tab').classList.add('active');
@@ -3993,8 +3940,6 @@ async function loadAndRenderRanking(type) {
   const listEl = document.getElementById('rankingList');
   listEl.innerHTML = '<div class="ranking-loading">加载中...</div>';
   try {
-    if (typeof getCloudKey !== 'function' || !getCloudKey()) {
-      listEl.innerHTML = '<div class="ranking-empty" style="padding:20px;text-align:center;color:rgba(255,255,255,0.6);font-size:0.85em;">⚠️ 排行榜需配置 JSONBin Key<br><span style="font-size:0.9em;color:#ffa94d;cursor:pointer;" onclick="showCloudKeyModal()">点击此处配置密钥</span></div>';
       return;
     }
     
@@ -4119,8 +4064,7 @@ function closePetModal() {
 async function saveToCloud42(studentId, data) {
   if (!studentId || studentId === 'guest') return;
   try {
-    if (typeof getCloudKey !== 'function' || !getCloudKey()) return;
-    await saveStudent('grade4', studentId, data);
+        await saveStudent('grade4', studentId, data);
   } catch (e) { console.error('云同步失败:', e); }
 }
 
@@ -4455,7 +4399,7 @@ const EQUIP_DATA = {
   hat: {
     label: '帽子',
     folder: '帽子',
-    ids: ['1000011','1000095','1000206','1001019','1001036','1001066','1001152','1002016','1002024','1002059','1002081','1002115','1002131','1002208','1002284','1002346','1002391','1002403']
+    ids: ['1000011','1000095','1000206','1001019','1001036','1001066','1001142','1002016','1002024','1002059','1002081','1002115','1002131','1002208','1002284','1002346','1002391','1002403']
   },
   top: {
     label: '上衣',
@@ -4465,7 +4409,7 @@ const EQUIP_DATA = {
   bottom: {
     label: '裤裙',
     folder: '裤裙',
-    ids: ['1060077','1060103','1060600','1061031','1061047','1061070','1061077','1061150','1061208','1062117','1062203','1062294']
+    ids: ['1060077','1060103','1060600','1061031','1047','1061070','1061077','1061150','1061208','1062117','1062203','1062294']
   },
   cape: {
     label: '披风',
@@ -4481,15 +4425,10 @@ const EQUIP_DATA = {
     label: '眼饰',
     folder: '眼饰',
     ids: ['1020001','1020213','1022058','1022310']
-  },
-  shoes: {
-    label: '鞋子',
-    folder: '鞋子',
-    ids: ['1070038','1070098','1070113','1070139','1070147','1071026','1071095','1071122','1071149','1072109','1072148','1072221','1072222','1072237','1072322']
   }
 };
 
-const equipped = { hat: null, top: null, bottom: null, cape: null, face: null, eyes: null, shoes: null };
+const equipped = { hat: null, top: null, bottom: null, cape: null, face: null, eyes: null };
 
 function getIconUrl(folder, id) {
   return `../../maplestory_sprites/${folder}/${id}_icon.png`;
@@ -4532,17 +4471,17 @@ function toggleCharPanel() {
 // 拖动
 const wrapper = document.getElementById('charWrapper');
 let isDragging = false, offX, offY;
-
-wrapper.addEventListener('mousedown', (e) => {
+  if (wrapper) {
+  wrapper.addEventListener('mousedown', (e) => {
   if (e.target.closest('.char-panel') || e.target.closest('.char-toggle-btn')) return;
   isDragging = true;
   offX = e.clientX - wrapper.getBoundingClientRect().left;
   offY = e.clientY - wrapper.getBoundingClientRect().top;
   e.preventDefault();
 });
-
-document.addEventListener('mousemove', (e) => {
-  if (!isDragging) return;
+  }
+  document.addEventListener('mousemove', (e) => {
+  if (!isDragging || !wrapper) return;
   wrapper.style.left = (e.clientX - offX) + 'px';
   wrapper.style.top = (e.clientY - offY) + 'px';
   wrapper.style.right = 'auto';
@@ -4550,16 +4489,17 @@ document.addEventListener('mousemove', (e) => {
 });
 
 document.addEventListener('mouseup', () => { isDragging = false; });
-
-wrapper.addEventListener('touchstart', (e) => {
+  }
+  if (wrapper) {
+  wrapper.addEventListener('touchstart', (e) => {
   if (e.target.closest('.char-panel') || e.target.closest('.char-toggle-btn')) return;
   isDragging = true;
   const t = e.touches[0];
   offX = t.clientX - wrapper.getBoundingClientRect().left;
   offY = t.clientY - wrapper.getBoundingClientRect().top;
 }, { passive: true });
-
-document.addEventListener('touchmove', (e) => {
+  }
+  document.addEventListener('touchmove', (e) => {
   if (!isDragging) return;
   const t = e.touches[0];
   wrapper.style.left = (t.clientX - offX) + 'px';
@@ -4945,7 +4885,6 @@ function listUploadedLessons() {
     <img class="char-equip" id="equip-cape" src="" style="display:none">
     <img class="char-equip" id="equip-face" src="" style="display:none">
     <img class="char-equip" id="equip-eyes" src="" style="display:none">
-    <img class="char-equip" id="equip-shoes" src="" style="display:none">
   </div>
   <button class="char-toggle-btn" id="charToggleBtn" onclick="toggleCharPanel()">💪 换装</button>
   <div class="char-panel" id="charPanel" style="display:none">
@@ -4972,10 +4911,6 @@ function listUploadedLessons() {
     <div class="char-panel-section">
       <div class="char-panel-title">👓 眼饰</div>
       <div class="char-panel-items" id="items-eyes"></div>
-    </div>
-    <div class="char-panel-section">
-      <div class="char-panel-title">👞 鞋子</div>
-      <div class="char-panel-items" id="items-shoes"></div>
     </div>
   </div>
 
