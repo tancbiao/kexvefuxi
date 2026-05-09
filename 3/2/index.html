@@ -1132,6 +1132,47 @@
 .bp-pet-talent-row .talent-name { color: #aaa; }
 .bp-pet-talent-row .talent-val { color: #fff; font-weight: bold; }
 
+/* ====== 爬塔弹窗 ====== */
+.tower-modal {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.85);
+  display: none; justify-content: center; align-items: center;
+  z-index: 2100;
+  animation: fadeIn 0.3s;
+}
+.tower-modal.show { display: flex; }
+.tower-modal-content {
+  background: rgba(15,15,25,0.97);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  padding: 24px;
+  max-width: 900px;
+  width: 95%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+.tower-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.tower-modal-title { font-size: 1.2em; font-weight: 700; }
+.tower-modal-close {
+  background: none; border: none; color: rgba(255,255,255,0.5);
+  font-size: 1.5em; cursor: pointer; padding: 4px 10px; border-radius: 8px;
+}
+.tower-modal-close:hover { background: rgba(255,255,255,0.2); }
+.tower-modal iframe {
+  width: 100%; height: 100%;
+  min-height: 600px;
+  border: none; display: block;
+  border-radius: 12px;
+}
+
+
 </style>
 </head>
 <body>
@@ -1165,6 +1206,10 @@
       <span>背包 <span id="statusEquipCount" style="color:#ffd700">0</span></span>
     </div>
 
+    <div class="status-item" id="towerBtn"
+    <div class="status-item" style="cursor:pointer;" onclick="showTowerModal()">
+      🏰 <span class="status-label">爬塔</span>
+    </div>
     <div class="status-item" id="petBtn" style="cursor:pointer;" onclick="showPetBattle()" title="宠物加成">
       <span class="status-icon">🐾</span>
       <span id="statusPetInfo" style="color:#ff6b9d;font-size:0.85em">无加成</span>
@@ -3913,6 +3958,42 @@ async function showRanking() {
 function closeRanking() {
   document.getElementById('rankingOverlay').classList.remove('show');
 }
+
+
+// ====== 爬塔弹窗 ======
+function showTowerModal() {
+  const modal = document.getElementById('towerModal');
+  const iframe = document.getElementById('towerIframe');
+  modal.classList.add('show');
+  iframe.src = '../../tower.html?' + Date.now();
+  iframe.onload = function() {
+    iframe.contentWindow.postMessage({
+      type: 'init_tower',
+      studentId: gameState.studentId,
+      saveData: {
+        totalPoints: gameState.totalPoints || 0,
+        equipment: gameState.equipment || [],
+        unlockedAchievements: gameState.unlockedAchievements || [],
+        lessonProgress: gameState.lessonProgress || {}
+      }
+    }, '*');
+  };
+}
+function closeTowerModal() {
+  document.getElementById('towerModal').classList.remove('show');
+}
+
+// 监听爬塔发来的积分变动
+window.addEventListener('message', function(e) {
+  if (e.data && e.data.type === 'tower_change') {
+    if (gameState) {
+      gameState.totalPoints = e.data.points || gameState.totalPoints;
+      updateStatusBar();
+      saveUserData();
+    }
+  }
+});
+
 
 // 切换排行榜Tab
 async function switchRankingTab(tab, el) {
