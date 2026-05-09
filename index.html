@@ -6,826 +6,144 @@
 <title>科学趣味闯关 · 年级选择</title>
 <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
+  * { margin:0;padding:0;box-sizing:border-box; }
   body {
-    font-family: "微软雅黑", "PingFang SC", sans-serif;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-    min-height: 100vh;
-    color: #fff;
-    overflow-x: hidden;
-  }
-
-  .particles {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    pointer-events: none;
-    overflow: hidden;
-    z-index: 0;
-  }
-  .particle {
-    position: absolute;
-    width: 6px; height: 6px;
-    background: rgba(255,255,255,0.3);
-    border-radius: 50%;
-    animation: float 15s infinite;
-  }
-  @keyframes float {
-    0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 1; }
-    100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
-  }
-
-  .container {
-    position: relative;
-    z-index: 1;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 40px 20px;
-    text-align: center;
-  }
-
-  .logo { font-size: 64px; margin-bottom: 10px; }
-
-  h1 {
-    font-size: 2.2em;
-    font-weight: bold;
-    margin-bottom: 8px;
-    background: linear-gradient(90deg, #00d4ff, #7c3aed, #ff6b9d);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .subtitle {
-    color: rgba(255,255,255,0.6);
-    font-size: 1.1em;
-    margin-bottom: 40px;
-  }
-
-  /* 成就展示区 */
-  .achievement-bar {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 30px;
-    padding: 16px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 16px;
-    border: 1px solid rgba(255,255,255,0.1);
-  }
-  .achievement-badge {
-    font-size: 28px;
-    position: relative;
-    cursor: default;
-    opacity: 0.3;
-    filter: grayscale(100%);
-    transition: all 0.3s;
-  }
-  .achievement-badge.un {
-    opacity: 1;
-    filter: grayscale(0%);
-  }
-  .achievement-badge:hover .tooltip {
-    display: block;
-  }
-  .achievement-badge .tooltip {
-    display: none;
-    position: absolute;
-    bottom: 120%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0,0,0,0.9);
-    color: #fff;
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 12px;
-    white-space: nowrap;
-    z-index: 100;
-    white-space: normal;
-    text-align: center;
-    width: 150px;
-  }
-  .achievement-stats {
-    font-size: 14px;
-    color: rgba(255,255,255,0.6);
-    margin-top: 10px;
-  }
-  .achievement-stats span {
-    color: #ffd700;
-    font-weight: bold;
-  }
-
-  .mode-tabs {
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-    margin-bottom: 30px;
-  }
-  .mode-tab {
-    padding: 12px 28px;
-    border-radius: 30px;
-    border: 2px solid rgba(255,255,255,0.2);
-    background: rgba(255,255,255,0.05);
-    color: #fff;
-    cursor: pointer;
-    font-size: 1em;
-    font-family: inherit;
-    transition: all 0.3s;
-    text-decoration: none;
-  }
-  .mode-tab:hover {
-    border-color: rgba(0,212,255,0.5);
-    background: rgba(0,212,255,0.1);
-  }
-  .mode-tab.active {
-    border-color: #00d4ff;
-    background: rgba(0,212,255,0.2);
-  }
-
-  .grade-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 16px;
-    margin-bottom: 40px;
-  }
-
-  .grade-card {
-    background: rgba(255,255,255,0.08);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 20px;
-    padding: 24px 20px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-  }
-  .grade-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: -100%;
-    width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-    transition: left 0.5s;
-  }
-  .grade-card:hover::before { left: 100%; }
-  .grade-card:hover {
-    transform: translateY(-4px);
-    border-color: rgba(0,212,255,0.5);
-    box-shadow: 0 8px 32px rgba(0,212,255,0.2);
-  }
-  .grade-card. { opacity: 0.5; cursor: not-allowed; }
-  .grade-card.:hover { transform: none; border-color: rgba(255,255,255,0.15); box-shadow: none; }
-
-  .grade-icon { font-size: 48px; margin-bottom: 12px; }
-  .grade-name { font-size: 1.4em; font-weight: bold; margin-bottom: 6px; }
-  .grade-status { font-size: 0.85em; color: rgba(255,255,255,0.5); }
-  .grade-status.available { color: #4ade80; }
-
-  .semester-panel {
-    display: none;
-    background: rgba(255,255,255,0.06);
-    border-radius: 20px;
-    padding: 30px;
-    margin-bottom: 30px;
-    border: 1px solid rgba(255,255,255,0.1);
-  }
-  .semester-panel.active { display: block; animation: fadeIn 0.3s ease; }
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .semester-title { font-size: 1.2em; margin-bottom: 20px; color: rgba(255,255,255,0.8); }
-
-  .semester-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-
-  .semester-btn {
-    background: linear-gradient(135deg, rgba(0,212,255,0.2), rgba(124,58,237,0.2));
-    border: 1px solid rgba(0,212,255,0.3);
-    border-radius: 16px;
-    padding: 20px;
-    color: #fff;
-    cursor: pointer;
-    transition: all 0.3s;
-    text-decoration: none;
-    display: block;
-  }
-  .semester-btn:hover {
-    background: linear-gradient(135deg, rgba(0,212,255,0.4), rgba(124,58,237,0.4));
-    border-color: rgba(0,212,255,0.6);
-    transform: scale(1.02);
-  }
-  .semester-btn. { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
-
-  .sem-icon { font-size: 32px; margin-bottom: 8px; }
-  .sem-name { font-size: 1.1em; font-weight: bold; }
-  .sem-desc { font-size: 0.8em; color: rgba(255,255,255,0.5); margin-top: 4px; }
-
-  .vs-btn {
-    background: linear-gradient(135deg, rgba(255,107,157,0.3), rgba(255,152,0,0.3));
-    border: 2px solid rgba(255,107,157,0.5);
-    border-radius: 16px;
-    padding: 20px;
-    color: #fff;
-    cursor: pointer;
-    transition: all 0.3s;
-    text-decoration: none;
-    display: block;
-    margin-bottom: 10px;
-  }
-  .vs-btn:hover {
-    background: linear-gradient(135deg, rgba(255,107,157,0.5), rgba(255,152,0,0.5));
-    border-color: rgba(255,107,157,0.8);
-    transform: scale(1.02);
-  }
-
-  .back-btn {
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.2);
-    color: #fff;
-    padding: 10px 20px;
-    border-radius: 10px;
-    cursor: pointer;
-    font-size: 0.9em;
-    margin-bottom: 20px;
-    transition: all 0.3s;
-    font-family: inherit;
-  }
-  .back-btn:hover { background: rgba(255,255,255,0.2); }
-
-  .footer {
-    margin-top: 40px;
-    color: rgba(255,255,255,0.3);
-    font-size: 0.85em;
-  }
-  .footer a { color: rgba(0,212,255,0.6); text-decoration: none; }
-
-
-  /* 更新日志面板 */
-  .update-log {
-    position: fixed;
-    bottom: 20px;
-    left: 20px;
-    width: 220px;
-    background: rgba(0,0,0,0.7);
-    border: 1px solid rgba(0,212,255,0.3);
-    border-radius: 12px;
-    padding: 12px;
-    font-size: 0.8em;
-    z-index: 100;
-  }
-  .update-log-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0;
-    padding-bottom: 0;
-    border-bottom: none;
-    cursor: pointer;
-  }
-  .update-version {
-    background: linear-gradient(90deg, #00d4ff, #7c3aed);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-weight: bold;
-    font-size: 1.1em;
-  }
-  .update-log-toggle {
-    background: none;
-    border: none;
-    color: rgba(255,255,255,0.5);
-    cursor: pointer;
-    font-size: 1.2em;
-  }
-  .update-content {
-    color: rgba(255,255,255,0.7);
-    line-height: 1.6;
-  }
-  .update-item {
-    margin-bottom: 6px;
-    padding-left: 12px;
-    position: relative;
-  }
-  .update-item::before {
-    content: "•";
-    position: absolute;
-    left: 0;
-    color: #00d4ff;
-  }
-
-  /* ============ Q版可拖动人物 + 装备系统 ============ */
-  .char-wrapper {
-    position: fixed;
-    bottom: 110px;
-    right: 20px;
-    width: 140px;
-    height: 200px;
-    cursor: grab;
-    z-index: 101;
-    user-select: none;
-    touch-action: none;
-  }
-  .char-wrapper:active { cursor: grabbing; }
-
-  .char-base {
-    position: absolute;
-    bottom: 0; left: 50%;
-    transform: translateX(-50%);
-    width: 120px;
-    height: 180px;
-    pointer-events: none;
-  }
-
-  .char-base-img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
-  }
-
-  .char-body {
-    position: relative;
-    width: 100%;
-    height: 100%;
-  }
-
-  /* 装备层叠 */
-  .char-equip {
-    position: absolute;
-    bottom: 0; left: 50%;
-    transform: translateX(-50%);
-    max-width: 120px;
-    max-height: 160px;
-    pointer-events: none;
-  }
-  #equip-hat   { bottom: 100px; z-index: 6; }
-  #equip-cape  { bottom: 0; z-index: 0; }
-  #equip-top   { bottom: 30px; z-index: 3; }
-  #equip-bottom{ bottom: 0; z-index: 2; }
-  #equip-face  { bottom: 90px; z-index: 5; }
-  #equip-eyes  { bottom: 100px; z-index: 6; }
-  #equip-shoes { bottom: 0; z-index: 1; }
-
-  /* 换装按钮 */
-  .char-toggle-btn {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: linear-gradient(135deg, rgba(0,212,255,0.3), rgba(124,58,237,0.3));
-    border: 1px solid rgba(0,212,255,0.5);
-    border-radius: 10px;
-    color: #fff;
-    padding: 8px 14px;
-    font-size: 0.8em;
-    cursor: pointer;
-    z-index: 102;
-    font-family: inherit;
-    transition: all 0.3s;
-  }
-  .char-toggle-btn:hover {
-    background: linear-gradient(135deg, rgba(0,212,255,0.5), rgba(124,58,237,0.5));
-  }
-
-  /* 性别切换按钮 */
-  .char-gender-btn {
-    position: fixed;
-    bottom: 20px;
-    right: 90px;
-    background: linear-gradient(135deg, rgba(255,107,157,0.3), rgba(255,152,0,0.3));
-    border: 1px solid rgba(255,107,157,0.5);
-    border-radius: 10px;
-    color: #fff;
-    padding: 8px 12px;
-    font-size: 0.8em;
-    cursor: pointer;
-    z-index: 102;
-    font-family: inherit;
-    transition: all 0.3s;
-  }
-  .char-gender-btn:hover {
-    background: linear-gradient(135deg, rgba(255,107,157,0.5), rgba(255,152,0,0.5));
-  }
-
-  /* 换装面板 */
-  .char-panel {
-    position: fixed;
-    bottom: 55px;
-    right: 20px;
-    width: 200px;
-    max-height: 320px;
-    overflow-y: auto;
-    background: rgba(0,0,0,0.8);
-    border: 1px solid rgba(0,212,255,0.4);
-    border-radius: 12px;
-    padding: 10px;
-    z-index: 102;
-  }
-  .char-panel::-webkit-scrollbar { width: 4px; }
-  .char-panel::-webkit-scrollbar-thumb { background: rgba(0,212,255,0.3); border-radius: 2px; }
-  .char-panel-section { margin-bottom: 8px; }
-  .char-panel-title {
-    font-size: 0.75em;
-    color: rgba(255,255,255,0.6);
-    margin-bottom: 4px;
-    padding-bottom: 2px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-  }
-  .char-panel-items { display: flex; flex-wrap: wrap; gap: 4px; }
-  .char-item {
-    width: 36px; height: 36px;
-    border: 2px solid rgba(255,255,255,0.15);
-    border-radius: 6px;
-    cursor: pointer;
-    object-fit: contain;
-    background: rgba(255,255,255,0.05);
-    transition: all 0.2s;
-    padding: 2px;
-  }
-  .char-item:hover { border-color: rgba(0,212,255,0.6); background: rgba(0,212,255,0.1); }
-  .char-item.selected { border-color: #00d4ff; background: rgba(0,212,255,0.2); }
-  .char-item.none-btn {
-    font-size: 0.65em;
-    color: rgba(255,255,255,0.4);
-    display: flex; align-items: center; justify-content: center;
-  }
-
-
-  /* 改进的样式 */
-  .grade-card {
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-  }
-  .grade-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-    transition: left 0.5s;
-  }
-  .grade-card:hover::before {
-    left: 100%;
-  }
-  .grade-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-  }
-
-  /* SVG 图标样式 */
-  .icon-svg {
-    display: inline-block;
-    vertical-align: middle;
-  }
-  .grade-icon img, .sem-icon img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }
-
-  /* 改进的成就徽章 */
-  .achievement-badge {
-    transition: all 0.3s;
-  }
-  .achievement-badge.un {
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-  }
-
-  /* 改进的按钮样式 */
-  .semester-btn {
-    transition: all 0.3s ease;
-  }
-  .semester-btn:hover:not(.) {
-    transform: scale(1.02);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-  }
-  .semester-btn. {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  /* 背景粒子效果改进 */
-  .particle {
-    animation: float 20s infinite;
-  }
-
-  /* 更新日志改进 */
-  .update-log {
-    backdrop-filter: blur(10px);
-  }
-
-  @media (max-width: 600px) {
-    .update-log {
-      width: auto !important;
-      left: 10px;
-      right: 10px;
-      bottom: 10px;
-      padding: 8px;
-      font-size: 0.75em;
-    }
-    .char-wrapper {
-      width: 100px;
-      height: 140px;
-      bottom: 60px;
-      right: 10px;
-    }
-    .char-base {
-      width: 80px;
-      height: 120px;
-    }
-    .char-equip {
-      max-width: 100px;
-      max-height: 140px;
-    }
-    #equip-hat   { bottom: 100px; }
-    #equip-face  { bottom: 85px; }
-    #equip-eyes  { bottom: 95px; }
-    #equip-shoes { bottom: 0; }
-    #equip-top   { bottom: 40px; }
-    .char-toggle-btn {
-      bottom: 10px;
-      right: 10px;
-      padding: 6px 10px;
-      font-size: 0.7em;
-    }
-    .char-gender-btn {
-      bottom: 10px;
-      right: 70px;
-      padding: 6px 8px;
-      font-size: 0.7em;
-    }
-  }
-
-
-  .ach-icon {
-    width: 28px;
-    height: 28px;
-    vertical-align: middle;
-  }
-
-  /* ============ 顶部导航栏 ============ */
-  .top-nav {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    background: rgba(26, 26, 46, 0.9);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    padding: 12px 20px;
-    z-index: 200;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .nav-left { display: flex; align-items: center; gap: 12px; }
-  .nav-logo {
-    width: 40px; height: 40px;
-    background: linear-gradient(135deg, #00d4ff, #7c3aed);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
-  }
-  .nav-title {
-    font-size: 1.2em;
-    font-weight: bold;
-    background: linear-gradient(90deg, #00d4ff, #7c3aed);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  .nav-right { display: flex; gap: 10px; }
-  .nav-btn {
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 8px;
-    padding: 8px 14px;
-    color: #fff;
-    cursor: pointer;
-    font-size: 0.85em;
-    transition: all 0.3s;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .nav-btn:hover {
-    background: rgba(0,212,255,0.2);
-    border-color: rgba(0,212,255,0.5);
-  }
-  .nav-btn i { font-size: 14px; }
-
-  /* ============ 弹窗系统 ============ */
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.8);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 300;
-    padding: 20px;
-  }
-  .modal-overlay.active { display: flex; }
-  .modal {
-    background: linear-gradient(135deg, #1a1a2e, #16213e);
-    border: 1px solid rgba(0,212,255,0.3);
-    border-radius: 20px;
-    max-width: 600px;
-    width: 100%;
-    max-height: 80vh;
-    overflow: hidden;
-    animation: modalIn 0.3s ease;
-  }
-  @keyframes modalIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
-  }
-  .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-  }
-  .modal-title {
-    font-size: 1.3em;
-    font-weight: bold;
-    display: flex; align-items: center; gap: 10px;
-  }
-  .modal-title.achievements { color: #ffd700; }
-  .modal-title.equipment { color: #00d4ff; }
-  .modal-title.character { color: #ff6b9d; }
-  .modal-close {
-    background: none;
-    border: none;
-    color: rgba(255,255,255,0.5);
-    font-size: 1.5em;
-    cursor: pointer;
-    padding: 5px;
-    transition: color 0.3s;
-  }
-  .modal-close:hover { color: #fff; }
-  .modal-body {
-    padding: 20px;
-    overflow-y: auto;
-    max-height: calc(80vh - 80px);
-  }
-
-  /* 角色信息面板 */
-  .char-info-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-  }
-  .char-preview-box {
-    background: rgba(255,255,255,0.05);
-    border-radius: 16px;
-    padding: 20px;
-    text-align: center;
-  }
-  .char-preview-title {
-    font-size: 0.9em;
-    color: rgba(255,255,255,0.6);
-    margin-bottom: 15px;
-  }
-  .char-preview-img {
-    width: 150px; height: 200px;
-    margin: 0 auto;
-    position: relative;
-  }
-  .char-preview-img img {
-    width: 100%; height: 100%;
-    object-fit: contain;
-  }
-  .char-stats-box {
-    background: rgba(255,255,255,0.05);
-    border-radius: 16px;
-    padding: 20px;
-  }
-  .char-stats-title {
-    font-size: 0.9em;
-    color: rgba(255,255,255,0.6);
-    margin-bottom: 15px;
-    text-align: center;
-  }
-  .stat-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-  }
-  .stat-row:last-child { border-bottom: none; }
-  .stat-label {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 0.9em;
-  }
-  .stat-value {
-    font-weight: bold;
-    font-size: 1.1em;
-  }
-  .stat-value.str { color: #ff6b6b; }
-  .stat-value.dex { color: #4ecdc4; }
-  .stat-value.int { color: #a78bfa; }
-  .stat-value.luk { color: #ffd93d; }
-  .stat-value.bonus { color: #4ade80; }
-
-  /* 装备稀有度 */
-  .rarity-common { border-color: #9ca3af; }
-  .rarity-rare { border-color: #3b82f6; }
-  .rarity-epic { border-color: #a855f7; }
-  .rarity-legendary { border-color: #f97316; }
-  .rarity-mythic { border-color: #ec4899; }
-
-  /* 成就网格 */
-  .achievements-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 12px;
-  }
-  .achievement-card {
-    background: rgba(255,255,255,0.05);
-    border-radius: 12px;
-    padding: 15px;
-    text-align: center;
-    transition: all 0.3s;
-    border: 1px solid transparent;
-  }
-  .achievement-card:hover {
-    background: rgba(255,255,255,0.1);
-    transform: translateY(-2px);
-  }
-  .achievement-card. {
-    opacity: 0.4;
-    filter: grayscale(100%);
-  }
-  .achievement-card.un {
-    border-color: #ffd700;
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
-  }
-  .achievement-icon { font-size: 32px; margin-bottom: 8px; }
-  .achievement-name { font-size: 0.8em; font-weight: bold; }
-  .achievement-desc { font-size: 0.7em; color: rgba(255,255,255,0.5); margin-top: 4px; }
-
-  /* 装备列表 */
-  .equip-tabs {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 15px;
-    flex-wrap: wrap;
-  }
-  .equip-tab {
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 8px;
-    padding: 6px 12px;
-    color: #fff;
-    cursor: pointer;
-    font-size: 0.8em;
-    transition: all 0.3s;
-  }
-  .equip-tab:hover, .equip-tab.active {
-    background: rgba(0,212,255,0.2);
-    border-color: rgba(0,212,255,0.5);
-  }
-  .equip-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-    gap: 10px;
-  }
-  .equip-item {
-    aspect-ratio: 1;
-    background: rgba(255,255,255,0.05);
-    border: 2px solid rgba(255,255,255,0.1);
-    border-radius: 10px;
-    padding: 8px;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: flex; flex-direction: column; align-items: center;
-  }
-  .equip-item:hover { transform: scale(1.05); }
-  .equip-item.selected {
-    border-color: #00d4ff;
-    box-shadow: 0 0 10px rgba(0,212,255,0.3);
-  }
-  .equip-item img {
-    width: 100%; height: 100%;
-    object-fit: contain;
-  }
-
-  /* 响应式调整 */
-  @media (max-width: 600px) {
-    .top-nav { padding: 10px 15px; }
-    .nav-title { font-size: 1em; }
-    .nav-btn { padding: 6px 10px; font-size: 0.75em; }
-    .nav-btn span { display: none; }
-    .char-info-grid { grid-template-columns: 1fr; }
+    font-family:"微软雅黑","PingFang SC",sans-serif;
+    background:linear-gradient(135deg,#fff5f5 0%,#ffe8e8 30%,#ffe0f0 60%,#f0e6ff 100%);
+    min-height:100vh;
+    color:#2d3436;
+    overflow-x:hidden;
+  }
+  body::before {
+    content:'';position:fixed;inset:0;
+    background-image:radial-gradient(circle,rgba(255,107,157,0.08) 2px,transparent 2px);
+    background-size:24px 24px;pointer-events:none;z-index:0;
+  }
+  .container{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:20px 16px 40px;text-align:center;}
+  
+  .top-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:rgba(255,255,255,0.85);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 2px 20px rgba(255,107,157,0.1);}
+  .nav-left{display:flex;align-items:center;gap:8px;}
+  .nav-logo{font-size:28px;}
+  .nav-title{font-size:1em;font-weight:700;color:#e84393;}
+  .nav-right{display:flex;gap:6px;}
+  .nav-btn{background:none;border:none;padding:6px 10px;border-radius:12px;color:#636e72;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .2s;}
+  .nav-btn:hover{background:rgba(255,107,157,0.1);color:#e84393;}
+  .nav-btn span{font-size:.85em;}
+  
+  .welcome{padding-top:70px;margin-bottom:24px;}
+  .welcome-icon{font-size:48px;margin-bottom:6px;}
+  .welcome h1{font-size:1.6em;font-weight:800;background:linear-gradient(135deg,#e84393,#fd79a8,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px;}
+  .welcome p{font-size:.95em;color:#b2bec3;}
+  
+  .grade-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0;}
+  .grade-card{background:white;border-radius:20px;padding:20px 14px;cursor:pointer;transition:all .25s ease;box-shadow:0 4px 15px rgba(0,0,0,0.06);position:relative;overflow:hidden;}
+  .grade-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;}
+  .grade-card:nth-child(1)::before{background:linear-gradient(90deg,#00b894,#55efc4);}
+  .grade-card:nth-child(2)::before{background:linear-gradient(90deg,#fd79a8,#e84393);}
+  .grade-card:nth-child(3)::before{background:linear-gradient(90deg,#a29bfe,#6c5ce7);}
+  .grade-card:nth-child(4)::before{background:linear-gradient(90deg,#fdcb6e,#e17055);}
+  .grade-card:hover{transform:translateY(-3px);box-shadow:0 8px 25px rgba(0,0,0,0.1);}
+  .grade-icon{font-size:36px;margin-bottom:6px;}
+  .grade-name{font-weight:700;font-size:1.05em;color:#2d3436;}
+  .grade-sub{font-size:.75em;color:#b2bec3;margin-top:2px;}
+  .grade-status{display:inline-block;margin-top:6px;padding:2px 10px;border-radius:10px;font-size:.7em;font-weight:600;}
+  .grade-status.available{background:#dfe6e9;color:#636e72;}
+  .grade-status.locked{background:#ffeaa7;color:#fdcb6e;}
+  
+  .mode-tabs{display:flex;gap:8px;justify-content:center;margin:16px 0;}
+  .mode-tab{padding:8px 20px;border:2px solid transparent;border-radius:20px;background:rgba(255,255,255,0.8);color:#636e72;font-size:.9em;cursor:pointer;transition:all .2s;font-weight:600;}
+  .mode-tab.active{background:linear-gradient(135deg,#fd79a8,#e84393);color:white;border-color:transparent;box-shadow:0 4px 12px rgba(232,67,147,0.3);}
+  .mode-tab:hover:not(.active){border-color:#fd79a8;color:#e84393;}
+  
+  .section-card{background:white;border-radius:20px;padding:16px;margin:16px 0;box-shadow:0 4px 15px rgba(0,0,0,0.05);text-align:left;}
+  .section-header{display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;}
+  .section-title{font-weight:700;font-size:.95em;display:flex;align-items:center;gap:8px;}
+  .section-toggle{color:#b2bec3;transition:transform .3s;font-size:1.1em;}
+  .section-toggle.open{transform:rotate(180deg);}
+  .section-body{max-height:0;overflow:hidden;transition:max-height .35s ease;}
+  .section-body.open{max-height:2000px;}
+  .section-body-inner{padding-top:12px;}
+  
+  .achievement-bar{background:white;border-radius:20px;padding:14px 16px;margin:16px 0;box-shadow:0 4px 15px rgba(0,0,0,0.05);display:flex;flex-wrap:wrap;align-items:center;gap:6px;}
+  .achievement-badge{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;background:#f1f2f6;position:relative;cursor:pointer;transition:all .2s;}
+  .achievement-badge.un{background:#ffeaa7;box-shadow:0 2px 8px rgba(253,203,110,0.3);}
+  .achievement-badge .tooltip{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#2d3436;color:white;padding:6px 10px;border-radius:8px;font-size:.7em;white-space:nowrap;z-index:10;}
+  .achievement-badge:hover .tooltip{display:block;}
+  .achievement-stats{font-size:.75em;color:#b2bec3;margin-left:auto;}
+  .achievement-stats span{color:#e84393;font-weight:700;}
+  
+  .prompt-card pre{background:#f8f9fa;border-radius:10px;padding:12px;font-size:.85em;line-height:1.5;overflow-x:auto;white-space:pre-wrap;word-break:break-word;color:#636e72;max-height:300px;overflow-y:auto;}
+  .copy-btn{display:inline-block;padding:6px 14px;border:none;border-radius:10px;background:linear-gradient(135deg,#fd79a8,#e84393);color:white;font-size:.8em;cursor:pointer;margin-top:8px;font-weight:600;transition:all .2s;}
+  .copy-btn:hover{transform:scale(1.03);opacity:.9;}
+  .copy-btn:active{transform:scale(.97);}
+  
+  .semester-panel{display:none;background:white;border-radius:20px;padding:20px;margin:16px 0;box-shadow:0 4px 15px rgba(0,0,0,0.05);}
+  .semester-panel.active{display:block;}
+  .back-btn{background:none;border:none;color:#e84393;font-size:.85em;cursor:pointer;padding:6px 0;font-weight:600;}
+  .semester-title{font-weight:700;font-size:1.1em;margin:8px 0 14px;}
+  .semester-grid{display:flex;gap:12px;justify-content:center;}
+  .semester-btn{display:block;background:#f8f9fa;border-radius:16px;padding:20px;flex:1;text-decoration:none;color:#2d3436;transition:all .2s;}
+  .semester-btn:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.08);}
+  .sem-icon{font-size:28px;margin-bottom:4px;}
+  .sem-name{font-weight:700;font-size:.95em;}
+  .sem-desc{font-size:.75em;color:#b2bec3;margin-top:4px;}
+  
+  .vs-panel{background:white;border-radius:20px;padding:20px;margin:16px 0;box-shadow:0 4px 15px rgba(0,0,0,0.05);}
+  .vs-panel h2{font-size:1.2em;margin-bottom:4px;color:#e84393;}
+  .vs-panel p{color:#b2bec3;font-size:.85em;margin-bottom:16px;}
+  .vs-btn{display:block;padding:12px;margin-bottom:8px;background:#f8f9fa;border-radius:14px;text-decoration:none;color:#2d3436;font-weight:600;font-size:.9em;transition:all .2s;}
+  .vs-btn:hover{background:#ffeaa7;}
+  
+  .modal-overlay{position:fixed;inset:0;background:rgba(45,52,54,0.6);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;}
+  .modal-overlay.active{display:flex;}
+  .modal{background:white;border-radius:20px;max-width:600px;width:100%;max-height:80vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,0.15);}
+  .modal-header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid #f1f2f6;}
+  .modal-title{font-weight:700;font-size:1.05em;display:flex;align-items:center;gap:8px;}
+  .modal-title.achievements{color:#fdcb6e;}
+  .modal-title.equipment{color:#74b9ff;}
+  .modal-title.character{color:#e84393;}
+  .modal-close{background:none;border:none;font-size:1.4em;color:#b2bec3;cursor:pointer;padding:4px 8px;border-radius:8px;}
+  .modal-close:hover{background:#f1f2f6;}
+  .modal-body{padding:16px 20px;}
+  
+  .achievements-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;}
+  .achievement-card{background:#f8f9fa;border-radius:14px;padding:14px;text-align:center;transition:all .2s;}
+  .achievement-card.unlocked{background:#ffeaa7;}
+  .achievement-card .ach-icon{width:32px;height:32px;object-fit:contain;}
+  .achievement-card .ach-icon-big{font-size:28px;margin-bottom:4px;}
+  .achievement-card .ach-name{font-weight:700;font-size:.85em;color:#2d3436;}
+  .achievement-card .ach-desc{font-size:.7em;color:#b2bec3;margin-top:2px;}
+  
+  .equip-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+  .equip-tab{padding:6px 14px;border:2px solid #dfe6e9;border-radius:10px;background:white;color:#636e72;font-size:.8em;cursor:pointer;font-weight:600;transition:all .2s;}
+  .equip-tab.active{background:#e84393;color:white;border-color:#e84393;}
+  .equip-tab:hover:not(.active){border-color:#e84393;color:#e84393;}
+  .equip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;}
+  
+  .char-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .char-preview-box,.char-stats-box{background:#f8f9fa;border-radius:14px;padding:14px;}
+  .char-preview-title,.char-stats-title{font-weight:700;font-size:.9em;margin-bottom:8px;}
+  .char-preview-img{text-align:center;}
+  .char-preview-img img{max-width:120px;border-radius:12px;}
+  .stat-row{display:flex;justify-content:space-between;padding:4px 0;font-size:.85em;border-bottom:1px solid #f1f2f6;}
+  .stat-row:last-child{border:none;}
+  .stat-label{color:#636e72;}
+  .stat-value.str{color:#e17055;}
+  .stat-value.dex{color:#00b894;}
+  .stat-value.int{color:#6c5ce7;}
+  .stat-value.luk{color:#fdcb6e;}
+  .stat-value.bonus{color:#e84393;}
+  
+  .footer{margin-top:24px;padding:16px;font-size:.75em;color:#b2bec3;text-align:center;}
+  .footer a{color:#e84393;text-decoration:none;}
+  .footer a:hover{text-decoration:underline;}
+  
+  @media(max-width:480px){
+    .grade-grid{gap:8px;}
+    .grade-card{padding:14px 10px;}
+    .welcome h1{font-size:1.3em;}
+    .char-info-grid{grid-template-columns:1fr;}
+    .achievements-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));}
   }
 </style>
 </head>
@@ -834,51 +152,26 @@
 <!-- 顶部导航栏 -->
 <header class="top-nav">
   <div class="nav-left">
-    <div class="nav-logo">🔬</div>
+    <div class="nav-logo">🧪</div>
     <span class="nav-title">科学趣味闯关</span>
   </div>
   <div class="nav-right">
-    <button class="nav-btn" onclick="openModal('achievementsModal')">
-      <i class="fa fa-trophy" style="color:#ffd700"></i>
-      <span>成就</span>
-    </button>
-    <button class="nav-btn" onclick="openModal('equipmentModal')">
-      <i class="fa fa-shield" style="color:#00d4ff"></i>
-      <span>装备</span>
-    </button>
-    <button class="nav-btn" onclick="openModal('characterModal')">
-      <i class="fa fa-user" style="color:#ff6b9d"></i>
-      <span id="navUserName">登录</span>
-    </button>
+    <button class="nav-btn" onclick="openModal('achievementsModal')">🏆<span>成就</span></button>
+    <button class="nav-btn" onclick="openModal('equipmentModal')">🛡️<span>装备</span></button>
+    <button class="nav-btn" onclick="openModal('characterModal')">👤<span id="navUserName">登录</span></button>
   </div>
 </header>
 
-<!-- 成就弹窗 -->
 <div class="modal-overlay" id="achievementsModal" onclick="closeModalOnOverlay(event, 'achievementsModal')">
   <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title achievements">
-        <i class="fa fa-trophy"></i>
-        <span>成就系统</span>
-      </div>
-      <button class="modal-close" onclick="closeModal('achievementsModal')">&times;</button>
-    </div>
-    <div class="modal-body">
-      <div class="achievements-grid" id="achievementsGrid"></div>
-    </div>
+    <div class="modal-header"><div class="modal-title achievements">🏆 成就系统</div><button class="modal-close" onclick="closeModal('achievementsModal')">&times;</button></div>
+    <div class="modal-body"><div class="achievements-grid" id="achievementsGrid"></div></div>
   </div>
 </div>
 
-<!-- 装备弹窗 -->
 <div class="modal-overlay" id="equipmentModal" onclick="closeModalOnOverlay(event, 'equipmentModal')">
   <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title equipment">
-        <i class="fa fa-shield"></i>
-        <span>装备管理</span>
-      </div>
-      <button class="modal-close" onclick="closeModal('equipmentModal')">&times;</button>
-    </div>
+    <div class="modal-header"><div class="modal-title equipment">🛡️ 装备管理</div><button class="modal-close" onclick="closeModal('equipmentModal')">&times;</button></div>
     <div class="modal-body">
       <div class="equip-tabs">
         <button class="equip-tab active" data-cat="all" onclick="filterEquip('all')">全部</button>
@@ -891,10 +184,10 @@
         <button class="equip-tab" data-cat="shoes" onclick="filterEquip('shoes')">鞋子</button>
       </div>
       <div class="equip-grid" id="equipGrid"></div>
-      <div style="margin-top:20px;padding-top:15px;border-top:1px solid rgba(255,255,255,0.1);">
+      <div style="margin-top:20px;padding-top:15px;border-top:1px solid #f1f2f6;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-          <span style="color:#ffd700;font-weight:bold;">🎒 暗黑背包</span>
-          <span style="color:rgba(255,255,255,0.5);font-size:0.8em;" id="inventoryCount">0 件</span>
+          <span style="color:#e84393;font-weight:bold;">🎒 暗黑背包</span>
+          <span style="color:#b2bec3;font-size:.8em;" id="inventoryCount">0 件</span>
         </div>
         <div id="inventoryGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;"></div>
       </div>
@@ -902,168 +195,127 @@
   </div>
 </div>
 
-<!-- 角色信息弹窗 -->
 <div class="modal-overlay" id="characterModal" onclick="closeModalOnOverlay(event, 'characterModal')">
   <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title character">
-        <i class="fa fa-user"></i>
-        <span>角色信息</span>
-      </div>
-      <button class="modal-close" onclick="closeModal('characterModal')">&times;</button>
-    </div>
+    <div class="modal-header"><div class="modal-title character">👤 角色信息</div><button class="modal-close" onclick="closeModal('characterModal')">&times;</button></div>
     <div class="modal-body">
       <div class="char-info-grid">
         <div class="char-preview-box">
           <div class="char-preview-title">角色预览</div>
-          <div class="char-preview-img">
-            <img id="modalCharImg" src="generated-assets/char_girl_base.png" alt="角色">
-          </div>
+          <div class="char-preview-img"><img id="modalCharImg" src="generated-assets/char_girl_base.png" alt="角色"></div>
         </div>
         <div class="char-stats-box">
           <div class="char-stats-title">角色属性</div>
-          <div class="stat-row">
-            <span class="stat-label">💪 力量</span>
-            <span class="stat-value str" id="statStr">0</span>
-          </div>
-          <div class="stat-row">
-            <span class="stat-label">⚡ 敏捷</span>
-            <span class="stat-value dex" id="statDex">0</span>
-          </div>
-          <div class="stat-row">
-            <span class="stat-label">🧠 智力</span>
-            <span class="stat-value int" id="statInt">0</span>
-          </div>
-          <div class="stat-row">
-            <span class="stat-label">🍀 运气</span>
-            <span class="stat-value luk" id="statLuk">0</span>
-          </div>
-          <div class="stat-row">
-            <span class="stat-label">🎯 积分倍率</span>
-            <span class="stat-value bonus" id="statScoreRate">1.0x</span>
-          </div>
-          <div class="stat-row">
-            <span class="stat-label">🎁 装备爆率</span>
-            <span class="stat-value bonus" id="statDropRate">10%</span>
-          </div>
-          <div class="stat-row">
-            <span class="stat-label">✨ 活跃词缀</span>
-            <span class="stat-value" id="statAffixes" style="font-size:0.8em;text-align:right;max-width:200px;line-height:1.8;">无</span>
-          </div>
+          <div class="stat-row"><span class="stat-label">💪 力量</span><span class="stat-value str" id="statStr">0</span></div>
+          <div class="stat-row"><span class="stat-label">⚡ 敏捷</span><span class="stat-value dex" id="statDex">0</span></div>
+          <div class="stat-row"><span class="stat-label">🧠 智力</span><span class="stat-value int" id="statInt">0</span></div>
+          <div class="stat-row"><span class="stat-label">🍀 运气</span><span class="stat-value luk" id="statLuk">0</span></div>
+          <div class="stat-row"><span class="stat-label">🎯 积分倍率</span><span class="stat-value bonus" id="statScoreRate">1.0x</span></div>
+          <div class="stat-row"><span class="stat-label">🎁 装备爆率</span><span class="stat-value bonus" id="statDropRate">10%</span></div>
+          <div class="stat-row"><span class="stat-label">✨ 活跃词缀</span><span class="stat-value" id="statAffixes" style="font-size:.8em;line-height:1.8;">无</span></div>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<div class="particles" id="particles"></div>
-
-<div class="container" style="padding-top: 80px;">
-  <div class="logo">🔬</div>
-  <h1>科学趣味闯关</h1>
-  <p class="subtitle">选择你的年级，开始复习之旅</p>
-
-  <!-- 成就展示区 -->
-  <div class="achievement-bar" id="achievementBar">
-    <div class="achievement-stats">正在加载成就...</div>
+<div class="container">
+  <div class="particles" id="particles"></div>
+  <div class="welcome">
+    <div class="welcome-icon">🌈</div>
+    <h1>你好呀，小科学家！</h1>
+    <p>选择年级，开始今天的闯关之旅吧 🚀</p>
   </div>
 
-  <!-- 模式切换 -->
+  <div class="achievement-bar" id="achievementBar"><div class="achievement-stats">加载成就...</div></div>
+
   <div class="mode-tabs">
-    <button class="mode-tab active" onclick="switchMode('solo')">单人闯关</button>
+    <button class="mode-tab active" onclick="switchMode('solo')">🎮 单人闯关</button>
     <button class="mode-tab" onclick="switchMode('vs')">⚔️ 双人对战</button>
   </div>
 
-  <!-- 单人模式入口 -->
   <div id="gradePanel">
     <div class="grade-grid">
-      <div class="grade-card" onclick="selectGrade(3)">
-        <div class="grade-icon"><img src="icons/book-green.png" alt="三年级"></div>
-        <div class="grade-name">三年级</div>
-        <div class="grade-status available">已上线</div>
-      </div>
-
-      <div class="grade-card" onclick="selectGrade(4)">
-        <div class="grade-icon"><img src="icons/book-green.png" alt="四年级"></div>
-        <div class="grade-name">四年级</div>
-        <div class="grade-status available">已上线</div>
-      </div>
-
-      <div class="grade-card" onclick="selectGrade(5)">
-        <div class="grade-icon"><img src="icons/book-blue.png" alt="五年级"></div>
-        <div class="grade-name">五年级</div>
-        <div class="grade-status available">已上线</div>
-      </div>
-
-      <div class="grade-card" onclick="selectGrade(6)">
-        <div class="grade-icon"><img src="icons/book-orange.png" alt="六年级"></div>
-        <div class="grade-name">六年级</div>
-        <div class="grade-status available">已上线</div>
-      </div>
+      <div class="grade-card" onclick="selectGrade(3)"><div class="grade-icon">🐛</div><div class="grade-name">三年级</div><div class="grade-sub">三年级科学</div><div class="grade-status available">已上线</div></div>
+      <div class="grade-card" onclick="selectGrade(4)"><div class="grade-icon">🦋</div><div class="grade-name">四年级</div><div class="grade-sub">四年级科学</div><div class="grade-status available">已上线</div></div>
+      <div class="grade-card" onclick="selectGrade(5)"><div class="grade-icon">🐝</div><div class="grade-name">五年级</div><div class="grade-sub">五年级科学</div><div class="grade-status available">已上线</div></div>
+      <div class="grade-card" onclick="selectGrade(6)"><div class="grade-icon">🦉</div><div class="grade-name">六年级</div><div class="grade-sub">六年级科学</div><div class="grade-status available">已上线</div></div>
     </div>
   </div>
 
-  <!-- 双人对战入口（四年级下册） -->
   <div id="vsPanel" style="display:none;">
-    <div style="background:rgba(255,107,157,0.15);border:1px solid rgba(255,107,157,0.3);border-radius:20px;padding:30px;max-width:500px;margin:0 auto 30px;">
-      <div style="font-size:48px;margin-bottom:12px;">⚔️</div>
-      <h2 style="font-size:1.5em;margin-bottom:8px;">双人对战模式</h2>
-      <p style="color:rgba(255,255,255,0.6);font-size:0.9em;margin-bottom:20px;">两人同时作答，比比谁更快更准！</p>
-      <a class="vs-btn" href="4/2/vs.html">📘 四年级下册 · 开始对战</a>
-      <a class="vs-btn" href="5/2/vs.html">📙 五年级下册 · 开始对战</a>
-      <a class="vs-btn" style="opacity:0.4;pointer-events:none;" href="#">📗 三年级下册 · 敬请期待</a>
-      <a class="vs-btn" href="6/2/vs.html">📕 六年级下册 · 开始对战</a>
+    <div class="vs-panel">
+      <div style="text-align:center;font-size:40px;margin-bottom:8px;">⚔️</div>
+      <h2>双人对战模式</h2>
+      <p>两人同时作答，比比谁更快更准！</p>
+      <a class="vs-btn" href="4/2/vs.html">📘 四年级下册</a>
+      <a class="vs-btn" href="5/2/vs.html">📙 五年级下册</a>
+      <a class="vs-btn" style="opacity:0.5;pointer-events:none;" href="#">📗 三年级下册 · 敬请期待</a>
+      <a class="vs-btn" href="6/2/vs.html">📕 六年级下册</a>
     </div>
     <button class="back-btn" onclick="switchMode('solo')">← 返回单人模式</button>
   </div>
 
-  <!-- 四年级面板 -->
+  <div class="section-card prompt-card">
+    <div class="section-header" onclick="toggleSection('promptBody')">
+      <div class="section-title">🎨 精灵图生成工具</div>
+      <div class="section-toggle" id="promptToggle">▼</div>
+    </div>
+    <div class="section-body" id="promptBody">
+      <div class="section-body-inner">
+        <p style="color:#b2bec3;margin-bottom:8px;font-size:.85em;">将提示词复制到 AI 绘图工具（豆包/DALL-E），生成精灵图后发给我，我来帮你切割。</p>
+        <div style="margin-bottom:10px;">
+          <strong style="font-size:.85em;">🔬 装备图标（39个）</strong>
+          <button class="copy-btn" onclick="copyPrompt('equipPrompt')">📋 复制</button>
+          <pre id="equipPrompt">Generate a grid of 40 game item icons for a kids educational game.
+
+Canvas: 2400x1800 pixels, pure white background (#FFFFFF).
+Grid: 8 columns x 5 rows, each cell 150x150 pixels with 1px light gray (#cccccc) dividing lines.
+Style: 2.5D cartoon game item icons, front-facing, vibrant colors, soft drop shadow, clean edges.
+NO text, NO labels, NO numbers, NO watermarks.
+
+Layout (left to right, top to bottom):
+Row 0: [Magnifying glass gold frame] [Silver microscope blue lens] [Flask green liquid bubbles] [Gold compass red needle] [Brass telescope tripod] [Test tube blue liquid] [Blue globe green continents] [Red U-shaped magnet]
+Row 1: [AA battery gold casing] [Thermometer red liquid] [Balance scale silver weights] [Triangular prism rainbow] [Silver longsword blue gem] [Wooden bow feathered arrow] [Purple crystal staff runes] [Short wand blue gem lightning]
+Row 2: [Silver dagger leather grip] [Iron spearhead red tassel] [Iron helmet visor open] [Black wizard hat stars] [Gold crown red ruby] [Silver plate armor gold trim] [Blue mage robe gold stars] [Brown leather vest studs]
+Row 3: [Gray leather pants knee armor] [Purple pleated skirt silver belt] [Brown leather gloves metal knuckles] [Silver gauntlet red energy] [Red cape gold fringe] [Black hooded cloak silver clasp] [Round steel shield gold cross] [Blue crystal orb energy aura]
+Row 4: [Iron armored boots studs] [Brown leather boots silver buckle] [Round glasses lens reflection] [White half-face mask gold] [Black eyepatch silver chain] [Blue contact lens iridescent] [Red thermos cup angry face steam - "Tan's Angry Cup"] [EMPTY]</pre>
+        </div>
+        <p style="color:#b2bec3;font-size:.75em;">💡 生成后的图发给我，我来切割成39个独立图标。</p>
+      </div>
+    </div>
+  </div>
+
   <div class="semester-panel" id="panel-4">
     <button class="back-btn" onclick="showGrades()">← 返回选择年级</button>
     <div class="semester-title">📘 四年级 · 选择学期</div>
     <div class="semester-grid">
-      <!-- 4/1 = 上学期 -->
-      <a class="semester-btn " href="#">
-        <div class="sem-icon"><img src="icons/spring.png" alt="上学期"></div>
-        <div class="sem-name">上学期</div>
-        <div class="sem-desc">四年级上册科学 · 已上线</div>
-      </a>
-      <!-- 4/2 = 下学期（四年级下册已做好） -->
-      <a class="semester-btn" href="4/2/">
-        <div class="sem-icon"><img src="icons/autumn.png" alt="下学期"></div>
-        <div class="sem-name">下学期</div>
-        <div class="sem-desc">四年级下册科学 · 粤教版</div>
-      </a>
+      <a class="semester-btn" href="#"><div class="sem-icon">🌸</div><div class="sem-name">上学期</div><div class="sem-desc">即将上线</div></a>
+      <a class="semester-btn" href="4/2/"><div class="sem-icon">🍂</div><div class="sem-name">下学期</div><div class="sem-desc">粤教版已上线</div></a>
     </div>
   </div>
-
-  <!-- 三年级面板 -->
   <div class="semester-panel" id="panel-3">
     <button class="back-btn" onclick="showGrades()">← 返回选择年级</button>
     <div class="semester-title">📗 三年级 · 选择学期</div>
     <div class="semester-grid">
-      <a class="semester-btn " href="#"><div class="sem-icon"><img src="icons/spring.png" alt="上学期"></div><div class="sem-name">上学期</div><div class="sem-desc">即将上线</div></a>
-      <a class="semester-btn " href="3/2/"><div class="sem-icon"><img src="icons/autumn.png" alt="下学期"></div><div class="sem-name">下学期</div><div class="sem-desc">已上线</div></a>
+      <a class="semester-btn" href="#"><div class="sem-icon">🌸</div><div class="sem-name">上学期</div><div class="sem-desc">即将上线</div></a>
+      <a class="semester-btn" href="3/2/"><div class="sem-icon">🍂</div><div class="sem-name">下学期</div><div class="sem-desc">已上线</div></a>
     </div>
   </div>
-
-  <!-- 五年级面板 -->
   <div class="semester-panel" id="panel-5">
     <button class="back-btn" onclick="showGrades()">← 返回选择年级</button>
     <div class="semester-title">📙 五年级 · 选择学期</div>
     <div class="semester-grid">
-      <a class="semester-btn " href="#"><div class="sem-icon"><img src="icons/spring.png" alt="上学期"></div><div class="sem-name">上学期</div><div class="sem-desc">已上线</div></a>
-      <a class="semester-btn" href="5/2/"><div class="sem-icon"><img src="icons/autumn.png" alt="下学期"></div><div class="sem-name">下学期</div><div class="sem-desc">五年级下册科学 · 第一二单元</div></a>
+      <a class="semester-btn" href="#"><div class="sem-icon">🌸</div><div class="sem-name">上学期</div><div class="sem-desc">已上线</div></a>
+      <a class="semester-btn" href="5/2/"><div class="sem-icon">🍂</div><div class="sem-name">下学期</div><div class="sem-desc">第一二单元</div></a>
     </div>
   </div>
-
-  <!-- 六年级面板 -->
   <div class="semester-panel" id="panel-6">
     <button class="back-btn" onclick="showGrades()">← 返回选择年级</button>
     <div class="semester-title">📕 六年级 · 选择学期</div>
     <div class="semester-grid">
-      <a class="semester-btn " href="#"><div class="sem-icon"><img src="icons/spring.png" alt="上学期"></div><div class="sem-name">上学期</div><div class="sem-desc">已上线</div></a>
-      <a class="semester-btn" href="6/2/"><div class="sem-icon"><img src="icons/autumn.png" alt="下学期"></div><div class="sem-name">下学期</div><div class="sem-desc">六年级下册科学 · 4单元23课</div></a>
+      <a class="semester-btn" href="#"><div class="sem-icon">🌸</div><div class="sem-name">上学期</div><div class="sem-desc">已上线</div></a>
+      <a class="semester-btn" href="6/2/"><div class="sem-icon">🍂</div><div class="sem-name">下学期</div><div class="sem-desc">4单元23课</div></a>
     </div>
   </div>
 
@@ -1071,9 +323,7 @@
     科学趣味闯关 · 基于「最近发展区」理论设计<br>
     <a href="https://github.com/tancbiao/kexvefuxi" target="_blank">GitHub</a>
   </div>
-</div>
-
-<script>
+</div><script>
   // 成就图标定义
   const ALL_ACHIEVEMENTS = [
     { id: 'first_correct', icon: '<img src="icons/target.png" class="ach-icon">', name: '首战告捷', desc: '答对第一道题' },
@@ -1460,6 +710,37 @@
   function closeModalOnOverlay(event, modalId) {
     if (event.target === event.currentTarget) {
       closeModal(modalId);
+    }
+  }
+
+  // 折叠面板
+  function toggleSection(id) {
+    const body = document.getElementById(id);
+    const toggle = document.getElementById(id.replace('Body', 'Toggle'));
+    body.classList.toggle('open');
+    if (toggle) toggle.classList.toggle('open');
+  }
+
+  // 复制提示词
+  function copyPrompt(id) {
+    const text = document.getElementById(id).textContent;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = event.target;
+        if (btn && btn.tagName === 'BUTTON') {
+          const orig = btn.textContent;
+          btn.textContent = '✅ 已复制';
+          setTimeout(() => btn.textContent = orig, 1500);
+        }
+      });
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      alert('已复制到剪贴板');
     }
   }
 
