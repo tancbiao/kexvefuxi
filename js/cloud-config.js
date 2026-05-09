@@ -5,15 +5,13 @@
  * - 排行榜数据读写
  * - 学生进度云同步
  * 
- * API 地址：https://api.kexvefuxi.cn (Let's Encrypt SSL)
+ * API 地址：https://159.75.134.151 (Let's Encrypt SSL)
  */
 
-const API_BASE = 'https://api.kexvefuxi.cn/api';
+const API_BASE = 'https://159.75.134.151/api';
 
 function setCloudKey(key) {}
 function getCloudKey() { return ''; }
-
-// ==================== 排行榜 ====================
 
 async function getRanking(gradeKey) {
   try {
@@ -33,8 +31,6 @@ async function updateRanking(gradeKey, studentId, data) {
     return true;
   } catch (e) { console.error('更新排行榜失败:', e); return false; }
 }
-
-// ==================== 云同步 ====================
 
 async function saveStudent(gradeKey, studentId, data) {
   try {
