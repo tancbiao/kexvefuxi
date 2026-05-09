@@ -2645,6 +2645,17 @@ function closeTowerPet() {
 // 18. 初始化
 // ============================================================
 
+// iframe 模式：显示等待提示，隐藏登录屏
+if (isIframeMode) {
+  document.getElementById('screenLogin').classList.remove('active');
+  document.getElementById('screenHome').classList.add('active');
+  document.getElementById('statATK').textContent = '...';
+  document.getElementById('statMaxHP').textContent = '...';
+  document.getElementById('statDodge').textContent = '...';
+  document.getElementById('statFloor').textContent = '-';
+  document.getElementById('statCoins').textContent = '等待同步...';
+}
+
 // 键盘回车登录
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && document.getElementById('screenLogin').classList.contains('active')) {

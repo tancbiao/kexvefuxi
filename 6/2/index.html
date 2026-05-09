@@ -3424,7 +3424,8 @@ function showTowerModal() {
   const modal = document.getElementById('towerModal');
   const iframe = document.getElementById('towerIframe');
   modal.classList.add('show');
-  // 通过 postMessage 传递学号和存档数据给 iframe
+  // 每次打开都重新加载 iframe，确保状态最新
+  iframe.src = '../../tower.html?' + Date.now();
   iframe.onload = function() {
     iframe.contentWindow.postMessage({
       type: 'init_tower',
