@@ -284,7 +284,7 @@ function genEquipDropHTML(equip) {
   
   return `
     <div style="text-align:center;">
-      <div style="font-size:4em;margin:10px 0;">${equip.icon}</div>
+      <div style="font-size:4em;margin:10px 0;"><img src="../../maplestory_sprites/${equip.typeId}_icon.png" style="width:64px;height:64px;vertical-align:middle;" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span style="display:none;font-size:2em">${equip.icon}</span></div>
       <div style="font-size:1.2em;font-weight:bold;color:${equip.rarityColor};">${equip.name}</div>
       <div style="color:#888;font-size:0.85em;margin-bottom:12px;">${equip.slot} · ${equip.multiplier.toFixed(2)}x 积分倍率</div>
       <div style="text-align:left;background:rgba(0,0,0,0.3);border-radius:8px;padding:10px;font-size:0.9em;">
