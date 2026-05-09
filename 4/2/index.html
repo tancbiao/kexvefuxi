@@ -3969,7 +3969,6 @@ async function showRanking() {
   document.getElementById('rankingOverlay').classList.add('show');
   document.querySelector('#rankingOverlay .ranking-tab').classList.add('active');
   await loadAndRenderRanking('points');
-}
 
 }
 
@@ -4054,7 +4053,7 @@ async function loadAndRenderRanking(type) {
   } catch(e) {
     listEl.innerHTML = '<div class="ranking-empty">加载失败，请稍后重试</div>';
   }
-}
+
 
 // 渲染正确率排行榜（特殊处理）
 function renderAccuracyRankList(listEl, arr, myId) {
@@ -4575,7 +4574,6 @@ let isDragging = false, offX, offY;
 });
 
 document.addEventListener('mouseup', () => { isDragging = false; });
-  }
   if (wrapper) {
   wrapper.addEventListener('touchstart', (e) => {
   if (e.target.closest('.char-panel') || e.target.closest('.char-toggle-btn')) return;

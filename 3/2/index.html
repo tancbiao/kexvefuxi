@@ -3952,8 +3952,6 @@ async function showRanking() {
   await loadAndRenderRanking('points');
 }
 
-}
-
 // 关闭排行榜
 function closeRanking() {
   document.getElementById('rankingOverlay').classList.remove('show');
@@ -4034,7 +4032,6 @@ async function loadAndRenderRanking(type) {
   } catch(e) {
     listEl.innerHTML = '<div class="ranking-empty">加载失败，请稍后重试</div>';
   }
-}
 
 // 渲染排名列表
 function renderRankList(listEl, arr, sortField, myId) {
@@ -4548,7 +4545,6 @@ let isDragging = false, offX, offY;
 });
 
 document.addEventListener('mouseup', () => { isDragging = false; });
-  }
   if (wrapper) {
   wrapper.addEventListener('touchstart', (e) => {
   if (e.target.closest('.char-panel') || e.target.closest('.char-toggle-btn')) return;
