@@ -1264,10 +1264,29 @@
       <button class="pet-modal-close" onclick="closePetModal()">✕</button>
     </div>
     <iframe id="petIframe" src="../../pet-system.html"></iframe>
+</div>
+
+<!-- ====== JSONBin Key 配置弹窗 ====== -->
+<div class="ranking-overlay" id="cloudKeyOverlay" style="z-index:9999;">
+  <div class="ranking-card" style="max-width:480px;">
+    <div class="ranking-header">
+      <div class="ranking-title">🔑 配置云存储密钥</div>
+      <button class="ranking-close" onclick="closeCloudKeyModal()">✕</button>
+    </div>
+    <div style="padding:20px;text-align:left;font-size:0.9em;color:rgba(255,255,255,0.8);line-height:1.7;">
+      <p>排行榜和云同步需要 JSONBin Master Key 才能工作。</p>
+      <p style="margin:8px 0 4px;font-size:0.85em;color:rgba(255,255,255,0.5);">1. 登录 <a href="https://jsonbin.io" target="_blank" style="color:#ffa94d;">jsonbin.io</a> → Settings → API Keys</p>
+      <p style="font-size:0.85em;color:rgba(255,255,255,0.5);">2. 复制你的 Master Key，粘贴到下方：</p>
+      <input id="cloudKeyInput" type="text" placeholder="粘贴 Master Key..." style="width:100%;padding:10px 14px;border-radius:10px;border:2px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.1);color:#fff;font-size:14px;margin:10px 0 4px;outline:none;">
+      <div id="cloudKeyStatus" style="font-size:0.8em;margin:4px 0;height:18px;"></div>
+      <button onclick="saveCloudKey()" style="width:100%;padding:10px;border:none;border-radius:10px;background:linear-gradient(135deg,#ff6b9d,#ffa94d);color:#fff;font-size:15px;font-weight:bold;cursor:pointer;margin-top:4px;">💾 保存密钥</button>
+    </div>
   </div>
 </div>
 
 <script src="../../equipment-gen.js?v=20260429"></script>
+<script src="../../js/cloud-config.js"></script>
+<script src="../../admin/reward-collector.js"></script>
 
 <!-- ====== 排行榜弹窗 ====== -->
 <div class="ranking-overlay" id="rankingOverlay">
@@ -2326,51 +2345,30 @@ function unlockAchievement(id) {
   saveUserData();
 }
 
-// ========== Firebase 云同步配置 ==========
-const CLOUD_CONFIG = {
-  databaseURL: 'https://kexvefuxi-default-rtdb.asia-southeast1.firebasedatabase.app'
-};
+// ========== 云同步（JSONBin） ==========
+const CLOUD_GRADE_KEY = 'grade5';
 
-// 保存到云端（Firebase Realtime Database）
+// 保存到云端（JSONBin）
 async function saveToCloud(studentId, data) {
   if (!studentId || studentId === 'guest') return;
   try {
-    const recordKey = 'grade5_' + studentId;
-    const url = CLOUD_CONFIG.databaseURL + '/students/' + recordKey + '.json';
-    
-    const response = await fetch(url, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-    
-    if (response.ok) {
-      console.log('云端同步成功:', recordKey);
-    } else {
-      console.error('云端同步失败:', response.status);
-    }
+    if (typeof getCloudKey !== 'function' || !getCloudKey()) return;
+    await saveStudent(CLOUD_GRADE_KEY, studentId, data);
+    console.log('云端同步成功:', CLOUD_GRADE_KEY + '_' + studentId);
   } catch (e) {
     console.error('云端同步失败:', e);
   }
 }
 
-// 从云端加载（Firebase Realtime Database）
+// 从云端加载（JSONBin）
 async function loadFromCloud(studentId) {
   if (!studentId || studentId === 'guest') return null;
   try {
-    const recordKey = 'grade5_' + studentId;
-    const url = CLOUD_CONFIG.databaseURL + '/students/' + recordKey + '.json';
-    
-    const response = await fetch(url);
-    
-    if (response.ok) {
-      const data = await response.json();
-      if (data) {
-        console.log('从云端加载成功:', recordKey);
-        return data;
-      } else {
-        console.log('云端无此学生数据:', recordKey);
-      }
+    if (typeof getCloudKey !== 'function' || !getCloudKey()) return null;
+    const data = await loadStudent(CLOUD_GRADE_KEY, studentId);
+    if (data) {
+      console.log('从云端加载成功:', CLOUD_GRADE_KEY + '_' + studentId);
+      return data;
     }
   } catch (e) {
     console.error('从云端加载失败:', e);
@@ -2974,6 +2972,11 @@ function loadUserData() {
       // 回推云端（确保一致性）
       saveToCloud(gameState.studentId, merged);
       console.log('已同步云端最新存档');
+    }
+  }).finally(() => {
+    // 领取待发放奖励（称号/装备/宠物）
+    if (typeof collectPendingRewards === 'function') {
+      collectPendingRewards(gameState.studentId, showAchievementUnlock);
     }
   });
 }
@@ -3885,17 +3888,14 @@ function closeBpPetDetail() {
   if (overlay) overlay.classList.remove('show');
 }
 
-// ========== 排行榜系统 ==========
-const RANKING_CONFIG = {
-  databaseURL: 'https://kexvefuxi-default-rtdb.asia-southeast1.firebasedatabase.app',
-  getPath(grade) { return this.databaseURL + '/rankings_' + grade + '.json'; },
-  getStudentPath(grade, sid) { return this.databaseURL + '/rankings_' + grade + '/' + sid + '.json'; }
-};
+// ========== 排行榜系统（JSONBin） ==========
+const RANKING_GRADE_KEY = 'grade52';
 
-// 计算并推送当前用户的排名数据到 Firebase
+// 计算并推送当前用户的排名数据到 JSONBin
 async function pushRankingData() {
   if (gameState.isGuest || !gameState.studentId) return;
   try {
+    if (typeof getCloudKey !== 'function' || !getCloudKey()) return;
     const petInfo = (typeof calcPetBattleBonus === 'function') ? calcPetBattleBonus() : { total: 0 };
     const equipInfo = (typeof calcEquippedBonus52 === 'function') ? calcEquippedBonus52() : { pointMul: 1 };
     const totalQ = gameState.totalQuestionsAnswered || 0;
@@ -3914,9 +3914,30 @@ async function pushRankingData() {
       accuracyRate: accuracyRate,
       lastUpdated: Date.now()
     };
-    const url = RANKING_CONFIG.getStudentPath('grade52', gameState.studentId);
-    await fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+    await updateRanking(RANKING_GRADE_KEY, gameState.studentId, data);
   } catch(e) { console.error('推送排名数据失败:', e); }
+}
+
+// 显示/关闭 JSONBin Key 配置弹窗
+function showCloudKeyModal() {
+  document.getElementById('cloudKeyOverlay').classList.add('show');
+  const saved = getCloudKey ? getCloudKey() : '';
+  document.getElementById('cloudKeyInput').value = saved;
+  document.getElementById('cloudKeyStatus').textContent = saved ? '✓ 已有密钥' : '';
+}
+function closeCloudKeyModal() {
+  document.getElementById('cloudKeyOverlay').classList.remove('show');
+}
+
+// 保存 JSONBin Key
+function saveCloudKey() {
+  const key = document.getElementById('cloudKeyInput').value.trim();
+  const status = document.getElementById('cloudKeyStatus');
+  if (!key) { status.textContent = '⚠️ 请输入密钥'; status.style.color = '#ff6b6b'; return; }
+  if (typeof setCloudKey === 'function') setCloudKey(key);
+  status.textContent = '✓ 密钥已保存！';
+  status.style.color = '#4ade80';
+  setTimeout(() => closeCloudKeyModal(), 1000);
 }
 
 // 显示排行榜
@@ -3944,11 +3965,15 @@ async function loadAndRenderRanking(type) {
   const listEl = document.getElementById('rankingList');
   listEl.innerHTML = '<div class="ranking-loading">加载中...</div>';
   try {
-    const url = RANKING_CONFIG.getPath('grade52');
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('加载失败');
-    const allData = await res.json();
-    if (!allData) { listEl.innerHTML = '<div class="ranking-empty">暂无排行数据</div>'; return; }
+    if (typeof getCloudKey !== 'function' || !getCloudKey()) {
+      listEl.innerHTML = '<div class="ranking-empty" style="padding:20px;text-align:center;color:rgba(255,255,255,0.6);font-size:0.85em;">⚠️ 排行榜需配置 JSONBin Key<br><span style="font-size:0.9em;color:#ffa94d;cursor:pointer;" onclick="showCloudKeyModal()">点击此处配置密钥</span></div>';
+      return;
+    }
+    
+    const allData = await getRanking(RANKING_GRADE_KEY);
+    if (!allData || Object.keys(allData).length === 0) {
+      listEl.innerHTML = '<div class="ranking-empty">暂无排行数据，答题后自动同步</div>';
+      return; }
 
     let arr = Object.values(allData);
     const myId = gameState.studentId;
@@ -4055,17 +4080,12 @@ function closePetModal() {
   document.getElementById('petModal').classList.remove('show');
 }
 
-// ========== Firebase 云同步 ==========
-const CLOUD_CONFIG52 = {
-  databaseURL: 'https://kexvefuxi-default-rtdb.asia-southeast1.firebasedatabase.app'
-};
-
+// ========== 云同步（JSONBin） ==========
 async function saveToCloud52(studentId, data) {
   if (!studentId || studentId === 'guest') return;
   try {
-    const recordKey = 'grade5_' + studentId;
-    const url = CLOUD_CONFIG52.databaseURL + '/students/' + recordKey + '.json';
-    await fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+    if (typeof getCloudKey !== 'function' || !getCloudKey()) return;
+    await saveStudent('grade5', studentId, data);
   } catch (e) { console.error('云同步失败:', e); }
 }
 
