@@ -604,6 +604,13 @@ body {
   .monster-area .monster-emoji { font-size: 48px; }
   .result-stat .rs-val { font-size: 1.4em; }
 }
+/* ====== iframe 模式：隐藏独立页面元素 ====== */
+.iframe-mode #screenLogin,
+.iframe-mode .top-bar-left { display: none !important; }
+.iframe-mode .main-container { padding-top: 0; }
+.iframe-mode .home-stats { background: transparent; }
+.iframe-mode .stamina-indicator { position: static; }
+
 </style>
 </head>
 <body>
@@ -819,6 +826,52 @@ body {
 // ============================================================
 
 let studentId = null;
+
+// ========== iframe 模式支持 ==========
+const isIframeMode = window !== window.parent;
+let parentOrigin = '*';
+
+if (isIframeMode) {
+  document.body.classList.add('iframe-mode');
+}
+
+// postMessage 监听（接收父页面传来的学号和初始化数据）
+window.addEventListener('message', function(e) {
+  if (!e.data || typeof e.data !== 'object') return;
+  if (e.data.type === 'init_tower') {
+    studentId = e.data.studentId;
+    parentOrigin = e.origin || '*';
+    // 如果父页面传了积分和装备数据，同步到 localStorage
+    if (e.data.saveData) {
+      try {
+        const key = 'scienceGame6_user_' + studentId;
+        localStorage.setItem(key, JSON.stringify(e.data.saveData));
+      } catch(ex) {}
+    }
+    goHome();
+  }
+});
+
+// 通知父页面积分/塔币变动
+function notifyTowerChange() {
+  if (isIframeMode && window.parent !== window) {
+    const towerData = getTowerData();
+    window.parent.postMessage({
+      type: 'tower_change',
+      points: getTotalPoints(),
+      towerCoins: towerData.totalTowerCoins || 0,
+      highestFloor: towerData.highestFloor || 0
+    }, parentOrigin);
+  }
+}
+
+function getTotalPoints() {
+  try {
+    const key = 'scienceGame6_user_' + studentId;
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw).totalPoints || 0) : 0;
+  } catch(e) { return 0; }
+}
 const run = {
   floor: 1,
   playerMaxHP: 100,
@@ -2141,6 +2194,9 @@ function onGameOver() {
   const grade6Data = getGrade6UserData(studentId);
   grade6Data.totalPoints = (grade6Data.totalPoints || 0) + run.earnedPoints;
   saveGrade6UserData(studentId, grade6Data);
+
+  // 通知父页面积分变动（iframe 模式）
+  notifyTowerChange();
 
   // 排行榜
   pushTowerRanking(studentId, isNewRecord ? run.floor : prevBest);
