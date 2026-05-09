@@ -15,8 +15,8 @@
 
 // ==================== 配置区 ====================
 
-// ⚠️ 请将你的 JSONBin Master Key 填入此处（从 jsonbin.io 获取）
-const JSONBIN_MASTER_KEY = localStorage.getItem('cloud_jsonbin_key') || '';
+// ⚠️ JSONBin Master Key（已硬编码，学生无需手动输入）
+const JSONBIN_MASTER_KEY = localStorage.getItem('cloud_jsonbin_key') || '$2a$10$3d.vTCheq4ohLZxKkNPUZOUr6rbQU4MzVe.cAcnvuOCKYBAd.UU9K';
 
 const COLLECTION_ID = '69e9771aaaba8821972a04b6';
 const API_BASE = 'https://api.jsonbin.io/v3';
@@ -38,7 +38,7 @@ function setCloudKey(key) {
 }
 
 function getCloudKey() {
-  return localStorage.getItem('cloud_jsonbin_key') || '';
+  return localStorage.getItem('cloud_jsonbin_key') || JSONBIN_MASTER_KEY;
 }
 
 /**

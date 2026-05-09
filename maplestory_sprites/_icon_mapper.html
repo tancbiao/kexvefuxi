@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>图标映射工具 - 科学复习系统</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0d1117; color: #c9d1d9; font-family: 'Microsoft YaHei', sans-serif; padding: 16px; font-size: 13px; }
+  h1 { text-align: center; color: #58a6ff; margin-bottom: 4px; font-size: 20px; }
+  .info { text-align: center; color: #8b949e; margin-bottom: 12px; font-size: 12px; }
+  .auto-info { text-align: center; color: #d2991d; margin-bottom: 12px; font-size: 12px; background: #1a1a0a; padding: 6px; border-radius: 6px; }
+
+  .layout { display: flex; gap: 16px; max-width: 1500px; margin: 0 auto; }
+  
+  .grid-panel { flex: 1.8; }
+  .grid { display: grid; grid-template-columns: repeat(8, 100px); gap: 3px; }
+  .cell { 
+    background: #161b22; border: 2px solid #30363d; border-radius: 6px;
+    display: flex; flex-direction: column; align-items: center; padding: 3px;
+    cursor: pointer; transition: all 0.2s; position: relative;
+  }
+  .cell:hover { border-color: #58a6ff; }
+  .cell.selected { border-color: #3fb950 !important; background: #1a3a1a !important; }
+  .cell.mapped { border-color: #d2991d; }
+  .cell img { width: 68px; height: 68px; image-rendering: pixelated; }
+  .cell .label { font-size: 9px; margin-top: 1px; }
+  .cell .label .pos { color: #484f58; }
+  .cell .label .name { color: #d2991d; }
+
+  .assign-panel { flex: 1; position: sticky; top: 16px; height: fit-content; max-height: 90vh; overflow-y: auto; }
+  .slot-group { margin-bottom: 12px; }
+  .slot-title { font-weight: bold; color: #f0883e; margin-bottom: 4px; font-size: 13px; }
+  .id-list { display: flex; flex-wrap: wrap; gap: 3px; }
+  .id-tag {
+    background: #21262d; border: 1px solid #30363d; border-radius: 4px;
+    padding: 4px 8px; font-size: 11px; cursor: pointer; 
+  }
+  .id-tag:hover { border-color: #58a6ff; }
+  .id-tag.mapped { background: #1a3a1a; border-color: #3fb950; color: #3fb950; }
+  .id-tag .cname { color: #8b949e; margin-left: 4px; font-size: 10px; }
+
+  .actions { margin-top: 16px; text-align: center; }
+  button {
+    background: #238636; color: white; border: none; padding: 8px 20px;
+    border-radius: 6px; cursor: pointer; font-size: 13px; margin: 3px;
+  }
+  button:hover { background: #2ea043; }
+  button.primary { background: #1f6feb; font-size: 14px; padding: 10px 28px; }
+  button.primary:hover { background: #388bfd; }
+  button.danger { background: #da3633; }
+  button.danger:hover { background: #f85149; }
+  
+  .status { text-align: center; color: #3fb950; margin-top: 10px; font-size: 13px; }
+
+  .current-selection {
+    background: #1a3a2a; border: 2px solid #3fb950; border-radius: 8px;
+    padding: 10px; margin-bottom: 12px; text-align: center;
+    min-height: 36px; display: flex; align-items: center; justify-content: center;
+    gap: 8px; font-size: 12px;
+  }
+  .current-selection img { width: 40px; height: 40px; image-rendering: pixelated; }
+</style>
+</head>
+<body>
+<h1>图标映射工具</h1>
+<p class="info">左侧图标 = 你设计的精灵图，右侧标签 = 装备ID+中文名。点击格子选中 → 点击标签映射。</p>
+<p class="auto-info">⚡ 已自动填充按 EQUIP_DATA 顺序的映射方案。检查无误后点「一键应用」。</p>
+
+<div class="layout">
+  <div class="grid-panel">
+    <div class="grid" id="grid"></div>
+  </div>
+  <div class="assign-panel">
+    <div class="current-selection" id="selection">
+      <span style="color:#8b949e">👆 点击左侧图标开始</span>
+    </div>
+    <div id="slots"></div>
+    <div class="actions">
+      <button class="primary" onclick="applyMapping()">一键应用到文件</button>
+      <button onclick="exportMapping()">导出Python命令</button>
+      <button class="danger" onclick="resetMapping()">清除重来</button>
+    </div>
+    <div class="status" id="status"></div>
+  </div>
+</div>
+
+<script>
+// ====== 完整装备数据（含中文名） ======
+const ALL_EQUIP = [
+  { folder:'帽子', id:'1000011', cname:'绿色力量头盔' },
+  { folder:'帽子', id:'1000095', cname:'花饰头巾' },
+  { folder:'帽子', id:'1000206', cname:'蓝色棒球帽' },
+  { folder:'帽子', id:'1001019', cname:'淑女粉帽' },
+  { folder:'帽子', id:'1001036', cname:'圣诞女孩帽' },
+  { folder:'帽子', id:'1001066', cname:'红色头巾' },
+  { folder:'帽子', id:'1001152', cname:'夜色赛琳' },
+  { folder:'帽子', id:'1002016', cname:'绿色巫师帽' },
+  { folder:'帽子', id:'1002024', cname:'翡翠圆帽' },
+  { folder:'帽子', id:'1002059', cname:'青铜维京盔' },
+  { folder:'帽子', id:'1002081', cname:'蓝色头巾' },
+  { folder:'帽子', id:'1002115', cname:'黑羽帽' },
+  { folder:'帽子', id:'1002131', cname:'绿色宽松帽' },
+  { folder:'帽子', id:'1002208', cname:'蓝色奏鸣曲' },
+  { folder:'帽子', id:'1002284', cname:'白夜狐' },
+  { folder:'帽子', id:'1002346', cname:'蓝色下士帽' },
+  { folder:'帽子', id:'1002391', cname:'绿色头巾' },
+  { folder:'帽子', id:'1002403', cname:'蓝色阿里克盔' },
+  { folder:'上衣', id:'1040027', cname:'复古校服外套' },
+  { folder:'上衣', id:'1040147', cname:'皮皮黑指节背心' },
+  { folder:'上衣', id:'1040191', cname:'橙色迪斯科衬衫' },
+  { folder:'上衣', id:'1040800', cname:'绿色训练服' },
+  { folder:'上衣', id:'1041031', cname:'紫色开衩衫' },
+  { folder:'上衣', id:'1041058', cname:'血色潜行服' },
+  { folder:'上衣', id:'1042004', cname:'粉色连帽背心' },
+  { folder:'上衣', id:'1042058', cname:'红色半衫' },
+  { folder:'上衣', id:'1042089', cname:'蓝骷髅连帽背心' },
+  { folder:'上衣', id:'1042140', cname:'特工上衣' },
+  { folder:'上衣', id:'1042202', cname:'蓝色水手上衣' },
+  { folder:'上衣', id:'1042259', cname:'柠檬清新衫' },
+  { folder:'上衣', id:'1042337', cname:'泰迪野餐衬衫' },
+  { folder:'上衣', id:'1042367', cname:'恶魔熊T恤' },
+  { folder:'裤裙', id:'1060077', cname:'赭色肩铠裤' },
+  { folder:'裤裙', id:'1060103', cname:'夏威夷裙' },
+  { folder:'裤裙', id:'1060600', cname:'蓝色牛仔裙' },
+  { folder:'裤裙', id:'1061031', cname:'黑色布裤' },
+  { folder:'裤裙', id:'1061047', cname:'红色爱莫莉亚裙' },
+  { folder:'裤裙', id:'1061070', cname:'红色暗影裤' },
+  { folder:'裤裙', id:'1061077', cname:'蓝色月亮裤' },
+  { folder:'裤裙', id:'1061150', cname:'斯特格曼实用裙MK2' },
+  { folder:'裤裙', id:'1061208', cname:'天津四裙' },
+  { folder:'裤裙', id:'1062117', cname:'偶像明星链裤' },
+  { folder:'裤裙', id:'1062203', cname:'异界休闲裤' },
+  { folder:'裤裙', id:'1062294', cname:'真恶魔睡衣下装' },
+  { folder:'披风', id:'1100033', cname:'冒险岛披风' },
+  { folder:'披风', id:'1102065', cname:'圣诞披风' },
+  { folder:'披风', id:'1102167', cname:'枫叶披风' },
+  { folder:'披风', id:'1102275', cname:'狮心战斗披风' },
+  { folder:'披风', id:'1102310', cname:'童话披风' },
+  { folder:'脸饰', id:'1010006', cname:'极道伤疤' },
+  { folder:'脸饰', id:'1011015', cname:'白眼阴郁脸饰' },
+  { folder:'脸饰', id:'1012054', cname:'紫色愤怒' },
+  { folder:'脸饰', id:'1012147', cname:'不朽面具' },
+  { folder:'脸饰', id:'1012222', cname:'蓝色弓箭手标记' },
+  { folder:'脸饰', id:'1012300', cname:'鲁道夫红鼻子' },
+  { folder:'脸饰', id:'1012395', cname:'前沿白口香糖' },
+  { folder:'脸饰', id:'1012397', cname:'灰色魔法师标记' },
+  { folder:'脸饰', id:'1012458', cname:'爱心纹身（鼻子）' },
+  { folder:'眼饰', id:'1020001', cname:'太阳镜' },
+  { folder:'眼饰', id:'1020213', cname:'黑色眼罩' },
+  { folder:'眼饰', id:'1022058', cname:'浣熊面具' },
+  { folder:'眼饰', id:'1022310', cname:'暗黑追猎者眼饰' },
+];
+
+// 自动映射：按顺序填充 row 0-7
+const mapping = {};
+ALL_EQUIP.forEach((eq, i) => {
+  const row = Math.floor(i / 8);
+  const col = i % 8;
+  mapping[`${row},${col}`] = { folder: eq.folder, id: eq.id, cname: eq.cname };
+});
+
+let selectedCell = null;
+
+// 渲染格子
+const grid = document.getElementById('grid');
+for (let r = 0; r < 12; r++) {
+  for (let c = 0; c < 8; c++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.dataset.row = r;
+    cell.dataset.col = c;
+    
+    const img = document.createElement('img');
+    img.src = `ach_row${r}_col${c}.png`;
+    
+    const label = document.createElement('div');
+    label.className = 'label';
+    
+    const posSpan = document.createElement('span');
+    posSpan.className = 'pos';
+    posSpan.textContent = `${r},${c}`;
+    label.appendChild(posSpan);
+    
+    // 如果有映射，显示中文名
+    const m = mapping[`${r},${c}`];
+    if (m) {
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'name';
+      nameSpan.textContent = ' ' + m.cname;
+      label.appendChild(nameSpan);
+      cell.classList.add('mapped');
+    }
+    
+    cell.appendChild(img);
+    cell.appendChild(label);
+    cell.onclick = () => selectCell(r, c, cell);
+    grid.appendChild(cell);
+  }
+}
+
+// 渲染装备ID列表（中文名显示）
+const slotsDiv = document.getElementById('slots');
+// 按类别分组
+const groups = {};
+ALL_EQUIP.forEach(eq => {
+  if (!groups[eq.folder]) groups[eq.folder] = [];
+  groups[eq.folder].push(eq);
+});
+
+for (const [folder, items] of Object.entries(groups)) {
+  const group = document.createElement('div');
+  group.className = 'slot-group';
+  group.innerHTML = `<div class="slot-title">${folder} (${items.length}个)</div>`;
+  
+  const list = document.createElement('div');
+  list.className = 'id-list';
+  
+  items.forEach(({id, cname}) => {
+    const tag = document.createElement('span');
+    tag.className = 'id-tag';
+    tag.innerHTML = `<b>${id}</b><span class="cname">${cname}</span>`;
+    tag.dataset.folder = folder;
+    tag.dataset.id = id;
+    tag.dataset.cname = cname;
+    tag.onclick = () => assignIcon(folder, id, cname, tag);
+    list.appendChild(tag);
+  });
+  
+  group.appendChild(list);
+  slotsDiv.appendChild(group);
+}
+
+// 初始化已映射的标签
+updateAllIdTags();
+updateStatus();
+
+function selectCell(r, c, cellEl) {
+  document.querySelectorAll('.cell.selected').forEach(el => el.classList.remove('selected'));
+  cellEl.classList.add('selected');
+  selectedCell = `${r},${c}`;
+  
+  const sel = document.getElementById('selection');
+  const m = mapping[selectedCell];
+  if (m) {
+    sel.innerHTML = `<img src="ach_row${r}_col${c}.png"><span>${r},${c} → <b>${m.folder}/${m.id}</b> ${m.cname} (已映射)</span>`;
+  } else {
+    sel.innerHTML = `<img src="ach_row${r}_col${c}.png"><span>已选中 ${r},${c} — 点击右侧标签映射</span>`;
+  }
+}
+
+function assignIcon(folder, id, cname) {
+  if (!selectedCell) {
+    alert('请先在左侧点击一个图标格子');
+    return;
+  }
+  
+  mapping[selectedCell] = { folder, id, cname };
+  
+  // 更新格子标签
+  const [r, c] = selectedCell.split(',');
+  const cell = document.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
+  if (cell) {
+    cell.classList.add('mapped');
+    const label = cell.querySelector('.label');
+    let nameSpan = label.querySelector('.name');
+    if (!nameSpan) {
+      nameSpan = document.createElement('span');
+      nameSpan.className = 'name';
+      label.appendChild(nameSpan);
+    }
+    nameSpan.textContent = ' ' + cname;
+  }
+  
+  updateAllIdTags();
+  
+  document.getElementById('selection').innerHTML = 
+    `<img src="ach_row${r}_col${c}.png"><span>✅ ${r},${c} → <b>${folder}/${id}</b> ${cname}</span>`;
+  
+  updateStatus();
+}
+
+function updateAllIdTags() {
+  const usedKeys = new Set();
+  for (const m of Object.values(mapping)) {
+    usedKeys.add(`${m.folder}/${m.id}`);
+  }
+  document.querySelectorAll('.id-tag').forEach(el => {
+    const key = `${el.dataset.folder}/${el.dataset.id}`;
+    if (usedKeys.has(key)) el.classList.add('mapped');
+    else el.classList.remove('mapped');
+  });
+}
+
+function updateStatus() {
+  const total = ALL_EQUIP.length;
+  const mapped = Object.keys(mapping).length;
+  document.getElementById('status').textContent = `已映射: ${mapped} / ${total}`;
+}
+
+function applyMapping() {
+  const total = ALL_EQUIP.length;
+  const mapped = Object.keys(mapping).length;
+  if (mapped < total) {
+    if (!confirm(`只映射了 ${mapped}/${total} 个，确定继续吗？`)) return;
+  }
+  
+  // 生成并执行Python命令
+  let pyCmd = `import shutil, os\nbase = r'c:/Users/tanc/Documents/WPSDrive/362543761/WPS云盘/谭政/科学复习系统/_kexvefuxi/maplestory_sprites/'\n`;
+  
+  for (const [pos, m] of Object.entries(mapping)) {
+    const [r, c] = pos.split(',');
+    pyCmd += `shutil.copy2(base + 'ach_row${r}_col${c}.png', base + '${m.folder}/${m.id}_icon.png')\n`;
+    pyCmd += `print('${r},${c} -> ${m.folder}/${m.id}_icon.png  ${m.cname||""}')\n`;
+  }
+  pyCmd += `print('\\\\n✅ 完成! 共复制 ${Object.keys(mapping).length} 个图标')\n`;
+  
+  // 复制到剪贴板
+  const fullCmd = `python -c "${pyCmd.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"`;
+  
+  navigator.clipboard.writeText(fullCmd).then(() => {
+    alert(`Python命令已复制！在终端粘贴执行即可。\n共 ${Object.keys(mapping).length} 个图标。`);
+  }).catch(() => {
+    // Fallback: show the command
+    const ta = document.createElement('textarea');
+    ta.value = fullCmd;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    alert('命令已复制！在终端粘贴执行。');
+  });
+  
+  console.log(fullCmd);
+}
+
+function exportMapping() {
+  let py = 'import shutil, os\nbase = r\'c:/Users/tanc/Documents/WPSDrive/362543761/WPS云盘/谭政/科学复习系统/_kexvefuxi/maplestory_sprites/\'\n\n';
+  for (const [pos, m] of Object.entries(mapping)) {
+    const [r, c] = pos.split(',');
+    py += `shutil.copy2(base + 'ach_row${r}_col${c}.png', base + '${m.folder}/${m.id}_icon.png')  # ${m.cname || ''}\n`;
+  }
+  py += `\nprint('Done! ${Object.keys(mapping).length} icons copied.')`;
+  
+  navigator.clipboard.writeText(py).then(() => {
+    alert('Python脚本已复制！保存为 .py 文件执行即可。');
+  });
+}
+
+function resetMapping() {
+  if (confirm('确定要清除所有映射吗？')) {
+    for (const key of Object.keys(mapping)) delete mapping[key];
+    document.querySelectorAll('.cell').forEach(el => {
+      el.classList.remove('mapped', 'selected');
+      const ns = el.querySelector('.name');
+      if (ns) ns.remove();
+    });
+    document.querySelectorAll('.id-tag').forEach(el => el.classList.remove('mapped'));
+    selectedCell = null;
+    document.getElementById('selection').innerHTML = '<span style="color:#8b949e">👆 点击左侧图标开始</span>';
+    updateStatus();
+  }
+}
+</script>
+</body>
+</html>

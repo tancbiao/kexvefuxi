@@ -933,6 +933,7 @@
   #equip-cape  { bottom: 0; z-index: 0; }
   #equip-top   { bottom: 30px; z-index: 3; }
   #equip-bottom{ bottom: 0; z-index: 2; }
+  #equip-shoes { bottom: 0; z-index: 1; }
   #equip-face  { bottom: 90px; z-index: 5; }
   #equip-eyes  { bottom: 100px; z-index: 6; }
 
@@ -4454,7 +4455,7 @@ const EQUIP_DATA = {
   hat: {
     label: '帽子',
     folder: '帽子',
-    ids: ['1000011','1000095','1000206','1001019','1001036','1001066','1001142','1002016','1002024','1002059','1002081','1002115','1002131','1002208','1002284','1002346','1002391','1002403']
+    ids: ['1000011','1000095','1000206','1001019','1001036','1001066','1001152','1002016','1002024','1002059','1002081','1002115','1002131','1002208','1002284','1002346','1002391','1002403']
   },
   top: {
     label: '上衣',
@@ -4464,7 +4465,7 @@ const EQUIP_DATA = {
   bottom: {
     label: '裤裙',
     folder: '裤裙',
-    ids: ['1060077','1060103','1060600','1061031','1047','1061070','1061077','1061150','1061208','1062117','1062203','1062294']
+    ids: ['1060077','1060103','1060600','1061031','1061047','1061070','1061077','1061150','1061208','1062117','1062203','1062294']
   },
   cape: {
     label: '披风',
@@ -4480,10 +4481,15 @@ const EQUIP_DATA = {
     label: '眼饰',
     folder: '眼饰',
     ids: ['1020001','1020213','1022058','1022310']
+  },
+  shoes: {
+    label: '鞋子',
+    folder: '鞋子',
+    ids: ['1070038','1070098','1070113','1070139','1070147','1071026','1071095','1071122','1071149','1072109','1072148','1072221','1072222','1072237','1072322']
   }
 };
 
-const equipped = { hat: null, top: null, bottom: null, cape: null, face: null, eyes: null };
+const equipped = { hat: null, top: null, bottom: null, cape: null, face: null, eyes: null, shoes: null };
 
 function getIconUrl(folder, id) {
   return `../../maplestory_sprites/${folder}/${id}_icon.png`;
@@ -4939,6 +4945,7 @@ function listUploadedLessons() {
     <img class="char-equip" id="equip-cape" src="" style="display:none">
     <img class="char-equip" id="equip-face" src="" style="display:none">
     <img class="char-equip" id="equip-eyes" src="" style="display:none">
+    <img class="char-equip" id="equip-shoes" src="" style="display:none">
   </div>
   <button class="char-toggle-btn" id="charToggleBtn" onclick="toggleCharPanel()">💪 换装</button>
   <div class="char-panel" id="charPanel" style="display:none">
@@ -4965,6 +4972,10 @@ function listUploadedLessons() {
     <div class="char-panel-section">
       <div class="char-panel-title">👓 眼饰</div>
       <div class="char-panel-items" id="items-eyes"></div>
+    </div>
+    <div class="char-panel-section">
+      <div class="char-panel-title">👞 鞋子</div>
+      <div class="char-panel-items" id="items-shoes"></div>
     </div>
   </div>
 
