@@ -1,2 +1,3 @@
-# Python dependencies for Railway deployment
-# (server.py uses only standard library)
+aiohttp
+pandas
+openpyxl
