@@ -11,7 +11,7 @@ import re
 import tempfile
 import urllib.parse
 
-PORT = 8888
+PORT = int(os.environ.get('PORT', 8888))
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # admin/ 目录
 REWARDS_FILE = os.path.join(BASE_DIR, 'rewards.json')
 
