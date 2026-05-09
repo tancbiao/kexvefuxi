@@ -250,5 +250,5 @@ if __name__ == '__main__':
 ║   按 Ctrl+C 停止服务器                   ║
 ╚═══════════════════════════════════════════╝
 ''')
-    with socketserver.TCPServer(('localhost', PORT), Handler) as httpd:
+    with socketserver.TCPServer(('0.0.0.0', PORT), Handler) as httpd:
         httpd.serve_forever()
