@@ -55,15 +55,6 @@
   .mode-tab.active{background:linear-gradient(135deg,#fd79a8,#e84393);color:white;border-color:transparent;box-shadow:0 4px 12px rgba(232,67,147,0.3);}
   .mode-tab:hover:not(.active){border-color:#fd79a8;color:#e84393;}
   
-  .section-card{background:white;border-radius:20px;padding:16px;margin:16px 0;box-shadow:0 4px 15px rgba(0,0,0,0.05);text-align:left;}
-  .section-header{display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;}
-  .section-title{font-weight:700;font-size:.95em;display:flex;align-items:center;gap:8px;}
-  .section-toggle{color:#b2bec3;transition:transform .3s;font-size:1.1em;}
-  .section-toggle.open{transform:rotate(180deg);}
-  .section-body{max-height:0;overflow:hidden;transition:max-height .35s ease;}
-  .section-body.open{max-height:2000px;}
-  .section-body-inner{padding-top:12px;}
-  
   .achievement-bar{background:white;border-radius:20px;padding:14px 16px;margin:16px 0;box-shadow:0 4px 15px rgba(0,0,0,0.05);display:flex;flex-wrap:wrap;align-items:center;gap:6px;}
   .achievement-badge{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;background:#f1f2f6;position:relative;cursor:pointer;transition:all .2s;}
   .achievement-badge.un{background:#ffeaa7;box-shadow:0 2px 8px rgba(253,203,110,0.3);}
@@ -72,11 +63,7 @@
   .achievement-stats{font-size:.75em;color:#b2bec3;margin-left:auto;}
   .achievement-stats span{color:#e84393;font-weight:700;}
   
-  .prompt-card pre{background:#f8f9fa;border-radius:10px;padding:12px;font-size:.85em;line-height:1.5;overflow-x:auto;white-space:pre-wrap;word-break:break-word;color:#636e72;max-height:300px;overflow-y:auto;}
-  .copy-btn{display:inline-block;padding:6px 14px;border:none;border-radius:10px;background:linear-gradient(135deg,#fd79a8,#e84393);color:white;font-size:.8em;cursor:pointer;margin-top:8px;font-weight:600;transition:all .2s;}
-  .copy-btn:hover{transform:scale(1.03);opacity:.9;}
-  .copy-btn:active{transform:scale(.97);}
-  
+
   .semester-panel{display:none;background:white;border-radius:20px;padding:20px;margin:16px 0;box-shadow:0 4px 15px rgba(0,0,0,0.05);}
   .semester-panel.active{display:block;}
   .back-btn{background:none;border:none;color:#e84393;font-size:.85em;cursor:pointer;padding:6px 0;font-weight:600;}
@@ -256,35 +243,6 @@
     <button class="back-btn" onclick="switchMode('solo')">← 返回单人模式</button>
   </div>
 
-  <div class="section-card prompt-card">
-    <div class="section-header" onclick="toggleSection('promptBody')">
-      <div class="section-title">🎨 精灵图生成工具</div>
-      <div class="section-toggle" id="promptToggle">▼</div>
-    </div>
-    <div class="section-body" id="promptBody">
-      <div class="section-body-inner">
-        <p style="color:#b2bec3;margin-bottom:8px;font-size:.85em;">将提示词复制到 AI 绘图工具（豆包/DALL-E），生成精灵图后发给我，我来帮你切割。</p>
-        <div style="margin-bottom:10px;">
-          <strong style="font-size:.85em;">🔬 装备图标（39个）</strong>
-          <button class="copy-btn" onclick="copyPrompt('equipPrompt')">📋 复制</button>
-          <pre id="equipPrompt">Generate a grid of 40 game item icons for a kids educational game.
-
-Canvas: 2400x1800 pixels, pure white background (#FFFFFF).
-Grid: 8 columns x 5 rows, each cell 150x150 pixels with 1px light gray (#cccccc) dividing lines.
-Style: 2.5D cartoon game item icons, front-facing, vibrant colors, soft drop shadow, clean edges.
-NO text, NO labels, NO numbers, NO watermarks.
-
-Layout (left to right, top to bottom):
-Row 0: [Magnifying glass gold frame] [Silver microscope blue lens] [Flask green liquid bubbles] [Gold compass red needle] [Brass telescope tripod] [Test tube blue liquid] [Blue globe green continents] [Red U-shaped magnet]
-Row 1: [AA battery gold casing] [Thermometer red liquid] [Balance scale silver weights] [Triangular prism rainbow] [Silver longsword blue gem] [Wooden bow feathered arrow] [Purple crystal staff runes] [Short wand blue gem lightning]
-Row 2: [Silver dagger leather grip] [Iron spearhead red tassel] [Iron helmet visor open] [Black wizard hat stars] [Gold crown red ruby] [Silver plate armor gold trim] [Blue mage robe gold stars] [Brown leather vest studs]
-Row 3: [Gray leather pants knee armor] [Purple pleated skirt silver belt] [Brown leather gloves metal knuckles] [Silver gauntlet red energy] [Red cape gold fringe] [Black hooded cloak silver clasp] [Round steel shield gold cross] [Blue crystal orb energy aura]
-Row 4: [Iron armored boots studs] [Brown leather boots silver buckle] [Round glasses lens reflection] [White half-face mask gold] [Black eyepatch silver chain] [Blue contact lens iridescent] [Red thermos cup angry face steam - "Tan's Angry Cup"] [EMPTY]</pre>
-        </div>
-        <p style="color:#b2bec3;font-size:.75em;">💡 生成后的图发给我，我来切割成39个独立图标。</p>
-      </div>
-    </div>
-  </div>
 
   <div class="semester-panel" id="panel-4">
     <button class="back-btn" onclick="showGrades()">← 返回选择年级</button>
@@ -710,37 +668,6 @@ Row 4: [Iron armored boots studs] [Brown leather boots silver buckle] [Round gla
   function closeModalOnOverlay(event, modalId) {
     if (event.target === event.currentTarget) {
       closeModal(modalId);
-    }
-  }
-
-  // 折叠面板
-  function toggleSection(id) {
-    const body = document.getElementById(id);
-    const toggle = document.getElementById(id.replace('Body', 'Toggle'));
-    body.classList.toggle('open');
-    if (toggle) toggle.classList.toggle('open');
-  }
-
-  // 复制提示词
-  function copyPrompt(id) {
-    const text = document.getElementById(id).textContent;
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(() => {
-        const btn = event.target;
-        if (btn && btn.tagName === 'BUTTON') {
-          const orig = btn.textContent;
-          btn.textContent = '✅ 已复制';
-          setTimeout(() => btn.textContent = orig, 1500);
-        }
-      });
-    } else {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-      alert('已复制到剪贴板');
     }
   }
 
