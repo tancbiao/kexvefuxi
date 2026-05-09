@@ -1888,7 +1888,7 @@
                 total.dropRate += Math.floor(petData.specialStats.dropRate * multSp);
 
                 // 加上词条加成
-                petInfo.talents.forEach(t => {
+                (petInfo.talents || []).forEach(t => {
                     if (t.stat in total) total[t.stat] += t.value;
                 });
             });

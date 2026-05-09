@@ -9,7 +9,7 @@
     name: '第一单元 小小设计师',
     icon: '🎨',
     lessons: [
-      { id: 'u1l1', name: '巧妙的设计', icon: '<img src="../icons/lightbulb.png" class="icon-32">',
+      { id: 'u1l1', name: '巧妙的设计', icon: '<img src="../../icons/lightbulb.png" class="icon-32">',
         basic: [
           { q: "一个好的设计，一般要经过哪些主要环节？", options: ["只需要制作", "构思、制作、改进", "购买、试用、评价", "想象、打印、出售"], answer: 1, hint: "好的设计需要先构思方案，再动手制作，最后不断改进完善。" },
           { q: "下列哪种物品是利用巧妙设计的原理发明的？", options: ["指甲钳", "石头", "树枝", "水坑"], answer: 0, hint: "指甲钳利用了省力杠杆原理。" },
@@ -129,7 +129,7 @@
   },
   unit2: {
     name: '第二单元 能量',
-    icon: '<img src="../icons/lightning.png" class="icon-32">',
+    icon: '<img src="../../icons/lightning.png" class="icon-32">',
     lessons: [
       { id: 'u2l1', name: '游乐场里的能量', icon: '🎢',
         basic: [
