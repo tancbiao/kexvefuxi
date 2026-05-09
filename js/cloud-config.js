@@ -2,13 +2,14 @@
  * cloud-config.js - 云存储配置模块
  * 
  * 使用自建 API (腾讯云轻量服务器)：
- * - 排行榜数据读写
+ * - 排行榜数据读写  
  * - 学生进度云同步
  * 
- * API 地址：https://159.75.134.151 (Let's Encrypt SSL)
+ * API 地址：https://api.kexvefuxi.cn (Let's Encrypt SSL)
+ * 如遇连接问题，检查腾讯云安全组是否开放 443 端口
  */
 
-const API_BASE = 'https://159.75.134.151/api';
+const API_BASE = 'https://api.kexvefuxi.cn/api';
 
 function setCloudKey(key) {}
 function getCloudKey() { return ''; }
