@@ -3919,8 +3919,12 @@ async function pushRankingData() {
 
   // 默认显示积分榜
   document.querySelectorAll('#rankingOverlay .ranking-tab').forEach(t => t.classList.remove('active'));
+// 显示排行榜
+async function showRanking() {
   document.querySelector('#rankingOverlay .ranking-tab').classList.add('active');
   await loadAndRenderRanking('points');
+}
+
 }
 
 // 关闭排行榜

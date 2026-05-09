@@ -3357,6 +3357,8 @@ async function pushRankingData() {
   } catch(e) { console.error('推送排名数据失败:', e); }
 }
 
+// 显示排行榜
+async function showRanking() {
   document.querySelector('#rankingOverlay .ranking-tab').classList.add('active');
   await loadAndRenderRanking('points');
 }
