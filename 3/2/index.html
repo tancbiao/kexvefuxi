@@ -3902,6 +3902,7 @@ async function pushRankingData() {
   document.querySelectorAll('#rankingOverlay .ranking-tab').forEach(t => t.classList.remove('active'));
 // 显示排行榜
 async function showRanking() {
+  document.getElementById('rankingOverlay').classList.add('show');
   document.querySelector('#rankingOverlay .ranking-tab').classList.add('active');
   await loadAndRenderRanking('points');
 }
