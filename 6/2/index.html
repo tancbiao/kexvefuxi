@@ -2128,11 +2128,10 @@ function unlockAchievement(id) {
 // ========== 云同步（JSONBin） ==========
 const CLOUD_GRADE_KEY = 'grade6';
 
-// 保存到云端（JSONBin）
+// 保存到云端
 async function saveToCloud(studentId, data) {
   if (!studentId || studentId === 'guest') return;
   try {
-    if (typeof getCloudKey !== 'function' || !getCloudKey()) return;
     await saveStudent(CLOUD_GRADE_KEY, studentId, data);
     console.log('云端同步成功:', CLOUD_GRADE_KEY + '_' + studentId);
   } catch (e) {
@@ -2140,11 +2139,10 @@ async function saveToCloud(studentId, data) {
   }
 }
 
-// 从云端加载（JSONBin）
+// 从云端加载
 async function loadFromCloud(studentId) {
   if (!studentId || studentId === 'guest') return null;
   try {
-    if (typeof getCloudKey !== 'function' || !getCloudKey()) return null;
     const data = await loadStudent(CLOUD_GRADE_KEY, studentId);
     if (data) {
       console.log('从云端加载成功:', CLOUD_GRADE_KEY + '_' + studentId);
@@ -3359,11 +3357,10 @@ function showBackpack() {
 // ========== 排行榜系统（JSONBin） ==========
 const RANKING_GRADE_KEY = 'grade62';
 
-// 计算并推送当前用户的排名数据到 JSONBin
+// 计算并推送当前用户的排名数据
 async function pushRankingData() {
   if (gameState.isGuest || !gameState.studentId) return;
   try {
-    if (typeof getCloudKey !== 'function' || !getCloudKey()) return;
     const petInfo = (typeof calcPetBattleBonus === 'function') ? calcPetBattleBonus() : { total: 0 };
     const equipInfo = (typeof calcEquippedBonus62 === 'function') ? calcEquippedBonus62() : { pointMul: 1 };
     const totalQ = gameState.totalQuestionsAnswered || 0;
@@ -3432,12 +3429,6 @@ async function switchRankingTab(tab, el) {
 async function loadAndRenderRanking(type) {
   const listEl = document.getElementById('rankingList');
   listEl.innerHTML = '<div class="ranking-loading">加载中...</div>';
-  
-  // 检查 JSONBin Key 是否配置
-  if (typeof getCloudKey !== 'function' || !getCloudKey()) {
-    listEl.innerHTML = '<div class="ranking-empty" style="padding:20px;text-align:center;color:rgba(255,255,255,0.6);font-size:0.85em;">⚠️ 排行榜需配置 JSONBin Key<br><span style="font-size:0.9em;color:#ffa94d;cursor:pointer;" onclick="showCloudKeyModal()">点击此处配置密钥</span></div>';
-    return;
-  }
   
   try {
     const allData = await getRanking(RANKING_GRADE_KEY);
