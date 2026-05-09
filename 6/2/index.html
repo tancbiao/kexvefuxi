@@ -3380,10 +3380,6 @@ async function loadAndRenderRanking(type) {
   const listEl = document.getElementById('rankingList');
   listEl.innerHTML = '<div class="ranking-loading">加载中...</div>';
   
-  // 检查 JSONBin Key 是否配置
-    return;
-  }
-  
   try {
     const allData = await getRanking(RANKING_GRADE_KEY);
     if (!allData || Object.keys(allData).length === 0) {
