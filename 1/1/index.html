@@ -1154,6 +1154,10 @@
   </div>
 
   <div class="screen" id="levelScreen">
+    <div class="level-select-title" style="text-align:center;font-size:1.3em;font-weight:700;padding:12px 0;margin-bottom:8px;">📚 选择课程</div>
+    <div style="text-align:center;margin-bottom:12px;">
+      <button class="course-logout" onclick="goToCourseSelect()" style="padding:6px 16px;">📋 返回选课</button>
+    </div>
     <div class="level-grid" id="levelGrid"></div>
   </div>
 
@@ -1557,7 +1561,8 @@ function startCourse(grade, sem) {
   
   // 设置动态 key
   const semLabel = sem === '2' ? '下册' : '上册';
-  document.querySelector('.level-select-title').textContent = grade + '年级科学 · ' + semLabel;
+  var titleEl = document.querySelector('.level-select-title');
+  if (titleEl) titleEl.textContent = grade + '年级科学 · ' + semLabel;
   
   // 加载对应题库
   _lessonsLoaded = false;
@@ -1591,6 +1596,14 @@ function startCourse(grade, sem) {
     if (grid) grid.innerHTML = '<div style="text-align:center;padding:40px;color:#ff6b6b;">题库加载失败: ' + dataFile + '</div>';
   };
   document.head.appendChild(script);
+}
+
+// 返回选课界面
+function goToCourseSelect() {
+  currentCourse = null;
+  _lessonsLoaded = false;
+  questionData = {};
+  showScreen('courseScreen');
 }
  {
   gameState.studentId = null;
