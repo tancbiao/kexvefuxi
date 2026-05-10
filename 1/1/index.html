@@ -1218,6 +1218,51 @@
   </div>
 </div>
 
+<!-- ====== 选课界面 ====== -->
+<div class="screen" id="courseScreen" style="display:none;">
+  <div class="course-header" style="text-align:center;padding:40px 20px 20px;">
+    <h2>📚 选择要学习的课程</h2>
+    <p>欢迎回来，<span id="studentDisplay">同学</span></p>
+  </div>
+  <div class="course-grid">
+    <div class="course-card" data-grade="3" onclick="showSemesters('3')">
+      <div class="grade-icon">🐟</div>
+      <div class="grade-name">三年级</div>
+      <div class="grade-sub" id="sem3">
+        <span data-sem="1" onclick="event.stopPropagation();startCourse('3','1')">上册</span>
+        <span data-sem="2" onclick="event.stopPropagation();startCourse('3','2')">下册</span>
+      </div>
+    </div>
+    <div class="course-card" data-grade="4" onclick="showSemesters('4')">
+      <div class="grade-icon">🦋</div>
+      <div class="grade-name">四年级</div>
+      <div class="grade-sub" id="sem4">
+        <span data-sem="1" onclick="event.stopPropagation();startCourse('4','1')">上册</span>
+        <span data-sem="2" onclick="event.stopPropagation();startCourse('4','2')">下册</span>
+      </div>
+    </div>
+    <div class="course-card" data-grade="5" onclick="showSemesters('5')">
+      <div class="grade-icon">🌿</div>
+      <div class="grade-name">五年级</div>
+      <div class="grade-sub" id="sem5">
+        <span data-sem="1" onclick="event.stopPropagation();startCourse('5','1')">上册</span>
+        <span data-sem="2" onclick="event.stopPropagation();startCourse('5','2')">下册</span>
+      </div>
+    </div>
+    <div class="course-card" data-grade="6" onclick="showSemesters('6')">
+      <div class="grade-icon">🏆</div>
+      <div class="grade-name">六年级</div>
+      <div class="grade-sub" id="sem6">
+        <span data-sem="1" onclick="event.stopPropagation();startCourse('6','1')">上册</span>
+        <span data-sem="2" onclick="event.stopPropagation();startCourse('6','2')">下册</span>
+      </div>
+    </div>
+  </div>
+  <div style="text-align:center;">
+    <button class="course-logout" onclick="logout()">🚪 退出登录</button>
+  </div>
+</div>
+
 <!-- 宠物养成弹窗（iframe嵌入式） -->
 <div class="pet-modal" id="petModal">
   <div class="pet-modal-content">
@@ -1501,7 +1546,9 @@ function showSemesters(grade) {
 function logout() {
   gameState.studentId = null;
   showScreen('courseScreen');
-  hideLoginScreen();
+  // 显示登录弹窗以便重新登录
+  var overlay = document.getElementById('loginOverlay');
+  if (overlay) overlay.classList.add('show');
 }
 
 // 根据年级学期加载题库并开始答题
