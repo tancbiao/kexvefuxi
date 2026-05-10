@@ -1528,6 +1528,8 @@ function loginWithId() {
   gameState.studentId = id;
   gameState.isGuest = false;
   hideLoginScreen();
+  // 记住学号，下次自动登录
+  localStorage.setItem('rememberedStudentId', id);
   loadUserData();
   pushRankingData();
   checkAndResetStamina();
@@ -1556,6 +1558,7 @@ function showSemesters(grade) {
 // 退出到选课
 function logout() {
   gameState.studentId = null;
+  localStorage.removeItem('rememberedStudentId');
   showScreen('courseScreen');
   // 显示登录弹窗以便重新登录
   var overlay = document.getElementById('loginOverlay');
@@ -4226,6 +4229,20 @@ function listUploadedLessons() {
       });
     });
     observer.observe(document.body, { childList: true, subtree: true });
+  }
+})();
+
+// ====== 自动登录：从 localStorage 恢复上次登录的学号 ======
+(function() {
+  var remembered = localStorage.getItem('rememberedStudentId');
+  if (remembered && /^\d{8}$/.test(remembered)) {
+    // 自动填入学号并登录
+    var input = document.getElementById('studentIdInput');
+    if (input) input.value = remembered;
+    loginWithId();
+  } else {
+    // 显示登录弹窗
+    showLoginScreen();
   }
 })();
 
