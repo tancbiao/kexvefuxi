@@ -333,6 +333,9 @@ body {
 
 
 .q-question-text { font-size: 1.05em; line-height: 1.6; margin-bottom: 10px; }
+
+.q-image { margin-bottom: 12px; text-align: center; }
+.q-image img { max-width: 100%; max-height: 300px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); }
 .q-material { background: rgba(255,255,255,0.04); border-left: 3px solid #ffd700; padding: 10px 14px; margin-bottom: 12px; border-radius: 0 8px 8px 0; font-size: 0.9em; line-height: 1.5; color: rgba(255,255,255,0.85); }
 /* 答题区域 */
 .quiz-area {
@@ -2135,7 +2138,9 @@ function startPlayerTurn() {
 function showNextQuestion() {
   const q = getNextQuestion();
   currentQuestion = q;
-  var qHtml = '<div class="q-question-text">' + q.question + '</div>';
+  var qHtml = '';
+  if (q.image) qHtml = '<div class="q-image"><img src="' + q.image + '" alt="\u56fe\u7247"></div>';
+  qHtml += '<div class="q-question-text">' + q.question + '</div>';
   if (q.material) qHtml = '<div class="q-material">' + q.material + '</div>' + qHtml;
   if (q.table) qHtml = qHtml + '<div class="q-table">' + q.table + '</div>';
   document.getElementById('qText').innerHTML = qHtml;
@@ -2430,7 +2435,9 @@ function doMonsterDamageToPlayer(customAtk, callback, ignoreDodge, sureHit, dmgM
 
   const q = getNextQuestion();
   currentQuestion = q;
-  var qHtml = '<div class="q-question-text">' + q.question + '</div>';
+  var qHtml = '';
+  if (q.image) qHtml = '<div class="q-image"><img src="' + q.image + '" alt="\u56fe\u7247"></div>';
+  qHtml += '<div class="q-question-text">' + q.question + '</div>';
   if (q.material) qHtml = '<div class="q-material">' + q.material + '</div>' + qHtml;
   if (q.table) qHtml = qHtml + '<div class="q-table">' + q.table + '</div>';
   document.getElementById('qText').innerHTML = qHtml;
