@@ -212,22 +212,6 @@
   }
   .backpack-close:hover { background: rgba(255,100,100,0.2); color: #ff6b6b; }
   
-  /* ====== 上传题库弹窗 ====== */
-  .upload-overlay { position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:none;justify-content:center;align-items:center;z-index:3000;animation:fadeIn 0.3s; }
-  .upload-overlay.show { display:flex; }
-  .upload-modal { background:rgba(15,15,25,0.97);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:28px;width:360px;max-width:95%;box-shadow:0 20px 60px rgba(0,0,0,0.5); }
-  .upload-modal-title { font-size:1.2em;font-weight:900;color:#aaa;text-align:center;margin-bottom:20px; }
-  .upload-modal-input { width:100%;padding:10px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:#fff;font-size:1em;box-sizing:border-box;margin-bottom:12px; }
-  .upload-modal-input:focus { outline:none;border-color:#66bb6a; }
-  .upload-modal-btns { display:flex;gap:10px; }
-  .upload-modal-btn { flex:1;padding:10px;border-radius:10px;border:none;font-size:0.95em;cursor:pointer;font-weight:600; }
-  .upload-modal-btn.confirm { background:#4caf50;color:#fff; }
-  .upload-modal-btn.confirm:hover { background:#43a047; }
-  .upload-modal-btn.cancel { background:rgba(255,255,255,0.08);color:#aaa; }
-  .upload-modal-btn.cancel:hover { background:rgba(255,255,255,0.15); }
-  .upload-modal-error { color:#ff6b6b;font-size:0.85em;text-align:center;margin-top:8px;min-height:20px; }
-  .upload-modal-hint { text-align:center;font-size:0.8em;color:#666;margin-top:12px; }
-
 
   /* 两栏布局：左侧角色面板 + 右侧背包 */
   .bp-layout { display: grid; grid-template-columns: 240px 1fr; gap: 20px; height: calc(85vh - 80px); }
@@ -760,114 +744,6 @@
   }
   .guest-btn:hover { background: rgba(255,255,255,0.2); }
 
-  /* ============ Q版可拖动人物 + 装备系统 ============ */
-  .char-wrapper {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 120px;
-    height: 160px;
-    cursor: grab;
-    z-index: 9999;
-    user-select: none;
-  }
-  .char-wrapper:active { cursor: grabbing; }
-  .char-base {
-    position: absolute;
-    bottom: 0; left: 50%;
-    transform: translateX(-50%);
-    width: 80px;
-    height: 120px;
-    background: linear-gradient(180deg, #FFD700 0%, #FF8C00 100%);
-    border-radius: 12px 12px 8px 8px;
-    border: 3px solid #FF6B00;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding-top: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  }
-  .char-body::before {
-    content: "";
-    position: absolute;
-    top: -36px; left: 50%;
-    transform: translateX(-50%);
-    width: 44px; height: 44px;
-    background: #FFD700;
-    border-radius: 50%;
-    border: 3px solid #FF6B00;
-    background-image:
-      radial-gradient(circle at 30% 35%, #fff 4px, transparent 4px),
-      radial-gradient(circle at 70% 35%, #fff 4px, transparent 4px),
-      radial-gradient(circle at 30% 35%, #000 2px, transparent 2px),
-      radial-gradient(circle at 70% 35%, #000 2px, transparent 2px),
-      radial-gradient(circle at 50% 58%, #FF6B00 8px, transparent 8px);
-  }
-  .char-body { position: relative; width: 100%; height: 100%; }
-  .char-equip {
-    position: absolute;
-    bottom: 0; left: 50%;
-    transform: translateX(-50%);
-    max-width: 120px; max-height: 160px;
-    pointer-events: none;
-  }
-  #equip-hat   { bottom: 100px; z-index: 6; }
-  #equip-cape  { bottom: 0; z-index: 0; }
-  #equip-top   { bottom: 30px; z-index: 3; }
-  #equip-bottom{ bottom: 0; z-index: 2; }
-  #equip-face  { bottom: 90px; z-index: 5; }
-  #equip-eyes  { bottom: 100px; z-index: 6; }
-  #equip-shoes { bottom: 0; z-index: 1; }
-  .char-toggle-btn {
-    position: fixed;
-    bottom: 20px; left: 20px;
-    background: linear-gradient(135deg, rgba(0,212,255,0.3), rgba(124,58,237,0.3));
-    border: 1px solid rgba(0,212,255,0.5);
-    border-radius: 10px;
-    color: #fff;
-    padding: 8px 14px;
-    font-size: 0.8em;
-    cursor: pointer;
-    z-index: 9999;
-    font-family: inherit;
-    transition: all 0.3s;
-  }
-  .char-toggle-btn:hover {
-    background: linear-gradient(135deg, rgba(0,212,255,0.5), rgba(124,58,237,0.5));
-  }
-  .char-panel {
-    position: fixed;
-    bottom: 55px; left: 20px;
-    width: 200px;
-    max-height: 320px;
-    overflow-y: auto;
-    background: rgba(0,0,0,0.85);
-    border: 1px solid rgba(0,212,255,0.4);
-    border-radius: 12px;
-    padding: 10px;
-    z-index: 9999;
-  }
-  .char-panel::-webkit-scrollbar { width: 4px; }
-  .char-panel::-webkit-scrollbar-thumb { background: rgba(0,212,255,0.3); border-radius: 2px; }
-  .char-panel-section { margin-bottom: 8px; }
-  .char-panel-title {
-    font-size: 0.75em;
-    color: rgba(255,255,255,0.6);
-    margin-bottom: 4px;
-    padding-bottom: 2px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-  }
-  .char-panel-items { display: flex; flex-wrap: wrap; gap: 4px; }
-  .char-item {
-    width: 36px; height: 36px;
-    border: 2px solid rgba(255,255,255,0.15);
-    border-radius: 6px;
-    cursor: pointer;
-    object-fit: contain;
-    background: rgba(255,255,255,0.05);
-    transition: all 0.2s;
-    padding: 2px;
   }
   .char-item:hover { border-color: rgba(0,212,255,0.6); background: rgba(0,212,255,0.1); }
   .char-item.selected { border-color: #00d4ff; background: rgba(0,212,255,0.2); }
@@ -1083,6 +959,58 @@
 }
 .course-logout:hover { background: rgba(255,255,255,0.2); }
 
+
+  /* ===== 通知系统 ===== */
+  .notify-bell { position:relative; cursor:pointer; }
+  .notify-bell .badge { position:absolute; top:-4px; right:-8px; background:#ff4757; color:#fff; font-size:10px; min-width:16px; height:16px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:700; padding:0 4px; }
+  .notify-panel { position:fixed; top:0; right:0; width:360px; max-width:90vw; height:100vh; background:rgba(15,15,25,0.98); backdrop-filter:blur(20px); border-left:1px solid rgba(255,255,255,0.08); z-index:2000; transform:translateX(100%); transition:transform 0.3s ease; overflow-y:auto; padding:20px; }
+  .notify-panel.show { transform:translateX(0); }
+  .notify-panel-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.08); }
+  .notify-panel-title { font-size:1.2em; font-weight:700; }
+  .notify-panel-close { background:none; border:none; color:rgba(255,255,255,0.5); font-size:1.5em; cursor:pointer; padding:4px; }
+  .notify-panel-close:hover { color:#fff; }
+  .notify-item { padding:12px; border-radius:10px; background:rgba(255,255,255,0.04); margin-bottom:8px; border-left:3px solid transparent; animation:fadeIn 0.3s ease; }
+  .notify-item.achievement { border-left-color:#ffd700; }
+  .notify-item.equipment-legendary { border-left-color:#ffd700; background:rgba(255,215,0,0.08); }
+  .notify-item.equipment-mythic { border-left-color:#ff5722; background:rgba(255,87,34,0.08); }
+  .notify-item .notify-time { font-size:0.75em; color:rgba(255,255,255,0.35); margin-top:4px; }
+  .notify-item .notify-msg { font-size:0.9em; line-height:1.4; }
+  .notify-item .notify-msg strong { color:#ffd700; }
+  .notify-empty { text-align:center; padding:40px 0; color:rgba(255,255,255,0.3); font-size:0.9em; }
+  .notify-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1999; display:none; }
+  .notify-overlay.show { display:block; }
+  /* 首页通知区域 */
+  .home-notices { margin-top:20px; padding:16px; background:rgba(255,255,255,0.04); border-radius:12px; border:1px solid rgba(255,255,255,0.06); }
+  .home-notices-title { font-size:0.9em; font-weight:700; margin-bottom:10px; display:flex; align-items:center; gap:6px; color:rgba(255,255,255,0.7); }
+  .home-notice-item { padding:8px 10px; border-radius:8px; background:rgba(255,255,255,0.03); margin-bottom:6px; font-size:0.82em; line-height:1.4; border-left:2px solid rgba(255,215,0,0.5); }
+  .home-notice-item .n-time { font-size:0.75em; color:rgba(255,255,255,0.3); margin-top:2px; }
+/* ===== Danmaku Barrage ===== */
+.danmaku-container { position:fixed; top:60px; left:0; width:100%; height:80px; pointer-events:none; z-index:1500; overflow:hidden; }
+.danmaku-track { position:absolute; width:100%; height:28px; line-height:28px; white-space:nowrap; opacity:0; }
+.danmaku-track.r1 { top:0; }
+.danmaku-track.r2 { top:28px; }
+.danmaku-track.r3 { top:56px; }
+.danmaku-item {
+  display:inline-block; padding:2px 14px; border-radius:14px;
+  font-size:13px; font-weight:600; white-space:nowrap;
+  animation: danmakuScroll 12s linear forwards;
+  animation-play-state:running;
+  background:rgba(0,0,0,0.55); backdrop-filter:blur(8px);
+  border:1px solid rgba(255,215,0,0.3);
+  box-shadow:0 2px 12px rgba(0,0,0,0.3);
+}
+.danmaku-item:hover { animation-play-state:paused; cursor:default; }
+.danmaku-item.achievement { color:#ffd700; border-color:rgba(255,215,0,0.5); }
+.danmaku-item.equipment-legendary { color:#ffd700; border-color:#ffd700; text-shadow:0 0 8px rgba(255,215,0,0.4); }
+.danmaku-item.equipment-mythic { color:#ff6b6b; border-color:#ff5722; text-shadow:0 0 10px rgba(255,87,34,0.5); }
+@keyframes danmakuScroll {
+  0% { transform:translateX(calc(100vw + 100px)); opacity:0; }
+  3% { opacity:1; }
+  90% { opacity:1; }
+  100% { transform:translateX(-100%); opacity:0; }
+}
+.danmaku-item .dm-icon { margin-right:4px; }
+
 </style>
 </head>
 <body>
@@ -1128,6 +1056,10 @@
       <span>排行榜</span>
     </div>
     <div class="status-item" id="wrongQBtn" style="cursor:pointer;" onclick="showWrongQuestions()" title="错题本">
+      <span class="notify-bell" id="notifyBell" onclick="toggleNotifyPanel()" title="全服公告">
+        <span style="font-size:1.3em">🔔</span>
+        <span class="badge" id="notifyBadge" style="display:none">0</span>
+      </span>
       <span class="status-icon">📝</span>
       <span style="color:#a78bfa">错题本</span>
     </div>
@@ -1143,7 +1075,6 @@
       </p>
       <button class="start-btn" onclick="showLoginScreen()">🚀 开始挑战</button>
       <button class="start-btn secondary" onclick="showWrongQuestions()" style="margin-top:12px;background:linear-gradient(135deg,#667eea,#764ba2);"><img src="../../icons/wrong-book.png" class="icon-24"> 错题本</button>
-      <button class="start-btn secondary" id="uploadQBtn62" onclick="showUploadPasswordPrompt()" style="margin-top:8px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);font-size:0.85em;padding:8px 18px;border:1px solid rgba(255,255,255,0.1);">📤 上传题库</button>
     </div>
     
     <!-- 成就预览 -->
@@ -1206,6 +1137,18 @@
   </div>
 </div>
 
+
+<!-- ===== 通知面板 ===== -->
+<div class="notify-overlay" id="notifyOverlay" onclick="toggleNotifyPanel()"></div>
+<div class="notify-panel" id="notifyPanel">
+  <div class="notify-panel-header">
+    <div class="notify-panel-title">🔔 全服公告</div>
+    <button class="notify-panel-close" onclick="toggleNotifyPanel()">&times;</button>
+  </div>
+  <div id="notifyList"></div>
+</div>
+
+<div class="danmaku-container" id="danmakuContainer"></div>
 <div class="overlay" id="loginOverlay">
   <div class="login-box">
     <h2 class="login-title">🔐 输入学号登录</h2>
@@ -2345,11 +2288,17 @@ function checkEquipAchievements() {
   // 史诗降临 (rarity 5)
   if (counts[4] > 0 && !gameState.unlockedAchievements.includes('equip_epic')) unlockAchievement('equip_epic');
   // 传说降临 (rarity 6)
-  if (counts[5] > 0 && !gameState.unlockedAchievements.includes('equip_legendary')) unlockAchievement('equip_legendary');
+  if (counts[5] > 0 && !gameState.unlockedAchievements.includes('equip_legendary')) unlockAchievement('equip_legendary')
+    if (!gameState.isGuest) {
+      postNotification('equipment-legendary', '\U0001F31F <strong>' + (gameState.studentId || '\u67d0\u540c\u5b66') + '</strong> \u559c\u63d0\u4f20\u8bf4\u88c5\u5907\uff01');
+    };
   // 彩虹收集
   if (counts.every(c => c > 0) && !gameState.unlockedAchievements.includes('equip_rainbow')) unlockAchievement('equip_rainbow');
   // 欧皇 (rarity 7)
-  if (counts[6] > 0 && !gameState.unlockedAchievements.includes('equip_mythic')) unlockAchievement('equip_mythic');
+  if (counts[6] > 0 && !gameState.unlockedAchievements.includes('equip_mythic')) unlockAchievement('equip_mythic')
+    if (!gameState.isGuest) {
+      postNotification('equipment-mythic', '\U0001F451 <strong>' + (gameState.studentId || '\u67d0\u540c\u5b66') + '</strong> \u8fd0\u6c14\u7206\u68da\uff01\u593a\u5f97\u795e\u8bdd\u88c5\u5907\uff01\u2605\u2605\u2605');
+    };
 
   // 谭老师的愤怒水杯：>=10件装备仍未获得金色传说
   const hasTanCup = items.some(e => e.id === 'cup_tanTeacherCup');
@@ -2384,6 +2333,10 @@ function unlockAchievement(id) {
   updateStatusBar();
   renderAchievementPreview();
   saveUserData();
+  // Post notification for legendary/mythic achievements
+  if (a && (a.tier === '\u2666' || a.tier === '\U0001F451')) {
+    postNotification('achievement', '<strong>' + (gameState.studentId || '\u67d0\u540c\u5b66') + '</strong> \u83b7\u5f97\u4e86 ' + a.name + ' \u6210\u5c31');
+  }
 }
 
 // ========== 云同步（JSONBin） ==========
@@ -3850,7 +3803,15 @@ function renderRankList(listEl, arr, sortField, myId) {
     }
     const isMe = (item.studentId === myId);
     const val = item[sortField] || 0;
-    const valStr = (sortField === 'equipBonus') ? '×' + val.toFixed(2) : val.toLocaleString();
+    // Hide scores over 500k with stars
+    let valStr;
+    if (sortField === 'totalPoints' && val >= 500000) {
+      valStr = '⭐⭐⭐⭐⭐';
+    } else if (sortField === 'equipBonus') {
+      valStr = '×' + val.toFixed(2);
+    } else {
+      valStr = val.toLocaleString();
+    }
 
     html += '<div class="ranking-item' + (isMe ? ' me' : '') + '">' +
       '<div class="ranking-pos ' + posClass + '">' + rank + '</div>' +
@@ -4073,244 +4034,121 @@ document.addEventListener('click', function(e) {
 setTimeout(renderAchievementPreview, 100);
 
 
-// ============ Q版可拖动人物 + 装备系统 ============
-const EQUIP_DATA = {
-  hat: { label: '帽子', folder: '帽子', ids: ['1000011','1000095','1000206','1001019','1001036','1001066','1001152','1002016','1002024','1002059','1002081','1002115','1002131','1002208','1002284','1002346','1002391','1002403'] },
-  top: { label: '上衣', folder: '上衣', ids: ['1040027','1040147','1040191','1040800','1041031','1041058','1042004','1042058','1042089','1042140','1042202','1042259','1042337','1042367'] },
-  bottom: { label: '裤裙', folder: '裤裙', ids: ['1060077','1060103','1060600','1061031','1061047','1061070','1061077','1061150','1061208','1062117','1062203','1062294'] },
-  cape: { label: '披风', folder: '披风', ids: ['1100033','1102065','1102167','1102275','1102310'] },
-  face: { label: '脸饰', folder: '脸饰', ids: ['1010006','1011015','1012054','1012147','1012222','1012300','1012395','1012397','1012458'] },
-  eyes: { label: '眼饰', folder: '眼饰', ids: ['1020001','1020213','1022058','1022310'] },
-  shoes: { label: '鞋子', folder: '鞋子', ids: ['1070038','1070098','1070113','1070139','1070147','1071026','1071095','1071122','1071149','1072109','1072148','1072221','1072222','1072237','1072322'] }
+
+// Stub: uploaded questions (upload system removed)
+function getUploadedQuestions(lessonId) { return []; }
+function getUploadedQuestionCount(lessonId) { return 0; }
+// ===== 全服公告系统 =====
+
+function showDanmaku(type, message) {
+  const container = document.getElementById('danmakuContainer');
+  if (!container) return;
+  const trackNum = Math.floor(Math.random() * 3) + 1;
+  const track = document.createElement('div');
+  track.className = 'danmaku-track r' + trackNum;
+  const item = document.createElement('div');
+  item.className = 'danmaku-item ' + (type || '');
+  var icon = '🔔';
+  if (type === 'achievement') icon = '🏆';
+  else if (type === 'equipment-legendary') icon = '🌟';
+  else if (type === 'equipment-mythic') icon = '👑';
+  item.innerHTML = '<span class="dm-icon">' + icon + '</span>' + message;
+  var duration = Math.max(10, Math.min(18, 8 + message.length / 3));
+  item.style.animationDuration = duration + 's';
+  track.appendChild(item);
+  container.appendChild(track);
+  setTimeout(function() { if (track.parentNode) track.remove(); }, (duration + 1) * 1000);
+}
+var _origPost = postNotification;
+postNotification = function(type, message) {
+  showDanmaku(type, message);
+  return _origPost(type, message);
 };
-const equipped = { hat: null, top: null, bottom: null, cape: null, face: null, eyes: null, shoes: null };
-function getIconUrl(folder, id) {
-  return `../../maplestory_sprites/${folder}/${id}_icon.png`;
-}
-function renderEquipItems() {
-  Object.keys(EQUIP_DATA).forEach(slot => {
-    const container = document.getElementById('items-' + slot);
-    if (!container) return;
-    const { folder, ids } = EQUIP_DATA[slot];
-    let html = `<div class="char-item none-btn" onclick="bpEquipItem('${slot}', null)">卸</div>`;
-    ids.forEach(id => {
-      const url = getIconUrl(folder, id);
-      const sel = equipped[slot] === id ? 'selected' : '';
-      html += `<img class="char-item ${sel}" src="${url}" onclick="bpEquipItem('${slot}', '${id}')" title="${folder}/${id}">`;
-    });
-    container.innerHTML = html;
-  });
-}
-function equipItem(slot, id) {
-  equipped[slot] = id;
-  const img = document.getElementById('equip-' + slot);
-  if (id) {
-    img.src = getIconUrl(EQUIP_DATA[slot].folder, id);
-    img.style.display = '';
-  } else {
-    img.src = '';
-    img.style.display = 'none';
-  }
-  renderEquipItems();
-}
-// 同步 equipped 对象到角色面板 DOM
-function syncCharEquipToDOM() {
-  if (!gameState.equipped) gameState.equipped = {};
-  Object.keys(gameState.equipped).forEach(slot => {
-    const equip = gameState.equipped[slot];
-    const img = document.getElementById('equip-' + slot);
-    if (img) {
-      if (equip && equip.iconUrl) {
-        img.src = equip.iconUrl;
-        img.style.display = '';
-      } else {
-        img.src = '';
-        img.style.display = 'none';
-      }
-    }
-  });
-  if (typeof renderEquipItems === 'function') renderEquipItems();
-}
 
-function toggleCharPanel() {
-  const panel = document.getElementById('charPanel');
-  panel.style.display = panel.style.display === 'none' ? '' : 'none';
-  if (panel.style.display === '') renderEquipItems();
-}
-const wrapper = document.getElementById('charWrapper');
-let isDragging = false, offX, offY;
-if (wrapper) {
-  wrapper.addEventListener('mousedown', (e) => {
-    if (e.target.closest('.char-panel') || e.target.closest('.char-toggle-btn')) return;
-    isDragging = true;
-    offX = e.clientX - wrapper.getBoundingClientRect().left;
-    offY = e.clientY - wrapper.getBoundingClientRect().top;
-    e.preventDefault();
-  });
-}
-document.addEventListener('mousemove', (e) => {
-  if (!isDragging || !wrapper) return;
-  wrapper.style.left = (e.clientX - offX) + 'px';
-  wrapper.style.top = (e.clientY - offY) + 'px';
-  wrapper.style.right = 'auto';
-  wrapper.style.bottom = 'auto';
-});
-document.addEventListener('mouseup', () => { isDragging = false; });
-if (wrapper) {
-  wrapper.addEventListener('touchstart', (e) => {
-    if (e.target.closest('.char-panel') || e.target.closest('.char-toggle-btn')) return;
-    isDragging = true;
-    const t = e.touches[0];
-    offX = t.clientX - wrapper.getBoundingClientRect().left;
-    offY = t.clientY - wrapper.getBoundingClientRect().top;
-  }, { passive: true });
-}
-document.addEventListener('touchmove', (e) => {
-  if (!isDragging) return;
-  const t = e.touches[0];
-  wrapper.style.left = (t.clientX - offX) + 'px';
-  wrapper.style.top = (t.clientY - offY) + 'px';
-  wrapper.style.right = 'auto';
-  wrapper.style.bottom = 'auto';
-}, { passive: true });
-document.addEventListener('touchend', () => { isDragging = false; });
+const NOTIFY_API = API_BASE + '/notifications';
 
-// 绑定上传题库按钮
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    const btn = document.getElementById('uploadQBtn62');
-    if (btn) btn.onclick = showUploadPasswordPrompt;
-  });
-} else {
-  const btn = document.getElementById('uploadQBtn62');
-  if (btn) btn.onclick = showUploadPasswordPrompt;
-}
-
-// ====== 上传题库（教师用）======
-const UPLOAD_PASSWORD = 'admin';
-
-function showUploadPasswordPrompt() {
-  var overlay = document.getElementById('uploadPwdOverlay');
-  var input = document.getElementById('uploadPwdInput');
-  var err = document.getElementById('uploadPwdError');
-  if (input) input.value = '';
-  if (err) err.textContent = '';
-  if (overlay) { overlay.classList.add('show'); setTimeout(function(){ if(input)input.focus(); }, 50); }
-}
-
-function checkUploadPassword() {
-  var input = document.getElementById('uploadPwdInput');
-  var err = document.getElementById('uploadPwdError');
-  var pwd = input ? input.value.trim() : '';
-  if (pwd === UPLOAD_PASSWORD) {
-    closeUploadPwdOverlay();
-    location.href = 'upload-questions.html';
-  } else {
-    if (err) err.textContent = '密码错误，请联系管理员';
-    if (input) { input.value = ''; input.focus(); }
-  }
-}
-
-function closeUploadPwdOverlay() {
-  var overlay = document.getElementById('uploadPwdOverlay');
-  if (overlay) overlay.classList.remove('show');
-}
-
-// ====== 自定义题库系统（从 localStorage 加载）======
-const UPLOADED_Q_KEY = 'kexvefuxi_uploaded_questions_';
-
-function saveUploadedQuestions(lessonId, questionSet) {
+async function fetchNotifications() {
   try {
-    localStorage.setItem(UPLOADED_Q_KEY + lessonId, JSON.stringify(questionSet));
-    return true;
+    const res = await fetch(NOTIFY_API);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
   } catch (e) {
-    console.error('保存自定义题库失败:', e);
-    return false;
+    console.error('获取公告失败:', e);
+    return [];
   }
 }
 
-function getUploadedQuestions(lessonId) {
+async function postNotification(type, message) {
+  if (gameState.isGuest) return;
   try {
-    const data = localStorage.getItem(UPLOADED_Q_KEY + lessonId);
-    return data ? JSON.parse(data) : null;
+    await fetch(NOTIFY_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type, message, studentId: gameState.studentId || 'unknown', timestamp: Date.now() })
+    });
   } catch (e) {
-    return null;
+    console.error('发布公告失败:', e);
   }
 }
 
-function clearUploadedQuestions(lessonId) {
-  localStorage.removeItem(UPLOADED_Q_KEY + lessonId);
+function renderNotifications(notifications, containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  if (!notifications || notifications.length === 0) {
+    container.innerHTML = '<div class="notify-empty">暂无公告</div>';
+    return;
+  }
+  const recent = notifications.slice(0, 10);
+  let html = '';
+  for (const n of recent) {
+    const cls = n.type || '';
+    const time = n.timestamp ? new Date(n.timestamp).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
+    html += '<div class="notify-item ' + cls + '"><div class="notify-msg">' + n.message + '</div><div class="notify-time">' + time + '</div></div>';
+  }
+  container.innerHTML = html;
 }
 
-function listUploadedLessons() {
-  const result = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key && key.startsWith(UPLOADED_Q_KEY)) {
-      result.push(key.replace(UPLOADED_Q_KEY, ''));
+function updateNotifyBadge(count) {
+  const badge = document.getElementById('notifyBadge');
+  if (badge) {
+    if (count > 0) {
+      badge.textContent = count > 99 ? '99+' : count;
+      badge.style.display = 'flex';
+    } else {
+      badge.style.display = 'none';
     }
   }
-  return result;
 }
 
-// ========== Win7 32位系统图标兼容 ==========
-(function() {
-  const iconFallbacks = {
-    'lightbulb': '💡', 'target': '🎯', 'lightning': '⚡', 'fire': '🔥',
-    'star': '⭐', 'crown': '👑', 'legendary': '✨', 'battle': '⚔️',
-    'rocket': '🚀', 'trophy': '🏆', 'bag': '🎒', 'microscope': '🔬',
-    'check': '✅', 'cross': '❌', 'wrong-book': '📝', 'book': '📖', 'pants': '👖'
-  };
-  function replaceWithEmoji(img) {
-    const src = (img.src || '').toLowerCase();
-    let emoji = '📌';
-    for (const [key, val] of Object.entries(iconFallbacks)) {
-      if (src.includes(key)) { emoji = val; break; }
-    }
-    img.style.display = 'none';
-    const span = document.createElement('span');
-    span.className = 'icon-fallback';
-    span.textContent = emoji;
-    img.parentNode.insertBefore(span, img);
-  }
-  function checkAllImages() {
-    document.querySelectorAll('img[src*="icons/"], img[src*="generated-assets/"], img[src*="maplestory_sprites/"]').forEach(img => {
-      if (!img.complete || img.naturalWidth === 0) replaceWithEmoji(img);
-    });
-  }
-  window.addEventListener('load', function() { setTimeout(checkAllImages, 1000); });
-  if (typeof MutationObserver !== 'undefined') {
-    const observer = new MutationObserver(function(mutations) {
-      mutations.forEach(function(mutation) {
-        mutation.addedNodes.forEach(function(node) {
-          if (node.nodeType === 1 && node.tagName === 'IMG') {
-            if (!node.complete || node.naturalWidth === 0) replaceWithEmoji(node);
-          }
-          if (node.nodeType === 1) {
-            node.querySelectorAll && node.querySelectorAll('img').forEach(function(img) {
-              if (!img.complete || img.naturalWidth === 0) replaceWithEmoji(img);
-            });
-          }
-        });
-      });
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-  }
-})();
+let lastNotifyCount = 0;
 
-// ====== 自动登录：从 localStorage 恢复上次登录的学号 ======
-(function() {
-  var remembered = localStorage.getItem('rememberedStudentId');
-  if (remembered && /^\d{8}$/.test(remembered)) {
-    // 自动填入学号并登录
-    var input = document.getElementById('studentIdInput');
-    if (input) input.value = remembered;
-    loginWithId();
-  } else {
-    // 显示登录弹窗
-    showLoginScreen();
+async function refreshNotifications() {
+  const all = await fetchNotifications();
+  const unread = all.filter(function(n) { return !n.read; });
+  updateNotifyBadge(unread.length);
+  renderNotifications(all, 'notifyList');
+  if (!gameState.isGuest && document.getElementById('homeNotices')) {
+    const hn = document.getElementById('homeNotices');
+    if (all.length > 0) {
+      hn.style.display = 'block';
+      renderNotifications(all.slice(0, 5), 'homeNoticesList');
+    }
   }
-})();
+}
+
+function toggleNotifyPanel() {
+  const panel = document.getElementById('notifyPanel');
+  const overlay = document.getElementById('notifyOverlay');
+  panel.classList.toggle('show');
+  overlay.classList.toggle('show');
+  if (panel.classList.contains('show')) refreshNotifications();
+}
+
+// Auto-refresh notifications every 30s
+setInterval(refreshNotifications, 30000);
+// Force show start screen on page load
+showScreen('startScreen');
 
 </script>
 
@@ -4498,64 +4336,6 @@ function listUploadedLessons() {
   <div class="title">🎊 成就解锁！</div>
   <div class="icon" id="unlockIcon">🏆</div>
   <div class="name" id="unlockName">成就名称</div>
-</div>
-
-  <!-- Q版可拖动人物 + 装备层叠系统 -->
-  <div class="char-wrapper" id="charWrapper">
-    <div class="char-base" id="charBase">
-      <div class="char-body"></div>
-    </div>
-    <img class="char-equip" id="equip-top" src="" style="display:none">
-    <img class="char-equip" id="equip-bottom" src="" style="display:none">
-    <img class="char-equip" id="equip-hat" src="" style="display:none">
-    <img class="char-equip" id="equip-cape" src="" style="display:none">
-    <img class="char-equip" id="equip-face" src="" style="display:none">
-    <img class="char-equip" id="equip-eyes" src="" style="display:none">
-    <img class="char-equip" id="equip-shoes" src="" style="display:none">
-  </div>
-  <button class="char-toggle-btn" onclick="toggleCharPanel()">💪 换装</button>
-  <div class="char-panel" id="charPanel" style="display:none">
-    <div class="char-panel-section">
-      <div class="char-panel-title">🧥 上衣</div>
-      <div class="char-panel-items" id="items-top"></div>
-    </div>
-    <div class="char-panel-section">
-      <div class="char-panel-title">👖 裤裙</div>
-      <div class="char-panel-items" id="items-bottom"></div>
-    </div>
-    <div class="char-panel-section">
-      <div class="char-panel-title">🎩 帽子</div>
-      <div class="char-panel-items" id="items-hat"></div>
-    </div>
-    <div class="char-panel-section">
-      <div class="char-panel-title"><img src="../../icons/bag.png" class="icon-24"> 披风</div>
-      <div class="char-panel-items" id="items-cape"></div>
-    </div>
-    <div class="char-panel-section">
-      <div class="char-panel-title">😷 脸饰</div>
-      <div class="char-panel-items" id="items-face"></div>
-    </div>
-    <div class="char-panel-section">
-      <div class="char-panel-title">👓 眼饰</div>
-      <div class="char-panel-items" id="items-eyes"></div>
-    </div>
-    <div class="char-panel-section">
-      <div class="char-panel-title">👞 鞋子</div>
-      <div class="char-panel-items" id="items-shoes"></div>
-    </div>
-  </div>
-
-<div class="upload-overlay" id="uploadPwdOverlay" onclick="if(event.target.id==='uploadPwdOverlay')closeUploadPwdOverlay()">
-  <div class="upload-modal">
-    <div class="upload-modal-title">🔐 上传题库管理入口</div>
-    <input type="password" id="uploadPwdInput" class="upload-modal-input" placeholder="输入管理员密码" onkeypress="if(event.key==='Enter')checkUploadPassword()">
-    <div class="upload-modal-btns">
-      <button class="upload-modal-btn confirm" onclick="checkUploadPassword()">确认</button>
-      <button class="upload-modal-btn cancel" onclick="closeUploadPwdOverlay()">取消</button>
-    </div>
-    <div class="upload-modal-error" id="uploadPwdError"></div>
-    <div class="upload-modal-hint">请输入管理员密码</div>
-  </div>
 </div>
 
 </body>
