@@ -2364,7 +2364,7 @@ function unlockAchievement(id) {
 }
 
 // ========== 云同步（JSONBin） ==========
-const CLOUD_GRADE_KEY = currentCourse ? 'grade' + currentCourse.grade + currentCourse.sem : 'grade62';
+const CLOUD_GRADE_KEY = 'grade_all';
 
 // 保存到云端（JSONBin）
 async function saveToCloud(studentId, data) {
