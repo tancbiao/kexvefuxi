@@ -1549,6 +1549,7 @@ gameState.studentName = (typeof getStudentName === 'function') ? (getStudentName
   localStorage.setItem('rememberedStudentId', id);
   loadUserData();
   pushRankingData();
+    loadWrongQuestionsFromCloud();
   checkAndResetStamina();
   updateStaminaDisplay();
   updateStatusBar();
@@ -4146,7 +4147,26 @@ async function fetchStudentName(studentId) {
   } catch(e) { return ''; }
 }
 
-const NOTIFY_API = API_BASE + '/notifications';
+
+}
+async function loadWrongQuestionsFromCloud() {
+  if (gameState.isGuest || !gameState.studentId) return;
+  try {
+    const res = await fetch(API_BASE + '/student/info/' + gameState.studentId);
+    if (!res.ok) return;
+    const d = await res.json();
+    if (d.wrongQuestions && Array.isArray(d.wrongQuestions)) {
+      if (!gameState.wrongQuestions) gameState.wrongQuestions = [];
+      for (const wq of d.wrongQuestions) {
+        if (wq && !gameState.wrongQuestions.find(function(x) { return x.questionId === wq || x.question === wq; })) {
+          gameState.wrongQuestions.push({ questionId: wq, question: wq, timestamp: Date.now() });
+        }
+      }
+    }
+  } catch(e) { console.error('Failed to load wrong questions:', e); }
+}
+
+const NOTIFY_API = = API_BASE + '/notifications';
 
 async function fetchNotifications() {
   try {
