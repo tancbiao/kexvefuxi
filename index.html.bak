@@ -1,0 +1,1713 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>科学趣味闯关 · 年级选择</title>
+<link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: "微软雅黑", "PingFang SC", sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    min-height: 100vh;
+    color: #fff;
+    overflow-x: hidden;
+  }
+
+  .particles {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+  }
+  .particle {
+    position: absolute;
+    width: 6px; height: 6px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 50%;
+    animation: float 15s infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    text-align: center;
+  }
+
+  .logo { font-size: 64px; margin-bottom: 10px; }
+
+  h1 {
+    font-size: 2.2em;
+    font-weight: bold;
+    margin-bottom: 8px;
+    background: linear-gradient(90deg, #00d4ff, #7c3aed, #ff6b9d);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .subtitle {
+    color: rgba(255,255,255,0.6);
+    font-size: 1.1em;
+    margin-bottom: 40px;
+  }
+
+  /* 成就展示区 */
+  .achievement-bar {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+    padding: 16px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .achievement-badge {
+    font-size: 28px;
+    position: relative;
+    cursor: default;
+    opacity: 0.3;
+    filter: grayscale(100%);
+    transition: all 0.3s;
+  }
+  .achievement-badge.unlocked {
+    opacity: 1;
+    filter: grayscale(0%);
+  }
+  .achievement-badge:hover .tooltip {
+    display: block;
+  }
+  .achievement-badge .tooltip {
+    display: none;
+    position: absolute;
+    bottom: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.9);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 100;
+    white-space: normal;
+    text-align: center;
+    width: 150px;
+  }
+  .achievement-stats {
+    font-size: 14px;
+    color: rgba(255,255,255,0.6);
+    margin-top: 10px;
+  }
+  .achievement-stats span {
+    color: #ffd700;
+    font-weight: bold;
+  }
+
+  .mode-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 30px;
+  }
+  .mode-tab {
+    padding: 12px 28px;
+    border-radius: 30px;
+    border: 2px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.05);
+    color: #fff;
+    cursor: pointer;
+    font-size: 1em;
+    font-family: inherit;
+    transition: all 0.3s;
+    text-decoration: none;
+  }
+  .mode-tab:hover {
+    border-color: rgba(0,212,255,0.5);
+    background: rgba(0,212,255,0.1);
+  }
+  .mode-tab.active {
+    border-color: #00d4ff;
+    background: rgba(0,212,255,0.2);
+  }
+
+  .grade-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+
+  .grade-card {
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 20px;
+    padding: 24px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .grade-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transition: left 0.5s;
+  }
+  .grade-card:hover::before { left: 100%; }
+  .grade-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(0,212,255,0.5);
+    box-shadow: 0 8px 32px rgba(0,212,255,0.2);
+  }
+  .grade-card.locked { opacity: 0.5; cursor: not-allowed; }
+  .grade-card.locked:hover { transform: none; border-color: rgba(255,255,255,0.15); box-shadow: none; }
+
+  .grade-icon { font-size: 48px; margin-bottom: 12px; }
+  .grade-name { font-size: 1.4em; font-weight: bold; margin-bottom: 6px; }
+  .grade-status { font-size: 0.85em; color: rgba(255,255,255,0.5); }
+  .grade-status.available { color: #4ade80; }
+
+  .semester-panel {
+    display: none;
+    background: rgba(255,255,255,0.06);
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 30px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .semester-panel.active { display: block; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .semester-title { font-size: 1.2em; margin-bottom: 20px; color: rgba(255,255,255,0.8); }
+
+  .semester-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  .semester-btn {
+    background: linear-gradient(135deg, rgba(0,212,255,0.2), rgba(124,58,237,0.2));
+    border: 1px solid rgba(0,212,255,0.3);
+    border-radius: 16px;
+    padding: 20px;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+    display: block;
+  }
+  .semester-btn:hover {
+    background: linear-gradient(135deg, rgba(0,212,255,0.4), rgba(124,58,237,0.4));
+    border-color: rgba(0,212,255,0.6);
+    transform: scale(1.02);
+  }
+  .semester-btn.locked { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+
+  .sem-icon { font-size: 32px; margin-bottom: 8px; }
+  .sem-name { font-size: 1.1em; font-weight: bold; }
+  .sem-desc { font-size: 0.8em; color: rgba(255,255,255,0.5); margin-top: 4px; }
+
+  .vs-btn {
+    background: linear-gradient(135deg, rgba(255,107,157,0.3), rgba(255,152,0,0.3));
+    border: 2px solid rgba(255,107,157,0.5);
+    border-radius: 16px;
+    padding: 20px;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+    display: block;
+    margin-bottom: 10px;
+  }
+  .vs-btn:hover {
+    background: linear-gradient(135deg, rgba(255,107,157,0.5), rgba(255,152,0,0.5));
+    border-color: rgba(255,107,157,0.8);
+    transform: scale(1.02);
+  }
+
+  .back-btn {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.9em;
+    margin-bottom: 20px;
+    transition: all 0.3s;
+    font-family: inherit;
+  }
+  .back-btn:hover { background: rgba(255,255,255,0.2); }
+
+  .footer {
+    margin-top: 40px;
+    color: rgba(255,255,255,0.3);
+    font-size: 0.85em;
+  }
+  .footer a { color: rgba(0,212,255,0.6); text-decoration: none; }
+
+
+  /* 更新日志面板 */
+  .update-log {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 220px;
+    background: rgba(0,0,0,0.7);
+    border: 1px solid rgba(0,212,255,0.3);
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 0.8em;
+    z-index: 100;
+  }
+  .update-log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+    cursor: pointer;
+  }
+  .update-version {
+    background: linear-gradient(90deg, #00d4ff, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: bold;
+    font-size: 1.1em;
+  }
+  .update-log-toggle {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.5);
+    cursor: pointer;
+    font-size: 1.2em;
+  }
+  .update-content {
+    color: rgba(255,255,255,0.7);
+    line-height: 1.6;
+  }
+  .update-item {
+    margin-bottom: 6px;
+    padding-left: 12px;
+    position: relative;
+  }
+  .update-item::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #00d4ff;
+  }
+
+  /* ============ Q版可拖动人物 + 装备系统 ============ */
+  .char-wrapper {
+    position: fixed;
+    bottom: 110px;
+    right: 20px;
+    width: 140px;
+    height: 200px;
+    cursor: grab;
+    z-index: 101;
+    user-select: none;
+    touch-action: none;
+  }
+  .char-wrapper:active { cursor: grabbing; }
+
+  .char-base {
+    position: absolute;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 180px;
+    pointer-events: none;
+  }
+
+  .char-base-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+  }
+
+  .char-body {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* 装备层叠 */
+  .char-equip {
+    position: absolute;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    max-width: 120px;
+    max-height: 160px;
+    pointer-events: none;
+  }
+  #equip-hat   { bottom: 100px; z-index: 6; }
+  #equip-cape  { bottom: 0; z-index: 0; }
+  #equip-top   { bottom: 30px; z-index: 3; }
+  #equip-bottom{ bottom: 0; z-index: 2; }
+  #equip-face  { bottom: 90px; z-index: 5; }
+  #equip-eyes  { bottom: 100px; z-index: 6; }
+  #equip-shoes { bottom: 0; z-index: 1; }
+
+  /* 换装按钮 */
+  .char-toggle-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, rgba(0,212,255,0.3), rgba(124,58,237,0.3));
+    border: 1px solid rgba(0,212,255,0.5);
+    border-radius: 10px;
+    color: #fff;
+    padding: 8px 14px;
+    font-size: 0.8em;
+    cursor: pointer;
+    z-index: 102;
+    font-family: inherit;
+    transition: all 0.3s;
+  }
+  .char-toggle-btn:hover {
+    background: linear-gradient(135deg, rgba(0,212,255,0.5), rgba(124,58,237,0.5));
+  }
+
+  /* 性别切换按钮 */
+  .char-gender-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 90px;
+    background: linear-gradient(135deg, rgba(255,107,157,0.3), rgba(255,152,0,0.3));
+    border: 1px solid rgba(255,107,157,0.5);
+    border-radius: 10px;
+    color: #fff;
+    padding: 8px 12px;
+    font-size: 0.8em;
+    cursor: pointer;
+    z-index: 102;
+    font-family: inherit;
+    transition: all 0.3s;
+  }
+  .char-gender-btn:hover {
+    background: linear-gradient(135deg, rgba(255,107,157,0.5), rgba(255,152,0,0.5));
+  }
+
+  /* 换装面板 */
+  .char-panel {
+    position: fixed;
+    bottom: 55px;
+    right: 20px;
+    width: 200px;
+    max-height: 320px;
+    overflow-y: auto;
+    background: rgba(0,0,0,0.8);
+    border: 1px solid rgba(0,212,255,0.4);
+    border-radius: 12px;
+    padding: 10px;
+    z-index: 102;
+  }
+  .char-panel::-webkit-scrollbar { width: 4px; }
+  .char-panel::-webkit-scrollbar-thumb { background: rgba(0,212,255,0.3); border-radius: 2px; }
+  .char-panel-section { margin-bottom: 8px; }
+  .char-panel-title {
+    font-size: 0.75em;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 4px;
+    padding-bottom: 2px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .char-panel-items { display: flex; flex-wrap: wrap; gap: 4px; }
+  .char-item {
+    width: 36px; height: 36px;
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 6px;
+    cursor: pointer;
+    object-fit: contain;
+    background: rgba(255,255,255,0.05);
+    transition: all 0.2s;
+    padding: 2px;
+  }
+  .char-item:hover { border-color: rgba(0,212,255,0.6); background: rgba(0,212,255,0.1); }
+  .char-item.selected { border-color: #00d4ff; background: rgba(0,212,255,0.2); }
+  .char-item.none-btn {
+    font-size: 0.65em;
+    color: rgba(255,255,255,0.4);
+    display: flex; align-items: center; justify-content: center;
+  }
+
+
+  /* 改进的样式 */
+  .grade-card {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .grade-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transition: left 0.5s;
+  }
+  .grade-card:hover::before {
+    left: 100%;
+  }
+  .grade-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  }
+
+  /* SVG 图标样式 */
+  .icon-svg {
+    display: inline-block;
+    vertical-align: middle;
+  }
+  .grade-icon img, .sem-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  /* 改进的成就徽章 */
+  .achievement-badge {
+    transition: all 0.3s;
+  }
+  .achievement-badge.unlocked {
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
+
+  /* 改进的按钮样式 */
+  .semester-btn {
+    transition: all 0.3s ease;
+  }
+  .semester-btn:hover:not(.locked) {
+    transform: scale(1.02);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+  }
+  .semester-btn.locked {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* 背景粒子效果改进 */
+  .particle {
+    animation: float 20s infinite;
+  }
+
+  /* 更新日志改进 */
+  .update-log {
+    backdrop-filter: blur(10px);
+  }
+
+  @media (max-width: 600px) {
+    .update-log {
+      width: auto !important;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      padding: 8px;
+      font-size: 0.75em;
+    }
+    .char-wrapper {
+      width: 100px;
+      height: 140px;
+      bottom: 60px;
+      right: 10px;
+    }
+    .char-base {
+      width: 80px;
+      height: 120px;
+    }
+    .char-equip {
+      max-width: 100px;
+      max-height: 140px;
+    }
+    #equip-hat   { bottom: 100px; }
+    #equip-face  { bottom: 85px; }
+    #equip-eyes  { bottom: 95px; }
+    #equip-shoes { bottom: 0; }
+    #equip-top   { bottom: 40px; }
+    .char-toggle-btn {
+      bottom: 10px;
+      right: 10px;
+      padding: 6px 10px;
+      font-size: 0.7em;
+    }
+    .char-gender-btn {
+      bottom: 10px;
+      right: 70px;
+      padding: 6px 8px;
+      font-size: 0.7em;
+    }
+  }
+
+
+  .ach-icon {
+    width: 28px;
+    height: 28px;
+    vertical-align: middle;
+  }
+
+  /* ============ 顶部导航栏 ============ */
+  .top-nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    background: rgba(26, 26, 46, 0.9);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding: 12px 20px;
+    z-index: 200;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .nav-left { display: flex; align-items: center; gap: 12px; }
+  .nav-logo {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, #00d4ff, #7c3aed);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .nav-title {
+    font-size: 1.2em;
+    font-weight: bold;
+    background: linear-gradient(90deg, #00d4ff, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .nav-right { display: flex; gap: 10px; }
+  .nav-btn {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    padding: 8px 14px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.85em;
+    transition: all 0.3s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .nav-btn:hover {
+    background: rgba(0,212,255,0.2);
+    border-color: rgba(0,212,255,0.5);
+  }
+  .nav-btn i { font-size: 14px; }
+
+  /* ============ 弹窗系统 ============ */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 300;
+    padding: 20px;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border: 1px solid rgba(0,212,255,0.3);
+    border-radius: 20px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 80vh;
+    overflow: hidden;
+    animation: modalIn 0.3s ease;
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .modal-title {
+    font-size: 1.3em;
+    font-weight: bold;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .modal-title.achievements { color: #ffd700; }
+  .modal-title.equipment { color: #00d4ff; }
+  .modal-title.character { color: #ff6b9d; }
+  .modal-close {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.5);
+    font-size: 1.5em;
+    cursor: pointer;
+    padding: 5px;
+    transition: color 0.3s;
+  }
+  .modal-close:hover { color: #fff; }
+  .modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    max-height: calc(80vh - 80px);
+  }
+
+  /* 角色信息面板 */
+  .char-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .char-preview-box {
+    background: rgba(255,255,255,0.05);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+  }
+  .char-preview-title {
+    font-size: 0.9em;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 15px;
+  }
+  .char-preview-img {
+    width: 150px; height: 200px;
+    margin: 0 auto;
+    position: relative;
+  }
+  .char-preview-img img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+  }
+  .char-stats-box {
+    background: rgba(255,255,255,0.05);
+    border-radius: 16px;
+    padding: 20px;
+  }
+  .char-stats-title {
+    font-size: 0.9em;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 15px;
+    text-align: center;
+  }
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-label {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.9em;
+  }
+  .stat-value {
+    font-weight: bold;
+    font-size: 1.1em;
+  }
+  .stat-value.str { color: #ff6b6b; }
+  .stat-value.dex { color: #4ecdc4; }
+  .stat-value.int { color: #a78bfa; }
+  .stat-value.luk { color: #ffd93d; }
+  .stat-value.bonus { color: #4ade80; }
+
+  /* 装备稀有度 */
+  .rarity-common { border-color: #9ca3af; }
+  .rarity-rare { border-color: #3b82f6; }
+  .rarity-epic { border-color: #a855f7; }
+  .rarity-legendary { border-color: #f97316; }
+  .rarity-mythic { border-color: #ec4899; }
+
+  /* 成就网格 */
+  .achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+  }
+  .achievement-card {
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+    transition: all 0.3s;
+    border: 1px solid transparent;
+  }
+  .achievement-card:hover {
+    background: rgba(255,255,255,0.1);
+    transform: translateY(-2px);
+  }
+  .achievement-card.locked {
+    opacity: 0.4;
+    filter: grayscale(100%);
+  }
+  .achievement-card.unlocked {
+    border-color: #ffd700;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+  }
+  .achievement-icon { font-size: 32px; margin-bottom: 8px; }
+  .achievement-name { font-size: 0.8em; font-weight: bold; }
+  .achievement-desc { font-size: 0.7em; color: rgba(255,255,255,0.5); margin-top: 4px; }
+
+  /* 装备列表 */
+  .equip-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+  }
+  .equip-tab {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    padding: 6px 12px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.8em;
+    transition: all 0.3s;
+  }
+  .equip-tab:hover, .equip-tab.active {
+    background: rgba(0,212,255,0.2);
+    border-color: rgba(0,212,255,0.5);
+  }
+  .equip-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 10px;
+  }
+  .equip-item {
+    aspect-ratio: 1;
+    background: rgba(255,255,255,0.05);
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .equip-item:hover { transform: scale(1.05); }
+  .equip-item.selected {
+    border-color: #00d4ff;
+    box-shadow: 0 0 10px rgba(0,212,255,0.3);
+  }
+  .equip-item img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+  }
+
+  /* 响应式调整 */
+  @media (max-width: 600px) {
+    .top-nav { padding: 10px 15px; }
+    .nav-title { font-size: 1em; }
+    .nav-btn { padding: 6px 10px; font-size: 0.75em; }
+    .nav-btn span { display: none; }
+    .char-info-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 顶部导航栏 -->
+<header class="top-nav">
+  <div class="nav-left">
+    <div class="nav-logo">🔬</div>
+    <span class="nav-title">科学趣味闯关</span>
+  </div>
+  <div class="nav-right">
+    <button class="nav-btn" onclick="openModal('achievementsModal')">
+      <i class="fa fa-trophy" style="color:#ffd700"></i>
+      <span>成就</span>
+    </button>
+    <button class="nav-btn" onclick="openModal('equipmentModal')">
+      <i class="fa fa-shield" style="color:#00d4ff"></i>
+      <span>装备</span>
+    </button>
+    <button class="nav-btn" onclick="openModal('characterModal')">
+      <i class="fa fa-user" style="color:#ff6b9d"></i>
+      <span id="navUserName">登录</span>
+    </button>
+  </div>
+</header>
+
+<!-- 成就弹窗 -->
+<div class="modal-overlay" id="achievementsModal" onclick="closeModalOnOverlay(event, 'achievementsModal')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title achievements">
+        <i class="fa fa-trophy"></i>
+        <span>成就系统</span>
+      </div>
+      <button class="modal-close" onclick="closeModal('achievementsModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="achievements-grid" id="achievementsGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 装备弹窗 -->
+<div class="modal-overlay" id="equipmentModal" onclick="closeModalOnOverlay(event, 'equipmentModal')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title equipment">
+        <i class="fa fa-shield"></i>
+        <span>装备管理</span>
+      </div>
+      <button class="modal-close" onclick="closeModal('equipmentModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="equip-tabs">
+        <button class="equip-tab active" data-cat="all" onclick="filterEquip('all')">全部</button>
+        <button class="equip-tab" data-cat="hat" onclick="filterEquip('hat')">帽子</button>
+        <button class="equip-tab" data-cat="top" onclick="filterEquip('top')">上衣</button>
+        <button class="equip-tab" data-cat="bottom" onclick="filterEquip('bottom')">裤裙</button>
+        <button class="equip-tab" data-cat="cape" onclick="filterEquip('cape')">披风</button>
+        <button class="equip-tab" data-cat="face" onclick="filterEquip('face')">脸饰</button>
+        <button class="equip-tab" data-cat="eyes" onclick="filterEquip('eyes')">眼饰</button>
+        <button class="equip-tab" data-cat="shoes" onclick="filterEquip('shoes')">鞋子</button>
+      </div>
+      <div class="equip-grid" id="equipGrid"></div>
+      <div style="margin-top:20px;padding-top:15px;border-top:1px solid rgba(255,255,255,0.1);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <span style="color:#ffd700;font-weight:bold;">🎒 暗黑背包</span>
+          <span style="color:rgba(255,255,255,0.5);font-size:0.8em;" id="inventoryCount">0 件</span>
+        </div>
+        <div id="inventoryGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 角色信息弹窗 -->
+<div class="modal-overlay" id="characterModal" onclick="closeModalOnOverlay(event, 'characterModal')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title character">
+        <i class="fa fa-user"></i>
+        <span>角色信息</span>
+      </div>
+      <button class="modal-close" onclick="closeModal('characterModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="char-info-grid">
+        <div class="char-preview-box">
+          <div class="char-preview-title">角色预览</div>
+          <div class="char-preview-img">
+            <img id="modalCharImg" src="generated-assets/char_girl_base.png" alt="角色">
+          </div>
+        </div>
+        <div class="char-stats-box">
+          <div class="char-stats-title">角色属性</div>
+          <div class="stat-row">
+            <span class="stat-label">💪 力量</span>
+            <span class="stat-value str" id="statStr">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">⚡ 敏捷</span>
+            <span class="stat-value dex" id="statDex">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">🧠 智力</span>
+            <span class="stat-value int" id="statInt">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">🍀 运气</span>
+            <span class="stat-value luk" id="statLuk">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">🎯 积分倍率</span>
+            <span class="stat-value bonus" id="statScoreRate">1.0x</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">🎁 装备爆率</span>
+            <span class="stat-value bonus" id="statDropRate">10%</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">✨ 活跃词缀</span>
+            <span class="stat-value" id="statAffixes" style="font-size:0.8em;text-align:right;max-width:200px;line-height:1.8;">无</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="particles" id="particles"></div>
+
+<div class="container" style="padding-top: 80px;">
+  <div class="logo">🔬</div>
+  <h1>科学趣味闯关</h1>
+  <p class="subtitle">选择你的年级，开始复习之旅</p>
+
+  <!-- 成就展示区 -->
+  <div class="achievement-bar" id="achievementBar">
+    <div class="achievement-stats">正在加载成就...</div>
+  </div>
+
+  <!-- 模式切换 -->
+  <div class="mode-tabs">
+    <button class="mode-tab active" onclick="switchMode('solo')">单人闯关</button>
+    <button class="mode-tab" onclick="switchMode('vs')">⚔️ 双人对战</button>
+  </div>
+
+  <!-- 单人模式入口 -->
+  <div id="gradePanel">
+    <div class="grade-grid">
+      <div class="grade-card locked">
+        <div class="grade-icon"><img src="icons/book-green.png" alt="四年级"></div>
+        <div class="grade-name">三年级</div>
+        <div class="grade-status locked">施工中</div>
+      </div>
+
+      <div class="grade-card" onclick="selectGrade(4)">
+        <div class="grade-icon"><img src="icons/book-green.png" alt="四年级"></div>
+        <div class="grade-name">四年级</div>
+        <div class="grade-status available">已上线</div>
+      </div>
+
+      <div class="grade-card" onclick="selectGrade(5)">
+        <div class="grade-icon"><img src="icons/book-blue.png" alt="五年级"></div>
+        <div class="grade-name">五年级</div>
+        <div class="grade-status available">已上线</div>
+      </div>
+
+      <div class="grade-card" onclick="selectGrade(6)">
+        <div class="grade-icon"><img src="icons/book-orange.png" alt="六年级"></div>
+        <div class="grade-name">六年级</div>
+        <div class="grade-status available">已上线</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 双人对战入口（四年级下册） -->
+  <div id="vsPanel" style="display:none;">
+    <div style="background:rgba(255,107,157,0.15);border:1px solid rgba(255,107,157,0.3);border-radius:20px;padding:30px;max-width:500px;margin:0 auto 30px;">
+      <div style="font-size:48px;margin-bottom:12px;">⚔️</div>
+      <h2 style="font-size:1.5em;margin-bottom:8px;">双人对战模式</h2>
+      <p style="color:rgba(255,255,255,0.6);font-size:0.9em;margin-bottom:20px;">两人同时作答，比比谁更快更准！</p>
+      <a class="vs-btn" href="4/2/vs.html">📘 四年级下册 · 开始对战</a>
+      <a class="vs-btn" href="5/2/vs.html">📙 五年级下册 · 开始对战</a>
+      <a class="vs-btn" style="opacity:0.4;pointer-events:none;" href="#">📗 三年级下册 · 敬请期待</a>
+      <a class="vs-btn" href="6/2/vs.html">📕 六年级下册 · 开始对战</a>
+    </div>
+    <button class="back-btn" onclick="switchMode('solo')">← 返回单人模式</button>
+  </div>
+
+  <!-- 四年级面板 -->
+  <div class="semester-panel" id="panel-4">
+    <button class="back-btn" onclick="showGrades()">← 返回选择年级</button>
+    <div class="semester-title">📘 四年级 · 选择学期</div>
+    <div class="semester-grid">
+      <!-- 4/1 = 上学期 -->
+      <a class="semester-btn locked" href="#">
+        <div class="sem-icon"><img src="icons/spring.png" alt="上学期"></div>
+        <div class="sem-name">上学期</div>
+        <div class="sem-desc">四年级上册科学 · 施工中</div>
+      </a>
+      <!-- 4/2 = 下学期（四年级下册已做好） -->
+      <a class="semester-btn" href="4/2/">
+        <div class="sem-icon"><img src="icons/autumn.png" alt="下学期"></div>
+        <div class="sem-name">下学期</div>
+        <div class="sem-desc">四年级下册科学 · 粤教版</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- 三年级面板 -->
+  <div class="semester-panel" id="panel-3">
+    <button class="back-btn" onclick="showGrades()">← 返回选择年级</button>
+    <div class="semester-title">📗 三年级 · 选择学期</div>
+    <div class="semester-grid">
+      <a class="semester-btn locked" href="#"><div class="sem-icon"><img src="icons/spring.png" alt="上学期"></div><div class="sem-name">上学期</div><div class="sem-desc">施工中</div></a>
+      <a class="semester-btn locked" href="#"><div class="sem-icon"><img src="icons/autumn.png" alt="下学期"></div><div class="sem-name">下学期</div><div class="sem-desc">施工中</div></a>
+    </div>
+  </div>
+
+  <!-- 五年级面板 -->
+  <div class="semester-panel" id="panel-5">
+    <button class="back-btn" onclick="showGrades()">← 返回选择年级</button>
+    <div class="semester-title">📙 五年级 · 选择学期</div>
+    <div class="semester-grid">
+      <a class="semester-btn locked" href="#"><div class="sem-icon"><img src="icons/spring.png" alt="上学期"></div><div class="sem-name">上学期</div><div class="sem-desc">施工中</div></a>
+      <a class="semester-btn" href="5/2/"><div class="sem-icon"><img src="icons/autumn.png" alt="下学期"></div><div class="sem-name">下学期</div><div class="sem-desc">五年级下册科学 · 第一二单元</div></a>
+    </div>
+  </div>
+
+  <!-- 六年级面板 -->
+  <div class="semester-panel" id="panel-6">
+    <button class="back-btn" onclick="showGrades()">← 返回选择年级</button>
+    <div class="semester-title">📕 六年级 · 选择学期</div>
+    <div class="semester-grid">
+      <a class="semester-btn locked" href="#"><div class="sem-icon"><img src="icons/spring.png" alt="上学期"></div><div class="sem-name">上学期</div><div class="sem-desc">施工中</div></a>
+      <a class="semester-btn" href="6/2/"><div class="sem-icon"><img src="icons/autumn.png" alt="下学期"></div><div class="sem-name">下学期</div><div class="sem-desc">六年级下册科学 · 4单元23课</div></a>
+    </div>
+  </div>
+
+  <div class="footer">
+    科学趣味闯关 · 基于「最近发展区」理论设计<br>
+    <a href="https://github.com/tancbiao/kexvefuxi" target="_blank">GitHub</a>
+  </div>
+</div>
+
+<script>
+  // 成就图标定义
+  const ALL_ACHIEVEMENTS = [
+    { id: 'first_correct', icon: '<img src="icons/target.png" class="ach-icon">', name: '首战告捷', desc: '答对第一道题' },
+    { id: 'streak_2', icon: '<img src="icons/lightning.png" class="ach-icon">', name: '小试牛刀', desc: '获得2连胜' },
+    { id: 'streak_3', icon: '<img src="icons/fire.png" class="ach-icon">', name: '三连斩', desc: '获得3连胜' },
+    { id: 'streak_5', icon: '<img src="icons/fire.png" class="ach-icon">', name: '五福临门', desc: '获得5连胜' },
+    { id: 'streak_7', icon: '<img src="icons/star.png" class="ach-icon">', name: '七星连珠', desc: '获得7连胜' },
+    { id: 'streak_10', icon: '<img src="icons/crown.png" class="ach-icon">', name: '常胜将军', desc: '获得10连胜' },
+    { id: 'unit1_master', icon: '🌿', name: '植物学家', desc: '完成第一单元' },
+    { id: 'unit2_master', icon: '🐾', name: '动物专家', desc: '完成第二单元' },
+    { id: 'unit3_master', icon: '🚀', name: '力学达人', desc: '完成第三单元' },
+    { id: 'unit4_master', icon: '🌙', name: '天文探索者', desc: '完成第四单元' },
+    { id: 'first_perfect', icon: '<img src="icons/legendary.png" class="ach-icon">', name: '满分达人', desc: '首次满分通关' },
+    { id: 'first_battle', icon: '<img src="icons/battle.png" class="ach-icon">', name: '初出茅庐', desc: '赢得第一场对战' }
+  ];
+
+  // 从各年级localStorage收集成就
+  function loadAchievements() {
+    const unlockedIds = new Set();
+    const grades = [4, 5, 6];
+    
+    const gradePrefixes = ['scienceGame4_user_', 'scienceGame5_user_', 'scienceGame6_user_', 'scienceGame_user_'];
+    gradePrefixes.forEach(prefix => {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.includes(prefix)) {
+          try {
+            const data = JSON.parse(localStorage.getItem(key));
+            if (data && data.unlockedAchievements) {
+              data.unlockedAchievements.forEach(id => unlockedIds.add(id));
+            }
+          } catch(e) {}
+        }
+      }
+    });
+    
+    return Array.from(unlockedIds);
+  }
+
+  // 渲染成就展示
+  function renderAchievements() {
+    const container = document.getElementById('achievementBar');
+    const unlockedIds = loadAchievements();
+    
+    if (unlockedIds.length === 0) {
+      container.innerHTML = '<div class="achievement-stats">开始游戏解锁成就！</div>';
+      return;
+    }
+    
+    let html = '';
+    ALL_ACHIEVEMENTS.forEach(a => {
+      const unlocked = unlockedIds.includes(a.id);
+      html += `
+        <div class="achievement-badge ${unlocked ? 'unlocked' : ''}">
+          ${a.icon}
+          <div class="tooltip">${a.name}<br><small>${a.desc}</small></div>
+        </div>
+      `;
+    });
+    html += `<div class="achievement-stats">已解锁 <span>${unlockedIds.length}</span> / ${ALL_ACHIEVEMENTS.length} 个成就</div>`;
+    container.innerHTML = html;
+  }
+
+  // 粒子背景
+  const particleContainer = document.getElementById('particles');
+  for (let i = 0; i < 30; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.animationDelay = Math.random() * 15 + 's';
+    p.style.animationDuration = (10 + Math.random() * 10) + 's';
+    particleContainer.appendChild(p);
+  }
+
+  // 页面加载时渲染成就
+  renderAchievements();
+
+  function showGrades() {
+    document.getElementById('gradePanel').style.display = '';
+    document.querySelectorAll('.semester-panel').forEach(p => p.classList.remove('active'));
+  }
+
+  function selectGrade(grade) {
+    document.getElementById('gradePanel').style.display = 'none';
+    document.querySelectorAll('.semester-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + grade).classList.add('active');
+  }
+
+  function switchMode(mode) {
+    document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+    if (mode === 'solo') {
+      document.getElementById('gradePanel').style.display = '';
+      document.getElementById('vsPanel').style.display = 'none';
+      document.querySelector('.mode-tab:nth-child(1)').classList.add('active');
+    } else {
+      document.getElementById('gradePanel').style.display = 'none';
+      document.getElementById('vsPanel').style.display = '';
+      document.querySelector('.mode-tab:nth-child(2)').classList.add('active');
+    }
+  }
+
+  // 更新日志折叠
+  function toggleUpdateLog() {
+    const content = document.getElementById('updateContent');
+    const log = document.getElementById('updateLog');
+    const toggleBtn = log.querySelector('.update-log-toggle');
+    if (content.style.display === 'none') {
+      content.style.display = '';
+      log.style.width = '220px';
+      toggleBtn.textContent = '📋';
+    } else {
+      content.style.display = 'none';
+      log.style.width = 'auto';
+      toggleBtn.textContent = '📋▶';
+    }
+  }
+
+  // ============ Q版可拖动人物 + 装备系统 ============
+  // 性别切换
+  let currentGender = localStorage.getItem('kexvefuxi_char_gender') || 'girl';
+  
+  function toggleGender() {
+    currentGender = currentGender === 'girl' ? 'boy' : 'girl';
+    localStorage.setItem('kexvefuxi_char_gender', currentGender);
+    updateCharBase();
+    document.getElementById('charGenderBtn').textContent = currentGender === 'girl' ? '👧' : '👦';
+  }
+  
+  function updateCharBase() {
+    const img = document.getElementById('charBaseImg');
+    img.src = currentGender === 'girl' ? 'generated-assets/char_girl_base.png' : 'generated-assets/char_boy_base.png';
+  }
+  
+  // 初始化性别按钮
+  document.getElementById('charGenderBtn').textContent = currentGender === 'girl' ? '👧' : '👦';
+  updateCharBase();
+
+  const EQUIP_DATA = {
+    hat: {
+      label: '帽子',
+      folder: '帽子',
+      ids: ['1000011','1000095','1000206','1001019','1001036','1001066','1001152','1002016','1002024','1002059','1002081','1002115','1002131','1002208','1002284','1002346','1002391','1002403']
+    },
+    top: {
+      label: '上衣',
+      folder: '上衣',
+      ids: ['1040027','1040147','1040191','1040800','1041031','1041058','1042004','1042058','1042089','1042140','1042202','1042259','1042337','1042367']
+    },
+    bottom: {
+      label: '裤裙',
+      folder: '裤裙',
+      ids: ['1060077','1060103','1060600','1061031','1061047','1061070','1061077','1061150','1061208','1062117','1062203','1062294']
+    },
+    cape: {
+      label: '披风',
+      folder: '披风',
+      ids: ['1100033','1102065','1102167','1102275','1102310']
+    },
+    face: {
+      label: '脸饰',
+      folder: '脸饰',
+      ids: ['1010006','1011015','1012054','1012147','1012222','1012300','1012395','1012397','1012458']
+    },
+    eyes: {
+      label: '眼饰',
+      folder: '眼饰',
+      ids: ['1020001','1020213','1022058','1022310']
+    },
+    shoes: {
+      label: '鞋子',
+      folder: '鞋子',
+      ids: ['1070038','1070098','1070113','1070139','1070147','1071026','1071095','1071122','1071149','1072109','1072148','1072221','1072222','1072237','1072322']
+    }
+  };
+
+  // 当前穿戴状态
+  const equipped = { hat: null, top: null, bottom: null, cape: null, face: null, eyes: null, shoes: null };
+
+  function getIconUrl(folder, id) {
+    // 使用本地图片路径
+    return `maplestory_sprites/${folder}/${id}_icon.png`;
+  }
+
+  function renderEquipItems() {
+    Object.keys(EQUIP_DATA).forEach(slot => {
+      const container = document.getElementById('items-' + slot);
+      if (!container) return;
+      const { folder, ids } = EQUIP_DATA[slot];
+      let html = `<div class="char-item none-btn" onclick="equipItem('${slot}', null)">卸</div>`;
+      ids.forEach(id => {
+        const url = getIconUrl(folder, id);
+        const sel = equipped[slot] === id ? 'selected' : '';
+        html += `<img class="char-item ${sel}" src="${url}" onclick="equipItem('${slot}', '${id}')" title="${folder}/${id}">`;
+      });
+      container.innerHTML = html;
+    });
+  }
+
+  function equipItem(slot, id) {
+    equipped[slot] = id;
+    const img = document.getElementById('equip-' + slot);
+    if (id) {
+      img.src = getIconUrl(EQUIP_DATA[slot].folder, id);
+      img.style.display = '';
+    } else {
+      img.src = '';
+      img.style.display = 'none';
+    }
+    renderEquipItems();
+  }
+
+  function toggleCharPanel() {
+    const panel = document.getElementById('charPanel');
+    panel.style.display = panel.style.display === 'none' ? '' : 'none';
+    if (panel.style.display === '') renderEquipItems();
+  }
+
+  // 拖动 wrapper
+  const wrapper = document.getElementById('charWrapper');
+  let isDragging = false;
+  let offX, offY;
+
+  wrapper.addEventListener('mousedown', (e) => {
+    if (e.target.closest('.char-panel') || e.target.closest('.char-toggle-btn')) return;
+    isDragging = true;
+    offX = e.clientX - wrapper.getBoundingClientRect().left;
+    offY = e.clientY - wrapper.getBoundingClientRect().top;
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    wrapper.style.left = (e.clientX - offX) + 'px';
+    wrapper.style.top = (e.clientY - offY) + 'px';
+    wrapper.style.right = 'auto';
+    wrapper.style.bottom = 'auto';
+  });
+
+  document.addEventListener('mouseup', () => { isDragging = false; });
+
+  wrapper.addEventListener('touchstart', (e) => {
+    if (e.target.closest('.char-panel') || e.target.closest('.char-toggle-btn')) return;
+    isDragging = true;
+    const t = e.touches[0];
+    offX = t.clientX - wrapper.getBoundingClientRect().left;
+    offY = t.clientY - wrapper.getBoundingClientRect().top;
+    e.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener('touchmove', (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const t = e.touches[0];
+    wrapper.style.left = (t.clientX - offX) + 'px';
+    wrapper.style.top = (t.clientY - offY) + 'px';
+    wrapper.style.right = 'auto';
+    wrapper.style.bottom = 'auto';
+  }, { passive: false });
+
+  document.addEventListener('touchend', () => { isDragging = false; });
+
+  // ============ 暗黑破坏神装备生成系统 ============
+  const EQUIPMENT_RARITY = {
+    1: { name: '普通', color: '#9ca3af', border: '#6b7280', multiplier: 1.01, glow: 'none' },
+    2: { name: '精致', color: '#4ade80', border: '#22c55e', multiplier: 1.02, glow: 'none' },
+    3: { name: '良好', color: '#38bdf8', border: '#0ea5e9', multiplier: 1.03, glow: 'none' },
+    4: { name: '稀有', color: '#a78bfa', border: '#8b5cf6', multiplier: 1.05, glow: '0 0 6px #8b5cf6' },
+    5: { name: '史诗', color: '#f472b6', border: '#ec4899', multiplier: 1.08, glow: '0 0 8px #ec4899' },
+    6: { name: '传说', color: '#fbbf24', border: '#f59e0b', multiplier: 2.0,  glow: '0 0 12px #f59e0b' },
+    7: { name: '神话', color: '#ff6600', border: '#ea580c', multiplier: 3.0,  glow: '0 0 16px #ea580c, 0 0 24px #ff6600' }
+  };
+  const DROP_WEIGHTS = [50, 25, 15, 7, 2, 0.8, 0.2];
+  const BASE_DROP_CHANCE = 0.05;
+  const AFFIX_POOL = {
+    CRIT_RATE:    { name: '暴击率', desc: '答对概率+5%', icon: '💥' },
+    ATTACK_SPEED: { name: '攻速', desc: '答题时间+3s', icon: '⚡' },
+    GOLD_BONUS:   { name: '金币', desc: '积分+10%', icon: '💰' },
+    EXP_BONUS:    { name: '经验', desc: '经验+15%', icon: '📈' },
+    EXTRA_HINT:   { name: '洞察', desc: '额外提示+1', icon: '👁️' },
+    PERFECT_BONUS:{ name: '完美', desc: '满分奖励+50%', icon: '💎' },
+    LUCKY_DRAW:   { name: '幸运', desc: '掉率+3%', icon: '🍀' },
+    STREAK_SHIELD:{ name: '连击盾', desc: '连胜免扣1次', icon: '🛡️' },
+    DOUBLE_SCORE: { name: '双倍', desc: '10%概率翻倍', icon: '✨' },
+    BERSERKER:    { name: '狂暴', desc: '连胜3+时x1.5', icon: '🔥' }
+  };
+  function rollAffixes(rarity) {
+    const affixCount = { 4: 1, 5: 2, 6: 3, 7: 4 }[rarity] || 0;
+    if (!affixCount) return [];
+    const keys = Object.keys(AFFIX_POOL), picked = [], avail = [...keys];
+    for (let i = 0; i < affixCount && avail.length; i++) {
+      const idx = Math.floor(Math.random() * avail.length);
+      picked.push(avail.splice(idx, 1)[0]);
+    }
+    return picked;
+  }
+  function rollRarity() {
+    const total = DROP_WEIGHTS.reduce((s, w) => s + w, 0);
+    let r = Math.random() * total;
+    for (let i = 0; i < DROP_WEIGHTS.length; i++) { r -= DROP_WEIGHTS[i]; if (r <= 0) return i + 1; }
+    return 1;
+  }
+  const DIABLO_NAMES = {
+    hat:     { p: ['暗影','虚空','圣光','混沌','天界','地狱','秘法','龙魂','星界','深渊'], s: ['王冠','头冠','兜帽','战盔','法帽','面具','头环','宝冠'] },
+    top:     { p: ['暗影','虚空','圣光','混沌','天界','地狱','秘法','龙魂','星界','深渊'], s: ['战甲','法袍','皮衣','锁甲','长袍','战衣','斗篷','圣衣'] },
+    bottom:  { p: ['暗影','虚空','圣光','混沌','天界','地狱','秘法','龙魂','星界','深渊'], s: ['护腿','战裙','长裤','腿甲','法裙','护胫','轻甲','重甲'] },
+    cape:    { p: ['暗影','虚空','圣光','混沌','天界','地狱','秘法','龙魂','星界','深渊'], s: ['披风','斗篷','羽翼','背饰','战披','幻翼','暗幕','圣翼'] },
+    face:    { p: ['暗影','虚空','圣光','混沌','天界','地狱','秘法','龙魂','星界','深渊'], s: ['面具','脸饰','护面','鬼面','圣颜','暗罩','魔纹','神面'] },
+    eyes:    { p: ['暗影','虚空','圣光','混沌','天界','地狱','秘法','龙魂','星界','深渊'], s: ['眼镜','护目','眼罩','单片镜','魔瞳','神眼','幻视','真视'] },
+    shoes:   { p: ['暗影','虚空','圣光','混沌','天界','地狱','秘法','龙魂','星界','深渊'], s: ['战靴','长靴','步履','疾风靴','铁靴','魔履','飞鞋','圣靴'] }
+  };
+  function generateDiabloEquip(slot, baseId) {
+    const rarity = rollRarity();
+    const affixes = rollAffixes(rarity);
+    const nd = DIABLO_NAMES[slot];
+    const prefix = nd.p[Math.floor(Math.random() * nd.p.length)];
+    const suffix = nd.s[Math.floor(Math.random() * nd.s.length)];
+    const ri = EQUIPMENT_RARITY[rarity];
+    return { id: `${slot}_${baseId}_${rarity}_${Date.now()}`, baseId, slot, name: `${prefix}${suffix}`, rarity, rarityName: ri.name, rarityColor: ri.color, rarityGlow: ri.glow, multiplier: ri.multiplier, affixes, affixDetails: affixes.map(a => AFFIX_POOL[a]), timestamp: Date.now() };
+  }
+  function checkEquipmentDrop() {
+    if (Math.random() >= BASE_DROP_CHANCE) return null;
+    const slots = Object.keys(EQUIP_DATA);
+    const slot = slots[Math.floor(Math.random() * slots.length)];
+    const ids = EQUIP_DATA[slot].ids;
+    const baseId = ids[Math.floor(Math.random() * ids.length)];
+    return generateDiabloEquip(slot, baseId);
+  }
+  function getInventory() { try { return JSON.parse(localStorage.getItem('kexvefuxi_inventory') || '[]'); } catch(e) { return []; } }
+  function saveInventory(inv) { localStorage.setItem('kexvefuxi_inventory', JSON.stringify(inv)); }
+  function addToInventory(item) { const inv = getInventory(); inv.push(item); saveInventory(inv); }
+  function getEquippedDiablo() { try { return JSON.parse(localStorage.getItem('kexvefuxi_equipped_diablo') || '{}'); } catch(e) { return {}; } }
+  function saveEquippedDiablo(eq) { localStorage.setItem('kexvefuxi_equipped_diablo', JSON.stringify(eq)); }
+  function getDiabloBonus() {
+    const eq = getEquippedDiablo(), inv = getInventory();
+    let mul = 1.0, drop = 0, activeAffixes = [];
+    Object.values(eq).forEach(itemId => {
+      const item = inv.find(i => i.id === itemId);
+      if (item) { mul += (item.multiplier || 1.0) - 1.0; if (item.affixes) item.affixes.forEach(a => { if (!activeAffixes.includes(a)) activeAffixes.push(a); }); }
+    });
+    if (activeAffixes.includes('LUCKY_DRAW')) drop += 0.03;
+    return { multiplier: mul, dropBonus: drop, affixes: activeAffixes };
+  }
+  function renderInventory() {
+    const inv = getInventory(), eq = getEquippedDiablo();
+    const grid = document.getElementById('inventoryGrid'), count = document.getElementById('inventoryCount');
+    if (!grid) return;
+    count.textContent = inv.length + ' 件';
+    if (!inv.length) { grid.innerHTML = '<div style="color:rgba(255,255,255,0.4);font-size:0.85em;grid-column:1/-1;text-align:center;padding:20px;">答题时有5%概率掉落装备，暗黑风格等你来！</div>'; return; }
+    let html = '';
+    [...inv].reverse().forEach(item => {
+      const r = EQUIPMENT_RARITY[item.rarity] || EQUIPMENT_RARITY[1];
+      const isEq = Object.values(eq).includes(item.id);
+      const afx = (item.affixDetails||[]).map(a => `<span style="font-size:0.7em;background:rgba(255,255,255,0.1);padding:1px 4px;border-radius:3px;margin-right:2px;">${a.icon}${a.name}</span>`).join('');
+      html += `<div style="background:rgba(255,255,255,0.05);border:2px solid ${r.border};border-radius:10px;padding:10px;cursor:pointer;transition:all 0.2s;${isEq?'box-shadow:'+r.glow+';':''}" onclick="toggleEquipDiablo('${item.id}')" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;"><span style="color:${r.color};font-weight:bold;font-size:0.85em;">${item.rarityName}</span>${isEq?'<span style="color:#4ade80;font-size:0.7em;">已装</span>':''}</div>
+        <div style="font-size:0.9em;font-weight:bold;margin-bottom:4px;">${item.name}</div>
+        <div style="font-size:0.75em;color:rgba(255,255,255,0.5);">倍率 x${item.multiplier.toFixed(2)}</div>
+        ${afx?'<div style="margin-top:4px;">'+afx+'</div>':''}
+      </div>`;
+    });
+    grid.innerHTML = html;
+  }
+  function toggleEquipDiablo(itemId) {
+    const inv = getInventory(), item = inv.find(i => i.id === itemId);
+    if (!item) return;
+    const eq = getEquippedDiablo();
+    if (Object.values(eq).includes(itemId)) { Object.keys(eq).forEach(k => { if (eq[k] === itemId) delete eq[k]; }); }
+    else { eq[item.slot] = itemId; }
+    saveEquippedDiablo(eq); renderInventory(); updateCharacterStats();
+  }
+
+  // ============ 弹窗系统 ============
+  function openModal(modalId) {
+    document.getElementById(modalId).classList.add('active');
+    if (modalId === 'achievementsModal') renderAchievementsGrid();
+    if (modalId === 'equipmentModal') { renderEquipGrid(); renderInventory(); }
+    if (modalId === 'characterModal') updateCharacterStats();
+  }
+  
+  function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('active');
+  }
+  
+  function closeModalOnOverlay(event, modalId) {
+    if (event.target === event.currentTarget) {
+      closeModal(modalId);
+    }
+  }
+
+  // ============ 成就网格渲染 ============
+  function renderAchievementsGrid() {
+    const grid = document.getElementById('achievementsGrid');
+    const unlockedIds = loadAchievements();
+    
+    let html = '';
+    ALL_ACHIEVEMENTS.forEach(a => {
+      const unlocked = unlockedIds.includes(a.id);
+      html += `
+        <div class="achievement-card ${unlocked ? 'unlocked' : 'locked'}">
+          <div class="achievement-icon">${a.icon}</div>
+          <div class="achievement-name">${a.name}</div>
+          <div class="achievement-desc">${a.desc}</div>
+        </div>
+      `;
+    });
+    grid.innerHTML = html;
+  }
+
+  // ============ 装备属性数据 ============
+  const EQUIP_ATTR = {
+    // 帽子
+    "1000011": {str:2,dex:1,int:0,luk:1,scoreRate:1.03,dropRate:0.02},
+    "1000095": {str:1,dex:2,int:1,luk:0,scoreRate:1.02,dropRate:0.01},
+    "1000206": {str:4,dex:3,int:0,luk:2,scoreRate:1.06,dropRate:0.04},
+    "1001019": {str:0,dex:4,int:3,luk:2,scoreRate:1.07,dropRate:0.05},
+    "1001036": {str:2,dex:2,int:4,luk:3,scoreRate:1.08,dropRate:0.05},
+    "1001066": {str:5,dex:4,int:1,luk:0,scoreRate:1.09,dropRate:0.06},
+    "1001152": {str:1,dex:3,int:5,luk:4,scoreRate:1.12,dropRate:0.07},
+    "1002016": {str:0,dex:2,int:8,luk:3,scoreRate:1.15,dropRate:0.08},
+    "1002024": {str:3,dex:1,int:6,luk:5,scoreRate:1.13,dropRate:0.07},
+    "1002059": {str:9,dex:5,int:0,luk:2,scoreRate:1.16,dropRate:0.09},
+    "1002081": {str:2,dex:5,int:2,luk:1,scoreRate:1.04,dropRate:0.03},
+    "1002115": {str:4,dex:2,int:3,luk:6,scoreRate:1.14,dropRate:0.08},
+    "1002131": {str:1,dex:3,int:2,luk:2,scoreRate:1.03,dropRate:0.02},
+    "1002208": {str:2,dex:4,int:5,luk:3,scoreRate:1.10,dropRate:0.06},
+    "1002284": {str:3,dex:6,int:2,luk:7,scoreRate:1.20,dropRate:0.11},
+    "1002346": {str:6,dex:7,int:1,luk:2,scoreRate:1.19,dropRate:0.10},
+    "1002391": {str:2,dex:2,int:1,luk:1,scoreRate:1.02,dropRate:0.01},
+    "1002403": {str:12,dex:8,int:3,luk:4,scoreRate:1.26,dropRate:0.16},
+    // 上衣
+    "1040027": {str:2,dex:2,int:2,luk:1,scoreRate:1.03,dropRate:0.02},
+    "1040147": {str:7,dex:3,int:1,luk:4,scoreRate:1.11,dropRate:0.07},
+    "1040191": {str:1,dex:5,int:3,luk:2,scoreRate:1.07,dropRate:0.04},
+    "1041031": {str:3,dex:2,int:7,luk:5,scoreRate:1.14,dropRate:0.08},
+    "1041058": {str:8,dex:6,int:0,luk:3,scoreRate:1.17,dropRate:0.09},
+    "1042004": {str:1,dex:3,int:4,luk:2,scoreRate:1.06,dropRate:0.04},
+    "1042058": {str:5,dex:4,int:1,luk:1,scoreRate:1.08,dropRate:0.05},
+    "1042089": {str:6,dex:2,int:3,luk:5,scoreRate:1.12,dropRate:0.07},
+    "1042140": {str:4,dex:7,int:2,luk:3,scoreRate:1.15,dropRate:0.08},
+    "1042259": {str:1,dex:2,int:5,luk:4,scoreRate:1.09,dropRate:0.05},
+    "1042337": {str:2,dex:1,int:3,luk:3,scoreRate:1.05,dropRate:0.03},
+    "1042367": {str:3,dex:4,int:2,luk:6,scoreRate:1.10,dropRate:0.06},
+    "1040800": {str:11,dex:9,int:2,luk:3,scoreRate:1.22,dropRate:0.12},
+    "1042202": {str:15,dex:10,int:4,luk:6,scoreRate:1.30,dropRate:0.18},
+    // 裤裙
+    "1060077": {str:3,dex:2,int:1,luk:1,scoreRate:1.04,dropRate:0.02},
+    "1060103": {str:1,dex:3,int:2,luk:2,scoreRate:1.03,dropRate:0.02},
+    "1060600": {str:2,dex:1,int:3,luk:5,scoreRate:1.07,dropRate:0.04},
+    "1061031": {str:4,dex:5,int:1,luk:2,scoreRate:1.09,dropRate:0.05},
+    "1061047": {str:2,dex:2,int:6,luk:4,scoreRate:1.11,dropRate:0.06},
+    "1061070": {str:7,dex:4,int:0,luk:3,scoreRate:1.13,dropRate:0.07},
+    "1061077": {str:1,dex:3,int:8,luk:2,scoreRate:1.15,dropRate:0.08},
+    "1061150": {str:5,dex:6,int:2,luk:1,scoreRate:1.10,dropRate:0.06},
+    "1061208": {str:3,dex:2,int:4,luk:7,scoreRate:1.16,dropRate:0.09},
+    "1062117": {str:4,dex:8,int:3,luk:5,scoreRate:1.21,dropRate:0.12},
+    "1062203": {str:6,dex:5,int:6,luk:4,scoreRate:1.23,dropRate:0.13},
+    "1062294": {str:9,dex:7,int:10,luk:8,scoreRate:1.28,dropRate:0.17},
+    // 披风
+    "1100033": {str:8,dex:5,int:4,luk:6,scoreRate:1.18,dropRate:0.10},
+    "1102065": {str:2,dex:2,int:3,luk:2,scoreRate:1.06,dropRate:0.04},
+    "1102167": {str:3,dex:4,int:2,luk:3,scoreRate:1.08,dropRate:0.05},
+    "1102275": {str:10,dex:9,int:3,luk:4,scoreRate:1.24,dropRate:0.14},
+    "1102310": {str:18,dex:12,int:15,luk:10,scoreRate:1.33,dropRate:0.20},
+    // 脸饰
+    "1010006": {str:6,dex:3,int:1,luk:2,scoreRate:1.09,dropRate:0.05},
+    "1011015": {str:2,dex:7,int:4,luk:3,scoreRate:1.12,dropRate:0.07},
+    "1012054": {str:3,dex:2,int:9,luk:4,scoreRate:1.14,dropRate:0.08},
+    "1012147": {str:7,dex:6,int:5,luk:8,scoreRate:1.17,dropRate:0.09},
+    "1012222": {str:1,dex:8,int:3,luk:2,scoreRate:1.10,dropRate:0.06},
+    "1012300": {str:2,dex:1,int:2,luk:4,scoreRate:1.05,dropRate:0.03},
+    "1012395": {str:4,dex:3,int:5,luk:1,scoreRate:1.07,dropRate:0.04},
+    "1012397": {str:3,dex:2,int:7,luk:5,scoreRate:1.13,dropRate:0.07},
+    "1012458": {str:5,dex:4,int:3,luk:9,scoreRate:1.20,dropRate:0.11},
+    // 眼饰
+    "1020001": {str:4,dex:6,int:2,luk:3,scoreRate:1.08,dropRate:0.05},
+    "1020213": {str:1,dex:2,int:6,luk:2,scoreRate:1.06,dropRate:0.04},
+    "1022058": {str:5,dex:9,int:3,luk:4,scoreRate:1.16,dropRate:0.09},
+    "1022310": {str:12,dex:11,int:8,luk:7,scoreRate:1.25,dropRate:0.15},
+    // 鞋子
+    "1070038": {str:3,dex:8,int:1,luk:2,scoreRate:1.11,dropRate:0.06},
+    "1070098": {str:6,dex:10,int:2,luk:3,scoreRate:1.18,dropRate:0.10},
+    "1070113": {str:2,dex:3,int:2,luk:3,scoreRate:1.04,dropRate:0.03},
+    "1070139": {str:4,dex:5,int:4,luk:2,scoreRate:1.09,dropRate:0.05},
+    "1070147": {str:1,dex:4,int:3,luk:5,scoreRate:1.07,dropRate:0.04},
+    "1071026": {str:5,dex:2,int:1,luk:4,scoreRate:1.08,dropRate:0.05},
+    "1071095": {str:3,dex:6,int:5,luk:2,scoreRate:1.12,dropRate:0.07},
+    "1071122": {str:7,dex:4,int:3,luk:6,scoreRate:1.15,dropRate:0.08},
+    "1071149": {str:2,dex:5,int:7,luk:4,scoreRate:1.13,dropRate:0.07},
+    "1072109": {str:8,dex:7,int:2,luk:5,scoreRate:1.19,dropRate:0.11},
+    "1072148": {str:4,dex:3,int:8,luk:6,scoreRate:1.16,dropRate:0.09},
+    "1072221": {str:6,dex:9,int:4,luk:3,scoreRate:1.21,dropRate:0.12},
+    "1072222": {str:5,dex:6,int:7,luk:8,scoreRate:1.22,dropRate:0.13},
+    "1072237": {str:9,dex:5,int:6,luk:7,scoreRate:1.24,dropRate:0.14},
+    "1072322": {str:11,dex:13,int:8,luk:9,scoreRate:1.27,dropRate:0.16}
+  };
+
+  // ============ 装备网格渲染 ============
+  let currentEquipFilter = 'all';
+  
+  function filterEquip(category) {
+    currentEquipFilter = category;
+    document.querySelectorAll('.equip-tab').forEach(tab => {
+      tab.classList.toggle('active', tab.dataset.cat === category);
+    });
+    renderEquipGrid();
+  }
+  
+  function renderEquipGrid() {
+    const grid = document.getElementById('equipGrid');
+    let html = '';
+    
+    Object.keys(EQUIP_DATA).forEach(slot => {
+      if (currentEquipFilter !== 'all' && slot !== currentEquipFilter) return;
+      
+      const { folder, ids } = EQUIP_DATA[slot];
+      ids.forEach(id => {
+        const url = getIconUrl(folder, id);
+        const selected = equipped[slot] === id ? 'selected' : '';
+        html += `
+          <div class="equip-item ${selected}" onclick="equipItem('${slot}', '${id}'); renderEquipGrid();">
+            <img src="${url}" alt="${id}">
+          </div>
+        `;
+      });
+    });
+    
+    grid.innerHTML = html;
+  }
+
+  // ============ 角色属性计算 ============
+  function updateCharacterStats() {
+    let str = 0, dex = 0, int = 0, luk = 0, scoreRate = 1.0, dropRate = 0.10;
+    
+    Object.keys(equipped).forEach(slot => {
+      const id = equipped[slot];
+      if (id && EQUIP_ATTR[id]) {
+        const attr = EQUIP_ATTR[id];
+        str += attr.str || 0;
+        dex += attr.dex || 0;
+        int += attr.int || 0;
+        luk += attr.luk || 0;
+        scoreRate += (attr.scoreRate || 1.0) - 1.0;
+        dropRate += attr.dropRate || 0;
+      }
+    });
+    
+    document.getElementById('statStr').textContent = str;
+    document.getElementById('statDex').textContent = dex;
+    document.getElementById('statInt').textContent = int;
+    document.getElementById('statLuk').textContent = luk;
+    document.getElementById('statScoreRate').textContent = scoreRate.toFixed(2) + 'x';
+    document.getElementById('statDropRate').textContent = Math.round(dropRate * 100) + '%';
+    
+    // 暗黑装备加成
+    const diablo = getDiabloBonus();
+    document.getElementById('statScoreRate').textContent = (scoreRate * diablo.multiplier).toFixed(2) + 'x';
+    document.getElementById('statDropRate').textContent = Math.round((dropRate + diablo.dropBonus) * 100) + '%';
+    const affixRow = document.getElementById('statAffixes');
+    if (affixRow) {
+      affixRow.innerHTML = diablo.affixes.length
+        ? diablo.affixes.map(a => { const d = AFFIX_POOL[a]; return d ? `<span style="background:rgba(255,255,255,0.1);padding:2px 6px;border-radius:4px;font-size:0.75em;margin-right:4px;">${d.icon}${d.name}</span>` : ''; }).join('')
+        : '<span style="color:rgba(255,255,255,0.3)">无</span>';
+    }
+    
+    // 更新角色图
+    document.getElementById('modalCharImg').src = currentGender === 'girl' 
+      ? 'generated-assets/char_girl_base.png' 
+      : 'generated-assets/char_boy_base.png';
+  }
+
+</script>
+
+  <!-- 更新日志 -->
+  <div class="update-log" id="updateLog">
+    <div class="update-log-header" onclick="toggleUpdateLog()">
+      <span class="update-version">v2.4</span>
+      <button class="update-log-toggle" onclick="event.stopPropagation(); toggleUpdateLog()">📋▶</button>
+    </div>
+    <div class="update-content" id="updateContent" style="display:none">
+      <div class="update-item">🔧 修复五年级装备背包引号嵌套导致登录失效</div>
+      <div class="update-item">🔧 修复点击「开始挑战」无响应问题</div>
+      <div class="update-item">✅ 全年级语法检查通过</div>
+      <div class="update-item">Q版人物换装系统</div>
+      <div class="update-item">谭老师愤怒水杯(金装)</div>
+      <div class="update-item">每题5%掉落装备</div>
+    </div>
+  </div>
+
+  <!-- Q版可拖动人物 + 装备层叠系统 -->
+  <div class="char-wrapper" id="charWrapper">
+    <div class="char-base" id="charBase">
+      <img class="char-base-img" id="charBaseImg" src="generated-assets/char_girl_base.png" alt="Q版角色">
+      <div class="char-body"></div>
+    </div>
+    <img class="char-equip" id="equip-top" src="" style="display:none">
+    <img class="char-equip" id="equip-bottom" src="" style="display:none">
+    <img class="char-equip" id="equip-hat" src="" style="display:none">
+    <img class="char-equip" id="equip-cape" src="" style="display:none">
+    <img class="char-equip" id="equip-face" src="" style="display:none">
+    <img class="char-equip" id="equip-eyes" src="" style="display:none">
+    <img class="char-equip" id="equip-shoes" src="" style="display:none">
+  </div>
+  <button class="char-gender-btn" id="charGenderBtn" onclick="toggleGender()">👧</button>
+  <button class="char-toggle-btn" id="charToggleBtn" onclick="toggleCharPanel()">&#128170; 换装</button>
+  <div class="char-panel" id="charPanel" style="display:none">
+    <div class="char-panel-section">
+      <div class="char-panel-title">&#129511; 上衣</div>
+      <div class="char-panel-items" id="items-top"></div>
+    </div>
+    <div class="char-panel-section">
+      <div class="char-panel-title">&#128094; 裤裙</div>
+      <div class="char-panel-items" id="items-bottom"></div>
+    </div>
+    <div class="char-panel-section">
+      <div class="char-panel-title">&#129513; 帽子</div>
+      <div class="char-panel-items" id="items-hat"></div>
+    </div>
+    <div class="char-panel-section">
+      <div class="char-panel-title">&#128230; 披风</div>
+      <div class="char-panel-items" id="items-cape"></div>
+    </div>
+    <div class="char-panel-section">
+      <div class="char-panel-title">&#128065; 脸饰</div>
+      <div class="char-panel-items" id="items-face"></div>
+    </div>
+    <div class="char-panel-section">
+      <div class="char-panel-title">&#128064; 眼饰</div>
+      <div class="char-panel-items" id="items-eyes"></div>
+    </div>
+    <div class="char-panel-section">
+      <div class="char-panel-title">&#128095; 鞋子</div>
+      <div class="char-panel-items" id="items-shoes"></div>
+    </div>
+  </div>
+
+</body>
+</html>
