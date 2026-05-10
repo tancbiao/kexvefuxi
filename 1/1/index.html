@@ -1481,7 +1481,15 @@ function loginWithId() {
   showScreen('courseScreen');
 }
 
-function loginAsGuest()
+function loginAsGuest() {
+  gameState.studentId = null;
+  gameState.isGuest = true;
+  hideLoginScreen();
+  checkAndResetStamina();
+  updateStaminaDisplay();
+  document.getElementById('studentDisplay').textContent = '游客';
+  showScreen('courseScreen');
+}
 
 // 高亮选中上下册
 function showSemesters(grade) {
