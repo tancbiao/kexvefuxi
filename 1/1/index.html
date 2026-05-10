@@ -1955,7 +1955,7 @@ function selectOption(idx) {
     if (q.difficulty === 'hard') points = 20;
     points = Math.floor(points * (1 + gameState.currentStreak * 0.1));
     // 重新刷题只给50%积分
-    if (gameState.isReplay) points = Math.floor(points * 0.5);
+    if (gameState.isReplay) points = Math.floor(points * 0.1);
     // 成就积分加成
     const achBonus = calcAchievementBonuses();
     if (achBonus.totalPointsMul > 1) points = Math.floor(points * achBonus.totalPointsMul);
@@ -2960,6 +2960,23 @@ function loadUserData() {
             oldData.unlockedAchievements.forEach(function(a) {
               if (mergedAchievements.indexOf(a) === -1) mergedAchievements.push(a);
             });
+          }
+          // 迁移课时进度到 per-course key
+          if (oldData.lessonProgress && Object.keys(oldData.lessonProgress).length > 0) {
+            var progressKey = 'progress_grade' + oldGrades[gi] + '2_' + gameState.studentId;
+            var existingProgress = {};
+            try {
+              var existingRaw = localStorage.getItem(progressKey);
+              if (existingRaw) existingProgress = JSON.parse(existingRaw);
+            } catch(e) {}
+            // 合并进度（取最大值）
+            for (var lid in oldData.lessonProgress) {
+              if (oldData.lessonProgress[lid] > (existingProgress[lid] || 0)) {
+                existingProgress[lid] = oldData.lessonProgress[lid];
+              }
+            }
+            localStorage.setItem(progressKey, JSON.stringify(existingProgress));
+            console.log('✅ 已迁移' + oldGrades[gi] + '年级课时进度');
           }
           // 删除旧 key
           localStorage.removeItem(oldKey);
