@@ -1525,6 +1525,16 @@ let currentCourse = null; // { grade: '6', sem: '2' }
 function loginWithId() {
   const id = document.getElementById('studentIdInput').value.trim();
   if (id.length !== 8 || !/^\d+$/.test(id)) { alert('请输入正确的8位数字学号！'); return; }
+  // 重置所有数据（防止旧用户数据残留）
+  gameState.totalPoints = 0;
+  gameState.lessonProgress = {};
+  gameState.unlockedAchievements = [];
+  gameState.equipment = [];
+  gameState.equippedSlots = {};
+  gameState.pets = {};
+  gameState.petPieces = {};
+  gameState.currentStreak = 0;
+  gameState.maxStreak = 0;
   gameState.studentId = id;
   gameState.isGuest = false;
   hideLoginScreen();
@@ -1558,6 +1568,14 @@ function showSemesters(grade) {
 // 退出到选课
 function logout() {
   gameState.studentId = null;
+  // 清理用户数据防止串号
+  gameState.totalPoints = 0;
+  gameState.equipment = [];
+  gameState.equippedSlots = {};
+  gameState.pets = {};
+  gameState.petPieces = {};
+  gameState.unlockedAchievements = [];
+  gameState.lessonProgress = {};
   localStorage.removeItem('rememberedStudentId');
   showScreen('courseScreen');
   // 显示登录弹窗以便重新登录
