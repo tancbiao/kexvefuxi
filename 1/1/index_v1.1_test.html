@@ -3803,7 +3803,15 @@ function renderRankList(listEl, arr, sortField, myId) {
     }
     const isMe = (item.studentId === myId);
     const val = item[sortField] || 0;
-    const valStr = (sortField === 'equipBonus') ? '×' + val.toFixed(2) : val.toLocaleString();
+    // Hide scores over 500k with stars
+    let valStr;
+    if (sortField === 'totalPoints' && val >= 500000) {
+      valStr = '⭐⭐⭐⭐⭐';
+    } else if (sortField === 'equipBonus') {
+      valStr = '×' + val.toFixed(2);
+    } else {
+      valStr = val.toLocaleString();
+    }
 
     html += '<div class="ranking-item' + (isMe ? ' me' : '') + '">' +
       '<div class="ranking-pos ' + posClass + '">' + rank + '</div>' +
