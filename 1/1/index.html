@@ -2930,30 +2930,59 @@ function loadUserData() {
   const localData = saved ? JSON.parse(saved) : null;
   if (localData) { applyUserData(localData); console.log('使用本地存档'); }
 
-  // 【迁移】从旧版本 key (scienceGame6_user_) 迁移装备数据
-  if (!localData || !localData.equipment || localData.equipment.filter(Boolean).length === 0) {
+  // 【迁移】从旧版本 per-grade key 迁移所有存档数据
+  var migrated = false;
+  var oldGrades = ['3', '4', '5', '6'];
+  var mergedEquip = [];
+  var mergedPoints = gameState.totalPoints || 0;
+  var mergedAchievements = gameState.unlockedAchievements || [];
+  var mergedSlots = {};
+
+  for (var gi = 0; gi < oldGrades.length; gi++) {
     try {
-      const oldKey = 'scienceGame6_user_' + gameState.studentId;
-      const oldRaw = localStorage.getItem(oldKey);
+      var oldKey = 'scienceGame' + oldGrades[gi] + '_user_' + gameState.studentId;
+      var oldRaw = localStorage.getItem(oldKey);
       if (oldRaw) {
-        const oldData = JSON.parse(oldRaw);
-        if (oldData && oldData.equipment && oldData.equipment.filter(Boolean).length > 0) {
-          gameState.equipment = oldData.equipment;
-          gameState.equippedSlots = oldData.equippedSlots || {};
-          gameState.totalPoints = Math.max(gameState.totalPoints || 0, oldData.totalPoints || 0);
-          gameState.unlockedAchievements = oldData.unlockedAchievements || gameState.unlockedAchievements || [];
-          localStorage.setItem(saveKey, JSON.stringify({
-            totalPoints: gameState.totalPoints,
-            equipment: gameState.equipment,
-            equippedSlots: gameState.equippedSlots,
-            pets: gameState.pets || {},
-            petPieces: gameState.petPieces || {},
-            unlockedAchievements: gameState.unlockedAchievements
-          }));
-          console.log('✅ 已从旧版本迁移装备数据');
+        var oldData = JSON.parse(oldRaw);
+        if (oldData) {
+          // 合并装备（取装备最多的那个年级）
+          if (oldData.equipment) {
+            var equipCount = oldData.equipment.filter(Boolean).length;
+            if (equipCount > mergedEquip.filter(Boolean).length) {
+              mergedEquip = oldData.equipment;
+              mergedSlots = oldData.equippedSlots || {};
+            }
+          }
+          // 合并积分（累加）
+          mergedPoints += oldData.totalPoints || 0;
+          // 合并成就
+          if (oldData.unlockedAchievements) {
+            oldData.unlockedAchievements.forEach(function(a) {
+              if (mergedAchievements.indexOf(a) === -1) mergedAchievements.push(a);
+            });
+          }
+          // 删除旧 key
+          localStorage.removeItem(oldKey);
+          migrated = true;
         }
       }
-    } catch(e) { console.log('装备迁移跳过:', e.message); }
+    } catch(e) { /* ignore one grade error */ }
+  }
+
+  if (migrated) {
+    gameState.equipment = mergedEquip;
+    gameState.equippedSlots = mergedSlots;
+    gameState.totalPoints = mergedPoints;
+    gameState.unlockedAchievements = mergedAchievements;
+    localStorage.setItem(saveKey, JSON.stringify({
+      totalPoints: gameState.totalPoints,
+      equipment: gameState.equipment,
+      equippedSlots: gameState.equippedSlots,
+      pets: gameState.pets || {},
+      petPieces: gameState.petPieces || {},
+      unlockedAchievements: gameState.unlockedAchievements
+    }));
+    console.log('✅ 已迁移旧版本数据 (3/4/5/6年级合并)');
   }
 
   // 【安全修复】从宠物系统的 localStorage 同步积分
