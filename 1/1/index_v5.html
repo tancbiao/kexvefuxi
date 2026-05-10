@@ -1526,6 +1526,23 @@ function showScreen(screenId) {
 function showLoginScreen() { document.getElementById('loginOverlay').classList.add('show'); }
 function hideLoginScreen() { document.getElementById('loginOverlay').classList.remove('show'); }
 
+async function submitQuestionStat(questionId, isCorrect) {
+  if (!questionId || gameState.isGuest || !gameState.studentId) return;
+  try {
+    const res = await fetch('https://api.kexvefuxi.cn/api/question/stats', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({questionId: questionId, studentId: gameState.studentId, correct: isCorrect})
+    });
+    if (res.ok) {
+      const d = await res.json();
+      const el = document.getElementById('questionStats');
+      if (el && d.total > 0) {
+        el.innerHTML = '<span style="color:#ff6b6b;">👾 被该题击败 ' + (d.wrong || 0) + ' 次</span> | <span style="color:#4ecdc4;">🔥 已击败它 ' + (d.myCorrect || 0) + ' 次</span>';
+      }
+    }
+  } catch(e) {}
+}
 let currentCourse = null; // { grade: '6', sem: '2' }
 
 function loginWithId() {
@@ -1940,7 +1957,8 @@ function selectOption(idx) {
 
   options.forEach(opt => opt.classList.add('disabled'));
 
-  const isCorrect = idx === q.answer;
+  const isCorrect = idx === q.answer;submitQuestionStat((q.id || q.q || ""), isCorrect);
+  
   options[idx].classList.add(isCorrect ? 'correct' : 'wrong');
   if (!isCorrect) options[q.answer].classList.add('correct');
 
