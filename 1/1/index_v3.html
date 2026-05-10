@@ -1546,7 +1546,8 @@ gameState.studentName = (typeof getStudentName === 'function') ? (getStudentName
   updateStatusBar();
   // 显示选课界面
   document.getElementById('studentDisplay').textContent = id + ' 同学';
-  showScreen('courseScreen');
+  showScreen('courseScreen');
+  showNoticeIfActive();
 }
 
 function loginAsGuest() {
