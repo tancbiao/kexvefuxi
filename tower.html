@@ -915,7 +915,34 @@ const run = {
 // ⚠️ 答案均默认为 index 0，后续需要根据正确答案修正
 // 判断题 options=['对','错']  选择题 options=选项内容
 // 六年级科学题库（门口易测导出，含原始文本）
-const TOWER_QUESTIONS = [
+// Store loaded questions (from API or built-in)
+// towerQuestions defined below in built-in array
+
+// Load questions from cloud API based on grade
+async function loadTowerQuestions(studentId) {
+  try {
+    // Get grade from student ID
+    var gradeRes = await fetch('https://api.kexvefuxi.cn/api/grade/by-student/' + studentId);
+    var gradeData = await gradeRes.json();
+    var grade = gradeData.grade || '6';
+    
+    // Try to load from API
+    var res = await fetch('https://api.kexvefuxi.cn/api/questionbank/' + grade);
+    if (res.ok) {
+      var data = await res.json();
+      if (data && data.length > 0) {
+        towerQuestions = data;
+        console.log('Loaded ' + data.length + ' questions for grade ' + grade + ' from cloud');
+        return;
+      }
+    }
+  } catch(e) { console.log('Failed to load cloud questions, using built-in'); }
+  
+  // Fallback to built-in
+  towerQuestions = towerQuestions;
+}
+
+var towerQuestions = [
   {
     "id": "x1",
     "question": "从尼龙搭扣到飞机，都是人类模仿生物设计的产品。它们大大地提高了人类的生产效率，改善了人们的生活。",
@@ -1453,12 +1480,12 @@ function shuffleArray(arr) {
 let questionPool = [];
 
 function refillQuestionPool() {
-  questionPool = shuffleArray([...TOWER_QUESTIONS]);
+  questionPool = shuffleArray([...towerQuestions]);
 }
 
 function getNextQuestion() {
   if (questionPool.length === 0) refillQuestionPool();
-  return questionPool.shift() || TOWER_QUESTIONS[0];
+  return questionPool.shift() || towerQuestions[0];
 }
 
 // ============================================================
