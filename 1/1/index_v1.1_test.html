@@ -1624,7 +1624,10 @@ function updateStatusBar() {
   document.getElementById('totalPoints').textContent = gameState.totalPoints;
   document.getElementById('currentStreak').textContent = gameState.currentStreak;
   document.getElementById('streakIcon').style.display = gameState.currentStreak >= 2 ? 'inline' : 'none';
-  document.getElementById('userBadge').textContent = gameState.isGuest ? '🚶 游客' : `👤 ${gameState.studentId}`;
+  var displayName = gameState.isGuest ? '游客' : (gameState.studentName || gameState.studentId);
+  document.getElementById('userBadge').textContent = gameState.isGuest ? '🚶 游客' : '👤 ' + displayName;
+  var sd = document.getElementById('studentDisplay');
+  if (sd) sd.textContent = (gameState.studentName || gameState.studentId) + ' 同学';
   // 装备计数
   initInventory62();
   const equipCount = (gameState.equipment || []).filter(Boolean).length;
@@ -4064,6 +4067,17 @@ postNotification = function(type, message) {
   showDanmaku(type, message);
   return _origPost(type, message);
 };
+
+// Fetch student name from cloud
+async function fetchStudentName(studentId) {
+  if (!studentId) return '';
+  try {
+    const res = await fetch(API_BASE + '/student/info/' + studentId);
+    if (!res.ok) return '';
+    const data = await res.json();
+    return data.name || '';
+  } catch(e) { return ''; }
+}
 
 const NOTIFY_API = API_BASE + '/notifications';
 
