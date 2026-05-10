@@ -331,6 +331,9 @@ body {
 .battle-log .log-dodge { color: #60a5fa; font-weight: bold; }
 .battle-log .log-skill { color: #ffd700; font-weight: bold; }
 
+
+.q-question-text { font-size: 1.05em; line-height: 1.6; margin-bottom: 10px; }
+.q-material { background: rgba(255,255,255,0.04); border-left: 3px solid #ffd700; padding: 10px 14px; margin-bottom: 12px; border-radius: 0 8px 8px 0; font-size: 0.9em; line-height: 1.5; color: rgba(255,255,255,0.85); }
 /* 答题区域 */
 .quiz-area {
   background: rgba(255,255,255,0.05);
@@ -948,8 +951,8 @@ const TOWER_QUESTIONS = [
   { id: 'x33', question: '潮汐能主要的利用方式是(    )。', options: ['蓄水', '建造水库', '发电'], answer: 2 },
   { id: 'x34', question: '潮汐是一种(    )能源。', options: ['可再生', '不可再生', '化石'], answer: 0 },
   { id: 'x35', question: '能量有着不同的表现形式，下列选项中不能说明运动的物体具有能量的是', options: ['把钉子锤进木板', '有电的钟表', '静止的桌子'], answer: 2 },
-  { id: 'x36', question: '该实验研究的问题是(    )。', options: ['金属是否具有热胀冷缩的性质', '不同金属的传热速度', '热的传递过程的特点'], answer: 2 },
-  { id: 'x37', question: '实验中，①、②、③处的三颗绿豆，最后掉落的是(    )。', options: ['①', '②', '③'], answer: 2 },
+  { id: 'x36', question: '实验：在铜棒上均匀固定三颗绿豆，铜棒一端用酒精灯加热。该实验研究的问题是(    )。', options: ['金属是否具有热胀冷缩的性质', '不同金属的传热速度', '热的传递过程的特点'], answer: 2 },
+  { id: 'x37', question: '实验中，在铜棒上均匀固定①、②、③三颗绿豆，铜棒左端用酒精灯加热。最后掉落的是(    )。', options: ['①', '②', '③'], answer: 2 },
   { id: 'x38', question: '实验中酒精灯通过热传导使黄油熔化。下列事例中，', options: ['用暖水袋取暖', '运动时感到热', '太阳把被子晒热'], answer: 0 },
   { id: 'x39', question: '如果把铜棒换成同样粗细的铁棒重复实验，绿豆掉落的速度会(   )。', options: ['变快', '变慢', '不变'], answer: 1 },
   { id: 'x40', question: '下列关于热传导的说法，正确的是(    )。', options: ['热传导只能在固体中发生', '热传导时，热总是从温度高的地方传向温度低的地方', '所有物体的传热速度都一样'], answer: 1 },
@@ -1630,7 +1633,10 @@ function startPlayerTurn() {
 function showNextQuestion() {
   const q = getNextQuestion();
   currentQuestion = q;
-  document.getElementById('qText').textContent = q.question;
+  var qHtml = '<div class="q-question-text">' + q.question + '</div>';
+  if (q.material) qHtml = '<div class="q-material">' + q.material + '</div>' + qHtml;
+  if (q.table) qHtml = qHtml + '<div class="q-table">' + q.table + '</div>';
+  document.getElementById('qText').innerHTML = qHtml;
 
   const container = document.getElementById('qOptions');
   container.innerHTML = q.options.map((opt, i) =>
@@ -1922,7 +1928,10 @@ function doMonsterDamageToPlayer(customAtk, callback, ignoreDodge, sureHit, dmgM
 
   const q = getNextQuestion();
   currentQuestion = q;
-  document.getElementById('qText').textContent = q.question;
+  var qHtml = '<div class="q-question-text">' + q.question + '</div>';
+  if (q.material) qHtml = '<div class="q-material">' + q.material + '</div>' + qHtml;
+  if (q.table) qHtml = qHtml + '<div class="q-table">' + q.table + '</div>';
+  document.getElementById('qText').innerHTML = qHtml;
 
   const container = document.getElementById('qOptions');
   container.innerHTML = q.options.map((opt, i) =>
