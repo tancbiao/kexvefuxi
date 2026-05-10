@@ -2979,7 +2979,7 @@ function loadUserData() {
   // 【安全修复】从宠物系统的 localStorage 同步积分
   // petSystemStateV2 是全局键，必须校验 studentId 防串号
   try {
-    const petRaw = localStorage.getItem('petSystemStateV2');
+    const petRaw = localStorage.getItem('petSystemStateV2_' + (gameState.studentId || ''));
     if (petRaw) {
       const petState = JSON.parse(petRaw);
       // 必须 studentId 匹配，否则会串到别人的积分

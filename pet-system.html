@@ -1293,6 +1293,29 @@
                 gameState.studentId = e.data.studentId;
                 gameState.points = e.data.points || 0;
                 parentOrigin = e.origin || '*';
+                // 加载该学生的宠物数据
+                var petKey = 'petSystemStateV2_' + gameState.studentId;
+                var saved = localStorage.getItem(petKey);
+                if (saved) {
+                    try {
+                        var loaded = JSON.parse(saved);
+                        for (var pk in loaded) gameState[pk] = loaded[pk];
+                    } catch(ex) {}
+                }
+                // 从旧全局 key 迁移
+                if (!saved) {
+                    var oldSaved = localStorage.getItem('petSystemStateV2');
+                    if (oldSaved) {
+                        try {
+                            var oldData = JSON.parse(oldSaved);
+                            if (oldData) {
+                                localStorage.setItem(petKey, oldSaved);
+                                localStorage.removeItem('petSystemStateV2');
+                                for (var pk2 in oldData) gameState[pk2] = oldData[pk2];
+                            }
+                        } catch(ex) {}
+                    }
+                }
                 updateUI();
                 showToast('已同步答题积分！', 'success');
             } else if (e.data.type === 'sync_pet_points') {
@@ -1350,7 +1373,8 @@
         }
 
         function loadGame() {
-            const saved = localStorage.getItem('petSystemStateV2');
+            var key = 'petSystemStateV2_' + (gameState.studentId || '');
+            const saved = localStorage.getItem(key);
             if (saved) {
                 gameState = JSON.parse(saved);
                 // 兼容旧存档：确保battlePets字段存在
@@ -1361,7 +1385,8 @@
         }
 
         function saveGame() {
-            localStorage.setItem('petSystemStateV2', JSON.stringify(gameState));
+            var key = 'petSystemStateV2_' + (gameState.studentId || '');
+            localStorage.setItem(key, JSON.stringify(gameState));
         }
 
         function updateUI() {
