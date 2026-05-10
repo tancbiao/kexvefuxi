@@ -1330,7 +1330,7 @@ const equipmentSystem = {
     { id: 'combo', name: '连击保护' }
   ],
   generateEquip(levelKey, typeId) {
-    const rarity = LEVEL_TO_RARITY[levelKey] || 1;
+    const rarity = EQUIP_RARITY[levelKey] || 1;
     if (typeof window.generateEquip === 'function') return window.generateEquip(rarity, typeId);
     const names = ['普通','精致','良好','稀有','史诗','传说','神话'];
     const colors = ['#9e9e9e','#4caf50','#2196f3','#9c27b0','#e91e63','#ffd700','#ff5722'];
@@ -2200,7 +2200,7 @@ function tryDropEquip(isUnitComplete, penalty) {
 
 function dropEquip(levelKey) {
   const typeInfo = ALL_EQUIP_TYPES[Math.floor(Math.random() * ALL_EQUIP_TYPES.length)];
-  const rarity = LEVEL_TO_RARITY[levelKey] || 1;
+  const rarity = EQUIP_RARITY[levelKey] || 1;
   const equip = generateEquip(rarity, typeInfo.id);
 
   if (!gameState.equipment) gameState.equipment = new Array(100).fill(null);
