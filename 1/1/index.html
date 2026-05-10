@@ -1330,11 +1330,11 @@ const equipmentSystem = {
     { id: 'combo', name: '连击保护' }
   ],
   generateEquip(levelKey, typeId) {
-    const rarity = EQUIP_RARITY[levelKey] || 1;
-    if (typeof window.generateEquip === 'function') return window.generateEquip(rarity, typeId);
+    const rarityNum = typeof levelKey === 'number' ? levelKey : (LEVEL_TO_RARITY[levelKey] || 1);
+    if (typeof window.generateEquip === 'function') return window.generateEquip(rarityNum, typeId);
     const names = ['普通','精致','良好','稀有','史诗','传说','神话'];
     const colors = ['#9e9e9e','#4caf50','#2196f3','#9c27b0','#e91e63','#ffd700','#ff5722'];
-    return { id: 'fb_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), name: (names[rarity-1]||'普通')+'装备', icon: '📦', rarity, rarityName: names[rarity-1]||'普通', rarityColor: colors[rarity-1]||'#9e9e9e', multiplier: 1, slot: 'misc', str: 0, dex: 0, int: 0, hpBonus: 0, mpBonus: 0, affixes: [] };
+    return { id: 'fb_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), name: (names[rarityNum-1]||'普通')+'装备', icon: '📦', rarity: rarityNum, rarityName: names[rarityNum-1]||'普通', rarityColor: colors[rarityNum-1]||'#9e9e9e', multiplier: 1, slot: 'misc', str: 0, dex: 0, int: 0, hpBonus: 0, mpBonus: 0, affixes: [] };
   },
   getEquipmentPool() {
     const pool = [];
@@ -1412,6 +1412,13 @@ function loadCurrentCourseData(callback) {
 // ========== 装备系统 ==========
 
 // 旧装备系统代码已移除，使用 equipment-gen.js
+
+// 等级名称→稀有度数字映射
+const LEVEL_TO_RARITY = {
+  'common': 1, 'exquisite': 2, 'good': 3, 'rare': 4,
+  'epic': 5, 'legendary': 6, 'mythic': 7,
+  'normal': 1, 'fine': 2, 'excellent': 3
+};
 
 
 
@@ -2200,8 +2207,8 @@ function tryDropEquip(isUnitComplete, penalty) {
 
 function dropEquip(levelKey) {
   const typeInfo = ALL_EQUIP_TYPES[Math.floor(Math.random() * ALL_EQUIP_TYPES.length)];
-  const rarity = EQUIP_RARITY[levelKey] || 1;
-  const equip = generateEquip(rarity, typeInfo.id);
+  const rarityNum = LEVEL_TO_RARITY[levelKey] || (typeof levelKey === 'number' ? levelKey : 1);
+  const equip = generateEquip(rarityNum, typeInfo.id);
 
   if (!gameState.equipment) gameState.equipment = new Array(100).fill(null);
   const items = gameState.equipment.filter(Boolean);
@@ -2919,6 +2926,32 @@ function loadUserData() {
   const saved = localStorage.getItem(saveKey);
   const localData = saved ? JSON.parse(saved) : null;
   if (localData) { applyUserData(localData); console.log('使用本地存档'); }
+
+  // 【迁移】从旧版本 key (scienceGame6_user_) 迁移装备数据
+  if (!localData || !localData.equipment || localData.equipment.filter(Boolean).length === 0) {
+    try {
+      const oldKey = 'scienceGame6_user_' + gameState.studentId;
+      const oldRaw = localStorage.getItem(oldKey);
+      if (oldRaw) {
+        const oldData = JSON.parse(oldRaw);
+        if (oldData && oldData.equipment && oldData.equipment.filter(Boolean).length > 0) {
+          gameState.equipment = oldData.equipment;
+          gameState.equippedSlots = oldData.equippedSlots || {};
+          gameState.totalPoints = Math.max(gameState.totalPoints || 0, oldData.totalPoints || 0);
+          gameState.unlockedAchievements = oldData.unlockedAchievements || gameState.unlockedAchievements || [];
+          localStorage.setItem(saveKey, JSON.stringify({
+            totalPoints: gameState.totalPoints,
+            equipment: gameState.equipment,
+            equippedSlots: gameState.equippedSlots,
+            pets: gameState.pets || {},
+            petPieces: gameState.petPieces || {},
+            unlockedAchievements: gameState.unlockedAchievements
+          }));
+          console.log('✅ 已从旧版本迁移装备数据');
+        }
+      }
+    } catch(e) { console.log('装备迁移跳过:', e.message); }
+  }
 
   // 【安全修复】从宠物系统的 localStorage 同步积分
   // petSystemStateV2 是全局键，必须校验 studentId 防串号
