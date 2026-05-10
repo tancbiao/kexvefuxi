@@ -1626,7 +1626,9 @@ function startCourse(grade, sem) {
   fb.textContent = "✅ 你选择了 " + grade + "年级" + (sem === "2" ? "下册" : "上册");
   document.body.appendChild(fb);
   setTimeout(function() { fb.remove(); }, 3000);
-
+setTimeout(function() { fb.remove(); }, 3000);
+  // Force show level screen immediately
+  showScreen('levelScreen');
   currentCourse = { grade, sem };
   
   // 设置动态 key
