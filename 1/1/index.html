@@ -1534,6 +1534,7 @@ function loginWithId() {
   gameState.maxStreak = 0;
   gameState.studentId = id;
   gameState.isGuest = false;
+gameState.studentName = (typeof getStudentName === 'function') ? (getStudentName(id) || '') : '';
   hideLoginScreen();
   // 记住学号，下次自动登录
   localStorage.setItem('rememberedStudentId', id);
