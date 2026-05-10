@@ -1108,6 +1108,33 @@
   .home-notices-title { font-size:0.9em; font-weight:700; margin-bottom:10px; display:flex; align-items:center; gap:6px; color:rgba(255,255,255,0.7); }
   .home-notice-item { padding:8px 10px; border-radius:8px; background:rgba(255,255,255,0.03); margin-bottom:6px; font-size:0.82em; line-height:1.4; border-left:2px solid rgba(255,215,0,0.5); }
   .home-notice-item .n-time { font-size:0.75em; color:rgba(255,255,255,0.3); margin-top:2px; }
+/* ===== Danmaku Barrage ===== */
+.danmaku-container { position:fixed; top:60px; left:0; width:100%; height:80px; pointer-events:none; z-index:1500; overflow:hidden; }
+.danmaku-track { position:absolute; width:100%; height:28px; line-height:28px; white-space:nowrap; opacity:0; }
+.danmaku-track.r1 { top:0; }
+.danmaku-track.r2 { top:28px; }
+.danmaku-track.r3 { top:56px; }
+.danmaku-item {
+  display:inline-block; padding:2px 14px; border-radius:14px;
+  font-size:13px; font-weight:600; white-space:nowrap;
+  animation: danmakuScroll 12s linear forwards;
+  animation-play-state:running;
+  background:rgba(0,0,0,0.55); backdrop-filter:blur(8px);
+  border:1px solid rgba(255,215,0,0.3);
+  box-shadow:0 2px 12px rgba(0,0,0,0.3);
+}
+.danmaku-item:hover { animation-play-state:paused; cursor:default; }
+.danmaku-item.achievement { color:#ffd700; border-color:rgba(255,215,0,0.5); }
+.danmaku-item.equipment-legendary { color:#ffd700; border-color:#ffd700; text-shadow:0 0 8px rgba(255,215,0,0.4); }
+.danmaku-item.equipment-mythic { color:#ff6b6b; border-color:#ff5722; text-shadow:0 0 10px rgba(255,87,34,0.5); }
+@keyframes danmakuScroll {
+  0% { transform:translateX(calc(100vw + 100px)); opacity:0; }
+  3% { opacity:1; }
+  90% { opacity:1; }
+  100% { transform:translateX(-100%); opacity:0; }
+}
+.danmaku-item .dm-icon { margin-right:4px; }
+
 </style>
 </head>
 <body>
@@ -1246,6 +1273,7 @@
   <div id="notifyList"></div>
 </div>
 
+<div class="danmaku-container" id="danmakuContainer"></div>
 <div class="overlay" id="loginOverlay">
   <div class="login-box">
     <h2 class="login-title">🔐 输入学号登录</h2>
@@ -4364,6 +4392,32 @@ function listUploadedLessons() {
 
 
 // ===== 全服公告系统 =====
+
+function showDanmaku(type, message) {
+  const container = document.getElementById('danmakuContainer');
+  if (!container) return;
+  const trackNum = Math.floor(Math.random() * 3) + 1;
+  const track = document.createElement('div');
+  track.className = 'danmaku-track r' + trackNum;
+  const item = document.createElement('div');
+  item.className = 'danmaku-item ' + (type || '');
+  var icon = '🔔';
+  if (type === 'achievement') icon = '🏆';
+  else if (type === 'equipment-legendary') icon = '🌟';
+  else if (type === 'equipment-mythic') icon = '👑';
+  item.innerHTML = '<span class="dm-icon">' + icon + '</span>' + message;
+  var duration = Math.max(10, Math.min(18, 8 + message.length / 3));
+  item.style.animationDuration = duration + 's';
+  track.appendChild(item);
+  container.appendChild(track);
+  setTimeout(function() { if (track.parentNode) track.remove(); }, (duration + 1) * 1000);
+}
+var _origPost = postNotification;
+postNotification = function(type, message) {
+  showDanmaku(type, message);
+  return _origPost(type, message);
+};
+
 const NOTIFY_API = API_BASE + '/notifications';
 
 async function fetchNotifications() {
