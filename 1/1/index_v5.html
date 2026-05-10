@@ -1416,7 +1416,24 @@ function loadCurrentCourseData(callback) {
     var grid = document.getElementById('levelGrid');
     if (grid) grid.innerHTML = '<div style="text-align:center;padding:40px;color:#ff6b6b;">题库加载失败: ' + dataFile + '</div>';
   };
-  document.head.appendChild(script);
+  d
+  // Fallback: poll for key every 500ms
+  var pollKey = 'QUESTION_BANK_' + grade + '_' + sem + '_LESSONS';
+  var pollTimer = setInterval(function() {
+    if (window[pollKey]) {
+      clearInterval(pollTimer);
+      console.log('POLL FOUND DATA for', grade, sem);
+      var progressKey2 = 'progress_grade' + grade + sem + '_' + gameState.studentId;
+      try { var s2 = localStorage.getItem(progressKey2); if (s2) gameState.lessonProgress = JSON.parse(s2); else gameState.lessonProgress = {}; } catch(e) {}
+      Object.assign(questionData, window[pollKey]);
+      _lessonsLoaded = true;
+      renderLevelGrid();
+      showScreen('levelScreen');
+    } else {
+      console.log('POLL waiting for', grade, sem);
+    }
+  }, 500);
+ocument.head.appendChild(script);
 }
 
 // ========== 装备系统 ==========
