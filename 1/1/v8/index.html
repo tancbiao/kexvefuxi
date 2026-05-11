@@ -378,9 +378,35 @@ const App = {
   
   renderLessons() {
     const c = this.currentCourse;
-    const key = c.grade + '-' + c.sem;
-    const lessons = this.questionBank[key] || {};
-    const ids = Object.keys(lessons).sort();
+    const units = Object.keys(this.questionBank).filter(k => k.startsWith('unit')).sort();
+    if (units.length === 0) {
+      document.getElementById('lessonGrid').innerHTML = '<div style="text-align:center;padding:40px;">暂无课程数据</div>';
+      return;
+    }
+    const progressKey = 'progress_' + c.grade + c.sem + '_' + (this.studentId || '');
+    const saved = localStorage.getItem(progressKey);
+    if (saved) { try { Object.assign(this.lessonProgress, JSON.parse(saved)); } catch(e) {} }
+    let html = '';
+    let totalLessons = 0, doneLessons = 0;
+    for (const unitKey of units) {
+      const unit = this.questionBank[unitKey];
+      if (!unit || !unit.lessons) continue;
+      html += '<div style="color:rgba(255,255,255,0.4);font-size:0.85em;padding:8px 4px 4px;">' + (unit.icon || '') + ' ' + unit.name + '</div>';
+      for (const lesson of unit.lessons) {
+        totalLessons++;
+        const lid = lesson.id;
+        const prog = this.lessonProgress[lid] || {};
+        const done = prog.done;
+        if (done) doneLessons++;
+        const qCount = (lesson.basic || []).length + (lesson.medium || []).length + (lesson.hard || []).length;
+        html += '<div class="lesson-card" onclick="App.startLesson(\'' + lid + '\')">';
+        html += '<div class="lesson-num">' + (lesson.id||'').replace(/[^0-9]/g,'').slice(-2) + '</div>';
+        html += '<div class="lesson-info"><div class="lesson-name">' + (lesson.name || '') + '</div>';
+        html += '<div class="lesson-meta">' + qCount + ' 题 ' + (done ? '<span class="lesson-done">✅ 已完成</span>' : '') + '</div></div></div>';
+      }
+    }
+    document.getElementById('lessonGrid').innerHTML = html;
+    document.getElementById('levelProgress').style.width = totalLessons > 0 ? (doneLessons / totalLessons * 100) + '%' : '0';
     
     if (ids.length === 0) {
       document.getElementById('lessonGrid').innerHTML = '<div style="text-align:center;padding:40px;">暂无课程数据</div>';
@@ -414,14 +440,17 @@ const App = {
   // ---- start lesson ----
   startLesson(lessonId) {
     this.currentLesson = lessonId;
-    const c = this.currentCourse;
-    const key = c.grade + '-' + c.sem;
-    const lesson = (this.questionBank[key] || {})[lessonId];
-    if (!lesson || !lesson.questions || lesson.questions.length === 0) {
-      alert('该课程暂无题目');
-      return;
+    let lesson = null;
+    for (const k of Object.keys(this.questionBank)) {
+      const unit = this.questionBank[k];
+      if (!unit || !unit.lessons) continue;
+      for (const l of unit.lessons) {
+        if (l.id === lessonId) { lesson = l; break; }
+      }
+      if (lesson) break;
     }
-    this.questions = lesson.questions;
+    if (!lesson) { alert('课程未找到'); return; }
+    this.questions = (lesson.basic || []).concat(lesson.medium || []).concat(lesson.hard || []);
     this.qIndex = 0;
     this.correctCount = 0;
     this.wrongCount = 0;
