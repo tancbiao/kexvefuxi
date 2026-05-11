@@ -791,22 +791,6 @@ const App = {
       this.saveState();
     }, 1500);
   },
-    document.getElementById('towerFloor').textContent=this.towerFloor;
-    document.getElementById('towerHPFill').style.width=(this.towerHP/this.towerMaxHP*100)+'%';
-    document.getElementById('towerHPText').textContent=this.towerHP+'/'+this.towerMaxHP;
-    document.getElementById('towerStatus').textContent='准备挑战第 '+this.towerFloor+' 层...';
-    document.getElementById('towerQuestion').style.display='none';
-    document.getElementById('towerLoot').innerHTML='';
-    document.getElementById('towerBtn').style.display='block';
-    document.getElementById('towerBtn').textContent='⚔️ 挑战';
-    this.towerInBattle=false; this.towerQAnswered=false;
-    
-    const monsters = ['👹','👾','🐉','🦇','💀','👻','🐺','🦂','🐍','🕷️','🧟','👿','🐲','🦅','🦈'];
-    document.getElementById('towerMonster').textContent=monsters[Math.floor(Math.random()*monsters.length)];
-    
-    this.towerMonsterMaxHP=30+this.towerFloor*20;
-    this.towerMonsterHP=this.towerMonsterMaxHP;
-  },
   // ═══════════ BACKPACK ═══════════
   showBackpack() {
     document.getElementById('bpModal').classList.add('show');
