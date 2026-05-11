@@ -139,6 +139,7 @@ body { background:var(--bg); color:var(--text); font-family:-apple-system,"Micro
   <div class="status-item" onclick="App.showScreen('courseScreen')">📚 课程</div>
   <div class="status-item" onclick="App.showTower()">🗼 爬塔</div>
   <div class="status-item" onclick="App.showBackpack()">🎒 背包</div>
+  <div class="status-item" onclick="App.showPet()">🐾 宠物</div>
   <div class="status-item" id="statPoints">⭐ 0</div>
   <div class="status-item" onclick="App.showAchievements()">🏆 <span id="statAch">0</span></div>
   <div class="status-item" onclick="App.showRanking()">🏅 排行</div>
@@ -244,6 +245,17 @@ body { background:var(--bg); color:var(--text); font-family:-apple-system,"Micro
   </div>
 </div>
 
+<!-- Pet Modal -->
+<div class="modal-overlay" id="petModal">
+  <div class="modal-card">
+    <button class="modal-close" onclick="App.closeModal('petModal')">✕</button>
+    <h3>🐾 宠物系统</h3>
+    <p style="font-size:0.8em;color:rgba(255,255,255,0.4);margin-bottom:10px;">消耗 <b>50 ⭐</b> 抽一次宠物</p>
+    <button class="btn btn-gold" onclick="App.petGacha()" style="width:100%;margin-bottom:12px;">🎲 抽卡 (50⭐)</button>
+    <div id="petCollection"></div>
+  </div>
+</div>
+
 <!-- Other Modals -->
 <div class="modal-overlay" id="rankingModal"><div class="modal-card">
   <button class="modal-close" onclick="App.closeModal('rankingModal')">✕</button>
@@ -275,13 +287,23 @@ const EQ = {
   rWeight: [40,30,18,8,3,1], // drop weights
   
   slots: {
-    weapon: { name:'武器', icon:'⚔️', atk:[2,15], def:[0,3] },
-    helmet: { name:'头盔', icon:'⛑️', atk:[0,5], def:[2,10] },
-    armor: { name:'铠甲', icon:'🛡️', atk:[0,3], def:[3,15] },
-    gloves: { name:'手套', icon:'🧤', atk:[1,8], def:[1,5] },
-    boots: { name:'靴子', icon:'👢', atk:[1,6], def:[1,5] },
-    ring: { name:'戒指', icon:'💍', atk:[1,5], def:[0,3] },
-    amulet: { name:'项链', icon:'📿', atk:[1,7], def:[0,3] }
+    weapon: { name:'武器', icon:'⚔️', atk:[2,15], def:[0,3], critRate:[0,5], critDmg:[0,10] },
+    helmet: { name:'头盔', icon:'⛑️', atk:[0,5], def:[2,10], critRate:[0,3], critDmg:[0,5] },
+    armor: { name:'铠甲', icon:'🛡️', atk:[0,3], def:[3,15], critRate:[0,2], critDmg:[0,5] },
+    gloves: { name:'手套', icon:'🧤', atk:[1,8], def:[1,5], critRate:[0,4], critDmg:[0,8] },
+    boots: { name:'靴子', icon:'👢', atk:[1,6], def:[1,5], critRate:[0,2], critDmg:[0,5] },
+    ring: { name:'戒指', icon:'💍', atk:[1,5], def:[0,3], critRate:[0,3], critDmg:[0,8] },
+    amulet: { name:'项链', icon:'📿', atk:[1,7], def:[0,3], critRate:[0,3], critDmg:[0,6] }
+  },
+  // Rarity-based stat multipliers for crit rate / crit dmg / drop rate
+  // critRate: base from slot + rarity bonus  |  critDmg: 100% + bonus  |  dropRate: extra equipment drop chance
+  rarityBonus: {
+    common:    { critRate:2,  critDmg:0,   dropRate:0 },
+    magic:     { critRate:5,  critDmg:15,  dropRate:1 },
+    rare:      { critRate:10, critDmg:30,  dropRate:2 },
+    legendary: { critRate:18, critDmg:50,  dropRate:3 },
+    set:       { critRate:25, critDmg:75,  dropRate:4 },
+    ancient:   { critRate:30, critDmg:100, dropRate:5 }
   },
   
   prefixes: ['毁灭','风暴','暗影','圣光','龙鳞','寒冰','烈焰','雷霆','混沌','不朽','幽魂','先祖','深渊','黎明','终末'],
@@ -348,8 +370,12 @@ const App = {
   
   // Equipment
   equipment: [],
-  equipped: {}, // { helmet: itemObj, armor: itemObj, ... }
+  equipped: {},
   bpFilter: 'all',
+  // Pet
+  pets: [], // owned pets [{...pet, summonedAt}]
+  activePet: null, // currently active pet index
+  petPieces: {}, // { 'cat': 3, 'fox': 1 } - pieces for summoning
   
   // Tower
   towerFloor: 1, towerMaxFloor: 1, towerHP: 100, towerMaxHP: 100, towerMonsterHP: 50, towerMonsterMaxHP: 50,
@@ -519,7 +545,7 @@ const App = {
       this.equipment.push(item);
       this.saveState();
       const rc=EQ.rColor[item.rarity];
-      document.getElementById('resultLoot').innerHTML='<div class="tower-loot"><b>🎁 装备掉落！</b><br><span style="color:'+rc+'">'+EQ.rIcon[item.rarity]+' '+item.name+'</span><br><span style="font-size:0.75em;color:rgba(255,255,255,0.5)">'+EQ.rName[item.rarity]+' '+item.icon+' 攻'+item.atk+' 防'+item.def+(item.crit?' 暴击+'+item.crit:'')+(item.hp?' HP+'+item.hp:'')+'</span></div>';
+      document.getElementById('resultLoot').innerHTML='<div class="tower-loot"><b>🎁 装备掉落！</b><br><span style="color:'+rc+'">'+EQ.rIcon[item.rarity]+' '+item.name+'</span><br><span style="font-size:0.75em;color:rgba(255,255,255,0.5)">'+EQ.rName[item.rarity]+' '+item.icon+' 攻'+item.atk+' 防'+item.def+(item.critRate?' 💥暴击+'+item.critRate+'%':'')+(item.critDmg?' 💢爆伤+'+item.critDmg+'%':'')+(item.dropRate?' 🍀掉率+'+item.dropRate+'%':'')+(item.hp?' ❤HP+'+item.hp:'')+'</span></div>';
     }
     if (this.currentLesson&&this.currentCourse) {
       this.lessonProgress[this.currentLesson]={done:true,score:this.correctCount*10,correct:this.correctCount,wrong:this.wrongCount,maxStreak:this.maxStreak};
@@ -591,11 +617,17 @@ const App = {
     let dmg=0;
     if (ok) {
       // Calculate player ATK from equipment
-      let totalAtk=5;
+      let totalAtk=5, totalCrit=0, totalCritDmg=0;
       for (const slot of Object.keys(this.equipped)) {
-        const item=this.equipped[slot]; if (item) totalAtk+=item.atk||0;
+        const item=this.equipped[slot];
+        if (item) { totalAtk+=item.atk||0; totalCrit+=(item.critRate||0); totalCritDmg+=(item.critDmg||0); }
       }
       dmg=totalAtk+Math.floor(Math.random()*10);
+      // Crit check
+      if (Math.random()*100 < totalCrit) {
+        dmg = Math.floor(dmg * (1 + totalCritDmg/100));
+        document.getElementById('towerFeedback').innerHTML += ' <span style="color:var(--gold)">💥暴击!</span>';
+      }
       this.towerMonsterHP-=dmg;
       document.getElementById('towerFeedback').innerHTML='✅ 正确！造成 <b>'+dmg+'</b> 伤害';
       document.getElementById('towerFeedback').className='feedback correct';
@@ -616,7 +648,7 @@ const App = {
         const loot=EQ.generate(this.towerFloor);
         this.equipment.push(loot);
         const rc=EQ.rColor[loot.rarity];
-        document.getElementById('towerLoot').innerHTML='<div class="tower-loot"><b>🎉 胜利！</b><br><span style="color:'+rc+'">'+EQ.rIcon[loot.rarity]+' '+loot.name+'</span><br><span style="font-size:0.75em">'+EQ.rName[loot.rarity]+' '+loot.icon+' 攻'+loot.atk+' 防'+loot.def+(loot.crit?' 暴击+'+loot.crit:'')+'</span></div>';
+        document.getElementById('towerLoot').innerHTML='<div class="tower-loot"><b>🎉 胜利！</b><br><span style="color:'+rc+'">'+EQ.rIcon[loot.rarity]+' '+loot.name+'</span><br><span style="font-size:0.75em">'+EQ.rName[loot.rarity]+' '+loot.icon+' 攻'+loot.atk+' 防'+loot.def+(loot.critRate?' 💥暴击+'+loot.critRate+'%':'')+(loot.critDmg?' 💢爆伤+'+loot.critDmg+'%':'')+(loot.dropRate?' 🍀掉率+'+loot.dropRate+'%':'')+'</span></div>';
         const pts=10+this.towerFloor*5;
         this.totalPoints+=pts;
         this.towerFloor++;
@@ -660,7 +692,7 @@ const App = {
         '<div class="equip-info">'+
           '<div class="equip-name" style="color:'+rc+'">'+EQ.rIcon[item.rarity]+' '+item.name+'</div>'+
           '<div class="equip-slot">'+EQ.slots[item.slot].name+' · '+EQ.rName[item.rarity]+(item.floor?' · 第'+item.floor+'层':'')+'</div>'+
-          '<div class="equip-stats">⚔攻'+item.atk+' 🛡防'+item.def+(item.crit?' 💥暴击+'+item.crit:'')+(item.hp?' ❤HP+'+item.hp:'')+'</div>'+
+          '<div class="equip-stats">⚔攻'+item.atk+' 🛡防'+item.def+(item.critRate?' 💥暴率+'+item.critRate+'%':'')+(item.critDmg?' 💢爆伤+'+item.critDmg+'%':'')+(item.dropRate?' 🍀掉率+'+item.dropRate+'%':'')+(item.hp?' ❤HP+'+item.hp:'')+'</div>'+
         '</div>'+
         '<div class="equip-action">'+
           (isEq?'<button class="btn btn-small btn-danger" onclick="App.unequipItem(\''+item.id+'\')">卸下</button>':'<button class="btn btn-small btn-gold" onclick="App.equipItem(\''+item.id+'\')">装备</button>')+
@@ -735,8 +767,8 @@ const App = {
   // ═══════════ Utilities ═══════════
   showNotices() {
     document.getElementById('noticesList').innerHTML=[
-      {title:'科技节','content:'本届科技节现已可报名。截止5月10日23点。',link:'https://www.kdocs.cn/l/csMnIjr5bpeE'},
-      {title:'V9更新','content:'全新暗黑破坏神装备系统！爬塔赢取传说装备。答题结束后也有概率掉落装备。'},
+      {title:'科技节',content:'本届科技节现已可报名。截止5月10日23点。',link:'https://www.kdocs.cn/l/csMnIjr5bpeE'},
+      {title:'V9更新',content:'全新暗黑破坏神装备系统！爬塔赢取传说装备。答题结束后也有概率掉落装备。'},
     ].map(n=>'<div class="notice-item"><b>'+n.title+'</b><p style="color:rgba(255,255,255,0.6);margin-top:4px">'+n.content+'</p>'+(n.link?'<a href="'+n.link+'" target="_blank" style="color:#667eea">点击查看</a>':'')+'</div>').join('');
     document.getElementById('noticesModal').classList.add('show');
   },
@@ -780,6 +812,7 @@ const App = {
       totalPoints:this.totalPoints, wrongQuestions:this.wrongQuestions,
       achievements:this.achievements, lessonProgress:this.lessonProgress,
       equipment:this.equipment, equipped:this.equipped,
+      pets:this.pets, activePet:this.activePet,
       towerFloor:this.towerFloor, towerMaxFloor:this.towerMaxFloor,
       towerHP:this.towerHP, lastUpdated:Date.now()
     }));
@@ -793,6 +826,7 @@ const App = {
       this.totalPoints=d.totalPoints||0; this.wrongQuestions=d.wrongQuestions||[];
       this.achievements=d.achievements||[]; this.lessonProgress=d.lessonProgress||{};
       this.equipment=d.equipment||[]; this.equipped=d.equipped||{};
+      this.pets=d.pets||[]; this.activePet=d.activePet!==undefined?d.activePet:null;
       this.towerFloor=d.towerFloor||1; this.towerMaxFloor=d.towerMaxFloor||1;
       this.towerHP=d.towerHP||100; this.towerMaxHP=100;
     } catch(e) {}
@@ -807,6 +841,65 @@ const App = {
         body:JSON.stringify({students:[{studentId:this.studentId,name:this.studentName||this.studentId,totalPoints:this.totalPoints,wrongQuestions:this.wrongQuestions.map(w=>w.question).filter(Boolean)}]})
       });
     } catch(e) {}
+  },
+  
+  // ═══════════ Pet System ═══════════
+  showPet() {
+    document.getElementById('petModal').classList.add('show');
+    this.renderPets();
+  },
+  
+  renderPets() {
+    const el = document.getElementById('petCollection');
+    if (this.pets.length === 0) {
+      el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.3);">还没有宠物<br>点击抽卡获取你的伙伴！</div>';
+      return;
+    }
+    el.innerHTML = this.pets.map((p, i) => {
+      const ri = PET.rarities.indexOf(p.rarity);
+      const active = this.activePet === i;
+      return '<div class="equip-item ' + p.rarity + (active ? ' equipped' : '') + '">' +
+        '<div class="equip-icon">' + p.icon + '</div>' +
+        '<div class="equip-info">' +
+          '<div class="equip-name" style="color:' + EQ.rColor[p.rarity] + '">' + PET.rIcon[p.rarity] + ' ' + p.name + '</div>' +
+          '<div class="equip-slot">' + PET.rName[p.rarity] + ' · ' + (p.desc || '') + '</div>' +
+          '<div class="equip-stats">⚔攻+' + p.atk + ' 🛡防+' + p.def + '</div>' +
+        '</div>' +
+        '<div class="equip-action">' +
+          (active ? '<button class="btn btn-small btn-danger" onclick="App.deactivatePet()">放回</button>' :
+            '<button class="btn btn-small btn-gold" onclick="App.activatePet(' + i + ')">出战</button>') +
+        '</div></div>';
+    }).join('');
+  },
+  
+  petGacha() {
+    if (this.totalPoints < 50) { alert('需要50积分！当前：' + this.totalPoints); return; }
+    this.totalPoints -= 50;
+    const pet = PET.gacha();
+    this.pets.push(pet);
+    this.updateStatusBar(); this.saveState();
+    this.renderPets();
+    const rc = EQ.rColor[pet.rarity];
+    document.getElementById('petCollection').insertAdjacentHTML('afterbegin',
+      '<div class="tower-loot"><b>🎉 获得宠物！</b><br><span style="color:' + rc + '">' + PET.rIcon[pet.rarity] + ' ' + pet.name + '</span><br><span style="font-size:0.75em">' + PET.rName[pet.rarity] + '</span></div>');
+    this.showDanmaku('achievement', '🐾 获得新宠物：' + pet.name + '!');
+  },
+  
+  activatePet(i) {
+    this.activePet = i;
+    this.renderPets(); this.saveState();
+  },
+  
+  deactivatePet() {
+    this.activePet = null;
+    this.renderPets(); this.saveState();
+  },
+  
+  // Get bonuses from active pet
+  getPetBonus() {
+    if (this.activePet === null || this.activePet >= this.pets.length) return {atk:0, def:0};
+    const p = this.pets[this.activePet];
+    return {atk: p.atk || 0, def: p.def || 0};
   },
   
   closeModal(id) { document.getElementById(id).classList.remove('show'); }
