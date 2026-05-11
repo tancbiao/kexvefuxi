@@ -4230,6 +4230,16 @@ async function fetchStudentName(studentId) {
 
 const NOTIFY_API = API_BASE + '/notifications';
 
+// Get student name from cloud (called after login)
+async function getStudentName(id) {
+  try {
+    const res = await fetch(API_BASE + '/student/info/' + id);
+    if (!res.ok) return '';
+    const data = await res.json();
+    return data.name || '';
+  } catch(e) { return ''; }
+}
+
 async function fetchNotifications() {
   try {
     const res = await fetch(NOTIFY_API);
