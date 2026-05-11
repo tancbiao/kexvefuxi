@@ -407,34 +407,6 @@ const App = {
     }
     document.getElementById('lessonGrid').innerHTML = html;
     document.getElementById('levelProgress').style.width = totalLessons > 0 ? (doneLessons / totalLessons * 100) + '%' : '0';
-    
-    if (ids.length === 0) {
-      document.getElementById('lessonGrid').innerHTML = '<div style="text-align:center;padding:40px;">暂无课程数据</div>';
-      return;
-    }
-    
-    const progressKey = 'progress_' + c.grade + c.sem + '_' + (this.studentId || '');
-    const saved = localStorage.getItem(progressKey);
-    if (saved) { try { Object.assign(this.lessonProgress, JSON.parse(saved)); } catch(e) {} }
-    
-    document.getElementById('lessonGrid').innerHTML = ids.map(id => {
-      const lesson = lessons[id];
-      const prog = this.lessonProgress[id] || {};
-      const done = prog.done;
-      return `
-        <div class="lesson-card" onclick="App.startLesson('${id}')">
-          <div class="lesson-num">${id.split('-').pop()}</div>
-          <div class="lesson-info">
-            <div class="lesson-name">${lesson.name || '第' + id.split('-').pop() + '课'}</div>
-            <div class="lesson-meta">${lesson.qCount || 0} 题 ${done ? '<span class="lesson-done">✅ 已完成</span>' : ''}</div>
-          </div>
-        </div>
-      `;
-    }).join('');
-    
-    // Progress bar
-    const doneCount = ids.filter(id => this.lessonProgress[id] && this.lessonProgress[id].done).length;
-    document.getElementById('levelProgress').style.width = (doneCount / ids.length * 100) + '%';
   },
   
   // ---- start lesson ----
