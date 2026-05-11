@@ -1588,8 +1588,7 @@ function loginWithId() {
   gameState.maxStreak = 0;
   gameState.studentId = id;
   gameState.isGuest = false;
-gameState.studentName = (typeof getStudentName === 'function') ? (getStudentName(id) || '') : '';
-  hideLoginScreen();
+hideLoginScreen();
   // 记住学号，下次自动登录
   localStorage.setItem('rememberedStudentId', id);
   loadUserData();
@@ -1599,6 +1598,11 @@ gameState.studentName = (typeof getStudentName === 'function') ? (getStudentName
   updateStatusBar();
   // 显示选课界面
   document.getElementById('studentDisplay').textContent = id + ' 同学';
+  if (typeof getStudentName === 'function') {
+    getStudentName(id).then(function(name) {
+      if (name) { gameState.studentName = name; var sd = document.getElementById('studentDisplay'); if (sd) sd.textContent = name + ' 同学'; }
+    });
+  }
   showScreen('courseScreen');
   showNoticeIfActive();
   
