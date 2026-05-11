@@ -1141,7 +1141,7 @@
         粤教粤科版 · 四单元23课 · 趣味答题 · 成就解锁
       </p>
       <button class="start-btn" onclick="showLoginScreen()">🚀 开始挑战</button>
-      <button class="start-btn secondary" onclick="showWrongQuestions()" style="margin-top:12px;background:linear-gradient(135deg,#667eea,#764ba2);"><img src="../../../icons/wrong-book.png" class="icon-24"> 错题本</button>
+      <button class="start-btn secondary" onclick="showWrongQuestions()" style="margin-top:12px;background:linear-gradient(135deg,#667eea,#764ba2);"><img src="../../../../../icons/wrong-book.png" class="icon-24"> 错题本</button>
     </div>
 <div class="screen" id="levelScreen">
     <div class="level-select-title" style="text-align:center;font-size:1.3em;font-weight:700;padding:12px 0;margin-bottom:8px;">📚 选择课程</div>
@@ -1161,7 +1161,7 @@
       <p class="question-text" id="questionText">题目加载中...</p>
       <div id="questionStats" style="text-align:center;font-size:0.85em;color:rgba(255,255,255,0.5);margin-top:10px;min-height:22px;"></div>
       <div class="options" id="optionsContainer"></div>
-      <button class="hint-btn" id="hintBtn" onclick="showHint()"><img src="../../../../../../icons/lightbulb.png" class="icon-24"> 提示 (3)</button>
+      <button class="hint-btn" id="hintBtn" onclick="showHint()"><img src="../../../../../../../../icons/lightbulb.png" class="icon-24"> 提示 (3)</button>
       <div class="hint-box" id="hintBox"></div>
     </div>
     <div class="btn-group">
@@ -1282,14 +1282,14 @@
       </div>
       <button class="pet-modal-close" onclick="closePetModal()">✕</button>
     </div>
-    <iframe id="petIframe" src="../../../pet-system.html"></iframe>
+    <iframe id="petIframe" src="../../../../../pet-system.html"></iframe>
   </div>
 </div>
 
-<script src="../../../equipment-gen.js?v=20260429"></script>
-<script src="../../../js/cloud-config.js"></script>
-<script src="../../../js/student-names.js"></script>
-<script src="../../../admin/reward-collector.js"></script>
+<script src="../../../../../equipment-gen.js?v=20260429"></script>
+<script src="../../../../../js/cloud-config.js"></script>
+<script src="../../../../../js/student-names.js"></script>
+<script src="../../../../../admin/reward-collector.js"></script>
 
 <!-- ====== 排行榜弹窗 ====== -->
 <div class="ranking-overlay" id="rankingOverlay">
@@ -1358,7 +1358,7 @@ const equipmentSystem = {
 const tanTeacherCup = {
   id: 'cup_tanTeacherCup',
   name: '谭老师的愤怒水杯',
-  icon: '<img src="../../../../../../icons/pants.png" class="icon-32">',
+  icon: '<img src="../../../../../../../../icons/pants.png" class="icon-32">',
   rarity: 6, rarityName: '传说', rarityColor: '#ffd700', multiplier: 2.0,
   slot: '宝物', effect: '传说获得概率+1%，史诗获得概率+5%',
   desc: '保持安静', str: 0, dex: 0, int: 0, hpBonus: 0, mpBonus: 0, affixes: []
@@ -1476,18 +1476,18 @@ const gameState = {
   equipDupeCount: 0,
   allAchievements: [
     // ⭐普通成就
-    { id: 'first_blood', icon: '<img src="../../../../../../icons/target.png" class="icon-32">', name: '首战告捷', desc: '答对第一题，开启学习之旅', tier: '⭐', bonus: { pointsMul: 1.05 } },
-    { id: 'streak_2', icon: '<img src="../../../../../../icons/lightning.png" class="icon-32">', name: '小试牛刀', desc: '单课达成2连胜', tier: '⭐', bonus: { pointsMul: 1.05 } },
+    { id: 'first_blood', icon: '<img src="../../../../../../../../icons/target.png" class="icon-32">', name: '首战告捷', desc: '答对第一题，开启学习之旅', tier: '⭐', bonus: { pointsMul: 1.05 } },
+    { id: 'streak_2', icon: '<img src="../../../../../../../../icons/lightning.png" class="icon-32">', name: '小试牛刀', desc: '单课达成2连胜', tier: '⭐', bonus: { pointsMul: 1.05 } },
     { id: 'wrong_start', icon: '🤦', name: '开门黑', desc: '第一题就答错了', tier: '⭐', bonus: { hintExtra: 1 } },
-    { id: 'hint_user', icon: '<img src="../../../../../../icons/lightbulb.png" class="icon-32">', name: '提示依赖', desc: '一课中使用了3次以上提示', tier: '⭐', bonus: { hintExtra: 1 } },
+    { id: 'hint_user', icon: '<img src="../../../../../../../../icons/lightbulb.png" class="icon-32">', name: '提示依赖', desc: '一课中使用了3次以上提示', tier: '⭐', bonus: { hintExtra: 1 } },
     { id: 'wrong_again', icon: '😭', name: '同一个坑', desc: '同一道题连续答错2次', tier: '⭐', bonus: {} },
     { id: 'q_20', icon: '📝', name: '二十而励', desc: '累计答对20题', tier: '⭐', bonus: { pointsMul: 1.05 } },
     { id: 'first_hint', icon: '💡', name: '求知若渴', desc: '第一次使用提示', tier: '⭐', bonus: { hintExtra: 1 } },
     { id: 'perfect_retry', icon: '🔁', name: '亡羊补牢', desc: '错题重做后答对同一题', tier: '⭐', bonus: { pointsMul: 1.05 } },
     // ⭐⭐稀有成就
-    { id: 'streak_3', icon: '<img src="../../../../../../icons/fire.png" class="icon-32">', name: '三连斩', desc: '单课达成3连胜', tier: '⭐⭐', bonus: { pointsMul: 1.10 } },
+    { id: 'streak_3', icon: '<img src="../../../../../../../../icons/fire.png" class="icon-32">', name: '三连斩', desc: '单课达成3连胜', tier: '⭐⭐', bonus: { pointsMul: 1.10 } },
     { id: 'no_hint', icon: '🧠', name: '独立思考', desc: '不使用提示通关', tier: '⭐⭐', bonus: { pointsMul: 1.10, hintExtra: 1 } },
-    { id: 'fast_correct', icon: '<img src="../../../../../../icons/rocket.png" class="icon-32">', name: '闪电侠', desc: '3秒内答对一题', tier: '⭐⭐', bonus: { pointsMul: 1.08 } },
+    { id: 'fast_correct', icon: '<img src="../../../../../../../../icons/rocket.png" class="icon-32">', name: '闪电侠', desc: '3秒内答对一题', tier: '⭐⭐', bonus: { pointsMul: 1.08 } },
     { id: 'first_equip', icon: '📦', name: '初识装备', desc: '获得第一件装备', tier: '⭐⭐', bonus: { dropBonus: 0.03 } },
     { id: 'all_shirt_set', icon: '👔👗', name: '穿搭达人', desc: '同时拥有衬衫和裙子', tier: '⭐⭐', bonus: { pointsMul: 1.08 } },
     { id: 'equip_bow_staff', icon: '🏹🪄', name: '法师猎人', desc: '同时拥有弓箭和魔法杖', tier: '⭐⭐', bonus: { pointsMul: 1.08 } },
@@ -1495,13 +1495,13 @@ const gameState = {
     { id: 'equip_dupe', icon: '♻️', name: '命中注定', desc: '获得重复装备', tier: '⭐⭐', bonus: { dropBonus: 0.03 } },
     { id: 'equip_3_same_type', icon: '🧥', name: '装备专家', desc: '同一类型装备集满3件', tier: '⭐⭐', bonus: { pointsMul: 1.08 } },
     // ⭐⭐⭐史诗成就
-    { id: 'streak_5', icon: '<img src="../../../../../../icons/fire.png" class="icon-32">', name: '五福临门', desc: '单课达成5连胜', tier: '⭐⭐⭐', bonus: {} },
+    { id: 'streak_5', icon: '<img src="../../../../../../../../icons/fire.png" class="icon-32">', name: '五福临门', desc: '单课达成5连胜', tier: '⭐⭐⭐', bonus: {} },
     { id: 'perfect', icon: '💯', name: '满分答卷', desc: '一次通关获得满分', tier: '⭐⭐⭐', bonus: { pointsMul: 1.15 } },
     { id: 'genius', icon: '🎓', name: '天才少年', desc: '首次做某课时就满分通关', tier: '⭐⭐⭐', bonus: { dropBonus: 0.05 } },
     { id: 'comeback', icon: '🐂', name: '逆风翻盘', desc: '前半错3题以上但最终满分通关', tier: '⭐⭐⭐', bonus: { pointsMul: 1.15, dropBonus: 0.08 } },
     { id: 'quick_perfect', icon: '⏱️', name: '极速通关', desc: '30秒内满分完成一课', tier: '⭐⭐⭐', bonus: { pointsMul: 1.18, dropBonus: 0.05 } },
     { id: 'no_wrong_3', icon: '🧊', name: '冷面杀手', desc: '连续3课零失误通关', tier: '⭐⭐⭐', bonus: { pointsMul: 1.15, hintExtra: 2 } },
-    { id: 'equip_10', icon: '<img src="../../../../../../icons/bag.png" class="icon-32">', name: '收藏家', desc: '收集10件装备', tier: '⭐⭐⭐', bonus: { dropBonus: 0.10 } },
+    { id: 'equip_10', icon: '<img src="../../../../../../../../icons/bag.png" class="icon-32">', name: '收藏家', desc: '收集10件装备', tier: '⭐⭐⭐', bonus: { dropBonus: 0.10 } },
     { id: 'equip_sword_shield', icon: '⚔️🛡️', name: '我的刀盾', desc: '同时拥有剑和盾牌', tier: '⭐⭐⭐', bonus: { pointsMul: 1.10, dropBonus: 0.05 } },
     { id: 'equip_blue_white', icon: '🌤️', name: '蓝天白云', desc: '同时拥有2件白色和2件蓝色装备', tier: '⭐⭐⭐', bonus: { pointsMul: 1.10 } },
     { id: 'equip_epic', icon: '💎', name: '史诗降临', desc: '获得第一件史诗装备', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20 } },
@@ -1510,21 +1510,21 @@ const gameState = {
     { id: 'perfect_3', icon: '🏅', name: '连续满分', desc: '连续3课满分通关', tier: '⭐⭐⭐', bonus: { pointsMul: 1.15 } },
     // ⭐⭐⭐史诗·单元成就
     { id: 'unit1_master', icon: '🎨', name: '设计达人', desc: '完成第一单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
-    { id: 'unit2_master', icon: '<img src="../../../../../../icons/lightning.png" class="icon-32">', name: '能量达人', desc: '完成第二单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
+    { id: 'unit2_master', icon: '<img src="../../../../../../../../icons/lightning.png" class="icon-32">', name: '能量达人', desc: '完成第二单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
     { id: 'unit3_master', icon: '🦢', name: '生态达人', desc: '完成第三单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
     { id: 'unit4_master', icon: '🌱', name: '环保达人', desc: '完成第四单元', tier: '⭐⭐⭐', bonus: { pointsMul: 1.20, dropBonus: 0.10 } },
     // 👑传说成就
-    { id: 'equip_tan_cup', icon: '<img src="../../../../../../icons/pants.png" class="icon-32">', name: '谭老师的愤怒水杯', desc: '集齐10件装备仍未获得金色传说', tier: '👑', bonus: { pointsMul: 1.30 } },
+    { id: 'equip_tan_cup', icon: '<img src="../../../../../../../../icons/pants.png" class="icon-32">', name: '谭老师的愤怒水杯', desc: '集齐10件装备仍未获得金色传说', tier: '👑', bonus: { pointsMul: 1.30 } },
     { id: 'equip_rainbow', icon: '🌈', name: '彩虹收集', desc: '集齐所有颜色装备', tier: '👑', bonus: { pointsMul: 1.25, dropBonus: 0.20 } },
-    { id: 'equip_mythic', icon: '<img src="../../../../../../icons/star.png" class="icon-32">', name: '欧皇', desc: '获得神话装备', tier: '👑', bonus: { pointsMul: 1.30, dropBonus: 0.15 } },
+    { id: 'equip_mythic', icon: '<img src="../../../../../../../../icons/star.png" class="icon-32">', name: '欧皇', desc: '获得神话装备', tier: '👑', bonus: { pointsMul: 1.30, dropBonus: 0.15 } },
     { id: 'equip_legendary', icon: '👑', name: '传说降临', desc: '获得第一件金色传说装备', tier: '👑', bonus: { pointsMul: 1.25 } },
     { id: 'q_200', icon: '🚀', name: '双百英雄', desc: '累计答对200题', tier: '👑', bonus: { pointsMul: 1.18 } },
     { id: 'wrong_10', icon: '📚', name: '错题达人', desc: '错题本积累10道以上', tier: '👑', bonus: { pointsMul: 1.08 } },
-    { id: 'streak_7', icon: '<img src="../../../../../../icons/star.png" class="icon-32">', name: '七星连珠', desc: '单课达成7连胜', tier: '👑', bonus: {} },
+    { id: 'streak_7', icon: '<img src="../../../../../../../../icons/star.png" class="icon-32">', name: '七星连珠', desc: '单课达成7连胜', tier: '👑', bonus: {} },
     // 🏆神话成就
-    { id: 'streak_10', icon: '<img src="../../../../../../icons/crown.png" class="icon-32">', name: '常胜将军', desc: '单课达成10连胜', tier: '🏆', bonus: {} },
+    { id: 'streak_10', icon: '<img src="../../../../../../../../icons/crown.png" class="icon-32">', name: '常胜将军', desc: '单课达成10连胜', tier: '🏆', bonus: {} },
     { id: 'no_wrong_5', icon: '❄️', name: '冷血杀手', desc: '连续5课零失误通关', tier: '🏆', bonus: { pointsMul: 1.30 } },
-    { id: 'all_complete', icon: '<img src="../../../../../../icons/trophy.png" class="icon-32">', name: '科学探险家', desc: '完成所有关卡', tier: '🏆', bonus: { pointsMul: 1.50, dropBonus: 0.30, hintExtra: 3 } },
+    { id: 'all_complete', icon: '<img src="../../../../../../../../icons/trophy.png" class="icon-32">', name: '科学探险家', desc: '完成所有关卡', tier: '🏆', bonus: { pointsMul: 1.50, dropBonus: 0.30, hintExtra: 3 } },
   ],
   unlockedAchievements: []
 };
@@ -1960,7 +1960,7 @@ function renderQuestion() {
   });
   
   const hintBtn = document.getElementById('hintBtn');
-  document.getElementById('hintBtn').innerHTML = `<img src="../../../../../../icons/lightbulb.png" class="icon-24"> 提示 (${gameState.hintsRemaining})`;
+  document.getElementById('hintBtn').innerHTML = `<img src="../../../../../../../../icons/lightbulb.png" class="icon-24"> 提示 (${gameState.hintsRemaining})`;
   hintBtn.disabled = gameState.hintsRemaining <= 0;
   document.getElementById('hintBox').classList.remove('show');
   document.getElementById('hintBox').textContent = q.hint || '暂无提示';
@@ -2108,7 +2108,7 @@ function showHint() {
   }
   const hintBox = document.getElementById('hintBox');
   hintBox.classList.add('show');
-  document.getElementById('hintBtn').textContent = `<img src="../../../../../../icons/lightbulb.png" class="icon-24"> 提示 (${gameState.hintsRemaining})`;
+  document.getElementById('hintBtn').textContent = `<img src="../../../../../../../../icons/lightbulb.png" class="icon-24"> 提示 (${gameState.hintsRemaining})`;
   document.getElementById('hintBtn').disabled = gameState.hintsRemaining <= 0;
 }
 
@@ -2433,7 +2433,7 @@ function checkEquipAchievements() {
     const cup = {
       id: 'cup_tanTeacherCup',
       name: '谭老师的愤怒水杯',
-      icon: '<img src="../../../../../../icons/pants.png" class="icon-32">',
+      icon: '<img src="../../../../../../../../icons/pants.png" class="icon-32">',
       rarity: 6,
       effect: '金色传说获得概率+1%，史诗获得概率+5%',
       pointBonus: 0,
@@ -2547,7 +2547,7 @@ function recordWrongQuestion(q, correctAnswer) {
     const btns = document.querySelectorAll('.tf-btn');
     btns.forEach((btn, i) => {
       if (btn.classList.contains('wrong')) {
-        userAnswer = i === 0 ? '<img src="../../../../../../icons/check.png" class="icon-24"> 正确' : '<img src="../../../../../../icons/cross.png" class="icon-24"> 错误';
+        userAnswer = i === 0 ? '<img src="../../../../../../../../icons/check.png" class="icon-24"> 正确' : '<img src="../../../../../../../../icons/cross.png" class="icon-24"> 错误';
       }
     });
     if (!userAnswer) userAnswer = '未作答';
@@ -2606,7 +2606,7 @@ function createWrongQuestionUI() {
 <div class="wrong-question-overlay" id="wrongQuestionOverlay">
   <div class="wrong-question-card">
     <div class="wrong-question-header">
-      <div class="wrong-question-title"><img src="../../../icons/wrong-book.png" class="icon-24"> 错题本</div>
+      <div class="wrong-question-title"><img src="../../../../../icons/wrong-book.png" class="icon-24"> 错题本</div>
       <button class="wrong-question-close" onclick="closeWrongQuestions()">✕</button>
     </div>
     <div class="wrong-question-stats">
@@ -2902,13 +2902,13 @@ function renderWrongQuestionList() {
     <div class="wrong-item" data-index="${idx}">
       <button class="wrong-item-delete" onclick="deleteWrongQuestion(${idx})">✕</button>
       <div class="wrong-item-header">
-        <span class="wrong-item-lesson"><img src="../../../../../../icons/book.png" class="icon-24"> ${w.lessonName || '课程' + w.lessonId}</span>
+        <span class="wrong-item-lesson"><img src="../../../../../../../../icons/book.png" class="icon-24"> ${w.lessonName || '课程' + w.lessonId}</span>
         <span class="wrong-item-count">错 ${w.count} 次</span>
       </div>
       <div class="wrong-item-question">${escapeHtml(w.question)}</div>
       <div class="wrong-item-answer">
-        <span class="wrong-item-user"><img src="../../../../../../icons/cross.png" class="icon-24"> 你的答案: ${escapeHtml(w.userAnswer)}</span>
-        <span class="wrong-item-correct"><img src="../../../../../../icons/check.png" class="icon-24"> 正确答案: ${escapeHtml(w.correctAnswer)}</span>
+        <span class="wrong-item-user"><img src="../../../../../../../../icons/cross.png" class="icon-24"> 你的答案: ${escapeHtml(w.userAnswer)}</span>
+        <span class="wrong-item-correct"><img src="../../../../../../../../icons/check.png" class="icon-24"> 正确答案: ${escapeHtml(w.correctAnswer)}</span>
       </div>
     </div>
   `).join('');
@@ -3832,7 +3832,7 @@ function showTowerModal() {
   const iframe = document.getElementById('towerIframe');
   modal.classList.add('show');
   // 每次打开都重新加载 iframe，确保状态最新
-  iframe.src = '../../../../../tower.html?' + Date.now();
+  iframe.src = '../../../../../../../tower.html?' + Date.now();
   iframe.onload = function() {
     iframe.contentWindow.postMessage({
       type: 'init_tower',
