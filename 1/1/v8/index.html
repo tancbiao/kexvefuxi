@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>科学复习 V8</title>
+<style>
+:root { --bg:#0a0a1a; --card:rgba(255,255,255,0.06); --gold:#ffd700; --green:#4ecdc4; --red:#ff6b6b; --text:rgba(255,255,255,0.9); }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:-apple-system,"Microsoft YaHei",sans-serif; min-height:100vh; }
+.screen { display:none; padding:20px; max-width:500px; margin:0 auto; min-height:100vh; }
+.screen.active { display:block; }
+
+/* status bar */
+.status-bar { display:flex; justify-content:space-around; padding:12px 8px; background:var(--card); border-radius:12px; margin-bottom:16px; font-size:0.9em; flex-wrap:wrap; gap:8px; }
+.status-item { cursor:pointer; padding:4px 10px; border-radius:8px; transition:0.2s; }
+.status-item:active { background:rgba(255,255,255,0.1); }
+
+/* buttons */
+.btn { padding:12px 24px; border:none; border-radius:12px; font-size:1em; cursor:pointer; transition:0.2s; color:#fff; }
+.btn:active { transform:scale(0.96); }
+.btn-primary { background:linear-gradient(135deg,#667eea,#764ba2); }
+.btn-gold { background:linear-gradient(135deg,#f9d423,#ff4e50); color:#1a1a2e; font-weight:700; }
+.btn-small { padding:6px 14px; font-size:0.85em; border-radius:8px; }
+.btn-disabled { opacity:0.4; pointer-events:none; }
+
+/* login */
+.login-card { background:var(--card); border-radius:16px; padding:30px 20px; text-align:center; }
+.login-input { width:100%; padding:14px; border-radius:12px; border:2px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.05); color:#fff; font-size:1.1em; text-align:center; margin:16px 0; }
+.login-input:focus { border-color:var(--gold); outline:none; }
+
+/* course cards */
+.course-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0; }
+.course-card { background:var(--card); border-radius:14px; padding:20px 12px; text-align:center; cursor:pointer; transition:0.2s; border:2px solid transparent; }
+.course-card:active { border-color:var(--gold); transform:scale(0.97); }
+.course-card .icon { font-size:2em; margin-bottom:8px; }
+.course-card .grade { font-size:1.1em; font-weight:700; }
+.course-card .sems { margin-top:8px; display:flex; gap:8px; justify-content:center; }
+.sem-btn { background:rgba(255,255,255,0.08); border:none; color:var(--text); padding:6px 16px; border-radius:8px; cursor:pointer; font-size:0.85em; transition:0.2s; }
+.sem-btn:active { background:var(--gold); color:#1a1a2e; }
+
+/* lesson grid */
+.lesson-grid { display:flex; flex-direction:column; gap:10px; margin:16px 0; }
+.lesson-card { background:var(--card); border-radius:12px; padding:16px; cursor:pointer; transition:0.2s; display:flex; align-items:center; gap:12px; }
+.lesson-card:active { background:rgba(255,255,255,0.12); }
+.lesson-num { background:linear-gradient(135deg,#667eea,#764ba2); width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.85em; flex-shrink:0; }
+.lesson-info { flex:1; }
+.lesson-name { font-weight:600; }
+.lesson-meta { font-size:0.8em; color:rgba(255,255,255,0.5); margin-top:4px; }
+.lesson-done { color:var(--green); }
+
+/* quiz */
+.question-card { background:var(--card); border-radius:16px; padding:24px 20px; margin:16px 0; }
+.question-num { font-size:0.85em; color:rgba(255,255,255,0.4); margin-bottom:8px; }
+.question-text { font-size:1.1em; line-height:1.7; margin-bottom:20px; }
+.option { display:block; width:100%; padding:14px 18px; margin:8px 0; border-radius:12px; border:2px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.04); color:var(--text); text-align:left; font-size:1em; cursor:pointer; transition:0.2s; }
+.option:active { border-color:var(--gold); background:rgba(255,215,0,0.08); }
+.option.correct { border-color:var(--green); background:rgba(78,205,196,0.15); }
+.option.wrong { border-color:var(--red); background:rgba(255,107,107,0.15); }
+.option.disabled { pointer-events:none; }
+
+/* feedback */
+.feedback { text-align:center; padding:16px; font-size:1em; min-height:48px; }
+.feedback.correct { color:var(--green); }
+.feedback.wrong { color:var(--red); }
+
+/* progress */
+.progress-bar { height:6px; background:rgba(255,255,255,0.1); border-radius:3px; margin:12px 0; overflow:hidden; }
+.progress-fill { height:100%; background:linear-gradient(90deg,#667eea,#764ba2); border-radius:3px; transition:width 0.3s; }
+
+/* result */
+.result-card { background:var(--card); border-radius:16px; padding:30px 20px; text-align:center; }
+.result-score { font-size:3em; font-weight:900; color:var(--gold); }
+.result-stats { display:flex; justify-content:center; gap:24px; margin:16px 0; font-size:0.9em; }
+
+/* top bar */
+.top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+.top-bar .back { background:none; border:none; color:var(--gold); font-size:1.2em; cursor:pointer; padding:4px 12px; }
+
+/* ranking */
+.rank-table { width:100%; border-collapse:collapse; font-size:0.9em; }
+.rank-table td,.rank-table th { padding:10px 8px; text-align:center; }
+.rank-table th { color:rgba(255,255,255,0.4); font-weight:400; border-bottom:1px solid rgba(255,255,255,0.1); }
+.rank-row:nth-child(1) .rank-num { color:var(--gold); font-size:1.2em; }
+.rank-row:nth-child(2) .rank-num { color:#c0c0c0; }
+.rank-row:nth-child(3) .rank-num { color:#cd7f32; }
+.rank-me { background:rgba(255,215,0,0.08); }
+
+/* modal */
+.modal-overlay { display:none; position:fixed; top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8); z-index:100; justify-content:center; align-items:center; }
+.modal-overlay.show { display:flex; }
+.modal-card { background:#1a1a2e; border-radius:16px; padding:24px; max-width:400px; width:90%; max-height:80vh; overflow-y:auto; }
+.modal-close { float:right; background:none; border:none; color:var(--text); font-size:1.5em; cursor:pointer; }
+
+/* achievement */
+.ach-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
+.ach-card { background:var(--card); border-radius:10px; padding:12px; text-align:center; font-size:0.85em; }
+.ach-card.locked { opacity:0.4; }
+.ach-icon { font-size:1.8em; margin-bottom:4px; }
+
+/* danmaku */
+.danmaku-container { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:200; overflow:hidden; }
+.danmaku-item { position:absolute; white-space:nowrap; padding:4px 12px; border-radius:20px; font-size:0.85em; animation:dm-scroll 8s linear; color:#fff; }
+@keyframes dm-scroll { from { right:-200px; } to { right:calc(100% + 200px); } }
+
+/* notices */
+.notice-item { background:var(--card); border-radius:10px; padding:12px; margin:8px 0; font-size:0.9em; border-left:3px solid var(--gold); }
+
+/* icons */
+.icon-24 { width:20px; height:20px; vertical-align:middle; }
+</style>
+</head>
+<body>
+
+<!-- ===== STATUS BAR (all screens) ===== -->
+<div class="status-bar">
+  <div class="status-item" onclick="App.showScreen('courseScreen')">📚 课程</div>
+  <div class="status-item" id="statPoints">⭐ 0</div>
+  <div class="status-item" onclick="App.showAchievements()">🏆 <span id="statAch">0</span></div>
+  <div class="status-item" onclick="App.showNotices()">📢 通知</div>
+  <div class="status-item" onclick="App.showRanking()">🏅 排行</div>
+</div>
+
+<!-- ===== SCREENS ===== -->
+<div id="screens">
+<div class="screen active" id="startScreen">
+  <div class="login-card" style="margin-top:60px;">
+    <div style="font-size:3em;">🔬</div>
+    <h2 style="margin:12px 0;">科学复习系统</h2>
+    <p style="color:rgba(255,255,255,0.5);">粤教粤科版 · 三四五六年级</p>
+    <input class="login-input" id="idInput" type="text" maxlength="8" placeholder="输入8位学号">
+    <button class="btn btn-gold" onclick="App.login()" style="width:100%;">🚀 开始挑战</button>
+    <button class="btn btn-primary" onclick="App.guestLogin()" style="width:100%;margin-top:8px;">👤 游客模式</button>
+  </div>
+</div>
+
+<div class="screen" id="courseScreen">
+  <h2 style="text-align:center;margin-bottom:16px;">📚 选择课程</h2>
+  <p style="text-align:center;color:rgba(255,255,255,0.5);margin-bottom:16px;">欢迎，<span id="stuName">同学</span></p>
+  <div class="course-grid" id="courseGrid"></div>
+  <div style="text-align:center;margin-top:16px;">
+    <button class="btn" style="background:rgba(255,255,255,0.1);" onclick="App.logout()">🚪 退出登录</button>
+  </div>
+</div>
+
+<div class="screen" id="levelScreen">
+  <div class="top-bar">
+    <button class="back" onclick="App.goBack()">← 返回</button>
+    <span style="color:rgba(255,255,255,0.5);" id="levelTitle">课程</span>
+    <span></span>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="levelProgress" style="width:0"></div></div>
+  <div class="lesson-grid" id="lessonGrid"></div>
+</div>
+
+<div class="screen" id="quizScreen">
+  <div class="top-bar">
+    <button class="back" onclick="App.quitLesson()">← 退出</button>
+    <span style="color:rgba(255,255,255,0.5);" id="quizLessonName">答题</span>
+    <span id="quizQNum" style="color:rgba(255,255,255,0.4);font-size:0.85em;">1/10</span>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="quizProgress" style="width:0"></div></div>
+  <div class="question-card">
+    <div class="question-num" id="qNum">第 1 题</div>
+    <div class="question-text" id="qText">加载中...</div>
+    <div id="qOptions"></div>
+    <div class="feedback" id="qFeedback"></div>
+  </div>
+  <button class="btn btn-primary" id="nextBtn" onclick="App.nextQuestion()" style="width:100%;display:none;">下一题 →</button>
+</div>
+
+<div class="screen" id="resultScreen">
+  <div class="result-card">
+    <div style="font-size:3em;">🎉</div>
+    <h3 style="margin:12px 0;">答题完成！</h3>
+    <div class="result-score" id="resultScore">+0</div>
+    <div class="result-stats">
+      <span>✅ <span id="resultCorrect">0</span></span>
+      <span>❌ <span id="resultWrong">0</span></span>
+      <span>🔥 连击 <span id="resultStreak">0</span></span>
+    </div>
+    <button class="btn btn-gold" onclick="App.showScreen('levelScreen')" style="width:100%;margin-top:12px;">📚 继续学习</button>
+    <button class="btn btn-primary" onclick="App.showScreen('courseScreen')" style="width:100%;margin-top:8px;">📖 换课程</button>
+  </div>
+</div>
+</div>
+
+<!-- ===== MODALS ===== -->
+<div class="modal-overlay" id="rankingModal">
+  <div class="modal-card">
+    <button class="modal-close" onclick="App.closeModal('rankingModal')">✕</button>
+    <h3 style="margin-bottom:12px;">🏅 排行榜</h3>
+    <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
+      <button class="btn btn-small btn-primary" onclick="App.loadRanking('points')" id="rankTabPts">积分榜</button>
+      <button class="btn btn-small" style="background:rgba(255,255,255,0.1);" onclick="App.loadRanking('accuracy')" id="rankTabAcc">正确率</button>
+      <button class="btn btn-small" style="background:rgba(255,255,255,0.1);" onclick="App.loadRanking('streak')" id="rankTabStr">连胜</button>
+    </div>
+    <table class="rank-table"><thead><tr><th>名次</th><th>名字</th><th>积分</th></tr></thead><tbody id="rankBody"></tbody></table>
+  </div>
+</div>
+
+<div class="modal-overlay" id="achievementModal">
+  <div class="modal-card">
+    <button class="modal-close" onclick="App.closeModal('achievementModal')">✕</button>
+    <h3 style="margin-bottom:12px;">🏆 成就殿堂</h3>
+    <div class="ach-grid" id="achGrid"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="noticesModal">
+  <div class="modal-card">
+    <button class="modal-close" onclick="App.closeModal('noticesModal')">✕</button>
+    <h3 style="margin-bottom:12px;">📢 通知公告</h3>
+    <div id="noticesList"></div>
+    <button class="btn btn-primary" onclick="App.closeModal('noticesModal')" style="width:100%;margin-top:12px;">✔ 我知道了</button>
+  </div>
+</div>
+
+<!-- Danmaku container -->
+<div class="danmaku-container" id="danmaku"></div>
+
+<script>
+// ===== APP CORE =====
+const App = {
+  // ---- state ----
+  studentId: null,
+  studentName: '',
+  isGuest: false,
+  totalPoints: 0,
+  currentCourse: null, // {grade, sem}
+  currentLesson: null,
+  questions: [],
+  qIndex: 0,
+  correctCount: 0,
+  wrongCount: 0,
+  currentStreak: 0,
+  maxStreak: 0,
+  answered: false,
+  wrongQuestions: [], // [{question, answer, studentAnswer, lessonName}]
+  achievements: [],
+  lessonProgress: {}, // { '6-2-1': {done:true, score:80, correct:8, wrong:2} }
+  
+  // ---- data ----
+  questionBank: {}, // will be loaded dynamically
+  
+  // ---- init ----
+  init() {
+    this.loadState();
+    this.renderCourseGrid();
+    this.updateStatusBar();
+    document.getElementById('idInput').value = localStorage.getItem('v8_rememberedId') || '';
+    // Load remembered student
+    const savedId = localStorage.getItem('v8_rememberedId');
+    if (savedId && savedId.length === 8 && /^\d+$/.test(savedId)) {
+      this.studentId = savedId;
+      this.isGuest = false;
+      this.loadState();
+      this.showScreen('courseScreen');
+      document.getElementById('stuName').textContent = savedId + ' 同学';
+      this.loadStudentName();
+    }
+  },
+  
+  // ---- screen management ----
+  showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => {
+      s.classList.remove('active');
+      s.style.display = 'none';
+    });
+    const el = document.getElementById(id);
+    if (el) { el.classList.add('active'); el.style.display = 'block'; }
+    if (id === 'courseScreen') this.renderCourseGrid();
+    if (id === 'levelScreen' && this.currentCourse) this.renderLessons();
+  },
+  
+  // ---- login ----
+  login() {
+    const id = document.getElementById('idInput').value.trim();
+    if (id.length !== 8 || !/^\d+$/.test(id)) { alert('请输入正确的8位学号'); return; }
+    this.studentId = id;
+    this.isGuest = false;
+    this.totalPoints = 0;
+    this.loadState();
+    localStorage.setItem('v8_rememberedId', id);
+    this.showScreen('courseScreen');
+    document.getElementById('stuName').textContent = id + ' 同学';
+    this.updateStatusBar();
+    this.loadStudentName();
+    this.pushRanking();
+  },
+  
+  guestLogin() {
+    this.studentId = 'guest_' + Date.now();
+    this.isGuest = true;
+    this.totalPoints = 0;
+    this.showScreen('courseScreen');
+    document.getElementById('stuName').textContent = '游客';
+    this.updateStatusBar();
+  },
+  
+  logout() {
+    this.studentId = null;
+    this.isGuest = false;
+    this.showScreen('startScreen');
+  },
+  
+  async loadStudentName() {
+    if (this.isGuest || !this.studentId) return;
+    try {
+      const res = await fetch('https://api.kexvefuxi.cn/api/student/info/' + this.studentId);
+      if (res.ok) {
+        const d = await res.json();
+        if (d.name) {
+          this.studentName = d.name;
+          document.getElementById('stuName').textContent = d.name + ' 同学';
+        }
+        // Load wrong questions
+        if (d.wrongQuestions && Array.isArray(d.wrongQuestions)) {
+          for (const wq of d.wrongQuestions) {
+            if (wq && !this.wrongQuestions.find(x => x.question === wq)) {
+              this.wrongQuestions.push({question: wq, timestamp: Date.now()});
+            }
+          }
+          this.saveState();
+        }
+      }
+    } catch(e) {}
+  },
+  
+  // ---- course grid ----
+  renderCourseGrid() {
+    const grades = [
+      {g:'3', icon:'🐟', name:'三年级'},
+      {g:'4', icon:'🦋', name:'四年级'},
+      {g:'5', icon:'🌿', name:'五年级'},
+      {g:'6', icon:'🏆', name:'六年级'}
+    ];
+    document.getElementById('courseGrid').innerHTML = grades.map(g => `
+      <div class="course-card">
+        <div class="icon">${g.icon}</div>
+        <div class="grade">${g.name}</div>
+        <div class="sems">
+          <button class="sem-btn" onclick="App.startCourse('${g.g}','1')">上册</button>
+          <button class="sem-btn" onclick="App.startCourse('${g.g}','2')">下册</button>
+        </div>
+      </div>
+    `).join('');
+  },
+  
+  // ---- start course ----
+  startCourse(grade, sem) {
+    this.currentCourse = {grade, sem};
+    const label = grade + '年级' + (sem === '2' ? '下册' : '上册');
+    document.getElementById('levelTitle').textContent = label;
+    document.getElementById('stuName').textContent = (this.studentName || this.studentId || '同学') + ' · ' + label;
+    this.showScreen('levelScreen');
+    this.loadQuestionBank(grade, sem);
+  },
+  
+  loadQuestionBank(grade, sem) {
+    const grid = document.getElementById('lessonGrid');
+    grid.innerHTML = '<div style="text-align:center;padding:40px;">📚 加载题库...</div>';
+    const script = document.createElement('script');
+    const url = '../../../data/' + grade + '-' + sem + '-lessons.js?v=20260507';
+    script.src = url;
+    script.onload = () => {
+      const key = 'QUESTION_BANK_' + grade + '_' + sem + '_LESSONS';
+      if (window[key]) {
+        Object.assign(this.questionBank, window[key]);
+      }
+      this.renderLessons();
+    };
+    script.onerror = () => {
+      grid.innerHTML = '<div style="text-align:center;padding:40px;color:#ff6b6b;">题库加载失败，请检查网络</div>';
+    };
+    document.head.appendChild(script);
+  },
+  
+  renderLessons() {
+    const c = this.currentCourse;
+    const key = c.grade + '-' + c.sem;
+    const lessons = this.questionBank[key] || {};
+    const ids = Object.keys(lessons).sort();
+    
+    if (ids.length === 0) {
+      document.getElementById('lessonGrid').innerHTML = '<div style="text-align:center;padding:40px;">暂无课程数据</div>';
+      return;
+    }
+    
+    const progressKey = 'progress_' + c.grade + c.sem + '_' + (this.studentId || '');
+    const saved = localStorage.getItem(progressKey);
+    if (saved) { try { Object.assign(this.lessonProgress, JSON.parse(saved)); } catch(e) {} }
+    
+    document.getElementById('lessonGrid').innerHTML = ids.map(id => {
+      const lesson = lessons[id];
+      const prog = this.lessonProgress[id] || {};
+      const done = prog.done;
+      return `
+        <div class="lesson-card" onclick="App.startLesson('${id}')">
+          <div class="lesson-num">${id.split('-').pop()}</div>
+          <div class="lesson-info">
+            <div class="lesson-name">${lesson.name || '第' + id.split('-').pop() + '课'}</div>
+            <div class="lesson-meta">${lesson.qCount || 0} 题 ${done ? '<span class="lesson-done">✅ 已完成</span>' : ''}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+    // Progress bar
+    const doneCount = ids.filter(id => this.lessonProgress[id] && this.lessonProgress[id].done).length;
+    document.getElementById('levelProgress').style.width = (doneCount / ids.length * 100) + '%';
+  },
+  
+  // ---- start lesson ----
+  startLesson(lessonId) {
+    this.currentLesson = lessonId;
+    const c = this.currentCourse;
+    const key = c.grade + '-' + c.sem;
+    const lesson = (this.questionBank[key] || {})[lessonId];
+    if (!lesson || !lesson.questions || lesson.questions.length === 0) {
+      alert('该课程暂无题目');
+      return;
+    }
+    this.questions = lesson.questions;
+    this.qIndex = 0;
+    this.correctCount = 0;
+    this.wrongCount = 0;
+    this.currentStreak = 0;
+    this.answered = false;
+    document.getElementById('quizLessonName').textContent = lesson.name || '答题';
+    this.showScreen('quizScreen');
+    this.showQuestion();
+  },
+  
+  // ---- question display ----
+  showQuestion() {
+    if (this.qIndex >= this.questions.length) {
+      this.showResult();
+      return;
+    }
+    const q = this.questions[this.qIndex];
+    const total = this.questions.length;
+    document.getElementById('qNum').textContent = '第 ' + (this.qIndex + 1) + ' 题';
+    document.getElementById('qText').textContent = q.question || q.q || '（题目加载失败）';
+    document.getElementById('quizQNum').textContent = (this.qIndex + 1) + '/' + total;
+    document.getElementById('quizProgress').style.width = ((this.qIndex) / total * 100) + '%';
+    document.getElementById('qFeedback').textContent = '';
+    document.getElementById('qFeedback').className = 'feedback';
+    document.getElementById('nextBtn').style.display = 'none';
+    this.answered = false;
+    
+    const opts = q.options || q.opts || [];
+    const labels = ['A','B','C','D','E','F'];
+    document.getElementById('qOptions').innerHTML = opts.map((o,i) => {
+      const text = typeof o === 'string' ? o : (o.text || o.label || '');
+      return `<button class="option" onclick="App.selectAnswer(${i})">${labels[i]}. ${text}</button>`;
+    }).join('');
+  },
+  
+  selectAnswer(idx) {
+    if (this.answered) return;
+    this.answered = true;
+    const q = this.questions[this.qIndex];
+    const correctIdx = typeof q.answer === 'number' ? q.answer : (q.correct || 0);
+    const isCorrect = idx === correctIdx;
+    
+    // Highlight
+    const options = document.querySelectorAll('#qOptions .option');
+    options.forEach(o => o.classList.add('disabled'));
+    options[idx].classList.add(isCorrect ? 'correct' : 'wrong');
+    if (!isCorrect) options[correctIdx].classList.add('correct');
+    
+    // Points & streak
+    let points = 0;
+    if (isCorrect) {
+      this.correctCount++;
+      this.currentStreak++;
+      if (this.currentStreak > this.maxStreak) this.maxStreak = this.currentStreak;
+      // Base 10 + streak bonus
+      points = 10 + Math.min(this.currentStreak - 1, 10) * 2;
+      document.getElementById('qFeedback').textContent = '✅ 正确！+' + points + ' 分' + (this.currentStreak > 1 ? ' 🔥连击x' + this.currentStreak : '');
+      document.getElementById('qFeedback').className = 'feedback correct';
+      this.showDanmaku('correct', '答对了！+' + points + '分');
+    } else {
+      this.wrongCount++;
+      this.currentStreak = 0;
+      document.getElementById('qFeedback').textContent = '❌ 错误！正确答案是 ' + ['A','B','C','D','E','F'][correctIdx];
+      document.getElementById('qFeedback').className = 'feedback wrong';
+      // Record wrong question
+      const c = this.currentCourse;
+      const key = c.grade + '-' + c.sem;
+      const lesson = (this.questionBank[key] || {})[this.currentLesson];
+      this.wrongQuestions.push({
+        question: q.question || q.q || '',
+        answer: correctIdx,
+        studentAnswer: idx,
+        lessonName: lesson ? lesson.name : '',
+        timestamp: Date.now()
+      });
+    }
+    this.totalPoints += points;
+    this.updateStatusBar();
+    this.saveState();
+    this.pushRanking();
+    
+    document.getElementById('nextBtn').style.display = 'block';
+  },
+  
+  nextQuestion() {
+    this.qIndex++;
+    this.showQuestion();
+  },
+  
+  showResult() {
+    this.showScreen('resultScreen');
+    document.getElementById('resultScore').textContent = '+ ' + this.correctCount * 10 + ' 分';
+    document.getElementById('resultCorrect').textContent = this.correctCount;
+    document.getElementById('resultWrong').textContent = this.wrongCount;
+    document.getElementById('resultStreak').textContent = this.maxStreak;
+    document.getElementById('quizProgress').style.width = '100%';
+    
+    // Save lesson progress
+    if (this.currentLesson && this.currentCourse) {
+      const c = this.currentCourse;
+      this.lessonProgress[this.currentLesson] = {
+        done: true,
+        score: this.correctCount * 10,
+        correct: this.correctCount,
+        wrong: this.wrongCount,
+        maxStreak: this.maxStreak
+      };
+      // Save per-course progress
+      const progressKey = 'progress_' + c.grade + c.sem + '_' + (this.studentId || '');
+      localStorage.setItem(progressKey, JSON.stringify(this.lessonProgress));
+    }
+    
+    // Achievement check
+    this.checkAchievements();
+    this.saveState();
+    
+    // Danmaku
+    if (this.correctCount >= this.questions.length * 0.8) {
+      this.showDanmaku('achievement', '🎉 优秀！正确率 ' + Math.round(this.correctCount/this.questions.length*100) + '%');
+    }
+  },
+  
+  goBack() {
+    this.showScreen('courseScreen');
+  },
+  
+  quitLesson() {
+    if (this.answered && this.qIndex < this.questions.length) {
+      if (!confirm('确定退出？当前进度不会保存。')) return;
+    }
+    this.showScreen('levelScreen');
+    this.renderLessons();
+  },
+  
+  // ---- state management ----
+  saveState() {
+    if (this.isGuest) return;
+    const data = {
+      totalPoints: this.totalPoints,
+      wrongQuestions: this.wrongQuestions,
+      achievements: this.achievements,
+      lessonProgress: this.lessonProgress,
+      lastUpdated: Date.now()
+    };
+    localStorage.setItem('v8_user_' + this.studentId, JSON.stringify(data));
+  },
+  
+  loadState() {
+    if (this.isGuest || !this.studentId) return;
+    const saved = localStorage.getItem('v8_user_' + this.studentId);
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        this.totalPoints = data.totalPoints || 0;
+        this.wrongQuestions = data.wrongQuestions || [];
+        this.achievements = data.achievements || [];
+        this.lessonProgress = data.lessonProgress || {};
+      } catch(e) {}
+    }
+    this.updateStatusBar();
+  },
+  
+  updateStatusBar() {
+    document.getElementById('statPoints').innerHTML = '⭐ ' + this.totalPoints;
+    document.getElementById('statAch').textContent = this.achievements.length;
+  },
+  
+  // ---- ranking ----
+  showRanking() {
+    document.getElementById('rankingModal').classList.add('show');
+    this.loadRanking('points');
+  },
+  
+  async loadRanking(type) {
+    // For now, use localStorage-based simple ranking
+    // Later: connect to API
+    const rows = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('v8_user_')) {
+        const sid = key.replace('v8_user_', '');
+        try {
+          const data = JSON.parse(localStorage.getItem(key));
+          rows.push({ studentId: sid, name: sid, points: data.totalPoints || 0 });
+        } catch(e) {}
+      }
+    }
+    rows.sort((a,b) => b.points - a.points);
+    
+    const myId = this.studentId;
+    document.getElementById('rankBody').innerHTML = rows.map((r,i) => {
+      const isMe = r.studentId === myId;
+      const rankIcon = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i+1);
+      return `<tr class="rank-row ${isMe ? 'rank-me' : ''}">
+        <td class="rank-num">${rankIcon}</td>
+        <td>${r.name}</td>
+        <td>⭐ ${r.points}</td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="3">暂无排行数据</td></tr>';
+  },
+  
+  // ---- achievements ----
+  showAchievements() {
+    const defs = [
+      {id:'first_answer', icon:'🎯', name:'首战告捷', desc:'完成第一次答题', tier:'⭐'},
+      {id:'perfect', icon:'💎', name:'完美通关', desc:'一课全部答对', tier:'⭐⭐'},
+      {id:'streak3', icon:'🔥', name:'三连击', desc:'单课达到3连击', tier:'⭐⭐'},
+      {id:'streak5', icon:'⚡', name:'五连击', desc:'单课达到5连击', tier:'⭐⭐⭐'},
+      {id:'score100', icon:'🌟', name:'百星学者', desc:'累计获得100积分', tier:'⭐⭐⭐'},
+      {id:'score500', icon:'👑', name:'五星学霸', desc:'累计获得500积分', tier:'🏆'},
+    ];
+    document.getElementById('achGrid').innerHTML = defs.map(d => {
+      const unlocked = this.achievements.includes(d.id);
+      return `<div class="ach-card ${unlocked ? '' : 'locked'}">
+        <div class="ach-icon">${d.icon}</div>
+        <div><b>${d.name}</b></div>
+        <div style="font-size:0.75em;color:rgba(255,255,255,0.5);">${d.desc}</div>
+        <div>${d.tier}</div>
+      </div>`;
+    }).join('');
+    document.getElementById('achievementModal').classList.add('show');
+  },
+  
+  checkAchievements() {
+    const unlocks = [];
+    if (this.correctCount > 0 && !this.achievements.includes('first_answer')) unlocks.push('first_answer');
+    if (this.correctCount === this.questions.length && !this.achievements.includes('perfect')) unlocks.push('perfect');
+    if (this.maxStreak >= 3 && !this.achievements.includes('streak3')) unlocks.push('streak3');
+    if (this.maxStreak >= 5 && !this.achievements.includes('streak5')) unlocks.push('streak5');
+    if (this.totalPoints >= 100 && !this.achievements.includes('score100')) unlocks.push('score100');
+    if (this.totalPoints >= 500 && !this.achievements.includes('score500')) unlocks.push('score500');
+    for (const id of unlocks) {
+      this.achievements.push(id);
+      this.showDanmaku('achievement', '🏆 解锁成就！');
+    }
+  },
+  
+  // ---- notices ----
+  showNotices() {
+    const notices = [
+      {title:'科技节', content:'本届科技节现已可以报名摊主。小摊位2位摊主，中大型摊位人数可多些。报名截止5月10日23点。', link:'https://www.kdocs.cn/l/csMnIjr5bpeE'},
+      {title:'系统公告', content:'V8 版本全新上线！课程选择、答题、排行榜、成就系统全部重写。'},
+    ];
+    document.getElementById('noticesList').innerHTML = notices.map(n => `
+      <div class="notice-item">
+        <b>${n.title}</b>
+        <p style="color:rgba(255,255,255,0.7);margin-top:4px;">${n.content}</p>
+        ${n.link ? '<a href="'+n.link+'" target="_blank" style="color:#667eea;">点击查看</a>' : ''}
+      </div>
+    `).join('');
+    document.getElementById('noticesModal').classList.add('show');
+  },
+  
+  // ---- danmaku ----
+  showDanmaku(type, msg) {
+    const container = document.getElementById('danmaku');
+    const item = document.createElement('div');
+    item.className = 'danmaku-item';
+    item.style.top = (10 + Math.random() * 70) + '%';
+    item.style.background = type === 'achievement' ? 'rgba(255,215,0,0.8)' : 'rgba(78,205,196,0.8)';
+    item.style.color = type === 'achievement' ? '#1a1a2e' : '#fff';
+    item.textContent = msg;
+    container.appendChild(item);
+    setTimeout(() => item.remove(), 9000);
+  },
+  
+  // ---- ranking push ----
+  async pushRanking() {
+    if (this.isGuest || !this.studentId) return;
+    try {
+      await fetch('https://api.kexvefuxi.cn/api/students/batch', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          students: [{
+            studentId: this.studentId,
+            name: this.studentName || this.studentId,
+            totalPoints: this.totalPoints,
+            wrongQuestions: this.wrongQuestions.map(w => w.question).filter(Boolean)
+          }]
+        })
+      });
+    } catch(e) {}
+  },
+  
+  // ---- modal ----
+  closeModal(id) {
+    document.getElementById(id).classList.remove('show');
+  }
+};
+
+// Init on load
+window.addEventListener('DOMContentLoaded', () => App.init());
+</script>
+</body>
+</html>
