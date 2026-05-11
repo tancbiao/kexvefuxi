@@ -230,7 +230,7 @@ body { background:var(--bg); color:var(--text); font-family:-apple-system,"Micro
       <div class="tower-modal-title">🏰 爬塔送神装</div>
       <button class="tower-modal-close" onclick="App.closeTowerModal()">✕</button>
     </div>
-    <iframe id="towerIframe"></iframe>
+    <iframe id="towerIframe" sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups"></iframe>
   </div>
 </div>
 
@@ -578,12 +578,20 @@ const App = {
     document.getElementById('qFeedback').textContent=''; document.getElementById('qFeedback').className='feedback';
     document.getElementById('nextBtn').style.display='none'; this.answered=false;
     const opts=q.options||q.opts||[], labels=['A','B','C','D','E','F'];
-    document.getElementById('qOptions').innerHTML=opts.map((o,i)=>`<button class="option" onclick="App.selectAnswer(${i})">${labels[i]}. ${typeof o==='string'?o:(o.text||o.label||'')}</button>`).join('');
+    // Shuffle options
+    const indices = opts.map((_,i)=>i);
+    for (let i=indices.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1)); [indices[i],indices[j]]=[indices[j],indices[i]]; }
+    // Store shuffle mapping for selectAnswer
+    this._shuffleMap = indices;
+    // Find new correct index
+    const origCorrect = typeof q.answer==='number'?q.answer:(q.correct||0);
+    this._correctIdx = indices.indexOf(origCorrect);
+    document.getElementById('qOptions').innerHTML=indices.map((oi,i)=>`<button class="option" onclick="App.selectAnswer(${i})">${labels[i]}. ${typeof opts[oi]==='string'?opts[oi]:(opts[oi].text||opts[oi].label||'')}</button>`).join('');
   },
   
   selectAnswer(idx) {
     if (this.answered) return; this.answered=true;
-    const q=this.questions[this.qIndex], ci=typeof q.answer==='number'?q.answer:(q.correct||0);
+    const q=this.questions[this.qIndex], ci=this._correctIdx, origCi=this._shuffleMap?this._shuffleMap[ci]:ci;
     const ok=idx===ci;
     const os=document.querySelectorAll('#qOptions .option');
     os.forEach(o=>o.classList.add('disabled'));
@@ -596,9 +604,9 @@ const App = {
       document.getElementById('qFeedback').className='feedback correct';
       this.showDanmaku('correct','答对了！+'+points+'分');
     } else { this.wrongCount++; this.currentStreak=0;
-      document.getElementById('qFeedback').innerHTML='❌ 错误！正确: '+['A','B','C','D','E','F'][ci];
+      document.getElementById('qFeedback').innerHTML='❌ 错误！正确: '+['A','B','C','D','E','F'][origCi];
       document.getElementById('qFeedback').className='feedback wrong';
-      this.wrongQuestions.push({question:q.question||q.q||'',answer:ci,studentAnswer:idx,lessonName:this.currentLesson,timestamp:Date.now()});
+      this.wrongQuestions.push({question:q.question||q.q||'',answer:origCi,studentAnswer:idx,lessonName:this.currentLesson,timestamp:Date.now()});
     }
     this.totalPoints+=points; this.updateStatusBar(); this.saveState(); this.pushRanking();
     document.getElementById('nextBtn').style.display='block';
