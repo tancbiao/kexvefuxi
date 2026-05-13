@@ -2395,9 +2395,12 @@ function saveUserData() {
     equipment: gameState.equipment,
     equipDropped: gameState.equipDropped || {},
     wrongQuestions: gameState.wrongQuestions || [],
+    totalQuestionsAnswered: gameState.totalQuestionsAnswered || 0,
+    totalCorrectAnswers: gameState.totalCorrectAnswers || 0,
     petPieces: petPieces,
     dailyStamina: gameState.dailyStamina,
     lastStaminaDate: gameState.lastStaminaDate,
+    gradeDataMerged: true, // 跨年级迁移标记（防止每次登录重复合并）
     lastUpdated: Date.now()
   };
   localStorage.setItem('scienceGame_user_' + gameState.studentId, JSON.stringify(data));
@@ -2932,6 +2935,102 @@ function mergeUserData(localData, cloudData) {
   return merged;
 }
 
+// 跨年级数据合并：从多个年级存档中取各项最大值
+function mergeGradeData(base, add) {
+  if (!add || !base) return base || add || {};
+  var result = JSON.parse(JSON.stringify(base));
+  // 积分：取最大值
+  result.totalPoints = Math.max(base.totalPoints || 0, add.totalPoints || 0);
+  // 课时进度：合并所有 key，每个取最大值
+  result.lessonProgress = {};
+  var allLpKeys = Object.keys(Object.assign({}, base.lessonProgress || {}, add.lessonProgress || {}));
+  allLpKeys.forEach(function(k) {
+    result.lessonProgress[k] = Math.max((base.lessonProgress && base.lessonProgress[k]) || 0, (add.lessonProgress && add.lessonProgress[k]) || 0);
+  });
+  // 成就：并集去重
+  result.unlockedAchievements = Array.from(new Set([].concat(base.unlockedAchievements || [], add.unlockedAchievements || [])));
+  // 装备：取装备数量多的那份
+  var baseEqCount = (base.equipment || []).filter(Boolean).length;
+  var addEqCount = (add.equipment || []).filter(Boolean).length;
+  result.equipment = addEqCount > baseEqCount ? add.equipment : base.equipment;
+  // 装备掉落记录：合并
+  result.equipDropped = Object.assign({}, base.equipDropped || {}, add.equipDropped || {});
+  // 错题：合并去重（按题目+答案），保留 count 大的
+  var wqMap = {};
+  [].concat(base.wrongQuestions || [], add.wrongQuestions || []).forEach(function(w) {
+    var key = (w.question || '') + '|' + (w.correctAnswer || '');
+    if (!wqMap[key] || (w.count || 0) > (wqMap[key].count || 0)) wqMap[key] = w;
+  });
+  result.wrongQuestions = Object.keys(wqMap).map(function(k) { return wqMap[k]; });
+  // 宠物碎片：每个碎片取最大值
+  var pp = Object.assign({}, base.petPieces || {});
+  Object.keys(add.petPieces || {}).forEach(function(k) {
+    pp[k] = Math.max(pp[k] || 0, add.petPieces[k] || 0);
+  });
+  result.petPieces = pp;
+  // 体力 & 统计
+  result.dailyStamina = Math.max(base.dailyStamina || 0, add.dailyStamina || 0);
+  result.totalQuestionsAnswered = Math.max(base.totalQuestionsAnswered || 0, add.totalQuestionsAnswered || 0);
+  result.totalCorrectAnswers = Math.max(base.totalCorrectAnswers || 0, add.totalCorrectAnswers || 0);
+  return result;
+}
+
+// 首次登录时从云端拉取旧年级存档（grade_3/4/5/6）并合并（仅执行一次）
+async function migrateAndSyncCloud(studentId, localData) {
+  if (!studentId || studentId === 'guest') return false;
+  var saveKey = 'scienceGame_user_' + studentId;
+
+  // 检查本地是否已合并过
+  if (localData && localData.gradeDataMerged) {
+    return false;
+  }
+
+  // 检查云端统一存档是否已标记合并
+  try {
+    var cloudCheck = await loadFromCloud(studentId);
+    if (cloudCheck && cloudCheck.gradeDataMerged) {
+      // 云端已合并，回写本地标记
+      if (localData) { localData.gradeDataMerged = true; localStorage.setItem(saveKey, JSON.stringify(localData)); }
+      return false;
+    }
+  } catch(e) {}
+
+  // 依次拉取旧年级云端数据
+  var gradeKeys = ['grade_3', 'grade_4', 'grade_5', 'grade_6'];
+  var merged = localData ? JSON.parse(JSON.stringify(localData)) : {};
+  var foundOld = false;
+
+  for (var i = 0; i < gradeKeys.length; i++) {
+    try {
+      var gradeData = await loadStudent(gradeKeys[i], studentId);
+      if (gradeData) {
+        merged = mergeGradeData(merged, gradeData);
+        foundOld = true;
+        console.log('✅ 已合并旧' + gradeKeys[i] + '云端数据');
+      }
+    } catch(e) { /* 该年级无数据，跳过 */ }
+  }
+
+  // 标记已合并（避免每次登录重复检查）
+  merged.gradeDataMerged = true;
+  merged.lastUpdated = Date.now();
+  localStorage.setItem(saveKey, JSON.stringify(merged));
+  
+  if (foundOld) {
+    // 有旧数据：同步到云端 + 应用到界面
+    await saveToCloud(studentId, merged);
+    applyUserData(merged);
+    console.log('✅ 跨年级云端迁移完成（3-6年级最大值合并）');
+  } else if (!localData) {
+    // 新学生无旧数据：不写云端空存档，等 saveUserData 带上标记即可
+    console.log('新学生，已标记跨年级迁移完成');
+  } else {
+    // 有本地数据但无旧年级数据：仅更新本地标记，不覆盖云端已有数据
+    console.log('未发现旧年级云端数据，已标记为已迁移');
+  }
+  return true;
+}
+
 function loadUserData() {
   if (gameState.isGuest) return;
   const saveKey = 'scienceGame_user_' + gameState.studentId;
@@ -3027,16 +3126,23 @@ function loadUserData() {
     }
   } catch (e) { /* ignore */ }
 
-  loadFromCloud(gameState.studentId).then(cloudData => {
-    if (!cloudData) return;
-    const merged = mergeUserData(localData, cloudData);
-    if (merged !== localData) {
-      applyUserData(merged);
-      localStorage.setItem(saveKey, JSON.stringify(merged));
-      saveToCloud(gameState.studentId, merged);
-      console.log('已同步云端最新存档');
-    }
-  }).finally(() => {
+  // 【跨年级云端迁移】首次登录时合并旧年级数据（仅执行一次）
+  migrateAndSyncCloud(gameState.studentId, localData).then(function() {
+    // 迁移完成后重新读取本地存档（可能已被迁移更新）
+    var updatedSaved = localStorage.getItem(saveKey);
+    var updatedLocal = updatedSaved ? JSON.parse(updatedSaved) : localData;
+    // 正常云端同步
+    return loadFromCloud(gameState.studentId).then(function(cloudData) {
+      if (!cloudData) return;
+      var merged = mergeUserData(updatedLocal, cloudData);
+      if (merged !== updatedLocal) {
+        applyUserData(merged);
+        localStorage.setItem(saveKey, JSON.stringify(merged));
+        saveToCloud(gameState.studentId, merged);
+        console.log('已同步云端最新存档');
+      }
+    });
+  }).finally(function() {
     // 领取待发放奖励（称号/装备/宠物）
     if (typeof collectPendingRewards === 'function') {
       collectPendingRewards(gameState.studentId, showAchievementUnlock);
