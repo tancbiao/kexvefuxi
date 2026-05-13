@@ -1,0 +1,5 @@
+{
+  "id": 1062117,
+  "name": "Idol Star Chain Pants",
+  "description": ""
+}

@@ -1,0 +1,5 @@
+{
+  "id": 1012222,
+  "name": "Blue Archer Symbol",
+  "description": ""
+}

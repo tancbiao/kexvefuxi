@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect x="10" y="14" width="44" height="36" rx="3" fill="#4ade80"/>
+  <rect x="12" y="16" width="40" height="32" rx="2" fill="#86efac"/>
+  <rect x="32" y="14" width="3" height="36" fill="#22c55e"/>
+  <text x="32" y="40" font-size="18" text-anchor="middle" fill="#15803d" font-family="Arial">⚛</text>
+</svg>

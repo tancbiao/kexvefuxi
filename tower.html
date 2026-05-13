@@ -1,0 +1,2669 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>科学爬塔 · 送神装</title>
+<style>
+/* ========== 基础重置 ========== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: "微软雅黑", "PingFang SC", sans-serif;
+  background: linear-gradient(135deg, #0a0a1a 0%, #1a0a2e 40%, #0f1629 100%);
+  min-height: 100vh;
+  color: #fff;
+  overflow-x: hidden;
+  user-select: none;
+}
+
+/* ========== 顶部状态栏 ========== */
+.top-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background: rgba(10,10,30,0.85);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  font-size: 0.85em;
+  min-height: 48px;
+}
+.top-bar .tb-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: rgba(255,255,255,0.7);
+}
+.top-bar .tb-item .tb-val {
+  font-weight: bold;
+  color: #ffd700;
+}
+.top-bar .tb-left { display: flex; gap: 14px; align-items: center; }
+.top-bar .tb-right { display: flex; gap: 12px; align-items: center; }
+.tb-btn {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85em;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.tb-btn:hover { background: rgba(255,255,255,0.15); }
+
+/* ========== 主容器 ========== */
+.main-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding-top: 60px;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* ========== 通用屏幕 ========== */
+.screen { display: none; padding: 20px; animation: fadeIn 0.3s ease; }
+.screen.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+@keyframes glow {
+  0%,100% { box-shadow: 0 0 10px rgba(255,215,0,0.3); }
+  50% { box-shadow: 0 0 25px rgba(255,215,0,0.6); }
+}
+@keyframes floatUp {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
+}
+@keyframes cardFlip {
+  0% { transform: rotateY(90deg); opacity: 0; }
+  100% { transform: rotateY(0deg); opacity: 1; }
+}
+@keyframes monsterAppear {
+  0% { transform: scale(0) rotateZ(20deg); opacity: 0; }
+  60% { transform: scale(1.1) rotateZ(-5deg); }
+  100% { transform: scale(1) rotateZ(0deg); opacity: 1; }
+}
+
+/* ========== 登录屏幕 ========== */
+.login-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+  text-align: center;
+}
+.login-box .logo { font-size: 72px; margin-bottom: 16px; }
+.login-box h1 { font-size: 1.8em; margin-bottom: 8px; background: linear-gradient(90deg, #ffd700, #ff6b6b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.login-box .sub { color: rgba(255,255,255,0.5); margin-bottom: 30px; font-size: 0.9em; }
+.login-input {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  padding: 14px 20px;
+  width: 260px;
+  font-size: 1.2em;
+  text-align: center;
+  color: #fff;
+  outline: none;
+  font-family: inherit;
+  letter-spacing: 4px;
+  transition: border-color 0.3s;
+}
+.login-input:focus { border-color: #ffd700; }
+.login-input::placeholder { letter-spacing: 0; color: rgba(255,255,255,0.3); font-size: 0.8em; }
+.login-btn {
+  margin-top: 20px;
+  background: linear-gradient(135deg, #ffd700, #ff8c00);
+  border: none;
+  padding: 14px 50px;
+  border-radius: 30px;
+  font-size: 1.1em;
+  font-weight: bold;
+  color: #1a1a2e;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: inherit;
+}
+.login-btn:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(255,215,0,0.4); }
+.login-error { color: #ff6b6b; font-size: 0.85em; margin-top: 10px; min-height: 24px; }
+
+/* ========== 首页 ========== */
+.home-hero {
+  text-align: center;
+  padding: 30px 0;
+}
+.home-hero .tower-icon { font-size: 80px; display: block; margin-bottom: 10px; }
+.home-hero h1 { font-size: 2em; background: linear-gradient(90deg, #ffd700, #ff6b6b, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 6px; }
+.home-hero .tagline { color: rgba(255,255,255,0.5); font-size: 0.9em; margin-bottom: 20px; }
+
+/* 角色属性面板 */
+.stats-panel {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.stats-panel h3 { font-size: 0.9em; color: rgba(255,255,255,0.5); margin-bottom: 12px; }
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-size: 0.95em;
+}
+.stat-row:last-child { border-bottom: none; }
+.stat-label { color: rgba(255,255,255,0.6); }
+.stat-value { font-weight: bold; }
+.stat-value.atk { color: #ff6b6b; }
+.stat-value.hp { color: #4ade80; }
+.stat-value.floor { color: #ffd700; }
+.stat-value.points { color: #a78bfa; }
+
+/* 开始按钮 */
+.start-floor-btn {
+  display: block;
+  width: 100%;
+  background: linear-gradient(135deg, #ffd700, #ff8c00);
+  border: none;
+  padding: 16px;
+  border-radius: 16px;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #1a1a2e;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: inherit;
+  margin-bottom: 12px;
+}
+.start-floor-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(255,215,0,0.3); }
+.start-floor-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* 排行榜首页 */
+.home-ranking {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 14px;
+}
+.home-ranking h3 { font-size: 0.85em; color: rgba(255,255,255,0.4); margin-bottom: 10px; }
+.rank-item {
+  display: flex;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 0.85em;
+  gap: 10px;
+}
+.rank-num {
+  width: 24px;
+  text-align: center;
+  font-weight: bold;
+}
+.rank-num.gold { color: #ffd700; }
+.rank-num.silver { color: #c0c0c0; }
+.rank-num.bronze { color: #cd7f32; }
+.rank-id { color: rgba(255,255,255,0.7); flex: 1; }
+.rank-floor { color: #ffd700; font-weight: bold; }
+
+/* ========== 战斗屏幕 ========== */
+.battle-header {
+  text-align: center;
+  margin-bottom: 12px;
+}
+.battle-header .floor-tag {
+  display: inline-block;
+  background: rgba(255,215,0,0.15);
+  color: #ffd700;
+  padding: 4px 16px;
+  border-radius: 20px;
+  font-size: 0.85em;
+  font-weight: bold;
+}
+
+/* 怪物区域 */
+.monster-area {
+  text-align: center;
+  padding: 20px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  margin-bottom: 14px;
+  position: relative;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.monster-area .monster-emoji {
+  font-size: 64px;
+  line-height: 1;
+  margin-bottom: 6px;
+  transition: transform 0.3s;
+}
+.monster-area .monster-emoji.attacking {
+  animation: shake 0.5s ease;
+}
+.monster-area .monster-emoji.hit {
+  animation: shake 0.3s ease;
+  filter: brightness(2);
+}
+.monster-area .monster-name {
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+.monster-area .monster-type-tag {
+  display: inline-block;
+  font-size: 0.75em;
+  padding: 2px 10px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+.tag-small { background: rgba(100,200,100,0.2); color: #64c864; }
+.tag-elite { background: rgba(255,165,0,0.2); color: #ffa500; }
+.tag-boss { background: rgba(255,50,50,0.25); color: #ff3333; }
+
+/* 血条 */
+.hp-bar-wrap {
+  width: 100%;
+  max-width: 320px;
+  margin: 6px auto;
+}
+.hp-bar-bg {
+  width: 100%;
+  height: 16px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+.hp-bar-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.4s ease;
+}
+.hp-bar-fill.monster { background: linear-gradient(90deg, #ff4444, #ff8c00); }
+.hp-bar-fill.player { background: linear-gradient(90deg, #4ade80, #22c55e); }
+.hp-bar-fill.boss { background: linear-gradient(90deg, #ff0044, #ff4400, #ff0044); background-size: 200% 100%; animation: pulse 2s infinite; }
+.hp-text {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8em;
+  color: rgba(255,255,255,0.6);
+  margin-top: 2px;
+}
+
+/* 技能标签区 */
+.skills-area {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 8px;
+}
+.skill-tag {
+  font-size: 0.7em;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.5);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* 战斗日志 */
+.battle-log {
+  text-align: center;
+  min-height: 32px;
+  padding: 8px;
+  font-size: 0.9em;
+  color: rgba(255,255,255,0.7);
+}
+.battle-log .log-damage { color: #ff6b6b; font-weight: bold; }
+.battle-log .log-heal { color: #4ade80; font-weight: bold; }
+.battle-log .log-dodge { color: #60a5fa; font-weight: bold; }
+.battle-log .log-skill { color: #ffd700; font-weight: bold; }
+
+/* 答题区域 */
+.quiz-area {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.quiz-area .q-turn {
+  font-size: 0.8em;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 8px;
+}
+.quiz-area .q-turn .turn-tag {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 0.9em;
+}
+.turn-attack { background: rgba(255,107,107,0.2); color: #ff6b6b; }
+.turn-dodge { background: rgba(96,165,250,0.2); color: #60a5fa; }
+.quiz-area .q-text { font-size: 1.05em; margin-bottom: 14px; line-height: 1.6; }
+
+.q-options { display: flex; flex-direction: column; gap: 8px; }
+.q-option {
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  font-size: 0.95em;
+  color: #fff;
+  font-family: inherit;
+}
+.q-option:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,215,0,0.4); }
+.q-option.correct { background: rgba(74,222,128,0.2); border-color: #4ade80; }
+.q-option.wrong { background: rgba(255,68,68,0.2); border-color: #ff4444; }
+.q-option:disabled { cursor: not-allowed; opacity: 0.7; }
+
+/* 倒计时 */
+.timer-bar-wrap {
+  height: 3px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.timer-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffd700, #ff6b6b);
+  transition: width 1s linear;
+  border-radius: 2px;
+}
+
+/* ========== 卡牌奖励屏幕 ========== */
+.reward-box {
+  text-align: center;
+  padding-top: 30px;
+}
+.reward-box h2 { font-size: 1.5em; margin-bottom: 6px; }
+.reward-box .reward-sub { color: rgba(255,255,255,0.5); font-size: 0.9em; margin-bottom: 24px; }
+.card-grid {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.reward-card {
+  width: 160px;
+  min-height: 210px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 16px;
+  padding: 18px 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: cardFlip 0.5s ease backwards;
+  gap: 8px;
+}
+.reward-card:nth-child(1) { animation-delay: 0.1s; }
+.reward-card:nth-child(2) { animation-delay: 0.25s; }
+.reward-card:nth-child(3) { animation-delay: 0.4s; }
+.reward-card:hover {
+  transform: translateY(-8px);
+  border-color: #ffd700;
+  box-shadow: 0 8px 30px rgba(255,215,0,0.2);
+  background: rgba(255,255,255,0.1);
+}
+.reward-card .card-icon { font-size: 40px; }
+.reward-card .card-name { font-weight: bold; font-size: 0.95em; }
+.reward-card .card-effect { font-size: 0.8em; color: rgba(255,255,255,0.6); }
+.reward-card .card-rarity { font-size: 0.7em; padding: 2px 8px; border-radius: 8px; }
+.card-rarity.common { background: rgba(158,158,158,0.2); color: #9e9e9e; }
+.card-rarity.uncommon { background: rgba(76,175,80,0.2); color: #4caf50; }
+.card-rarity.rare { background: rgba(33,150,243,0.2); color: #2196f3; }
+.card-rarity.epic { background: rgba(156,39,176,0.2); color: #9c27b0; }
+.card-rarity.legendary { background: rgba(255,215,0,0.2); color: #ffd700; }
+
+.reward-card.selected {
+  border-color: #ffd700;
+  animation: glow 1.5s ease infinite;
+  background: rgba(255,215,0,0.1);
+}
+
+/* ========== 结算屏幕 ========== */
+.result-box {
+  text-align: center;
+  padding-top: 40px;
+}
+.result-box .result-icon { font-size: 64px; margin-bottom: 10px; }
+.result-box h2 { font-size: 1.6em; margin-bottom: 6px; }
+.result-box .result-sub { color: rgba(255,255,255,0.5); margin-bottom: 20px; }
+.result-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+.result-stat {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 16px;
+}
+.result-stat .rs-val { font-size: 1.8em; font-weight: bold; }
+.result-stat .rs-label { font-size: 0.8em; color: rgba(255,255,255,0.5); margin-top: 4px; }
+.result-stat .rs-val.gold { color: #ffd700; }
+.result-stat .rs-val.green { color: #4ade80; }
+.result-stat .rs-val.red { color: #ff6b6b; }
+.result-stat .rs-val.purple { color: #a78bfa; }
+
+.result-btns { display: flex; gap: 12px; justify-content: center; }
+.result-btns button {
+  padding: 12px 30px;
+  border-radius: 14px;
+  border: none;
+  font-size: 1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: inherit;
+}
+.btn-replay { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #1a1a2e; }
+.btn-home { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2) !important; }
+.result-btns button:hover { transform: scale(1.05); }
+
+/* ========== 飘字动画 ========== */
+.float-text {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2em;
+  font-weight: bold;
+  pointer-events: none;
+  z-index: 999;
+  animation: floatUp 1.2s ease forwards;
+}
+
+/* ========== 背包弹窗暗黑风格 ========== */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7); z-index: 500;
+  display: none; align-items: center; justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.show { display: flex; }
+.modal-content {
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px; padding: 24px;
+  max-width: 650px; width: 95%; max-height: 85vh;
+  overflow-y: auto; position: relative;
+}
+.modal-content h2 { font-size: 1.1em; margin-bottom: 16px; text-align: center; }
+.modal-close {
+  position: absolute; top: 12px; right: 16px;
+  background: none; border: none; color: rgba(255,255,255,0.4);
+  font-size: 1.4em; cursor: pointer; font-family: inherit;
+}
+.modal-close:hover { color: #fff; }
+
+/* 穿戴槽位 */
+.equip-slots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 8px; margin-bottom: 16px;
+}
+.equip-slot-box {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px; padding: 8px; text-align: center;
+  cursor: pointer; transition: all 0.2s;
+  min-height: 60px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+.equip-slot-box:hover { border-color: rgba(255,215,0,0.4); background: rgba(255,255,255,0.08); }
+.equip-slot-box.equipped { border-color: rgba(255,215,0,0.5); background: rgba(255,215,0,0.05); }
+.equip-slot-box .slot-icon { font-size: 24px; }
+.equip-slot-box .slot-label { font-size: 0.65em; color: rgba(255,255,255,0.4); margin-top: 2px; }
+.equip-slot-box .slot-name { font-size: 0.6em; color: #ffd700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px; }
+.equip-slot-box .slot-empty { font-size: 0.6em; color: rgba(255,255,255,0.2); }
+
+/* 背包网格 */
+.bp-inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+  gap: 4px; max-height: 300px; overflow-y: auto;
+  background: rgba(0,0,0,0.2); border-radius: 10px; padding: 8px;
+}
+.bp-inv-slot {
+  aspect-ratio: 1; width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 6px; display: flex; align-items: center;
+  justify-content: center; font-size: 18px;
+  cursor: pointer; transition: all 0.15s; position: relative;
+}
+.bp-inv-slot:hover { border-color: rgba(255,215,0,0.4); transform: scale(1.1); z-index: 2; }
+.bp-inv-slot.empty { opacity: 0.2; cursor: default; }
+.bp-inv-slot.equipped-mark { box-shadow: inset 0 0 0 2px rgba(255,215,0,0.5); }
+.bp-inv-slot .bp-tooltip {
+  display: none; position: absolute; bottom: 110%; left: 50%;
+  transform: translateX(-50%); background: rgba(0,0,0,0.95);
+  border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;
+  padding: 8px 10px; font-size: 11px; white-space: nowrap; z-index: 10;
+}
+.bp-inv-slot:hover .bp-tooltip { display: block; }
+
+/* 宠物面板 */
+.pet-slots-row { display: flex; gap: 12px; justify-content: center; margin-bottom: 12px; }
+.pet-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px; padding: 12px; text-align: center;
+  min-width: 90px; cursor: pointer; transition: all 0.2s;
+}
+.pet-card:hover { border-color: rgba(255,215,0,0.4); background: rgba(255,255,255,0.08); }
+.pet-card .pet-emoji { font-size: 32px; }
+.pet-card .pet-name { font-size: 0.8em; margin: 4px 0; }
+.pet-card .pet-level { font-size: 0.7em; color: rgba(255,255,255,0.5); }
+.pet-card .pet-empty { font-size: 0.7em; color: rgba(255,255,255,0.2); padding: 10px 0; }
+.pet-bonus-area { background: rgba(255,255,255,0.03); border-radius: 10px; padding: 10px; font-size: 0.8em; }
+.pet-bonus-row { display: flex; justify-content: space-between; padding: 3px 0; color: rgba(255,255,255,0.6); }
+.pet-bonus-row .val { color: #ffd700; font-weight: bold; }
+
+/* 设备按钮区 */
+.home-btn-row { display: flex; gap: 10px; margin: 12px 0; }
+.home-btn-row button {
+  flex: 1; padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06); color: #fff; cursor: pointer;
+  font-size: 0.9em; transition: all 0.2s; font-family: inherit;
+}
+.home-btn-row button:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,215,0,0.3); }
+
+/* 响应式 */
+@media (max-width: 480px) {
+  .top-bar { font-size: 0.75em; padding: 8px 10px; }
+  .main-container { padding-top: 50px; }
+  .screen { padding: 14px; }
+  .reward-card { width: 120px; min-height: 170px; padding: 14px 10px; }
+  .reward-card .card-icon { font-size: 32px; }
+  .stats-panel { padding: 14px; }
+  .monster-area .monster-emoji { font-size: 48px; }
+  .result-stat .rs-val { font-size: 1.4em; }
+}
+/* ====== iframe 模式：隐藏独立页面元素 ====== */
+.iframe-mode #screenLogin,
+.iframe-mode .top-bar-left { display: none !important; }
+.iframe-mode .main-container { padding-top: 0; }
+.iframe-mode .home-stats { background: transparent; }
+.iframe-mode .stamina-indicator { position: static; }
+
+</style>
+</head>
+<body>
+
+<!-- ========== 顶部状态栏 ========== -->
+<div class="top-bar" id="topBar">
+  <div class="tb-left">
+    <div class="tb-item">
+      🏰 层 <span class="tb-val" id="tbFloor">-</span>
+    </div>
+    <div class="tb-item">
+      ⭐ <span class="tb-val" id="tbPoints">0</span>
+    </div>
+  </div>
+  <div class="tb-right">
+    <div class="tb-item">
+      ⚡ <span class="tb-val" id="tbStamina">-</span>
+    </div>
+    <div class="tb-item" id="tbUser" style="color:rgba(255,255,255,0.5);"></div>
+    <button class="tb-btn" onclick="goHome()" id="btnHomeHeader" style="display:none;">🏠 返回</button>
+  </div>
+</div>
+
+<div class="main-container">
+
+<!-- ========== 登录屏幕 ========== -->
+<div class="screen active" id="screenLogin">
+  <div class="login-box">
+    <div class="logo">🏰</div>
+    <h1>科学爬塔</h1>
+    <div class="sub">答对攻击 · 答错挨打 · 爬塔送神装</div>
+    <input class="login-input" id="loginInput" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="输入8位学号" autocomplete="off">
+    <div class="login-error" id="loginError"></div>
+    <button class="login-btn" onclick="doLogin()">🏰 开始爬塔</button>
+  </div>
+</div>
+
+<!-- ========== 首页 ========== -->
+<div class="screen" id="screenHome">
+  <div class="home-hero">
+    <span class="tower-icon">🏰</span>
+    <h1>勇闯科学塔</h1>
+    <div class="tagline">每爬一层，遭遇一个怪物，答对即攻击，答错则挨打</div>
+  </div>
+
+  <div class="stats-panel">
+    <h3>📊 角色属性</h3>
+    <div class="stat-row">
+      <span class="stat-label">⚔️ 攻击力</span>
+      <span class="stat-value atk" id="statATK">0</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">❤️ 生命值</span>
+      <span class="stat-value hp" id="statHP">100/100</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">🏆 最高纪录</span>
+      <span class="stat-value floor" id="statBestFloor">0 层</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">📈 爬塔积分</span>
+      <span class="stat-value points" id="statTowerPoints">0</span>
+    </div>
+  </div>
+
+  <button class="start-floor-btn" id="btnStartTower" onclick="startTower()">
+    ⚔️ 开始爬塔消耗 1 体力
+  </button>
+
+  <div class="stats-panel" style="margin-top:12px;">
+    <h3>⚡ 当前体力</h3>
+    <div class="stat-row">
+      <span class="stat-label">今日剩余</span>
+      <span class="stat-value hp" id="statStamina">-/20</span>
+    </div>
+  </div>
+
+  <!-- 装备/宠物按钮 -->
+  <div class="home-btn-row">
+    <button onclick="showTowerBackpack()">🎒 装备</button>
+    <button onclick="showTowerPet()">🐾 宠物</button>
+  </div>
+
+  <div class="home-ranking" id="homeRanking">
+    <h3>🏆 爬塔排行榜</h3>
+    <div id="rankList">加载中...</div>
+  </div>
+</div>
+
+<!-- ========== 战斗屏幕 ========== -->
+<div class="screen" id="screenBattle">
+  <div class="battle-header">
+    <span class="floor-tag" id="battleFloorTag">第 1 层</span>
+  </div>
+
+  <div class="monster-area">
+    <div class="monster-emoji" id="monsterEmoji">👾</div>
+    <div class="monster-name" id="monsterName">怪物名称</div>
+    <div class="monster-type-tag" id="monsterTypeTag">小怪</div>
+    <div class="hp-bar-wrap">
+      <div class="hp-bar-bg">
+        <div class="hp-bar-fill monster" id="monsterHPBar" style="width:100%;"></div>
+      </div>
+      <div class="hp-text">
+        <span>❤️ <span id="monsterHPText">100</span></span>
+        <span><span id="monsterHPMaxText">100</span></span>
+      </div>
+    </div>
+    <div class="skills-area" id="skillsArea"></div>
+  </div>
+
+  <!-- 玩家血条战斗中 -->
+  <div class="hp-bar-wrap" style="margin-bottom:8px;">
+    <div style="display:flex;justify-content:space-between;font-size:0.8em;margin-bottom:2px;">
+      <span>⚔️ <span id="battlePlayerATK">0</span> 攻</span>
+      <span>❤️ 你</span>
+    </div>
+    <div class="hp-bar-bg">
+      <div class="hp-bar-fill player" id="playerHPBar" style="width:100%;"></div>
+    </div>
+    <div class="hp-text">
+      <span>❤️ <span id="playerHPText">100</span></span>
+      <span><span id="playerHPMaxText">100</span></span>
+    </div>
+  </div>
+
+  <div class="battle-log" id="battleLog">👋 战斗开始！答对攻击，答错挨打！</div>
+
+  <div class="timer-bar-wrap">
+    <div class="timer-bar-fill" id="timerBar" style="width:100%;"></div>
+  </div>
+
+  <div class="quiz-area" id="quizArea">
+    <div class="q-turn" id="qTurn">
+      <span class="turn-tag turn-attack">⚔️ 你的攻击回合</span>
+    </div>
+    <div class="q-text" id="qText">加载题目中...</div>
+    <div class="q-options" id="qOptions"></div>
+  </div>
+</div>
+
+<!-- ========== 卡牌奖励屏幕 ========== -->
+<div class="screen" id="screenReward">
+  <div class="reward-box">
+    <h2>🎉 击败怪物！</h2>
+    <div class="reward-sub">选择一张卡牌，获得本局战斗加成</div>
+    <div class="card-grid" id="cardGrid"></div>
+    <div style="margin-top:16px;color:rgba(255,255,255,0.4);font-size:0.8em;" id="rewardHint">点击选择一张卡牌</div>
+  </div>
+</div>
+
+<!-- ========== 结算屏幕 ========== -->
+<div class="screen" id="screenResult">
+  <div class="result-box">
+    <div class="result-icon" id="resultIcon">💀</div>
+    <h2 id="resultTitle">挑战结束</h2>
+    <div class="result-sub" id="resultSub">下次一定能爬得更高！</div>
+    <div class="result-stats">
+      <div class="result-stat">
+        <div class="rs-val gold" id="resFloor">0</div>
+        <div class="rs-label">到达层数</div>
+      </div>
+      <div class="result-stat">
+        <div class="rs-val green" id="resMonsters">0</div>
+        <div class="rs-label">击败怪物</div>
+      </div>
+      <div class="result-stat">
+        <div class="rs-val purple" id="resPoints">0</div>
+        <div class="rs-label">获得积分</div>
+      </div>
+      <div class="result-stat">
+        <div class="rs-val" id="resBestFloor" style="color:#ffd700;">0</div>
+        <div class="rs-label">历史最高</div>
+      </div>
+    </div>
+    <div class="result-btns">
+      <button class="btn-replay" onclick="startTower()">🔄 再来一次</button>
+      <button class="btn-home" onclick="goHome()">🏠 返回首页</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 背包弹窗 ========== -->
+<div class="modal-overlay" id="bpOverlay">
+  <div class="modal-content" style="max-width:700px;">
+    <button class="modal-close" onclick="closeTowerBackpack()">✕</button>
+    <h2>🎒 装备穿戴</h2>
+    <div style="font-size:0.8em;color:rgba(255,255,255,0.4);text-align:center;margin:-10px 0 12px 0;">点击背包中的装备穿戴，点击已穿戴槽位卸下</div>
+    <div class="equip-slots-grid" id="towerEquipSlots"></div>
+    <div style="font-size:0.85em;color:rgba(255,255,255,0.4);margin-bottom:6px;">📦 背包 <span id="towerInvCount" style="color:#ffd700;">0</span></div>
+    <div class="bp-inventory-grid" id="towerInvGrid"></div>
+  </div>
+</div>
+
+<!-- ========== 宠物弹窗 ========== -->
+<div class="modal-overlay" id="petOverlay">
+  <div class="modal-content" style="max-width:450px;">
+    <button class="modal-close" onclick="closeTowerPet()">✕</button>
+    <h2>🐾 出战宠物</h2>
+    <div class="pet-slots-row" id="towerPetSlots"></div>
+    <div class="pet-bonus-area" id="towerPetBonus">
+      <div style="text-align:center;color:rgba(255,255,255,0.3);padding:10px;">加载中...</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main-container -->
+
+<script src="equipment-gen.js"></script>
+<script>
+// ============================================================
+// 1. 数据模型
+// ============================================================
+
+let studentId = null;
+
+// ========== iframe 模式支持 ==========
+const isIframeMode = window !== window.parent;
+let parentOrigin = '*';
+
+if (isIframeMode) {
+  document.body.classList.add('iframe-mode');
+}
+
+// postMessage 监听（接收父页面传来的学号和初始化数据）
+window.addEventListener('message', function(e) {
+  if (!e.data || typeof e.data !== 'object') return;
+  if (e.data.type === 'init_tower') {
+    studentId = e.data.studentId;
+    parentOrigin = e.origin || '*';
+    // 如果父页面传了积分和装备数据，同步到 localStorage
+    if (e.data.saveData) {
+      try {
+        const key = 'scienceGame6_user_' + studentId;
+        localStorage.setItem(key, JSON.stringify(e.data.saveData));
+      } catch(ex) {}
+    }
+    goHome();
+  }
+});
+
+// 通知父页面积分/塔币变动
+function notifyTowerChange() {
+  if (isIframeMode && window.parent !== window) {
+    const towerData = getTowerData();
+    window.parent.postMessage({
+      type: 'tower_change',
+      points: getTotalPoints(),
+      towerCoins: towerData.totalTowerCoins || 0,
+      highestFloor: towerData.highestFloor || 0
+    }, parentOrigin);
+  }
+}
+
+function getTotalPoints() {
+  try {
+    const key = 'scienceGame6_user_' + studentId;
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw).totalPoints || 0) : 0;
+  } catch(e) { return 0; }
+}
+const run = {
+  floor: 1,
+  playerMaxHP: 100,
+  playerHP: 100,
+  playerATK: 10,
+  playerDodge: 0.2,
+  // 本局buff
+  buffs: {
+    atkBoost: 0,
+    skillReduce: 0,
+    critRate: 0,
+    dodgeBoost: 0,
+    maxHPBoost: 0,
+    healPerCorrect: 0,
+    armor: 0,
+    shieldHP: 0,
+    doubleStrike: false,
+    armorBreak: 0,
+    combo: false,
+    floorBonusPoints: 0,  // 每层额外积分
+  },
+  earnedPoints: 0,
+  defeatedMonsters: 0,
+  monster: null,
+  turnPhase: 'player',
+  questionAnswered: false,
+  isPlayerTurn: true,
+  // 战斗中的持续效果
+  monsterBuffs: {},
+  playerBuffs: {},
+};
+
+// ============================================================
+// 2. 内置测试题库后续由外部Skill填充
+// ============================================================
+// 2. 六年级科学题库门口易测导出
+// ============================================================
+// ⚠️ 答案均默认为 index 0，后续需要根据正确答案修正
+// 判断题 options=['对','错']  选择题 options=选项内容
+// 六年级科学题库（门口易测导出，含原始文本）
+const TOWER_QUESTIONS = [
+  { id: 'x1', question: '从尼龙搭扣到飞机，都是人类模仿生物设计的产品。它们大大地提高了人类的生产效率，改善了人们的生活。', options: ['对', '错'], answer: 0 },
+  { id: 'x2', question: '杯子里的热水过一段时间会变凉，是因为热量都被杯子吸收了。', options: ['对', '错'], answer: 1 },
+  { id: 'x3', question: '不同材料的导热性能不同，保温性能也不同。', options: ['对', '错'], answer: 0 },
+  { id: 'x4', question: '壁虎能够在墻壁和天花板上自由行走，是因为四肢上的吸盘产生了强大的黏附力。', options: ['对', '错'], answer: 1 },
+  { id: 'x5', question: '设计师常会在原物品的基础上添加新的结构，以实现新的功能。', options: ['对', '错'], answer: 0 },
+  { id: 'x6', question: '能量的转化是物体在工作时发生的，物体不工作，就没有能量转化。', options: ['对', '错'], answer: 1 },
+  { id: 'x7', question: '电话中也应用了电磁铁。', options: ['对', '错'], answer: 0 },
+  { id: 'x8', question: '有些物体工作或运动不需要能量，比如石头从山坡上滚下来。', options: ['对', '错'], answer: 1 },
+  { id: 'x9', question: '电热水壶可以把电能转换为热能。', options: ['对', '错'], answer: 0 },
+  { id: 'x10', question: '风力发电过程中，能量的转换过程是风能直接转换成电能。', options: ['对', '错'], answer: 1 },
+  { id: 'x11', question: '圆珠笔蓝色油墨中的盐基性染料被淘汰的原因不包括(    )。', options: ['不耐酸', '耐光性强', '耐热性差'], answer: 1 },
+  { id: 'x12', question: '下列选项中，不是圆珠笔笔尖钢珠的特点的是(    )。', options: ['不易生锈', '使笔芯可以伸缩', '可以控制墨水流速'], answer: 1 },
+  { id: 'x13', question: '圆珠笔利用        来达到书写的目的(   )。', options: ['钢珠接触纸面时产生的压力', '钢珠与纸面直接接触时产生的摩擦力', '钢珠在纸面平行移动带出墨水'], answer: 1 },
+  { id: 'x14', question: '与钢笔相比，圆珠笔的优点在于(   )。', options: ['油墨更容易清洗', '练字效果更好', '书写速度快也不会洇纸'], answer: 2 },
+  { id: 'x15', question: '如果你有幸登上飞船步入太空，需要带一支笔用于记录，你会带(   )。', options: ['钢笔', '圆珠笔', '铅笔'], answer: 2 },
+  { id: 'x16', question: '下列不属于多功能物品的是(   )。', options: ['羊角锤', '筷子', '折叠沙发'], answer: 1 },
+  { id: 'x17', question: '设计师设计多功能物品时，首要考虑的是(   )。', options: ['满足多种需求', '外观精致', '质量好，耐用'], answer: 0 },
+  { id: 'x18', question: '现在的空调可以选择很多模式，如制冷、制热、除湿等，这样设计是为了满足(   )。', options: ['不同房间的需求', '不同季节的需求', '不同预算的需求'], answer: 1 },
+  { id: 'x19', question: '关于多功能家具，下列哪个问题不会引起人们关注？', options: ['价格高昂', '添加的功能实用性不强', '难以推广'], answer: 2 },
+  { id: 'x20', question: '小科在会展上看到一个能自动避障的扫地机器人，里面可能应用了哪种传感器？', options: ['超声波传感器', '湿度传感器', '一氧化碳传感器'], answer: 0 },
+  { id: 'x21', question: '制造集装箱的材料不应该选择(     )。', options: ['铝合金', '木材', '钢板'], answer: 1 },
+  { id: 'x22', question: '目前，中集集团生产的集装箱大量投入到(     )行业使用。', options: ['物流', '金融', '服务'], answer: 0 },
+  { id: 'x23', question: '集装箱报废后，你认为可以改造为(     )最合适，最省材料。', options: ['房车', '公共厕所', '集装箱房'], answer: 2 },
+  { id: 'x24', question: '为了使集装箱房改造得更舒适，设计师会将两个或三个集装箱叠起来建成一个小别墅。那么，设计师改造废弃物时所采用的方法是(      )。', options: ['改变形状', '组合', '添加结构'], answer: 1 },
+  { id: 'x25', question: '未来，集装箱技术的发展方向最有可能的是(    )。', options: ['人工技术提升', '人工智能化管理', '安全性能提高'], answer: 1 },
+  { id: 'x26', question: '汽油发电机是将(   )转换成电能。', options: ['化学能', '热能', '机械能'], answer: 0 },
+  { id: 'x27', question: '汽油发电机内的混合气体能推动活塞下行做功是因为(   )。', options: ['混合气体的体积很大', '混合气体的体积在燃烧时受热膨胀了', '混合气体与活塞之间产生了静电'], answer: 1 },
+  { id: 'x28', question: '下面哪种发电机对环境的污染最小(   )。', options: ['柴油发电机', '水力发电机', '汽油发电机'], answer: 1 },
+  { id: 'x29', question: '下列电器中，能量转换形式与电热水袋相同的是(   )。', options: ['电动机', '电视机', '电暖器'], answer: 2 },
+  { id: 'x30', question: '移动充电音响中的电能是(   )转换来的。', options: ['化学能', '太阳能', '机械能'], answer: 0 },
+  { id: 'x31', question: '潮汐能的能量表现形式有(    )。', options: ['势能和动能', '动能和电能', '势能和电能'], answer: 0 },
+  { id: 'x32', question: '潮汐能之所以能够被人们利用,是因为(    )。', options: ['潮汐具有规律性且涨落于岸边', '人类可以控制潮汐的起落', '在各种海洋能中人们目前只知道潮汐能'], answer: 0 },
+  { id: 'x33', question: '潮汐能主要的利用方式是(    )。', options: ['蓄水', '建造水库', '发电'], answer: 2 },
+  { id: 'x34', question: '潮汐是一种(    )能源。', options: ['可再生', '不可再生', '化石'], answer: 0 },
+  { id: 'x35', question: '能量有着不同的表现形式，下列选项中不能说明运动的物体具有能量的是', options: ['把钉子锤进木板', '有电的钟表', '静止的桌子'], answer: 2 },
+  { id: 'x36', question: '该实验研究的问题是(    )。', options: ['金属是否具有热胀冷缩的性质', '不同金属的传热速度', '热的传递过程的特点'], answer: 2 },
+  { id: 'x37', question: '实验中，①、②、③处的三颗绿豆，最后掉落的是(    )。', options: ['①', '②', '③'], answer: 2 },
+  { id: 'x38', question: '实验中酒精灯通过热传导使黄油熔化。下列事例中，', options: ['用暖水袋取暖', '运动时感到热', '太阳把被子晒热'], answer: 0 },
+  { id: 'x39', question: '如果把铜棒换成同样粗细的铁棒重复实验，绿豆掉落的速度会(   )。', options: ['变快', '变慢', '不变'], answer: 1 },
+  { id: 'x40', question: '下列关于热传导的说法，正确的是(    )。', options: ['热传导只能在固体中发生', '热传导时，热总是从温度高的地方传向温度低的地方', '所有物体的传热速度都一样'], answer: 1 },
+  { id: 'x41', question: '要验证猜想1，可以比较(     )两图的实验现象。', options: ['②和③', '①和②', '③和④'], answer: 1 },
+  { id: 'x42', question: '要验证猜想2，可以比较(     )两图的实验现象。', options: ['②和③', '①和②', '③和④'], answer: 0 },
+  { id: 'x43', question: '要验证猜想3，可以比较(     )两图的实验现象。', options: ['②和③', '①和②', '③和④'], answer: 2 },
+  { id: 'x44', question: '电磁铁被广泛应用于生产和生活中，如电铃、扬声器和磁县浮列车，磁悬浮列车的工作原理是(    )。', options: ['同名磁极相斥，异名磁极相吸', '同名磁极相吸，异名磁极相斥', '同名磁极相斥，异名磁极相斥'], answer: 0 },
+  { id: 'x45', question: '制作电磁铁探究能否吸起大头针的实验时，正确的实验步骤是', options: ['⑤②③①④', '②⑤①③④', '⑤③②①④'], answer: 2 },
+  { id: 'x46', question: '小科没有打开音箱时，扭扭蛇      ，打开音箱后，扭扭蛇      。', options: ['转动  不转动', '不转动  转动', '转动 转动'], answer: 1 },
+  { id: 'x47', question: '如果小科把音箱的声音调大，扭扭蛇的转动幅度应该会', options: ['变大', '变小', '不变'], answer: 0 },
+  { id: 'x48', question: '下列选项和扭扭蛇转动原理相同的是', options: ['将振动的音叉放入水中，水面会产生水花', '敲击鼓面时，鼓面的纸屑会发生跳动', '敲击鼓面时，不远处的水杯里的水泛起波纹'], answer: 2 },
+  { id: 'x49', question: '实验结束，小科通过实验得出结论:声音(     )能量。', options: ['具有', '不具有', '以上两个选项都对'], answer: 0 },
+  { id: 'x50', question: '扭扭蛇转动时所具有的机械能是由(     )转换来的。', options: ['声能', '风能', '化学能'], answer: 0 },
+];
+function shuffleArray(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+let questionPool = [];
+
+function refillQuestionPool() {
+  questionPool = shuffleArray([...TOWER_QUESTIONS]);
+}
+
+function getNextQuestion() {
+  if (questionPool.length === 0) refillQuestionPool();
+  return questionPool.shift() || TOWER_QUESTIONS[0];
+}
+
+// ============================================================
+// 3. 怪物系统
+// ============================================================
+
+const MONSTER_NAMES = {
+  small: ['🧸 迷糊虫', '📘 书本怪', '🖊️ 墨水瓶', '🪑 课桌精', '🖍️ 粉笔妖', '🦎 橡皮兽', '📐 圆规怪'],
+  elite: ['⚗️ 方程兽', '🧟 公式魔像', '🧬 实验体X', '📚 知识守卫', '🔥 元素使', '⚡ 闪电兽', '🌀 混沌虫'],
+  boss: ['🐉 科学领主', '👑 知识之王', '💀 终极考神', '🐲 智慧巨龙', '🌌 万识归一'],
+};
+
+const ELITE_SKILLS = [
+  { id: 'poison', name: '🥷 毒雾', desc: '每回合额外扣10%HP，持续2回合', prob: 0.25, type: 'dot' },
+  { id: 'stun', name: '⚡ 麻痹', desc: '玩家跳过下次攻击', prob: 0.20, type: 'stun' },
+  { id: 'armor', name: '🛡️ 石肤', desc: '自身减伤50%，持续2回合', prob: 0.25, type: 'selfArmor' },
+  { id: 'vampire', name: '🩸 吸血', desc: '恢复伤害30%的HP', prob: 0.20, type: 'vampire' },
+  { id: 'berserk', name: '🔥 狂暴', desc: '攻击力+50%，持续2回合', prob: 0.20, type: 'berserk' },
+  { id: 'shield', name: '💫 护盾', desc: '吸收下次攻击', prob: 0.20, type: 'shield' },
+  { id: 'cyclone', name: '🌪️ 旋风', desc: '本回合必定命中', prob: 0.25, type: 'sureHit' },
+];
+
+const BOSS_SKILLS = [
+  { id: 'cataclysm', name: '🌋 天崩地裂', desc: '2倍伤害', prob: 0.30, type: 'doubleDmg' },
+  { id: 'drain', name: '💚 生命汲取', desc: '恢复20%HP', prob: 0.15, type: 'heal' },
+  { id: 'shadow', name: '🌑 暗影突袭', desc: '必定命中', prob: 0.25, type: 'sureHit' },
+  { id: 'final', name: '💀 终焉之击', desc: '3倍伤害残血触发', prob: 1.0, type: 'finalStrike', once: true },
+  { id: 'time', name: '⏰ 时光倒流', desc: '清除玩家buff', prob: 0.20, type: 'cleanse' },
+  { id: 'freeze', name: '❄️ 冰封', desc: '冻结2回合', prob: 0.20, type: 'freeze' },
+];
+
+const MONSTER_EMOJIS = {
+  small: ['🧸', '📘', '🖊️', '🪑', '🖍️', '🦎', '📐'],
+  elite: ['⚗️', '🧟', '🧬', '📚', '🔥', '⚡', '🌀'],
+  boss: ['🐉', '👑', '💀', '🐲', '🌌'],
+};
+
+function pickRandom(arr, count) {
+  const copy = [...arr];
+  const result = [];
+  for (let i = 0; i < count && copy.length > 0; i++) {
+    const idx = Math.floor(Math.random() * copy.length);
+    result.push(copy.splice(idx, 1)[0]);
+  }
+  return result;
+}
+
+function generateMonster(floor) {
+  const isBoss = floor % 10 === 0;
+  let type, namePool, emojiPool;
+  if (isBoss) {
+    type = 'boss';
+    namePool = MONSTER_NAMES.boss;
+    emojiPool = MONSTER_EMOJIS.boss;
+  } else {
+    type = Math.random() < 0.7 ? 'small' : 'elite';
+    namePool = MONSTER_NAMES[type];
+    emojiPool = MONSTER_EMOJIS[type];
+  }
+
+  const mults = {
+    small: { hpMult: 2, atkMult: 1 },
+    elite: { hpMult: 3.5, atkMult: 1.5 },
+    boss: { hpMult: 5, atkMult: 2 }
+  };
+  const m = mults[type];
+
+  const monster = {
+    type,
+    name: namePool[Math.floor(Math.random() * namePool.length)],
+    emoji: emojiPool[Math.floor(Math.random() * emojiPool.length)],
+    maxHP: 5 + floor * m.hpMult,
+    hp: 5 + floor * m.hpMult,
+    atk: 3 + floor * m.atkMult,
+    skills: [],
+    buffs: {}, // 怪物自身buff
+    skillUsedOnce: {}, // 记录可用一次的技能
+  };
+
+  if (type === 'elite') {
+    const count = 1 + Math.floor(Math.random() * 2);
+    monster.skills = pickRandom(ELITE_SKILLS, count);
+  }
+  if (type === 'boss') {
+    const count = 2 + Math.floor(Math.random() * 2);
+    monster.skills = pickRandom(BOSS_SKILLS, count);
+    // 标记终焉之击只能用一次
+    monster.skills.forEach(s => { if (s.once) monster.skillUsedOnce[s.id] = false; });
+  }
+
+  return monster;
+}
+
+// ============================================================
+// 4. 卡牌奖励系统
+// ============================================================
+
+const CARD_POOL = {
+  common: [
+    { id: 'atkBoost15', name: '⚔️ 攻击强化', effect: '攻击力+15%', rarity: 'common', apply: () => { run.buffs.atkBoost += 15; } },
+    { id: 'skillReduce', name: '🔥 技能减免', effect: '怪物技能率-10%', rarity: 'common', apply: () => { run.buffs.skillReduce += 10; } },
+    { id: 'heal30', name: '💚 生命恢复', effect: '恢复30HP', rarity: 'common', apply: () => { run.playerHP = Math.min(run.playerHP + 30, run.playerMaxHP); } },
+    { id: 'economy3', name: '💰 经济+3', effect: '每层多得3积分', rarity: 'common', apply: () => { run.buffs.floorBonusPoints += 3; } },
+  ],
+  uncommon: [
+    { id: 'crit10', name: '🎯 暴击率', effect: '暴击率+10%', rarity: 'uncommon', apply: () => { run.buffs.critRate += 10; } },
+    { id: 'hpMax30', name: '❤️ 生命上限', effect: '最大HP+30', rarity: 'uncommon', apply: () => { run.playerMaxHP += 30; run.playerHP = Math.min(run.playerHP + 30, run.playerMaxHP); } },
+    { id: 'dodge10', name: '💨 闪避强化', effect: '闪避率+10%', rarity: 'uncommon', apply: () => { run.buffs.dodgeBoost += 10; } },
+    { id: 'economy5', name: '💰 经济+5', effect: '每层多得5积分', rarity: 'uncommon', apply: () => { run.buffs.floorBonusPoints += 5; } },
+    { id: 'recoverAll', name: '💖 完全恢复', effect: 'HP回满', rarity: 'uncommon', apply: () => { run.playerHP = run.playerMaxHP; } },
+  ],
+  rare: [
+    { id: 'combo', name: '💫 连击强化', effect: '连续答对伤害+20%', rarity: 'rare', apply: () => { run.buffs.combo = true; } },
+    { id: 'armorBreak', name: '🗡️ 破甲', effect: '怪物受伤+20%', rarity: 'rare', apply: () => { run.buffs.armorBreak += 20; } },
+    { id: 'healPerAnswer', name: '🩹 回复光环', effect: '答对一题回复5HP', rarity: 'rare', apply: () => { run.buffs.healPerCorrect += 5; } },
+    { id: 'economy10', name: '💰 经济+10', effect: '每层多得10积分', rarity: 'rare', apply: () => { run.buffs.floorBonusPoints += 10; } },
+    { id: 'equipBox', name: '📦 装备宝箱', effect: '获得一件随机装备', rarity: 'rare', apply: () => {
+      try {
+        if (typeof generateEquip === 'function') {
+          const equip = generateEquip(1 + Math.floor(Math.random() * 4));
+          const data = getGrade6UserData(studentId);
+          if (data.equipment) {
+            const idx = data.equipment.indexOf(null);
+            if (idx !== -1) data.equipment[idx] = equip;
+            else data.equipment.push(equip);
+          } else {
+            data.equipment = [equip];
+          }
+          saveGrade6UserData(studentId, data);
+          setBattleLog(`📦 获得装备：${equip.name}`);
+        }
+      } catch(e) { console.error('装备宝箱出错:', e); }
+    } },
+  ],
+  epic: [
+    { id: 'shield30', name: '🛡️ 护盾术', effect: '护盾吸收30伤害', rarity: 'epic', apply: () => { run.buffs.shieldHP += 30; } },
+    { id: 'doubleStrike', name: '⚡ 双倍打击', effect: '下次攻击2倍伤害', rarity: 'epic', apply: () => { run.buffs.doubleStrike = true; } },
+    { id: 'economy15', name: '💰 经济+15', effect: '每层多得15积分', rarity: 'epic', apply: () => { run.buffs.floorBonusPoints += 15; } },
+    { id: 'petPiece', name: '🐣 宠物碎片', effect: '获得随机宠物碎片×1', rarity: 'epic', apply: () => {
+      try {
+        const petState = getPetState(studentId);
+        if (!petState || !petState.pieces) petState.pieces = {};
+        const petIds = Object.keys(petState.pets || {});
+        // 碎片系统：随机给一个宠物加碎片
+        const allPetIds = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18];
+        const targetId = allPetIds[Math.floor(Math.random() * allPetIds.length)];
+        petState.pieces[targetId] = (petState.pieces[targetId] || 0) + 1;
+        petState.studentId = studentId;
+        const petKey = 'petSystemStateV2';
+        localStorage.setItem(petKey, JSON.stringify(petState));
+        setBattleLog(`🐣 获得宠物碎片×1宠物ID: ${targetId}`);
+      } catch(e) { console.error('宠物碎片出错:', e); }
+    } },
+  ],
+  legendary: [
+    { id: 'kingsBless', name: '👑 王者祝福', effect: '所有buff效果+50%', rarity: 'legendary', apply: () => {
+      for (const k in run.buffs) {
+        if (typeof run.buffs[k] === 'number') run.buffs[k] = Math.floor(run.buffs[k] * 1.5);
+      }
+    } },
+    { id: 'premiumEquip', name: '👑 传说装备箱', effect: '获得一件高品质装备', rarity: 'legendary', apply: () => {
+      try {
+        if (typeof generateEquip === 'function') {
+          const equip = generateEquip(5 + Math.floor(Math.random() * 3));
+          const data = getGrade6UserData(studentId);
+          if (data.equipment) {
+            const idx = data.equipment.indexOf(null);
+            if (idx !== -1) data.equipment[idx] = equip;
+            else data.equipment.push(equip);
+          } else {
+            data.equipment = [equip];
+          }
+          saveGrade6UserData(studentId, data);
+          setBattleLog(`👑 获得传说装备：${equip.name}`);
+        }
+      } catch(e) {}
+    } },
+  ],
+};
+
+function getCardPoolByType(monsterType) {
+  if (monsterType === 'boss') return ['common','common','uncommon','uncommon','rare','rare','epic','legendary'];
+  if (monsterType === 'elite') return ['common','common','uncommon','uncommon','rare','rare','epic'];
+  return ['common','common','common','uncommon','uncommon','rare'];
+}
+
+function generateCards(monsterType) {
+  const pool = getCardPoolByType(monsterType);
+  const cards = [];
+  const usedIds = new Set();
+  for (let i = 0; i < 3; i++) {
+    // 从剩余未使用的卡牌中选
+    const available = pool.filter(r => {
+      const choices = CARD_POOL[r];
+      return choices.some(c => !usedIds.has(c.id));
+    });
+    if (available.length === 0) break; // 没可选的了
+    const rarity = available[Math.floor(Math.random() * available.length)];
+    const choices = CARD_POOL[rarity].filter(c => !usedIds.has(c.id));
+    const card = choices[Math.floor(Math.random() * choices.length)];
+    usedIds.add(card.id);
+    cards.push({ ...card });
+  }
+  return cards;
+}
+
+// ============================================================
+// 5. 六年级数据对接
+// ============================================================
+
+// 宠物基础数据精简版，用于计算爬塔属性
+const TOWER_PET_DATA = [
+  { id: 1, baseStats: { atk: 5, def: 3, str: 4 } },
+  { id: 2, baseStats: { atk: 6, def: 4, str: 5 } },
+  { id: 3, baseStats: { atk: 7, def: 3, str: 4 } },
+  { id: 4, baseStats: { atk: 4, def: 5, str: 3 } },
+  { id: 5, baseStats: { atk: 5, def: 4, str: 5 } },
+  { id: 6, baseStats: { atk: 10, def: 8, str: 9 } },
+  { id: 7, baseStats: { atk: 8, def: 12, str: 14 } },
+  { id: 8, baseStats: { atk: 11, def: 10, str: 8 } },
+  { id: 9, baseStats: { atk: 9, def: 7, str: 8 } },
+  { id: 10, baseStats: { atk: 12, def: 8, str: 10 } },
+  { id: 11, baseStats: { atk: 18, def: 14, str: 16 } },
+  { id: 12, baseStats: { atk: 16, def: 22, str: 24 } },
+  { id: 13, baseStats: { atk: 20, def: 12, str: 14 } },
+  { id: 14, baseStats: { atk: 22, def: 10, str: 16 } },
+  { id: 15, baseStats: { atk: 14, def: 18, str: 20 } },
+  { id: 16, baseStats: { atk: 30, def: 26, str: 32 } },
+  { id: 17, baseStats: { atk: 34, def: 24, str: 28 } },
+  { id: 18, baseStats: { atk: 32, def: 28, str: 26 } },
+];
+
+function getGrade6UserData(sid) {
+  const key = 'scienceGame6_user_' + sid;
+  try {
+    return JSON.parse(localStorage.getItem(key)) || {};
+  } catch (e) { return {}; }
+}
+
+function saveGrade6UserData(sid, data) {
+  const key = 'scienceGame6_user_' + sid;
+  localStorage.setItem(key, JSON.stringify(data));
+}
+
+function getEquippedSlots(sid) {
+  const key = 'bpEquipped_6_' + sid;
+  try {
+    return JSON.parse(localStorage.getItem(key)) || {};
+  } catch (e) { return {}; }
+}
+
+function getPetState(sid) {
+  // 六年级页面用的全局 key 'petSystemStateV2'，保持一致
+  const key = 'petSystemStateV2';
+  try {
+    const data = JSON.parse(localStorage.getItem(key));
+    if (data && data.studentId === sid) return data;
+    return {};
+  } catch (e) { return {}; }
+}
+
+function getTowerData(sid) {
+  const key = 'tower6_' + sid;
+  try {
+    return JSON.parse(localStorage.getItem(key)) || { highestFloor: 0, totalTowerCoins: 0, totalRuns: 0 };
+  } catch (e) { return { highestFloor: 0, totalTowerCoins: 0, totalRuns: 0 }; }
+}
+
+function saveTowerData(sid, data) {
+  const key = 'tower6_' + sid;
+  localStorage.setItem(key, JSON.stringify(data));
+}
+
+function getTowerStamina(sid) {
+  const key = 'towerStamina6_' + sid;
+  try {
+    const data = JSON.parse(localStorage.getItem(key));
+    const today = getTodayStr();
+    if (data && data.lastDate === today) return data.stamina;
+    return 20;
+  } catch (e) { return 20; }
+}
+
+function setTowerStamina(sid, val) {
+  const key = 'towerStamina6_' + sid;
+  localStorage.setItem(key, JSON.stringify({ stamina: val, lastDate: getTodayStr() }));
+}
+
+function getTodayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function calcPlayerStats(sid) {
+  const equipList = getTowerEquipment();
+  const slots = getTowerEquipped();
+
+  let equipATK = 0, equipHP = 0;
+  const diabloBonus = { multiplier: 1.0, dropBonus: 0 };
+  
+  for (const slot in slots) {
+    if (slot === 'treasure') {
+      (slots.treasure || []).forEach(idx => {
+        const e = equipList[idx];
+        if (e) {
+          equipATK += (e.str||0) + (e.dex||0) + (e.int||0);
+          equipHP += e.hpBonus || 0;
+        }
+      });
+    } else {
+      const idx = slots[slot];
+      const e = equipList[idx];
+      if (e) {
+        equipATK += (e.str||0) + (e.dex||0) + (e.int||0);
+        equipHP += e.hpBonus || 0;
+        if (e.diablo) {
+          // 暗黑装备的倍率影响
+          diabloBonus.multiplier *= (e.multiplier || 1.0);
+        }
+      }
+    }
+  }
+
+  // 宠物 - 通过TOWER_PET_DATA查找基础属性
+  let petATK = 0, petDEF = 0;
+  try {
+    const petState = getPetState(sid);
+    if (petState && petState.battlePets && petState.pets) {
+      (petState.battlePets || []).forEach(petId => {
+        if (!petId) return;
+        const petInfo = petState.pets[petId];
+        if (!petInfo) return;
+        const lv = petInfo.level || 1;
+        const mult = 1 + (lv - 1) * 0.1;
+        // 从TOWER_PET_DATA查找基础属性
+        const petData = TOWER_PET_DATA.find(p => p.id === petId);
+        const bs = petData ? petData.baseStats : { atk: 0, def: 0, str: 0 };
+        petATK += Math.floor((bs.atk || 0) * mult) + Math.floor((bs.str || 0) * mult);
+        petDEF += Math.floor((bs.def || 0) * mult);
+      });
+    }
+  } catch(e) {}
+
+  return {
+    atk: Math.max(equipATK + petATK, 5),
+    maxHP: Math.max(100 + equipHP + petDEF, 50),
+    dodge: 0.2,
+  };
+}
+
+function pushTowerRanking(sid, floor) {
+  try {
+    const key = 'kexvefuxi_tower_ranking';
+    const data = JSON.parse(localStorage.getItem(key)) || {};
+    if (!data[sid] || floor > data[sid].floor) {
+      data[sid] = { floor, time: getTodayStr() };
+      localStorage.setItem(key, JSON.stringify(data));
+    }
+  } catch(e) {}
+}
+
+function getTowerRanking() {
+  try {
+    const key = 'kexvefuxi_tower_ranking';
+    const data = JSON.parse(localStorage.getItem(key)) || {};
+    return Object.entries(data)
+      .map(([id, v]) => ({ id, floor: v.floor, time: v.time }))
+      .sort((a, b) => b.floor - a.floor)
+      .slice(0, 10);
+  } catch (e) { return []; }
+}
+
+// ============================================================
+// 6. 屏幕切换
+// ============================================================
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen' + id).classList.add('active');
+}
+
+function updateTopBar() {
+  document.getElementById('tbFloor').textContent = run.floor > 0 ? run.floor : '-';
+  document.getElementById('tbPoints').textContent = run.earnedPoints;
+  document.getElementById('tbUser').textContent = studentId || '';
+  const stamina = studentId ? getTowerStamina(studentId) : '-';
+  document.getElementById('tbStamina').textContent = stamina;
+}
+
+// ============================================================
+// 7. 登录
+// ============================================================
+
+function doLogin() {
+  const input = document.getElementById('loginInput');
+  const id = input.value.trim();
+  const err = document.getElementById('loginError');
+
+  if (!/^\d{8}$/.test(id)) {
+    err.textContent = '请输入8位学号';
+    return;
+  }
+  err.textContent = '';
+  studentId = id;
+  goHome();
+}
+
+function goHome() {
+  if (!studentId) {
+    showScreen('Login');
+    return;
+  }
+
+  const stats = calcPlayerStats(studentId);
+  const towerData = getTowerData(studentId);
+  const stamina = getTowerStamina(studentId);
+
+  // 开发测试：学号01200650登录时送两个神话装备（仅首次）
+  if (studentId === '01200650' && typeof generateEquip === 'function') {
+    const g6 = getGrade6UserData(studentId);
+    const equipList = g6.equipment || [];
+    if (!equipList.filter(Boolean).length) {
+      const mythic1 = generateEquip(7);
+      const mythic2 = generateEquip(7);
+      g6.equipment = new Array(100).fill(null);
+      g6.equipment[0] = mythic1;
+      g6.equipment[1] = mythic2;
+      saveGrade6UserData(studentId, g6);
+      console.log('🎉 赠送两个神话装备给 01200650:', mythic1.name, mythic2.name);
+    }
+  }
+
+  run.playerATK = stats.atk;
+  run.playerMaxHP = stats.maxHP;
+  run.playerDodge = stats.dodge;
+
+  document.getElementById('statATK').textContent = stats.atk;
+  document.getElementById('statHP').textContent = stats.maxHP + '/' + stats.maxHP;
+  document.getElementById('statBestFloor').textContent = towerData.highestFloor + ' 层';
+  document.getElementById('statTowerPoints').textContent = towerData.totalTowerCoins;
+  document.getElementById('statStamina').textContent = stamina + '/20';
+
+  const btn = document.getElementById('btnStartTower');
+  if (stamina <= 0) {
+    btn.disabled = true;
+    btn.textContent = '⛔ 体力不足，明天再来';
+  } else {
+    btn.disabled = false;
+    btn.textContent = '⚔️ 开始爬塔消耗 1 体力';
+  }
+
+  // 排行榜
+  const ranking = getTowerRanking();
+  const rankList = document.getElementById('rankList');
+  if (ranking.length === 0) {
+    rankList.innerHTML = '<div style="color:rgba(255,255,255,0.3);text-align:center;padding:10px;">暂无数据</div>';
+  } else {
+    rankList.innerHTML = ranking.map((r, i) => {
+      const cls = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+      return `<div class="rank-item"><span class="rank-num ${cls}">${i + 1}</span><span class="rank-id">${r.id}</span><span class="rank-floor">🏰 ${r.floor}层</span></div>`;
+    }).join('');
+  }
+
+  document.getElementById('btnHomeHeader').style.display = 'none';
+  showScreen('Home');
+  updateTopBar();
+}
+
+// ============================================================
+// 8. 开始爬塔
+// ============================================================
+
+let timerInterval = null;
+let timeLeft = 0;
+let currentQuestion = null;
+let questionLocked = false;
+let streakCount = 0; // 连续答对次数
+let dodgeQueue = []; // 怪物攻击队列
+
+function startTower() {
+  if (!studentId) return;
+  const stamina = getTowerStamina(studentId);
+  if (stamina <= 0) {
+    alert('体力不足，明天再来挑战吧！');
+    return;
+  }
+
+  // 扣体力
+  setTowerStamina(studentId, stamina - 1);
+
+  // 重置运行状态
+  Object.assign(run, {
+    floor: 1,
+    playerATK: calcPlayerStats(studentId).atk,
+    playerMaxHP: calcPlayerStats(studentId).maxHP,
+    playerHP: calcPlayerStats(studentId).maxHP,
+    playerDodge: calcPlayerStats(studentId).dodge,
+    buffs: { atkBoost: 0, skillReduce: 0, critRate: 0, dodgeBoost: 0, maxHPBoost: 0, healPerCorrect: 0, armor: 0, shieldHP: 0, doubleStrike: false, armorBreak: 0, combo: false, floorBonusPoints: 0 },
+    earnedPoints: 0,
+    defeatedMonsters: 0,
+    monster: null,
+    turnPhase: 'player',
+    questionAnswered: false,
+    isPlayerTurn: true,
+    monsterBuffs: {},
+    playerBuffs: {},
+  });
+  streakCount = 0;
+  questionLocked = false;
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+
+  document.getElementById('btnHomeHeader').style.display = 'inline-block';
+  enterFloor(1);
+}
+
+// ============================================================
+// 9. 进入楼层
+// ============================================================
+
+function enterFloor(floor) {
+  run.floor = floor;
+
+  // 生成怪物
+  const monster = generateMonster(floor);
+  run.monster = monster;
+
+  // 50层以上怪物先手
+  run.isPlayerTurn = floor < 50;
+
+  // 渲染怪物
+  renderMonster(monster);
+
+  // 更新状态栏
+  updateTopBar();
+  document.getElementById('battleFloorTag').textContent = '第 ' + floor + ' 层';
+
+  // 更新玩家HP
+  updatePlayerHPBar();
+
+  // 战斗日志
+  if (floor === 1) {
+    setBattleLog('👋 ' + monster.name + ' 出现了！');
+  } else {
+    setBattleLog('🏰 进入第 ' + floor + ' 层，遭遇 ' + monster.name);
+  }
+
+  // 重置答题状态
+  resetQuestionState();
+
+  showScreen('Battle');
+  document.getElementById('btnHomeHeader').style.display = 'none';
+
+  // 开始回合
+  setTimeout(() => {
+    if (run.isPlayerTurn) {
+      startPlayerTurn();
+    } else {
+      setBattleLog('⏰ 50层以上，怪物先手攻击！');
+      setTimeout(() => startMonsterTurn(), 800);
+    }
+  }, 500);
+}
+
+function renderMonster(monster) {
+  document.getElementById('monsterEmoji').textContent = monster.emoji;
+  document.getElementById('monsterName').textContent = monster.name;
+
+  const typeTag = document.getElementById('monsterTypeTag');
+  typeTag.textContent = monster.type === 'boss' ? '👑 BOSS' : monster.type === 'elite' ? '⚡ 精英' : '🐾 小怪';
+  typeTag.className = 'monster-type-tag ' + (monster.type === 'boss' ? 'tag-boss' : monster.type === 'elite' ? 'tag-elite' : 'tag-small');
+
+  // HP条
+  updateMonsterHPBar();
+
+  // 技能标签
+  const skillsArea = document.getElementById('skillsArea');
+  if (monster.skills && monster.skills.length > 0) {
+    skillsArea.innerHTML = monster.skills.map(s => `<span class="skill-tag">${s.name}</span>`).join('');
+    skillsArea.style.display = 'flex';
+  } else {
+    skillsArea.style.display = 'none';
+  }
+}
+
+function updateMonsterHPBar() {
+  const m = run.monster;
+  if (!m) return;
+  const pct = Math.max(0, (m.hp / m.maxHP) * 100);
+  const bar = document.getElementById('monsterHPBar');
+  bar.style.width = pct + '%';
+  bar.className = 'hp-bar-fill' + (m.type === 'boss' ? ' boss' : ' monster');
+  document.getElementById('monsterHPText').textContent = Math.max(0, Math.floor(m.hp));
+  document.getElementById('monsterHPMaxText').textContent = m.maxHP;
+}
+
+function updatePlayerHPBar() {
+  const pct = Math.max(0, (run.playerHP / run.playerMaxHP) * 100);
+  document.getElementById('playerHPBar').style.width = pct + '%';
+  document.getElementById('playerHPText').textContent = Math.max(0, Math.floor(run.playerHP));
+  document.getElementById('playerHPMaxText').textContent = run.playerMaxHP;
+  document.getElementById('battlePlayerATK').textContent = calcCurrentATK();
+}
+
+function calcCurrentATK() {
+  let atk = run.playerATK;
+  atk *= (1 + run.buffs.atkBoost / 100);
+  if (run.buffs.doubleStrike) atk *= 2;
+  // 连击加成
+  if (run.buffs.combo && streakCount >= 2) {
+    atk *= (1 + streakCount * 0.1);
+  }
+  return Math.floor(atk);
+}
+
+function setBattleLog(msg) {
+  document.getElementById('battleLog').innerHTML = msg;
+}
+
+function resetQuestionState() {
+  questionLocked = false;
+  document.getElementById('qOptions').innerHTML = '';
+  document.getElementById('qText').textContent = '准备中...';
+}
+
+// ============================================================
+// 10. 玩家回合
+// ============================================================
+
+function startPlayerTurn() {
+  run.turnPhase = 'player';
+  run.questionAnswered = false;
+  questionLocked = false;
+
+  // 检查麻痹/冻结
+  if (run.playerBuffs.frozen && run.playerBuffs.frozen > 0) {
+    run.playerBuffs.frozen--;
+    setBattleLog('❄️ 你被冻结了，跳过本回合！');
+    setTimeout(() => startMonsterTurn(), 1000);
+    return;
+  }
+
+  document.getElementById('qTurn').innerHTML = '<span class="turn-tag turn-attack">⚔️ 你的攻击回合 — 答对攻击怪物</span>';
+
+  showNextQuestion();
+}
+
+function showNextQuestion() {
+  const q = getNextQuestion();
+  currentQuestion = q;
+  document.getElementById('qText').textContent = q.question;
+
+  const container = document.getElementById('qOptions');
+  container.innerHTML = q.options.map((opt, i) =>
+    `<button class="q-option" data-idx="${i}" onclick="answerPlayerTurn(${i})">${opt}</button>`
+  ).join('');
+
+  // 倒计时
+  const timeLimit = Math.max(15 - Math.floor(run.floor / 5), 5);
+  timeLeft = timeLimit;
+  startTimer(timeLimit, () => {
+    // 超时 = 答错
+    if (!questionLocked) {
+      questionLocked = true;
+      setBattleLog('⏰ 时间到！你没有攻击到怪物');
+      disableOptions();
+      setTimeout(() => startMonsterTurn(), 800);
+    }
+  });
+}
+
+function answerPlayerTurn(idx) {
+  if (questionLocked) return;
+  questionLocked = true;
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+
+  const q = currentQuestion;
+  const options = document.querySelectorAll('.q-option');
+  options.forEach(o => o.disabled = true);
+
+  const isCorrect = idx === q.answer;
+  options[idx].classList.add(isCorrect ? 'correct' : 'wrong');
+  if (isCorrect && q.answer !== idx) {
+    // 如果点了错误但正确答案是另一个
+  }
+  if (!isCorrect) {
+    options[q.answer]?.classList.add('correct');
+  }
+
+  if (isCorrect) {
+    streakCount++;
+    // 玩家攻击怪物
+    const dmgResult = calcPlayerDamage();
+    const dmg = dmgResult.damage;
+
+    // 破甲
+    let finalDmg = dmg;
+    if (run.buffs.armorBreak > 0) {
+      finalDmg = Math.floor(finalDmg * (1 + run.buffs.armorBreak / 100));
+    }
+
+    // 怪物石肤减伤
+    if (run.monster.buffs.armored && run.monster.buffs.armored > 0) {
+      finalDmg = Math.floor(finalDmg * 0.5);
+      setBattleLog(`🛡️ 石肤护甲抵消了一半伤害！`);
+    }
+
+    // 怪物护盾吸收
+    if (run.monster.buffs.shield && run.monster.buffs.shield > 0) {
+      run.monster.buffs.shield--;
+      finalDmg = Math.floor(finalDmg * 0.3);
+      if (run.monster.buffs.shield === 0) setBattleLog(`💫 护盾破碎了！`);
+    }
+
+    run.monster.hp -= finalDmg;
+    if (run.monster.hp < 0) run.monster.hp = 0;
+
+    // 回复光环
+    if (run.buffs.healPerCorrect > 0) {
+      run.playerHP = Math.min(run.playerHP + run.buffs.healPerCorrect, run.playerMaxHP);
+      updatePlayerHPBar();
+    }
+
+    // 积分
+    run.earnedPoints += 5;
+
+    // 动画
+    const monsterEmoji = document.getElementById('monsterEmoji');
+    monsterEmoji.classList.add('hit');
+    setTimeout(() => monsterEmoji.classList.remove('hit'), 300);
+
+    const critText = dmgResult.isCrit ? '💥 暴击！' : '';
+    setBattleLog(`✅ 答对了！${critText}对 ${run.monster.name} 造成 <span class="log-damage">${finalDmg}</span> 点伤害`);
+    updateMonsterHPBar();
+    updateTopBar();
+
+    // 双倍打击用完即消
+    if (run.buffs.doubleStrike) run.buffs.doubleStrike = false;
+
+    // 检查怪物死亡
+    if (run.monster.hp <= 0) {
+      onMonsterDefeated();
+      return;
+    }
+
+    setTimeout(() => startMonsterTurn(), 1000);
+  } else {
+    streakCount = 0;
+    setBattleLog('❌ 答错了！未能攻击到 ' + run.monster.name);
+    setTimeout(() => startMonsterTurn(), 1000);
+  }
+}
+
+function calcPlayerDamage() {
+  let base = calcCurrentATK();
+  const critChance = run.buffs.critRate;
+  const isCrit = Math.random() * 100 < critChance;
+  if (isCrit) base = Math.floor(base * 1.5);
+  return { damage: Math.max(Math.floor(base), 1), isCrit };
+}
+
+// ============================================================
+// 11. 怪物回合
+// ============================================================
+
+function startMonsterTurn() {
+  if (run.monster.hp <= 0) return;
+  run.turnPhase = 'monster';
+  run.questionAnswered = false;
+  questionLocked = false;
+
+  // 检查怪物 dot 效果
+  applyMonsterDOT();
+
+  // 检查玩家HP
+  if (run.playerHP <= 0) {
+    onGameOver();
+    return;
+  }
+
+  // 怪物技能判定
+  if (run.monster.skills && run.monster.skills.length > 0) {
+    const skill = tryTriggerMonsterSkill();
+    if (skill) {
+      // 技能已触发，直接处理结果
+      return;
+    }
+  }
+
+  // 无技能或技能未触发，普通攻击
+  doMonsterNormalAttack();
+}
+
+function tryTriggerMonsterSkill() {
+  const monster = run.monster;
+  const skills = monster.skills.filter(s => {
+    if (s.once && monster.skillUsedOnce && monster.skillUsedOnce[s.id] !== undefined && monster.skillUsedOnce[s.id] === true) return false;
+    return true;
+  });
+
+  if (skills.length === 0) return null;
+
+  // 技能触发概率 = 基础概率 - 玩家减免
+  let triggerSkill = null;
+  for (const s of skills) {
+    let prob = s.prob - (run.buffs.skillReduce / 100);
+    if (prob > 0 && Math.random() < prob) {
+      triggerSkill = s;
+      break;
+    }
+  }
+
+  if (!triggerSkill) return null;
+
+  // 标记一次性技能已用
+  if (triggerSkill.once) {
+    if (!monster.skillUsedOnce) monster.skillUsedOnce = {};
+    monster.skillUsedOnce[triggerSkill.id] = true;
+  }
+
+  // 处理技能效果
+  return executeMonsterSkill(triggerSkill);
+}
+
+function executeMonsterSkill(skill) {
+  setBattleLog(`🔄 ${run.monster.name} 使用了 <span class="log-skill">${skill.name}</span>！${skill.desc}`);
+
+  switch (skill.type) {
+    case 'dot': // 毒雾 - 持续伤害
+      run.playerBuffs.dot = (run.playerBuffs.dot || 0) + 2;
+      setBattleLog(`🥷 ${run.monster.name} 释放了毒雾！`);
+      // 立即伤害
+      const dotDmg = Math.floor(run.playerHP * 0.1);
+      run.playerHP -= dotDmg;
+      if (run.playerHP < 0) run.playerHP = 0;
+      updatePlayerHPBar();
+      setBattleLog(`🥷 毒雾造成 <span class="log-damage">${dotDmg}</span> 点伤害！`);
+      if (run.playerHP <= 0) { setTimeout(() => onGameOver(), 500); }
+      else { setTimeout(() => startPlayerTurn(), 800); }
+      return skill;
+
+    case 'stun': // 麻痹 - 跳过玩家下次攻击
+      run.playerBuffs.frozen = (run.playerBuffs.frozen || 0) + 1;
+      setBattleLog(`⚡ 你被麻痹了！下次攻击回合将跳过`);
+      setTimeout(() => startPlayerTurn(), 800);
+      return skill;
+
+    case 'selfArmor': // 石肤 - 怪物减伤
+      run.monster.buffs.armored = (run.monster.buffs.armored || 0) + 2;
+      setBattleLog(`🛡️ ${run.monster.name} 获得了石肤护甲！`);
+      setTimeout(() => startPlayerTurn(), 800);
+      return skill;
+
+    case 'vampire': // 吸血
+      // 先做一次普通攻击，然后回复
+      const vampAtk = Math.floor(run.monster.atk * 1.2);
+      doMonsterDamageToPlayer(vampAtk, (dmg) => {
+        const heal = Math.floor(dmg * 0.3);
+        run.monster.hp = Math.min(run.monster.hp + heal, run.monster.maxHP);
+        updateMonsterHPBar();
+        setBattleLog(`🩸 ${run.monster.name} 吸血恢复了 <span class="log-heal">${heal}</span> HP`);
+      }, true);
+      return skill;
+
+    case 'berserk': // 狂暴
+      run.monster.buffs.berserk = (run.monster.buffs.berserk || 0) + 2;
+      setBattleLog(`🔥 ${run.monster.name} 进入了狂暴状态！`);
+      setTimeout(() => startPlayerTurn(), 800);
+      return skill;
+
+    case 'shield': // 护盾
+      run.monster.buffs.shield = (run.monster.buffs.shield || 2);
+      setBattleLog(`💫 ${run.monster.name} 展开了护盾！`);
+      setTimeout(() => startPlayerTurn(), 800);
+      return skill;
+
+    case 'sureHit': // 必定命中
+      setBattleLog(`🌪️ 这回合攻击 <span class="log-dodge">无法闪避！</span>`);
+      doMonsterDamageToPlayer(null, null, false, true);
+      return skill;
+
+    case 'doubleDmg': // 天崩地裂
+      setBattleLog(`🌋 ${run.monster.name} 发动了天崩地裂！`);
+      doMonsterDamageToPlayer(null, null, false, false, 2);
+      return skill;
+
+    case 'heal': // 生命汲取
+      const healAmt = Math.floor(run.monster.maxHP * 0.2);
+      run.monster.hp = Math.min(run.monster.hp + healAmt, run.monster.maxHP);
+      updateMonsterHPBar();
+      setBattleLog(`💚 ${run.monster.name} 恢复了 <span class="log-heal">${healAmt}</span> HP`);
+      setTimeout(() => startPlayerTurn(), 800);
+      return skill;
+
+    case 'finalStrike': // 终焉之击
+      if (run.monster.hp / run.monster.maxHP > 0.2) {
+        // 不触发，改为普通攻击
+        doMonsterNormalAttack();
+        return skill;
+      }
+      setBattleLog(`💀 ${run.monster.name} 释放了终焉之击！`);
+      doMonsterDamageToPlayer(null, null, false, false, 3);
+      return skill;
+
+    case 'cleanse': // 时光倒流
+      for (const k in run.buffs) {
+        if (typeof run.buffs[k] === 'number') run.buffs[k] = 0;
+      }
+      run.buffs.doubleStrike = false;
+      run.buffs.combo = false;
+      setBattleLog(`⏰ 你的所有buff被清除了！`);
+      setTimeout(() => startPlayerTurn(), 800);
+      return skill;
+
+    case 'freeze': // 冰封
+      run.playerBuffs.frozen = (run.playerBuffs.frozen || 0) + 2;
+      setBattleLog(`❄️ 你被冰封了！将跳过2次攻击回合`);
+      setTimeout(() => startPlayerTurn(), 800);
+      return skill;
+
+    default:
+      doMonsterNormalAttack();
+      return skill;
+  }
+}
+
+function doMonsterNormalAttack() {
+  const m = run.monster;
+  let atk = m.atk;
+  if (m.buffs.berserk && m.buffs.berserk > 0) {
+    atk = Math.floor(atk * 1.5);
+    m.buffs.berserk--;
+  }
+  doMonsterDamageToPlayer(atk);
+}
+
+function doMonsterDamageToPlayer(customAtk, callback, ignoreDodge, sureHit, dmgMult) {
+  // 显示格挡题
+  document.getElementById('qTurn').innerHTML = '<span class="turn-tag turn-dodge">🛡️ 格挡回合 — 答对减免伤害</span>';
+
+  const q = getNextQuestion();
+  currentQuestion = q;
+  document.getElementById('qText').textContent = q.question;
+
+  const container = document.getElementById('qOptions');
+  container.innerHTML = q.options.map((opt, i) =>
+    `<button class="q-option" data-idx="${i}" onclick="answerMonsterTurn(${i}, ${customAtk || 'null'}, ${sureHit || false}, ${dmgMult || 1})">${opt}</button>`
+  ).join('');
+
+  // 倒计时
+  const timeLimit = Math.max(15 - Math.floor(run.floor / 5), 5);
+  timeLeft = timeLimit;
+  questionLocked = false;
+  startTimer(timeLimit, () => {
+    if (!questionLocked) {
+      questionLocked = true;
+      // 超时 = 没格挡成功
+      const atk = customAtk || run.monster.atk;
+      const dmg = calcMonsterFinalDamage(atk, sureHit, dmgMult);
+      applyMonsterDamage(dmg, callback);
+    }
+  });
+}
+
+function answerMonsterTurn(idx, customAtk, sureHit, dmgMult) {
+  if (questionLocked) return;
+  questionLocked = true;
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+
+  const q = currentQuestion;
+  const options = document.querySelectorAll('.q-option');
+  options.forEach(o => o.disabled = true);
+
+  const isCorrect = idx === q.answer;
+  options[idx].classList.add(isCorrect ? 'correct' : 'wrong');
+  if (!isCorrect) {
+    options[q.answer]?.classList.add('correct');
+  }
+
+  if (isCorrect) {
+    // 格挡成功 - 闪避/减伤
+    const dodgeChance = run.playerDodge + (run.buffs.dodgeBoost / 100);
+    const isDodged = !sureHit && Math.random() < dodgeChance;
+
+    if (isDodged) {
+      setBattleLog(`✅ 答对了！<span class="log-dodge">💨 完美闪避！</span> 未受到伤害`);
+    } else {
+      // 答对但没闪避，减半伤害
+      const atk = customAtk || run.monster.atk;
+      const rawDmg = calcMonsterDamageRaw(atk, sureHit, dmgMult);
+      const halfDmg = Math.max(Math.floor(rawDmg * 0.3), 1);
+
+      // 护盾吸收
+      let finalDmg = halfDmg;
+      if (run.buffs.shieldHP > 0) {
+        const absorbed = Math.min(run.buffs.shieldHP, finalDmg);
+        run.buffs.shieldHP -= absorbed;
+        finalDmg -= absorbed;
+        setBattleLog(`✅ 答对了！🛡️ 护盾吸收了 ${absorbed} 点伤害，剩余 ${finalDmg} 点真实伤害`);
+      }
+      run.playerHP -= finalDmg;
+      if (run.playerHP < 0) run.playerHP = 0;
+      updatePlayerHPBar();
+      setBattleLog(`✅ 答对了！🛡️ 格挡成功，仅受到 <span class="log-damage">${finalDmg}</span> 点真实伤害`);
+    }
+  } else {
+    // 答错 = 全吃伤害
+    const atk = customAtk || run.monster.atk;
+    const dmg = calcMonsterFinalDamage(atk, sureHit, dmgMult);
+    applyMonsterDamage(dmg, null);
+  }
+
+  // 检查玩家死亡
+  if (run.playerHP <= 0) {
+    setTimeout(() => onGameOver(), 800);
+  } else {
+    // 检查buff过期
+    updateBuffDurations();
+    // 返回玩家回合
+    setTimeout(() => {
+      if (run.monster.hp > 0 && run.playerHP > 0) {
+        if (run.playerBuffs.frozen && run.playerBuffs.frozen > 0) {
+          // 冻结中
+          startMonsterTurn();
+        } else {
+          startPlayerTurn();
+        }
+      }
+    }, 1000);
+  }
+}
+
+// 真伤百分比：按怪物类型扣除玩家最大生命值百分比 + 固定攻击力
+const TRUE_DAMAGE_PCT = {
+  small: 0.20,   // 小怪: 20% 最大生命值
+  elite: 0.35,   // 精英: 35% 最大生命值
+  boss:  0.60,   // Boss: 60% 最大生命值（两刀砍死）
+};
+
+function calcMonsterDamageRaw(monsterAtk, sureHit, dmgMult) {
+  // 真伤 = 百分比扣血 + 固定攻击力
+  const pct = TRUE_DAMAGE_PCT[run.monster.type] || 0.20;
+  let base = Math.floor(run.playerMaxHP * pct) + monsterAtk;
+  if (dmgMult) base *= dmgMult;
+  if (run.monster.buffs.berserk && run.monster.buffs.berserk > 0) {
+    base *= 1.5;
+  }
+  return Math.floor(base);
+}
+
+function calcMonsterFinalDamage(monsterAtk, sureHit, dmgMult) {
+  let base = calcMonsterDamageRaw(monsterAtk, sureHit, dmgMult);
+  // 减伤
+  base *= (1 - run.buffs.armor / 100);
+  // 护盾
+  if (run.buffs.shieldHP > 0) {
+    const absorbed = Math.min(run.buffs.shieldHP, base);
+    run.buffs.shieldHP -= absorbed;
+    base -= absorbed;
+  }
+  return Math.max(Math.floor(base), 1);
+}
+
+function applyMonsterDamage(dmg, callback) {
+  run.playerHP -= dmg;
+  if (run.playerHP < 0) run.playerHP = 0;
+  updatePlayerHPBar();
+  const monsterEmoji = document.getElementById('monsterEmoji');
+  monsterEmoji.classList.add('attacking');
+  setTimeout(() => monsterEmoji.classList.remove('attacking'), 500);
+  const pctLabel = Math.round((TRUE_DAMAGE_PCT[run.monster.type] || 0.20) * 100);
+  setBattleLog(`❌ 答错了！${run.monster.name} 对你造成 <span class="log-damage">${dmg}</span> 点真实伤害（${pctLabel}%最大生命+攻击力）`);
+  if (callback) callback(dmg);
+}
+
+function applyMonsterDOT() {
+  if (run.playerBuffs.dot && run.playerBuffs.dot > 0) {
+    const dotDmg = Math.floor(run.playerHP * 0.1);
+    if (dotDmg > 0) {
+      run.playerHP -= dotDmg;
+      if (run.playerHP < 0) run.playerHP = 0;
+      updatePlayerHPBar();
+      setBattleLog(`🥷 毒雾造成 <span class="log-damage">${dotDmg}</span> 点持续伤害`);
+    }
+    run.playerBuffs.dot--;
+  }
+}
+
+function updateBuffDurations() {
+  // 怪物buff过期
+  if (run.monster && run.monster.buffs) {
+    if (run.monster.buffs.armored !== undefined && run.monster.buffs.armored > 0) {
+      run.monster.buffs.armored--;
+    }
+  }
+}
+
+// ============================================================
+// 12. 击败怪物
+// ============================================================
+
+function onMonsterDefeated() {
+  run.defeatedMonsters++;
+  const floorBonus = run.buffs.floorBonusPoints || 0;
+  run.earnedPoints += 10 + floorBonus;
+  updateTopBar();
+
+  const bonusText = floorBonus > 0 ? `（含经济加成+${floorBonus}）` : '';
+  setBattleLog(`🎉 击败了 ${run.monster.name}！获得 ${10 + floorBonus} 积分${bonusText}`);
+
+  // Boss额外奖励
+  if (run.monster.type === 'boss') {
+    run.earnedPoints += 50;
+    setBattleLog(`👑 Boss 奖励 +50 积分！`);
+  }
+
+  // 装备随机掉落（层数越高概率越大）
+  try {
+    if (typeof generateEquip === 'function') {
+      let dropChance = 0;
+      if (run.monster.type === 'boss') {
+        dropChance = 1.0; // Boss必掉
+      } else if (run.monster.type === 'elite') {
+        dropChance = Math.min(0.15 + run.floor * 0.01, 0.5); // 精英 16%~50%
+      } else {
+        dropChance = Math.min(0.05 + run.floor * 0.008, 0.3); // 小怪 5.8%~30%
+      }
+      if (Math.random() < dropChance) {
+        // 层数越高稀有度越高
+        const rarityCap = Math.min(3 + Math.floor(run.floor / 15), 7);
+        const rarity = 1 + Math.floor(Math.random() * rarityCap);
+        const equip = generateEquip(rarity);
+        const data = getGrade6UserData(studentId);
+        if (data.equipment) {
+          const idx = data.equipment.indexOf(null);
+          if (idx !== -1) data.equipment[idx] = equip;
+          else data.equipment.push(equip);
+        }
+        saveGrade6UserData(studentId, data);
+        setBattleLog(`📦 怪物掉落了装备：${equip.name}（${(dropChance*100).toFixed(1)}%概率）`);
+      }
+    }
+  } catch(e) { console.error('装备掉落出错:', e); }
+
+  // 延迟显示奖励
+  setTimeout(() => showRewardScreen(), 1200);
+}
+
+// ============================================================
+// 13. 卡牌奖励
+// ============================================================
+
+function showRewardScreen() {
+  const cards = generateCards(run.monster.type);
+  const grid = document.getElementById('cardGrid');
+
+  grid.innerHTML = cards.map((card, i) => `
+    <div class="reward-card" onclick="selectCard(${i})" data-idx="${i}">
+      <div class="card-icon">${card.id.includes('atk') ? '⚔️' : card.id.includes('crit') ? '🎯' : card.id.includes('heal') || card.id.includes('recover') ? '💚' : card.id.includes('dodge') ? '💨' : card.id.includes('hpMax') ? '❤️' : card.id.includes('combo') ? '💫' : card.id.includes('armorBreak') || card.id.includes('double') ? '🗡️' : card.id.includes('shield') ? '🛡️' : card.id.includes('skill') ? '🔥' : card.id.includes('king') || card.id.includes('premium') ? '👑' : card.id.includes('points') ? '💰' : card.id.includes('equip') ? '📦' : card.id.includes('pet') ? '🐣' : '💎'}</div>
+      <div class="card-name">${card.name}</div>
+      <div class="card-effect">${card.effect}</div>
+      <div class="card-rarity ${card.rarity}">${card.rarity === 'common' ? '普通' : card.rarity === 'uncommon' ? '精良' : card.rarity === 'rare' ? '稀有' : card.rarity === 'epic' ? '史诗' : '传说'}</div>
+    </div>
+  `).join('');
+
+  document.getElementById('rewardHint').textContent = '点击选择一张卡牌';
+  showScreen('Reward');
+}
+
+function selectCard(idx) {
+  const cards = document.querySelectorAll('.reward-card');
+  cards.forEach(c => c.classList.remove('selected'));
+  cards.forEach(c => c.style.pointerEvents = 'none');
+
+  const card = document.querySelector(`.reward-card[data-idx="${idx}"]`);
+  card.classList.add('selected');
+  document.getElementById('rewardHint').textContent = '已选择 ✅';
+
+  // 从DOM读取卡牌名称，匹配对应buff并应用
+  const cardName = card.querySelector('.card-name').textContent;
+  const allPools = [CARD_POOL.common, CARD_POOL.uncommon, CARD_POOL.rare, CARD_POOL.epic, CARD_POOL.legendary].flat();
+  const matched = allPools.find(c => c.name === cardName);
+  if (matched) matched.apply();
+
+  // 延迟进入下一层
+  setTimeout(() => {
+    const nextFloor = run.floor + 1;
+    enterFloor(nextFloor);
+  }, 1500);
+}
+
+// ============================================================
+// 14. 游戏结束
+// ============================================================
+
+function onGameOver() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+
+  // 保存数据
+  const towerData = getTowerData(studentId);
+  const prevBest = towerData.highestFloor;
+  const isNewRecord = run.floor > prevBest;
+
+  if (isNewRecord) {
+    towerData.highestFloor = run.floor;
+  }
+  towerData.totalTowerCoins = (towerData.totalTowerCoins || 0) + run.earnedPoints;
+  towerData.totalRuns = (towerData.totalRuns || 0) + 1;
+  saveTowerData(studentId, towerData);
+
+  // 积分写入六年级
+  const grade6Data = getGrade6UserData(studentId);
+  grade6Data.totalPoints = (grade6Data.totalPoints || 0) + run.earnedPoints;
+  saveGrade6UserData(studentId, grade6Data);
+
+  // 通知父页面积分变动（iframe 模式）
+  notifyTowerChange();
+
+  // 排行榜
+  pushTowerRanking(studentId, isNewRecord ? run.floor : prevBest);
+
+  // 显示结算
+  document.getElementById('resultIcon').textContent = isNewRecord ? '🎉' : '💀';
+  document.getElementById('resultTitle').textContent = isNewRecord ? '🏆 新纪录！' : '挑战结束';
+  document.getElementById('resultSub').textContent = isNewRecord
+    ? '你创造了新的爬塔记录！'
+    : '下次一定能爬得更高！';
+  document.getElementById('resFloor').textContent = run.floor + ' 层';
+  document.getElementById('resMonsters').textContent = run.defeatedMonsters + ' 个';
+  document.getElementById('resPoints').textContent = run.earnedPoints + ' 分';
+  document.getElementById('resBestFloor').textContent = towerData.highestFloor + ' 层';
+
+  document.getElementById('btnHomeHeader').style.display = 'inline-block';
+  showScreen('Result');
+  updateTopBar();
+}
+
+// ============================================================
+// 15. 倒计时
+// ============================================================
+
+function startTimer(seconds, onTimeout) {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+
+  const bar = document.getElementById('timerBar');
+  let remaining = seconds;
+  bar.style.width = '100%';
+  bar.style.transition = 'none';
+
+  // 强制重绘
+  bar.offsetHeight;
+
+  bar.style.transition = 'width ' + seconds + 's linear';
+  bar.style.width = '0%';
+
+  timerInterval = setInterval(() => {
+    remaining -= 0.1;
+    if (remaining <= 0) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      if (onTimeout) onTimeout();
+    }
+  }, 100);
+}
+
+function disableOptions() {
+  document.querySelectorAll('.q-option').forEach(o => o.disabled = true);
+}
+
+// ============================================================
+// 17. 背包与宠物面板（爬塔内嵌版）
+// ============================================================
+
+const TOWER_SLOT_MAP = {
+  weapon:   ['weapon','武器','剑','弓','杖','魔杖','短剑','长矛','矛','刀'],
+  hat:      ['hat','帽','冠','盔','头'],
+  top:      ['top','衣','服','衫','袍','连衣裙'],
+  bottom:   ['bottom','裤','裙','下装'],
+  glove:    ['glove','手套','护手','手'],
+  cape:     ['cape','披风','斗篷'],
+  shield:   ['shield','盾牌','魔法盾','护盾'],
+  shoes:    ['shoes','鞋','靴','鞋子'],
+  face:     ['face','脸饰','面具'],
+  eyes:     ['eyes','眼饰','眼罩','隐形眼镜','眼镜'],
+  treasure: ['宝物','科学']
+};
+const TOWER_SLOT_ORDER = ['weapon','hat','top','bottom','glove','cape','shield','shoes','face','eyes','treasure'];
+const TOWER_SLOT_NAMES = {
+  weapon: '⚔️ 武器', hat: '🪖 帽子', top: '👕 上衣', bottom: '👖 下装',
+  glove: '🧤 手套', cape: '🧣 披风', shield: '🛡️ 盾牌', shoes: '👟 鞋子',
+  face: '🎭 面饰', eyes: '👓 眼镜', treasure: '🔬 宝物'
+};
+
+function getTowerSlotType(equip) {
+  if (!equip) return null;
+  const s = (equip.slot || equip.type || '').toLowerCase();
+  for (const [type, keywords] of Object.entries(TOWER_SLOT_MAP)) {
+    if (keywords.some(k => s.includes(k))) return type;
+  }
+  if (s.includes('连衣裙') || (s.includes('衣') && s.includes('裙'))) return 'top';
+  return 'misc';
+}
+
+// 暗黑装备系统访问（首页）
+function getDiabloInventory() {
+  try { return JSON.parse(localStorage.getItem('kexvefuxi_inventory') || '[]'); } catch(e) { return []; }
+}
+function saveDiabloInventory(inv) {
+  localStorage.setItem('kexvefuxi_inventory', JSON.stringify(inv));
+}
+function getDiabloEquipped() {
+  try { return JSON.parse(localStorage.getItem('kexvefuxi_equipped_diablo') || '{}'); } catch(e) { return {}; }
+}
+function saveDiabloEquipped(eq) {
+  localStorage.setItem('kexvefuxi_equipped_diablo', JSON.stringify(eq));
+}
+
+// 检测当前使用哪套装备系统
+let towerUseDiablo = false;
+
+function detectTowerEquipSystem() {
+  // 优先用六年级装备
+  const g6 = getGrade6UserData(studentId);
+  const g6list = g6.equipment || [];
+  if (g6list.filter(Boolean).length > 0) {
+    towerUseDiablo = false;
+    return;
+  }
+  // 其次用暗黑装备
+  const diablo = getDiabloInventory();
+  if (diablo.length > 0) {
+    towerUseDiablo = true;
+    return;
+  }
+  towerUseDiablo = false;
+}
+
+// 将暗黑装备转为塔用格式（兼容str/dex/int/hpBonus）
+function diabloToTowerEquip(dItem) {
+  if (!dItem) return null;
+  // 暗黑装备有多重属性结构兼容
+  const rarityMult = {1:1,2:3,3:6,4:12,5:25,6:50,7:80};
+  const r = dItem.rarity || 1;
+  const base = rarityMult[r] || 1;
+  return {
+    id: dItem.id || 'd_' + Date.now(),
+    name: dItem.name || dItem.rarityName + '装备',
+    icon: dItem.icon || '📦',
+    slot: dItem.slot || 'misc',
+    rarity: r,
+    rarityName: dItem.rarityName || '普通',
+    rarityColor: dItem.rarityColor || '#9e9e9e',
+    multiplier: dItem.multiplier || 1.0,
+    // 转换攻击力：按稀有度给基础值
+    str: Math.floor(base * 0.5),
+    dex: Math.floor(base * 0.3),
+    int: Math.floor(base * 0.2),
+    hpBonus: dItem.affixes && dItem.affixes.some(a => a.id === 'hp_boost') ? 50 : 0,
+    diablo: true  // 标记来自暗黑系统
+  };
+}
+
+function getTowerEquipment() {
+  detectTowerEquipSystem();
+  if (towerUseDiablo) {
+    const diabloInv = getDiabloInventory();
+    return diabloInv.map(d => diabloToTowerEquip(d));
+  }
+  const data = getGrade6UserData(studentId);
+  return data.equipment || [];
+}
+
+function saveTowerEquipment(list) {
+  if (towerUseDiablo) {
+    // 暗黑装备：只保存带有diablo标记的原始暗黑装备
+    const diabloItems = list.filter(i => i && i.diablo);
+    if (diabloItems.length > 0) saveDiabloInventory(diabloItems);
+    return;
+  }
+  const data = getGrade6UserData(studentId);
+  data.equipment = list;
+  saveGrade6UserData(studentId, data);
+}
+
+function getTowerEquipped() {
+  detectTowerEquipSystem();
+  if (towerUseDiablo) {
+    // 暗黑装备的穿戴模式：slot名→itemId，转成索引模式
+    const diabloEq = getDiabloEquipped();
+    const diabloInv = getDiabloInventory();
+    const slots = { weapon: null, hat: null, top: null, bottom: null, glove: null,
+                    cape: null, shield: null, shoes: null, face: null, eyes: null,
+                    treasure: [null, null] };
+    // 把暗黑穿戴映射到转换后列表的索引
+    const towerList = diabloInv.map(d => diabloToTowerEquip(d));
+    // 用转换后列表的索引匹配
+    const eqEntries = Object.entries(diabloEq);
+    let treasureIdx = 0;
+    eqEntries.forEach(([slot, itemId]) => {
+      const idx = towerList.findIndex(item => item && item.id === itemId);
+      if (idx === -1) return;
+      const towerSlot = TOWER_SLOT_MAP[slot] ? slot : getTowerSlotType(towerList[idx]);
+      if (towerSlot === 'treasure' && treasureIdx < 2) {
+        slots.treasure[treasureIdx++] = idx;
+      } else if (towerSlot && towerSlot !== 'treasure' && towerSlot !== 'misc') {
+        slots[towerSlot] = idx;
+      }
+    });
+    return slots;
+  }
+  try {
+    return JSON.parse(localStorage.getItem('bpEquipped_6_' + studentId)) ||
+      { weapon: null, hat: null, top: null, bottom: null, glove: null, cape: null,
+        shield: null, shoes: null, face: null, eyes: null, treasure: [null, null] };
+  } catch(e) {
+    return { weapon: null, hat: null, top: null, bottom: null, glove: null, cape: null,
+             shield: null, shoes: null, face: null, eyes: null, treasure: [null, null] };
+  }
+}
+
+function saveTowerEquipped(state) {
+  if (towerUseDiablo) {
+    // 暗黑装备：把索引转回itemId
+    const towerList = getTowerEquipment();
+    const diabloEq = {};
+    for (const slot of TOWER_SLOT_ORDER) {
+      if (slot === 'treasure') {
+        state.treasure.forEach(idx => {
+          if (idx !== null && towerList[idx]) {
+            diabloEq['treasure_' + (state.treasure.indexOf(idx))] = towerList[idx].id;
+          }
+        });
+      } else if (state[slot] !== null && towerList[state[slot]]) {
+        diabloEq[slot] = towerList[state[slot]].id;
+      }
+    }
+    saveDiabloEquipped(diabloEq);
+    return;
+  }
+  localStorage.setItem('bpEquipped_6_' + studentId, JSON.stringify(state));
+}
+
+// 渲染穿戴槽位
+function renderTowerSlots(equipList, equipped) {
+  const container = document.getElementById('towerEquipSlots');
+  container.innerHTML = TOWER_SLOT_ORDER.map(slot => {
+    if (slot === 'treasure') {
+      const t0 = equipped.treasure[0];
+      const t1 = equipped.treasure[1];
+      const e0 = t0 !== null && equipList[t0] ? equipList[t0] : null;
+      const e1 = t1 !== null && equipList[t1] ? equipList[t1] : null;
+      return `
+        <div class="equip-slot-box ${e0 ? 'equipped' : ''}" onclick="unequipTreasureTower(0)">
+          <div class="slot-icon">${e0 ? e0.icon : '📦'}</div>
+          <div class="slot-label">宝物1</div>
+          ${e0 ? `<div class="slot-name">${e0.name}</div>` : '<div class="slot-empty">空</div>'}
+        </div>
+        <div class="equip-slot-box ${e1 ? 'equipped' : ''}" onclick="unequipTreasureTower(1)">
+          <div class="slot-icon">${e1 ? e1.icon : '📦'}</div>
+          <div class="slot-label">宝物2</div>
+          ${e1 ? `<div class="slot-name">${e1.name}</div>` : '<div class="slot-empty">空</div>'}
+        </div>`;
+    }
+    const idx = equipped[slot];
+    const e = idx !== null && equipList[idx] ? equipList[idx] : null;
+    return `
+      <div class="equip-slot-box ${e ? 'equipped' : ''}" onclick="${e ? `unequipSlotTower('${slot}')` : ''}">
+        <div class="slot-icon">${e ? e.icon : '❓'}</div>
+        <div class="slot-label">${TOWER_SLOT_NAMES[slot] || slot}</div>
+        ${e ? `<div class="slot-name" style="color:${e.rarityColor||'#ffd700'}">${e.name}</div>` : '<div class="slot-empty">空</div>'}
+      </div>`;
+  }).join('');
+}
+
+// 渲染背包网格
+function renderTowerInv(equipList, equipped) {
+  const grid = document.getElementById('towerInvGrid');
+  const count = equipList.filter(Boolean).length;
+  document.getElementById('towerInvCount').textContent = count + '/' + equipList.length;
+
+  // 标记已穿戴索引
+  const equippedIdx = new Set();
+  for (const slot of TOWER_SLOT_ORDER) {
+    if (slot === 'treasure') {
+      equipped.treasure.forEach(i => { if (i !== null) equippedIdx.add(i); });
+    } else if (equipped[slot] !== null) {
+      equippedIdx.add(equipped[slot]);
+    }
+  }
+
+  grid.innerHTML = equipList.map((item, idx) => {
+    if (!item) {
+      return '<div class="bp-inv-slot empty"></div>';
+    }
+    const isEquipped = equippedIdx.has(idx);
+    const rarityColor = item.rarityColor || '#9e9e9e';
+    const rarityName = item.rarityName || '';
+    let statsText = [];
+    if (item.str) statsText.push('💪+' + item.str);
+    if (item.dex) statsText.push('🏃+' + item.dex);
+    if (item.int) statsText.push('🧠+' + item.int);
+    if (item.hpBonus) statsText.push('❤️+' + item.hpBonus);
+    const statsStr = statsText.join(' ') || '无属性';
+
+    return `<div class="bp-inv-slot ${isEquipped ? 'equipped-mark' : ''}"
+                onclick="${isEquipped ? `unequipSlotByIdxTower(${idx})` : `equipByIdxTower(${idx})`}"
+                style="color:${rarityColor};">
+      <div style="font-size:16px;">${item.icon || '📦'}</div>
+      <div class="bp-tooltip" style="text-align:left;white-space:normal;width:160px;">
+        <div style="color:${rarityColor};font-weight:bold;font-size:13px;">${item.name}</div>
+        <div style="color:#888;font-size:10px;">${item.slot} · ${rarityName}</div>
+        <div style="font-size:11px;margin-top:4px;">${statsStr}</div>
+        ${isEquipped ? '<div style="color:#ffd700;font-size:10px;margin-top:2px;">★ 已穿戴（点击卸下）</div>' : '<div style="color:#aaa;font-size:10px;margin-top:2px;">点击穿戴</div>'}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// 装备穿戴
+function equipByIdxTower(idx) {
+  const equipList = getTowerEquipment();
+  const e = equipList[idx];
+  if (!e) return;
+  const slotType = getTowerSlotType(e);
+  if (!slotType || slotType === 'misc') return;
+  const equipped = getTowerEquipped();
+
+  if (slotType === 'treasure') {
+    if (equipped.treasure[0] === null) equipped.treasure[0] = idx;
+    else if (equipped.treasure[1] === null) equipped.treasure[1] = idx;
+    else {
+      // 替换第一个
+      equipped.treasure[0] = idx;
+    }
+  } else {
+    equipped[slotType] = idx;
+  }
+
+  saveTowerEquipped(equipped);
+  refreshTowerPanels();
+  goHome(); // 刷新属性
+}
+
+// 卸下装备（按槽位）
+function unequipSlotTower(slot) {
+  const equipped = getTowerEquipped();
+  equipped[slot] = null;
+  saveTowerEquipped(equipped);
+  refreshTowerPanels();
+  goHome();
+}
+
+function unequipTreasureTower(t) {
+  const equipped = getTowerEquipped();
+  equipped.treasure[t] = null;
+  saveTowerEquipped(equipped);
+  refreshTowerPanels();
+  goHome();
+}
+
+function unequipSlotByIdxTower(idx) {
+  const equipped = getTowerEquipped();
+  for (const slot of TOWER_SLOT_ORDER) {
+    if (slot === 'treasure') {
+      if (equipped.treasure[0] === idx) { equipped.treasure[0] = null; break; }
+      if (equipped.treasure[1] === idx) { equipped.treasure[1] = null; break; }
+    } else if (equipped[slot] === idx) {
+      equipped[slot] = null; break;
+    }
+  }
+  saveTowerEquipped(equipped);
+  refreshTowerPanels();
+  goHome();
+}
+
+function refreshTowerPanels() {
+  const equipList = getTowerEquipment();
+  const equipped = getTowerEquipped();
+  renderTowerSlots(equipList, equipped);
+  renderTowerInv(equipList, equipped);
+}
+
+function showTowerBackpack() {
+  if (!studentId) return;
+  refreshTowerPanels();
+  document.getElementById('bpOverlay').classList.add('show');
+}
+function closeTowerBackpack() {
+  document.getElementById('bpOverlay').classList.remove('show');
+}
+
+// ========== 宠物面板 ==========
+function showTowerPet() {
+  if (!studentId) return;
+  try {
+    const petState = getPetState(studentId);
+    const slots = document.getElementById('towerPetSlots');
+    const bonus = document.getElementById('towerPetBonus');
+
+    if (!petState || !petState.battlePets) {
+      slots.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.3);padding:20px;">暂无宠物数据<br><small>请到六年级页面培养宠物</small></div>';
+      bonus.innerHTML = '';
+      document.getElementById('petOverlay').classList.add('show');
+      return;
+    }
+
+    // 渲染3个出战槽位
+    slots.innerHTML = '';
+    for (let i = 0; i < 3; i++) {
+      const petId = petState.battlePets[i];
+      if (!petId || !petState.pets || !petState.pets[petId]) {
+        slots.innerHTML += '<div class="pet-card"><div class="pet-empty">🐾</div><div class="pet-empty">空位</div></div>';
+        continue;
+      }
+      const petInfo = petState.pets[petId];
+      const lv = petInfo.level || 1;
+      // 从TOWER_PET_DATA找名称和emoji
+      const petData = TOWER_PET_DATA.find(p => p.id == petId);
+      const name = petData ? (petState.petNames ? petState.petNames[petId] : '') || ('宠物#' + petId) : ('宠物#' + petId);
+      const emoji = petData ? '🐾' : '🐾';
+      slots.innerHTML += `<div class="pet-card">
+        <div class="pet-emoji">${emoji}</div>
+        <div class="pet-name">${name}</div>
+        <div class="pet-level">Lv.${lv}</div>
+      </div>`;
+    }
+
+    // 显示宠物加成
+    const bs = bonus;
+    bs.innerHTML = '<div style="margin-bottom:6px;color:rgba(255,255,255,0.5);">📊 出战加成</div>';
+    // 计算加成
+    let totalAtk = 0, totalDef = 0;
+    petState.battlePets.forEach(petId => {
+      if (!petId || !petState.pets || !petState.pets[petId]) return;
+      const petInfo = petState.pets[petId];
+      const lv = petInfo.level || 1;
+      const mult = 1 + (lv - 1) * 0.1;
+      const pd = TOWER_PET_DATA.find(p => p.id == petId);
+      const bs2 = pd ? pd.baseStats : { atk: 0, def: 0, str: 0 };
+      totalAtk += Math.floor((bs2.atk || 0) * mult) + Math.floor((bs2.str || 0) * mult);
+      totalDef += Math.floor((bs2.def || 0) * mult);
+    });
+    if (totalAtk > 0 || totalDef > 0) {
+      bs.innerHTML += `<div class="pet-bonus-row"><span>⚔️ 攻击加成</span><span class="val">+${totalAtk}</span></div>`;
+      bs.innerHTML += `<div class="pet-bonus-row"><span>🛡️ 防御加成</span><span class="val">+${totalDef}</span></div>`;
+    } else {
+      bs.innerHTML += '<div style="color:rgba(255,255,255,0.3);text-align:center;">无加成</div>';
+    }
+
+    // 提示：宠物更换请到六年级页面操作
+    bs.innerHTML += '<div style="margin-top:8px;font-size:0.75em;color:rgba(255,255,255,0.25);text-align:center;">💡 宠物更换请到六年级页面-宠物系统操作</div>';
+
+  } catch(e) {
+    document.getElementById('towerPetSlots').innerHTML = '<div style="color:rgba(255,255,255,0.3);">加载失败</div>';
+  }
+  document.getElementById('petOverlay').classList.add('show');
+}
+function closeTowerPet() {
+  document.getElementById('petOverlay').classList.remove('show');
+}
+
+// ============================================================
+// 18. 初始化
+// ============================================================
+
+// iframe 模式：显示等待提示，隐藏登录屏
+if (isIframeMode) {
+  document.getElementById('screenLogin').classList.remove('active');
+  document.getElementById('screenHome').classList.add('active');
+  document.getElementById('statATK').textContent = '...';
+  document.getElementById('statHP').textContent = '...';
+  document.getElementById('statDodge').textContent = '...';
+  document.getElementById('statFloor').textContent = '-';
+  document.getElementById('statCoins').textContent = '等待同步...';
+}
+
+// 键盘回车登录
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && document.getElementById('screenLogin').classList.contains('active')) {
+    doLogin();
+  }
+});
+
+updateTopBar();
+</script>
+</body>
+</html>

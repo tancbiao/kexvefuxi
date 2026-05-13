@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📚 题库管理系统 · 科学复习系统</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: "微软雅黑", "PingFang SC", sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    min-height: 100vh;
+    color: #fff;
+  }
+
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .header-icon { font-size: 64px; margin-bottom: 16px; }
+  .header h1 { font-size: 2em; margin-bottom: 8px; }
+  .header p { color: rgba(255,255,255,0.6); font-size: 1.1em; }
+
+  .card {
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 24px;
+  }
+
+  .card-title {
+    font-size: 1.3em;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .card-title span { font-size: 1.5em; }
+
+  /* 下载模板区 */
+  .template-section {
+    background: linear-gradient(135deg, rgba(76,175,80,0.2), rgba(33,150,243,0.2));
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+  }
+
+  .template-desc {
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 20px;
+    line-height: 1.6;
+  }
+
+  .template-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #4caf50, #2196f3);
+    border: none;
+    border-radius: 30px;
+    padding: 14px 32px;
+    color: #fff;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+  }
+  .template-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(76,175,80,0.4);
+  }
+
+  /* 上传区 */
+  .upload-zone {
+    border: 2px dashed rgba(255,255,255,0.3);
+    border-radius: 16px;
+    padding: 40px;
+    text-align: center;
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+  .upload-zone:hover, .upload-zone.dragover {
+    border-color: #00d4ff;
+    background: rgba(0,212,255,0.1);
+  }
+  .upload-zone input {
+    display: none;
+  }
+
+  .upload-icon { font-size: 48px; margin-bottom: 16px; }
+  .upload-text { font-size: 1.1em; margin-bottom: 8px; }
+  .upload-hint { color: rgba(255,255,255,0.5); font-size: 0.85em; }
+
+  /* 预览区 */
+  .preview-section { display: none; }
+  .preview-section.show { display: block; }
+
+  .preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .file-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .file-info-icon { font-size: 24px; }
+  .file-info-name { font-weight: bold; }
+  .file-info-size { color: rgba(255,255,255,0.5); font-size: 0.85em; }
+
+  .preview-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin: 20px 0;
+  }
+
+  .stat-box {
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+  }
+  .stat-value { font-size: 2em; font-weight: bold; color: #00d4ff; }
+  .stat-label { font-size: 0.85em; color: rgba(255,255,255,0.6); margin-top: 4px; }
+
+  /* 题目预览表格 */
+  .question-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+    font-size: 0.9em;
+  }
+  .question-table th {
+    background: rgba(255,255,255,0.1);
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+  }
+  .question-table td {
+    padding: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    vertical-align: top;
+  }
+  .question-table tr:hover td { background: rgba(255,255,255,0.05); }
+
+  .q-num { color: #00d4ff; font-weight: bold; width: 50px; }
+  .q-text { max-width: 300px; }
+  .q-type { width: 80px; }
+  .q-options { color: rgba(255,255,255,0.7); font-size: 0.85em; }
+
+  /* 按钮 */
+  .btn-group {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  .btn {
+    flex: 1;
+    padding: 14px 24px;
+    border-radius: 12px;
+    border: none;
+    font-size: 1em;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #4caf50, #45a049);
+    color: #fff;
+  }
+  .btn-primary:hover { transform: scale(1.02); box-shadow: 0 4px 15px rgba(76,175,80,0.4); }
+  .btn-secondary {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  .btn-secondary:hover { background: rgba(255,255,255,0.2); }
+
+  /* 成功提示 */
+  .success-msg {
+    display: none;
+    background: linear-gradient(135deg, rgba(76,175,80,0.3), rgba(33,150,243,0.3));
+    border-radius: 16px;
+    padding: 30px;
+    text-align: center;
+    animation: fadeIn 0.3s ease;
+  }
+  .success-msg.show { display: block; }
+  .success-icon { font-size: 64px; margin-bottom: 16px; }
+  .success-text { font-size: 1.3em; margin-bottom: 8px; }
+  .success-hint { color: rgba(255,255,255,0.6); }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* 已有题库 */
+  .library-section {
+    margin-top: 40px;
+  }
+
+  .library-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    margin-bottom: 12px;
+  }
+  .library-item-left { display: flex; align-items: center; gap: 12px; }
+  .library-icon { font-size: 24px; }
+  .library-name { font-weight: bold; }
+  .library-count { color: rgba(255,255,255,0.5); font-size: 0.85em; }
+
+  .library-btn {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    padding: 8px 16px;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .library-btn:hover { background: rgba(255,255,255,0.2); }
+
+  /* 页脚 */
+  .footer {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.4);
+    font-size: 0.85em;
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #00d4ff;
+    text-decoration: none;
+    margin-bottom: 20px;
+    transition: all 0.3s;
+  }
+  .back-link:hover { transform: translateX(-4px); }
+
+/* 密码验证 */
+.password-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.password-box {
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 24px;
+  padding: 40px;
+  text-align: center;
+  width: 100%;
+  max-width: 380px;
+}
+.password-icon { font-size: 64px; margin-bottom: 16px; }
+.password-box h2 { font-size: 1.5em; margin-bottom: 8px; }
+.password-hint { color: rgba(255,255,255,0.6); margin-bottom: 24px; }
+.password-input {
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 2px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  font-size: 1em;
+  text-align: center;
+  margin-bottom: 16px;
+  transition: all 0.3s;
+}
+.password-input:focus {
+  outline: none;
+  border-color: #00d4ff;
+  background: rgba(0,212,255,0.1);
+}
+.password-input::placeholder { color: rgba(255,255,255,0.4); }
+.password-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #00d4ff, #7c3aed);
+  color: #fff;
+  font-size: 1em;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.password-btn:hover { transform: scale(1.02); box-shadow: 0 4px 15px rgba(0,212,255,0.4); }
+.password-error {
+  color: #ff6b6b;
+  margin-top: 16px;
+  font-size: 0.9em;
+  min-height: 20px;
+}
+</style>
+</head>
+<body>
+<!-- 密码验证遮罩 -->
+<div class="password-overlay" id="passwordOverlay">
+  <div class="password-box">
+    <div class="password-icon">🔐</div>
+    <h2>题库管理系统</h2>
+    <p class="password-hint">请输入管理员密码</p>
+    <input type="password" id="passwordInput" class="password-input" placeholder="输入密码后按回车" onkeypress="if(event.key==='Enter')checkPassword()">
+    <button class="password-btn" onclick="checkPassword()">进入系统</button>
+    <p class="password-error" id="passwordError"></p>
+  </div>
+</div>
+
+<div class="container" id="mainContent" style="display:none;">
+  <!-- 返回链接 -->
+  <a href="index.html" class="back-link">← 返回首页</a>
+
+  <div class="header">
+    <div class="header-icon">📚</div>
+    <h1>题库管理系统</h1>
+    <p>上传、导入和管理您的科学题库</p>
+  </div>
+
+  <!-- 下载模板卡片 -->
+  <div class="card">
+    <div class="card-title"><span>📥</span> 下载题库模板</div>
+    <div class="template-section">
+      <p class="template-desc">
+        下载标准 Excel 模板，按照格式填写题目信息后上传。<br>
+        模板包含：题目内容、题型、选项、正确答案、备注等字段。
+      </p>
+      <button class="template-btn" onclick="downloadTemplate()">
+        📥 下载 Excel 模板
+      </button>
+    </div>
+  </div>
+
+  <!-- 上传题库卡片 -->
+  <div class="card">
+    <div class="card-title"><span>📤</span> 上传题库</div>
+
+    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+      <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(event)">
+      <div class="upload-icon">📁</div>
+      <div class="upload-text">点击或拖拽文件到此处上传</div>
+      <div class="upload-hint">支持 .xlsx, .xls, .csv 格式</div>
+    </div>
+
+    <!-- 预览区域 -->
+    <div class="preview-section" id="previewSection">
+      <div class="preview-header">
+        <div class="file-info">
+          <span class="file-info-icon">📄</span>
+          <div>
+            <div class="file-info-name" id="fileName">filename.xlsx</div>
+            <div class="file-info-size" id="fileSize">0 KB</div>
+          </div>
+        </div>
+        <button class="btn-secondary" onclick="clearFile()">✕ 清除</button>
+      </div>
+
+      <div class="preview-stats" id="previewStats">
+        <div class="stat-box">
+          <div class="stat-value" id="totalQuestions">0</div>
+          <div class="stat-label">总题目数</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value" id="singleChoice">0</div>
+          <div class="stat-label">单选题</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value" id="trueFalse">0</div>
+          <div class="stat-label">判断题</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value" id="fillBlank">0</div>
+          <div class="stat-label">填空题</div>
+        </div>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <strong style="display: block; margin-bottom: 12px;">📋 题目预览（前5条）</strong>
+        <div id="questionPreview"></div>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-secondary" onclick="clearFile()">取消</button>
+        <button class="btn btn-primary" onclick="importQuestions()">
+          ✓ 确认导入题库
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 成功提示 -->
+  <div class="success-msg" id="successMsg">
+    <div class="success-icon">🎉</div>
+    <div class="success-text">题库导入成功！</div>
+    <div class="success-hint" id="successHint">已添加 0 道题目到题库</div>
+  </div>
+
+  <!-- 已上传的自定义题库 -->
+  <div class="card library-section">
+    <div class="card-title" style="justify-content:space-between;">
+      <span><span style="font-size:1.5em;">📦</span> 已上传题库</span>
+      <button class="library-btn" onclick="clearAllUploaded()" id="clearAllBtn" style="display:none;background:rgba(255,80,80,0.3);border-color:rgba(255,80,80,0.5);">🗑️ 清空全部</button>
+    </div>
+    <div id="uploadedLessonList">
+      <p style="text-align:center;color:rgba(255,255,255,0.4);padding:30px 0;" id="emptyUploadedMsg">暂无上传题库</p>
+    </div>
+  </div>
+
+  <!-- 清空确认弹窗 -->
+  <div class="success-msg" id="clearConfirm" style="display:none;">
+    <div class="success-icon">🗑️</div>
+    <div class="success-text">确认清空所有上传题库？</div>
+    <div class="success-hint" style="margin-bottom:20px;">此操作不可撤销</div>
+    <div class="btn-group">
+      <button class="btn btn-secondary" onclick="document.getElementById('clearConfirm').style.display='none'">取消</button>
+      <button class="btn btn-primary" onclick="executeClearAll()" style="background:linear-gradient(135deg,#ff6b6b,#e53935);">确认清空</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    科学复习系统 · 题库管理 · 2026
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// ========== 密码验证 ==========
+const ADMIN_PASSWORD = 'admin';
+
+function checkPassword() {
+  const input = document.getElementById('passwordInput');
+  const error = document.getElementById('passwordError');
+  const password = input.value.trim();
+
+  if (password === ADMIN_PASSWORD) {
+    // 密码正确，隐藏遮罩，显示主内容
+    document.getElementById('passwordOverlay').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'block';
+  } else {
+    // 密码错误
+    error.textContent = '⚠️ 密码错误，请重试';
+    input.value = '';
+    input.focus();
+    // 震动效果
+    input.style.animation = 'shake 0.5s ease';
+    setTimeout(() => { input.style.animation = ''; }, 500);
+  }
+}
+
+// 添加震动动画
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-10px); }
+    40%, 80% { transform: translateX(10px); }
+  }
+`;
+document.head.appendChild(style);
+
+// ========== 题库上传管理 ==========
+
+let uploadedData = null;
+let uploadedFileName = '';
+
+// 下载 Excel 模板
+function downloadTemplate() {
+  // 创建模板数据
+  const templateData = [
+    {
+      '课程序号': '1',
+      '课程名称': '示例：梁桥结构与承重',
+      '题目': '拱形结构比平直结构承重能力更强吗？',
+      '题型': '单选题',
+      '选项A': '是',
+      '选项B': '否',
+      '选项C': '一样',
+      '选项D': '无法比较',
+      '正确答案': 'A',
+      '难度': '基础',
+      '备注': '考察拱形结构的基本知识'
+    },
+    {
+      '课程序号': '1',
+      '课程名称': '示例：梁桥结构与承重',
+      '题目': '拱形结构的承重能力比平直结构强。',
+      '题型': '判断题',
+      '选项A': '√',
+      '选项B': '×',
+      '选项C': '',
+      '选项D': '',
+      '正确答案': '√',
+      '难度': '基础',
+      '备注': '判断对错题'
+    },
+    {
+      '课程序号': '2',
+      '课程名称': '示例：拱桥特点与优势',
+      '题目': '赵州桥是哪一种类型的桥梁？',
+      '题型': '单选题',
+      '选项A': '梁桥',
+      '选项B': '拱桥',
+      '选项C': '吊桥',
+      '选项D': '浮桥',
+      '正确答案': 'B',
+      '难度': '提升',
+      '备注': '考察中国古代桥梁知识'
+    }
+  ];
+
+  // 创建工作表
+  const ws = XLSX.utils.json_to_sheet(templateData);
+
+  // 设置列宽
+  ws['!cols'] = [
+    { wch: 10 },  // 课程序号
+    { wch: 20 },  // 课程名称
+    { wch: 35 },  // 题目
+    { wch: 8 },   // 题型
+    { wch: 15 },  // 选项A
+    { wch: 15 },  // 选项B
+    { wch: 15 },  // 选项C
+    { wch: 15 },  // 选项D
+    { wch: 10 },  // 正确答案
+    { wch: 8 },   // 难度
+    { wch: 30 }   // 备注
+  ];
+
+  // 创建工作簿
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '题库模板');
+
+  // 下载文件（默认文件名：题库模板.xls）
+  XLSX.writeFile(wb, '题库模板.xls');
+}
+
+// 处理文件选择
+function handleFileSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  uploadedFileName = file.name;
+  const reader = new FileReader();
+
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+      uploadedData = XLSX.utils.sheet_to_json(firstSheet);
+
+      // 显示预览
+      showPreview(file, uploadedData);
+    } catch (error) {
+      alert('文件解析失败，请确保是正确格式的 Excel 文件。');
+      console.error(error);
+    }
+  };
+
+  reader.readAsArrayBuffer(file);
+}
+
+// 显示预览
+function showPreview(file, data) {
+  document.getElementById('fileName').textContent = file.name;
+  document.getElementById('fileSize').textContent = formatFileSize(file.size);
+
+  // 统计题目
+  const total = data.length;
+  let single = 0, tf = 0, fill = 0;
+
+  data.forEach(item => {
+    const type = item['题型'] || '';
+    if (type.includes('单选')) single++;
+    else if (type.includes('判断')) tf++;
+    else if (type.includes('填空')) fill++;
+  });
+
+  document.getElementById('totalQuestions').textContent = total;
+  document.getElementById('singleChoice').textContent = single;
+  document.getElementById('trueFalse').textContent = tf;
+  document.getElementById('fillBlank').textContent = fill;
+
+  // 生成预览表格
+  const preview = document.getElementById('questionPreview');
+  const previewData = data.slice(0, 5);
+
+  let tableHtml = `
+    <table class="question-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>题目</th>
+          <th>题型</th>
+          <th>答案</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  previewData.forEach((item, index) => {
+    const q = item['题目'] || '';
+    const shortQ = q.length > 40 ? q.substring(0, 40) + '...' : q;
+    const type = item['题型'] || '-';
+    const answer = item['正确答案'] || '-';
+
+    tableHtml += `
+      <tr>
+        <td class="q-num">${index + 1}</td>
+        <td class="q-text" title="${q}">${shortQ}</td>
+        <td class="q-type">${type}</td>
+        <td class="q-options">${answer}</td>
+      </tr>
+    `;
+  });
+
+  tableHtml += '</tbody></table>';
+
+  if (data.length > 5) {
+    tableHtml += `<p style="color: rgba(255,255,255,0.5); margin-top: 12px; font-size: 0.85em;">...还有 ${data.length - 5} 道题目</p>`;
+  }
+
+  preview.innerHTML = tableHtml;
+  document.getElementById('previewSection').classList.add('show');
+}
+
+// 清除文件
+function clearFile() {
+  document.getElementById('fileInput').value = '';
+  document.getElementById('previewSection').classList.remove('show');
+  document.getElementById('successMsg').classList.remove('show');
+  uploadedData = null;
+  uploadedFileName = '';
+}
+
+// 导入题目到 localStorage（三版本共享）
+function importQuestions() {
+  if (!uploadedData || uploadedData.length === 0) {
+    alert('请先上传题库文件');
+    return;
+  }
+
+  // 按课程序号+课程名称 分组
+  const lessonMap = {};
+  
+  uploadedData.forEach(item => {
+    const lessonNum = (item['课程序号'] || '').toString().trim();
+    const lessonName = (item['课程名称'] || '').toString().trim();
+    const lessonKey = lessonNum ? lessonNum : lessonName; // 优先用序号
+    
+    if (!lessonMap[lessonKey]) {
+      lessonMap[lessonKey] = {
+        lessonNum: lessonNum,
+        lessonName: lessonName,
+        basic: [],
+        medium: [],
+        hard: []
+      };
+    }
+    
+    const question = {
+      q: (item['题目'] || '').toString().trim(),
+      options: [],
+      answer: 0,
+      hint: (item['备注'] || '').toString().trim() || '已上传题目'
+    };
+    
+    // 收集选项
+    const opts = [];
+    ['A', 'B', 'C', 'D'].forEach(key => {
+      const val = item['选项' + key];
+      if (val && val.toString().trim()) opts.push(val.toString().trim());
+    });
+    question.options = opts;
+    
+    // 解析正确答案
+    const correctAns = (item['正确答案'] || '').toString().trim().toUpperCase();
+    if (correctAns === 'A') question.answer = 0;
+    else if (correctAns === 'B') question.answer = 1;
+    else if (correctAns === 'C') question.answer = 2;
+    else if (correctAns === 'D') question.answer = 3;
+    else if (correctAns === '√' || correctAns === 'V') question.answer = 0;
+    else if (correctAns === '×' || correctAns === 'X') question.answer = 1;
+    
+    // 按难度归类
+    const diff = (item['难度'] || '').toString().trim();
+    if (diff.includes('提升') || diff.includes('中等')) {
+      lessonMap[lessonKey].medium.push(question);
+    } else if (diff.includes('挑战')) {
+      lessonMap[lessonKey].hard.push(question);
+    } else {
+      lessonMap[lessonKey].basic.push(question);
+    }
+  });
+  
+  // 保存到 localStorage（三版本共用的 key）
+  const baseKey = 'kexvefuxi_uploaded_questions_';
+  let totalSaved = 0;
+  
+  Object.keys(lessonMap).forEach(key => {
+    const data = lessonMap[key];
+    const questionSet = {
+      basic: data.basic,
+      medium: data.medium,
+      hard: data.hard
+    };
+    
+    const lessonId = data.lessonNum || key;
+    const storageKey = baseKey + lessonId;
+    
+    // 合并已存在的
+    let existing = null;
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) existing = JSON.parse(raw);
+    } catch(e) {}
+    
+    if (existing) {
+      // 追加到对应难度
+      questionSet.basic = [...(existing.basic || []), ...questionSet.basic];
+      questionSet.medium = [...(existing.medium || []), ...questionSet.medium];
+      questionSet.hard = [...(existing.hard || []), ...questionSet.hard];
+    }
+    
+    localStorage.setItem(storageKey, JSON.stringify(questionSet));
+    totalSaved += questionSet.basic.length + questionSet.medium.length + questionSet.hard.length;
+  });
+  
+  // 显示成功
+  document.getElementById('previewSection').classList.remove('show');
+  document.getElementById('successMsg').classList.add('show');
+  document.getElementById('successHint').textContent = `成功导入 ${totalSaved} 道题目（${Object.keys(lessonMap).length} 课）`;
+
+  setTimeout(() => {
+    document.getElementById('successMsg').classList.remove('show');
+  }, 5000);
+
+  console.log('导入完成:', lessonMap);
+}
+
+// 格式化文件大小
+function formatFileSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+// ========== 已上传题库列表 ==========
+const STORAGE_KEY_PREFIX = 'kexvefuxi_uploaded_questions_';
+
+function refreshUploadedList() {
+  const list = document.getElementById('uploadedLessonList');
+  const emptyMsg = document.getElementById('emptyUploadedMsg');
+  const clearBtn = document.getElementById('clearAllBtn');
+  
+  // 遍历 localStorage 找出所有上传的题库
+  let items = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith(STORAGE_KEY_PREFIX)) {
+      const lessonId = key.replace(STORAGE_KEY_PREFIX, '');
+      try {
+        const data = JSON.parse(localStorage.getItem(key));
+        const total = (data.basic || []).length + (data.medium || []).length + (data.hard || []).length;
+        items.push({ lessonId, total, data });
+      } catch(e) {}
+    }
+  }
+  
+  if (items.length === 0) {
+    list.innerHTML = '<p style="text-align:center;color:rgba(255,255,255,0.4);padding:30px 0;">暂无上传题库</p>';
+    clearBtn.style.display = 'none';
+    return;
+  }
+  
+  clearBtn.style.display = '';
+  list.innerHTML = items.map(item => {
+    const basicCnt = (item.data.basic || []).length;
+    const medCnt = (item.data.medium || []).length;
+    const hardCnt = (item.data.hard || []).length;
+    return `<div class="library-item">
+      <div class="library-item-left">
+        <span class="library-icon">📋</span>
+        <div>
+          <div class="library-name">课程 ${item.lessonId}</div>
+          <div class="library-count">共 ${item.total} 题（基础${basicCnt}/提升${medCnt}/挑战${hardCnt}）</div>
+        </div>
+      </div>
+      <button class="library-btn" onclick="clearLesson('${item.lessonId}')" style="background:rgba(255,80,80,0.3);border-color:rgba(255,80,80,0.5);">删除</button>
+    </div>`;
+  }).join('');
+}
+
+function clearLesson(lessonId) {
+  if (confirm(`确认删除课程 ${lessonId} 的上传题库？`)) {
+    localStorage.removeItem(STORAGE_KEY_PREFIX + lessonId);
+    refreshUploadedList();
+  }
+}
+
+function clearAllUploaded() {
+  document.getElementById('clearConfirm').style.display = 'block';
+}
+
+function executeClearAll() {
+  const keys = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith(STORAGE_KEY_PREFIX)) {
+      keys.push(key);
+    }
+  }
+  keys.forEach(k => localStorage.removeItem(k));
+  document.getElementById('clearConfirm').style.display = 'none';
+  refreshUploadedList();
+}
+
+function toggleClearConfirm() {
+  const el = document.getElementById('clearConfirm');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+// 密码验证成功后刷新列表
+const originalCheckPassword = checkPassword;
+checkPassword = function() {
+  originalCheckPassword();
+  if (document.getElementById('mainContent').style.display === 'block') {
+    refreshUploadedList();
+  }
+};
+
+// 导入成功后刷新列表
+const originalImportQuestions = importQuestions;
+importQuestions = function() {
+  originalImportQuestions();
+  setTimeout(refreshUploadedList, 500);
+};
+
+// 拖拽上传
+const uploadZone = document.getElementById('uploadZone');
+
+uploadZone.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  uploadZone.classList.add('dragover');
+});
+
+uploadZone.addEventListener('dragleave', (e) => {
+  e.preventDefault();
+  uploadZone.classList.remove('dragover');
+});
+
+uploadZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  uploadZone.classList.remove('dragover');
+  const files = e.dataTransfer.files;
+  if (files.length > 0) {
+    document.getElementById('fileInput').files = files;
+    handleFileSelect({ target: { files: files } });
+  }
+});
+</script>
+</body>
+</html>

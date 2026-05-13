@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>暗黑装备生成器 | 科学复习系统</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #16213e 100%);
+      min-height: 100vh;
+      color: #e0e0e0;
+      padding: 20px;
+    }
+    .container { max-width: 1400px; margin: 0 auto; }
+    .header { text-align: center; margin-bottom: 30px; }
+    .header h1 {
+      font-size: 2.5em;
+      background: linear-gradient(45deg, #ffd700, #ff6600, #ff69b4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+    }
+    .header p { color: #888; font-size: 0.9em; }
+    .top-layout { display: grid; grid-template-columns: 1fr 320px; gap: 24px; margin-bottom: 24px; }
+    .control-panel {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    .section-title {
+      font-size: 0.9em;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::before {
+      content: '';
+      width: 3px;
+      height: 16px;
+      background: linear-gradient(180deg, #00d4ff, #7c3aed);
+      border-radius: 2px;
+    }
+    .control-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 20px; }
+    .control-group { display: flex; flex-direction: column; gap: 8px; }
+    .control-group label { font-size: 0.75em; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+    .rarity-selector { display: flex; gap: 6px; flex-wrap: wrap; }
+    .rarity-btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8em;
+      font-weight: bold;
+      transition: all 0.3s;
+      opacity: 0.5;
+    }
+    .rarity-btn:hover { opacity: 0.85; transform: scale(1.05); }
+    .rarity-btn.active { opacity: 1; box-shadow: 0 0 15px currentColor; }
+    .rarity-1 { background: #4a4a4a; color: #fff; }
+    .rarity-2 { background: linear-gradient(135deg, #2e7d32, #4caf50); color: #fff; }
+    .rarity-3 { background: linear-gradient(135deg, #1565c0, #2196f3); color: #fff; }
+    .rarity-4 { background: linear-gradient(135deg, #6a1b9a, #9c27b0); color: #fff; }
+    .rarity-5 { background: linear-gradient(135deg, #c2185b, #e91e63); color: #fff; }
+    .rarity-6 { background: linear-gradient(135deg, #f57f17, #ffd700); color: #1a1a1a; }
+    .rarity-7 { background: linear-gradient(135deg, #e65100, #ff6600); color: #fff; }
+    .generate-btn {
+      padding: 12px 32px;
+      background: linear-gradient(135deg, #00d4ff, #7c3aed);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 1em;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 20px rgba(0,212,255,0.3);
+    }
+    .generate-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 30px rgba(0,212,255,0.5); }
+    .bulk-btn {
+      padding: 8px 16px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 6px;
+      color: #aaa;
+      font-size: 0.85em;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .bulk-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+    .type-categories { display: flex; gap: 20px; margin-top: 16px; }
+    .type-category { flex: 1; }
+    .category-title {
+      font-size: 0.75em;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .type-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 6px; }
+    .type-btn {
+      padding: 8px 4px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      color: #888;
+      font-size: 0.75em;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: center;
+    }
+    .type-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .type-btn.active { background: rgba(0,212,255,0.2); border-color: #00d4ff; color: #00d4ff; }
+    .type-btn .type-icon { font-size: 1.5em; display: block; margin-bottom: 2px; }
+    .char-panel {
+      background: rgba(20,20,30,0.8);
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .char-portrait { text-align: center; margin-bottom: 16px; }
+    .char-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1a1a2e, #2d2d44);
+      margin: 0 auto 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3.5em;
+      border: 3px solid #333;
+      position: relative;
+      overflow: hidden;
+    }
+    .char-avatar::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      animation: shimmer 3s infinite;
+    }
+    @keyframes shimmer { 100% { left: 200%; } }
+    .char-level { font-size: 0.85em; color: #888; }
+    .stat-bar-container { margin-bottom: 8px; }
+    .stat-bar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; font-size: 0.8em; }
+    .stat-name { display: flex; align-items: center; gap: 6px; }
+    .stat-icon { font-size: 1em; }
+    .stat-bar { height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
+    .stat-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+    .stat-bar-str .stat-bar-fill { background: linear-gradient(90deg, #ff6b6b, #ee5a5a); }
+    .stat-bar-dex .stat-bar-fill { background: linear-gradient(90deg, #4ecdc4, #45b7aa); }
+    .stat-bar-int .stat-bar-fill { background: linear-gradient(90deg, #a78bfa, #8b5cf6); }
+    .hp-bar-fill { background: linear-gradient(90deg, #ef4444, #dc2626); }
+    .mp-bar-fill { background: linear-gradient(90deg, #3b82f6, #2563eb); }
+    .stats-panel { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 24px; }
+    .stat-card { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 14px; text-align: center; }
+    .stat-card .label { font-size: 0.7em; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+    .stat-card .value { font-size: 1.8em; font-weight: bold; margin-top: 4px; }
+    .equipment-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .equipment-card {
+      background: rgba(20,20,30,0.9);
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
+      transition: all 0.3s;
+      animation: fadeIn 0.5s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .equipment-card:hover { transform: translateY(-5px); box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
+    .equipment-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; }
+    .equipment-card[data-rarity="1"]::before { background: #9e9e9e; box-shadow: 0 0 10px #9e9e9e; }
+    .equipment-card[data-rarity="2"]::before { background: #4caf50; box-shadow: 0 0 15px #4caf50; }
+    .equipment-card[data-rarity="3"]::before { background: #2196f3; box-shadow: 0 0 15px #2196f3; }
+    .equipment-card[data-rarity="4"]::before { background: #9c27b0; box-shadow: 0 0 20px #9c27b0; }
+    .equipment-card[data-rarity="5"]::before { background: #e91e63; box-shadow: 0 0 25px #e91e63; }
+    .equipment-card[data-rarity="6"]::before { background: #ffd700; box-shadow: 0 0 30px #ffd700, 0 0 60px #ffd700; }
+    .equipment-card[data-rarity="7"]::before { background: #ff6600; box-shadow: 0 0 40px #ff6600, 0 0 80px #ff5722; }
+    .equipment-card[data-rarity="6"] { animation: legendaryGlow 2s ease-in-out infinite; }
+    @keyframes legendaryGlow {
+      0%, 100% { box-shadow: 0 0 20px rgba(255,215,0,0.3); }
+      50% { box-shadow: 0 0 40px rgba(255,215,0,0.6); }
+    }
+    .equipment-card[data-rarity="7"] {
+      animation: mythicGlow 1.5s ease-in-out infinite;
+      background: linear-gradient(135deg, rgba(30,20,10,0.95), rgba(60,30,15,0.95));
+    }
+    @keyframes mythicGlow {
+      0%, 100% { box-shadow: 0 0 30px rgba(255,87,34,0.4); }
+      50% { box-shadow: 0 0 60px rgba(255,87,34,0.8), 0 0 100px rgba(255,102,0,0.4); }
+    }
+    .equipment-icon { font-size: 3.5em; text-align: center; padding: 24px 0 16px; }
+    .equipment-info { padding: 0 16px 16px; }
+    .equipment-name { font-size: 1.1em; font-weight: bold; margin-bottom: 6px; text-align: center; }
+    .equipment-card[data-rarity="1"] .equipment-name { color: #9e9e9e; }
+    .equipment-card[data-rarity="2"] .equipment-name { color: #4caf50; }
+    .equipment-card[data-rarity="3"] .equipment-name { color: #2196f3; }
+    .equipment-card[data-rarity="4"] .equipment-name { color: #c628c0; }
+    .equipment-card[data-rarity="5"] .equipment-name { color: #e91e63; }
+    .equipment-card[data-rarity="6"] .equipment-name { color: #ffd700; text-shadow: 0 0 10px #ffd700; }
+    .equipment-card[data-rarity="7"] .equipment-name { color: #ff6600; text-shadow: 0 0 15px #ff6600; }
+    .equipment-type { text-align: center; color: #666; font-size: 0.8em; margin-bottom: 12px; }
+    .equipment-stats { background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; margin-bottom: 10px; }
+    .equip-stat-row { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; font-size: 0.85em; }
+    .equip-stat-label { color: #888; }
+    .equip-stat-value { font-weight: bold; }
+    .equip-stat-value.s { color: #ff6b6b; }
+    .equip-stat-value.d { color: #4ecdc4; }
+    .equip-stat-value.i { color: #a78bfa; }
+    .equip-stat-value.h { color: #ef4444; }
+    .equip-stat-value.m { color: #3b82f6; }
+    .equipment-multiplier {
+      text-align: center;
+      padding: 8px;
+      background: linear-gradient(135deg, rgba(0,212,255,0.15), rgba(124,58,237,0.15));
+      border-radius: 8px;
+      font-size: 0.95em;
+    }
+    .equipment-multiplier span { font-weight: bold; color: #ffd700; }
+    .inventory-panel { margin-top: 30px; background: rgba(255,255,255,0.03); border-radius: 16px; padding: 20px; }
+    .inventory-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .inventory-header h2 { font-size: 1.2em; color: #aaa; }
+    .inventory-actions { display: flex; gap: 10px; }
+    .inventory-actions button {
+      padding: 6px 14px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 6px;
+      color: #888;
+      font-size: 0.85em;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .inventory-actions button:hover { background: rgba(255,100,100,0.15); color: #ff6b6b; border-color: rgba(255,100,100,0.3); }
+    .inventory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px; }
+    .inventory-slot {
+      aspect-ratio: 1;
+      background: rgba(0,0,0,0.3);
+      border: 2px dashed rgba(255,255,255,0.1);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8em;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+    }
+    .inventory-slot:hover { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.05); }
+    .inventory-slot.empty { color: #333; }
+    .inventory-slot[data-rarity="6"] { animation: legendaryGlow 2s ease-in-out infinite; }
+    .inventory-slot[data-rarity="7"] { animation: mythicGlow 1.5s ease-in-out infinite; }
+    .inventory-slot .tooltip {
+      display: none;
+      position: absolute;
+      bottom: 110%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.95);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.7em;
+      white-space: nowrap;
+      z-index: 100;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .inventory-slot:hover .tooltip { display: block; }
+    .back-btn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      padding: 10px 20px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      color: #aaa;
+      text-decoration: none;
+      transition: all 0.3s;
+      z-index: 1000;
+    }
+    .back-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+    @media (max-width: 1024px) {
+      .top-layout { grid-template-columns: 1fr; }
+      .stats-panel { grid-template-columns: repeat(3, 1fr); }
+      .type-categories { flex-direction: column; }
+    }
+    @media (max-width: 768px) {
+      .header h1 { font-size: 1.8em; }
+      .stats-panel { grid-template-columns: repeat(2, 1fr); }
+      .equipment-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-btn">← 返回首页</a>
+  <div class="container">
+    <div class="header">
+      <h1>⚔️ 暗黑装备生成器</h1>
+      <p>科学宝物 + 冒险岛装备 | 三维属性：力量 · 敏捷 · 智力</p>
+    </div>
+
+    <div class="top-layout">
+      <div class="control-panel">
+        <div class="section-title">稀有度选择</div>
+        <div class="control-row">
+          <div class="rarity-selector">
+            <button class="rarity-btn rarity-1 active" data-rarity="1">普通</button>
+            <button class="rarity-btn rarity-2" data-rarity="2">精致</button>
+            <button class="rarity-btn rarity-3" data-rarity="3">良好</button>
+            <button class="rarity-btn rarity-4" data-rarity="4">稀有</button>
+            <button class="rarity-btn rarity-5" data-rarity="5">史诗</button>
+            <button class="rarity-btn rarity-6" data-rarity="6">传说</button>
+            <button class="rarity-btn rarity-7" data-rarity="7">神话</button>
+          </div>
+          <button class="generate-btn" onclick="generateEquipment()">🎲 生成装备</button>
+          <div class="control-group">
+            <label>批量</label>
+            <div style="display:flex;gap:6px;">
+              <button class="bulk-btn" onclick="bulkGenerate(10)">×10</button>
+              <button class="bulk-btn" onclick="bulkGenerate(50)">×50</button>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>随机掉落</label>
+            <button class="bulk-btn" onclick="generateWithRandomRarity()">⚓ 5%概率</button>
+          </div>
+        </div>
+        <div class="section-title">装备类型</div>
+        <div class="type-categories">
+          <div class="type-category">
+            <div class="category-title">🔬 科学宝物</div>
+            <div class="type-grid" id="scienceTypes"></div>
+          </div>
+          <div class="type-category">
+            <div class="category-title">⚔️ 武器防具</div>
+            <div class="type-grid" id="mapleTypes"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="char-panel">
+        <div class="char-portrait">
+          <div class="char-avatar" id="charAvatar">🧪</div>
+          <div class="char-level">Lv.<span id="charLevel">1</span></div>
+        </div>
+        <div class="stat-bar-container">
+          <div class="stat-bar-header">
+            <span class="stat-name"><span class="stat-icon">💪</span> 力量 STR</span>
+            <span id="strValue">10</span>
+          </div>
+          <div class="stat-bar stat-bar-str">
+            <div class="stat-bar-fill" id="strBar" style="width: 10%"></div>
+          </div>
+        </div>
+        <div class="stat-bar-container">
+          <div class="stat-bar-header">
+            <span class="stat-name"><span class="stat-icon">🏃</span> 敏捷 DEX</span>
+            <span id="dexValue">10</span>
+          </div>
+          <div class="stat-bar stat-bar-dex">
+            <div class="stat-bar-fill" id="dexBar" style="width: 10%"></div>
+          </div>
+        </div>
+        <div class="stat-bar-container">
+          <div class="stat-bar-header">
+            <span class="stat-name"><span class="stat-icon">🧠</span> 智力 INT</span>
+            <span id="intValue">10</span>
+          </div>
+          <div class="stat-bar stat-bar-int">
+            <div class="stat-bar-fill" id="intBar" style="width: 10%"></div>
+          </div>
+        </div>
+        <div style="height:12px"></div>
+        <div class="stat-bar-container">
+          <div class="stat-bar-header">
+            <span class="stat-name">❤️ 生命 HP</span>
+            <span id="hpValue">100</span>
+          </div>
+          <div class="stat-bar">
+            <div class="stat-bar-fill hp-bar-fill" id="hpBar" style="width: 100%"></div>
+          </div>
+        </div>
+        <div class="stat-bar-container">
+          <div class="stat-bar-header">
+            <span class="stat-name">💧 魔法 MP</span>
+            <span id="mpValue">50</span>
+          </div>
+          <div class="stat-bar">
+            <div class="stat-bar-fill mp-bar-fill" id="mpBar" style="width: 50%"></div>
+          </div>
+        </div>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.1);font-size:0.8em;color:#666;text-align:center;">
+          装备加成：<span id="equipBonus">+0</span> 属性
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-panel">
+      <div class="stat-card"><div class="label">总生成</div><div class="value" id="totalGenerated">0</div></div>
+      <div class="stat-card"><div class="label">神话</div><div class="value" style="color:#ff6600" id="mythicCount">0</div></div>
+      <div class="stat-card"><div class="label">传说</div><div class="value" style="color:#ffd700" id="legendaryCount">0</div></div>
+      <div class="stat-card"><div class="label">史诗</div><div class="value" style="color:#e91e63" id="epicCount">0</div></div>
+      <div class="stat-card"><div class="label">平均倍率</div><div class="value" style="color:#00d4ff" id="avgMultiplier">1.00x</div></div>
+    </div>
+
+    <div class="equipment-grid" id="equipmentGrid"></div>
+
+    <div class="inventory-panel">
+      <div class="inventory-header">
+        <h2>🎒 我的背包 (<span id="inventoryCount">0</span>/100)</h2>
+        <div class="inventory-actions">
+          <button onclick="sortInventory()">排序</button>
+          <button onclick="clearInventory()">清空</button>
+          <button onclick="exportInventory()">导出</button>
+        </div>
+      </div>
+      <div class="inventory-grid" id="inventoryGrid"></div>
+    </div>
+  </div>
+
+  <script>
+    const EQUIPMENT_RARITY = {
+      1: { name: '普通', color: '#9e9e9e', multiplier: 1.01 },
+      2: { name: '精致', color: '#4caf50', multiplier: 1.03 },
+      3: { name: '良好', color: '#2196f3', multiplier: 1.06 },
+      4: { name: '稀有', color: '#9c27b0', multiplier: 1.12 },
+      5: { name: '史诗', color: '#e91e63', multiplier: 1.30 },
+      6: { name: '传说', color: '#ffd700', multiplier: 2.00 },
+      7: { name: '神话', color: '#ff6600', multiplier: 3.00 }
+    };
+    const RARITY_STAT_SCALE = {
+      1: { min: 1, max: 5 },
+      2: { min: 3, max: 12 },
+      3: { min: 6, max: 20 },
+      4: { min: 12, max: 35 },
+      5: { min: 25, max: 60 },
+      6: { min: 50, max: 120 },
+      7: { min: 80, max: 200 }
+    };
+    const SCIENCE_TYPES = [
+      { id: 'magnifier', name: '放大镜', icon: '🔍', slot: '宝物', mainStat: 'int', desc: '观察微观世界' },
+      { id: 'microscope', name: '显微镜', icon: '🔬', slot: '宝物', mainStat: 'int', desc: '探索细胞结构' },
+      { id: 'flask', name: '烧杯', icon: '🧪', slot: '宝物', mainStat: 'int', mainStat2: 'dex', desc: '化学反应容器' },
+      { id: 'compass', name: '指南针', icon: '🧭', slot: '宝物', mainStat: 'dex', desc: '指引方向' },
+      { id: 'telescope', name: '望远镜', icon: '🔭', slot: '宝物', mainStat: 'int', desc: '观测星空' },
+      { id: 'tube', name: '试管', icon: '🧫', slot: '宝物', mainStat: 'dex', mainStat2: 'int', desc: '精确实验' },
+      { id: 'globe', name: '地球仪', icon: '🌍', slot: '宝物', mainStat: 'int', mainStat2: 'str', desc: '了解地球' },
+      { id: 'magnet', name: '磁铁', icon: '🧲', slot: '宝物', mainStat: 'str', desc: '探索磁性' },
+      { id: 'battery', name: '电池', icon: '🔋', slot: '宝物', mainStat: 'int', mainStat2: 'str', desc: '储存电能' },
+      { id: 'thermometer', name: '温度计', icon: '🌡️', slot: '宝物', mainStat: 'dex', desc: '测量温度' },
+      { id: 'scales', name: '天平', icon: '⚖️', slot: '宝物', mainStat: 'int', desc: '精确称量' },
+      { id: 'prism', name: '三棱镜', icon: '💎', slot: '宝物', mainStat: 'int', mainStat2: 'dex', desc: '分解光线' }
+    ];
+    const MAPLE_TYPES = [
+      { id: 'sword', name: '剑', icon: '⚔️', slot: '武器', mainStat: 'str', desc: '物理攻击' },
+      { id: 'bow', name: '弓箭', icon: '🏹', slot: '武器', mainStat: 'dex', desc: '远程攻击' },
+      { id: 'staff', name: '魔法杖', icon: '🪄', slot: '武器', mainStat: 'int', desc: '魔法攻击' },
+      { id: 'wand', name: '魔杖', icon: '⚡', slot: '武器', mainStat: 'int', mainStat2: 'dex', desc: '魔法近战' },
+      { id: 'dagger', name: '短剑', icon: '🗡️', slot: '武器', mainStat: 'dex', mainStat2: 'str', desc: '快速攻击' },
+      { id: 'spear', name: '长矛', icon: '🔱', slot: '武器', mainStat: 'str', mainStat2: 'dex', desc: '穿刺攻击' },
+      { id: 'helmet', name: '头盔', icon: '🪖', slot: '头盔', mainStat: 'str', desc: '防护头部' },
+      { id: 'hat', name: '帽子', icon: '🎩', slot: '头盔', mainStat: 'int', mainStat2: 'dex', desc: '魔法防护' },
+      { id: 'crown', name: '王冠', icon: '👑', slot: '头盔', mainStat: 'int', mainStat2: 'str', desc: '王者之冠' },
+      { id: 'armor', name: '铠甲', icon: '🛡️', slot: '上衣', mainStat: 'str', desc: '物理防护' },
+      { id: 'robe', name: '长袍', icon: '🥋', slot: '上衣', mainStat: 'int', desc: '魔法防护' },
+      { id: 'cloth', name: '布衣', icon: '👕', slot: '上衣', mainStat: 'dex', mainStat2: 'int', desc: '轻便防护' },
+      { id: 'pants', name: '长裤', icon: '👖', slot: '下装', mainStat: 'str', desc: '腿部防护' },
+      { id: 'skirt', name: '短裙', icon: '👗', slot: '下装', mainStat: 'dex', desc: '轻便下身' },
+      { id: 'glove', name: '手套', icon: '🧤', slot: '手套', mainStat: 'dex', desc: '提升命中' },
+      { id: 'gauntlet', name: '护手', icon: '🥊', slot: '手套', mainStat: 'str', desc: '力量增强' },
+      { id: 'cape', name: '披风', icon: '🧣', slot: '披风', mainStat: 'str', mainStat2: 'int', desc: '神秘披风' },
+      { id: 'cloak', name: '斗篷', icon: '🧥', slot: '披风', mainStat: 'int', desc: '魔法斗篷' },
+      { id: 'shield', name: '盾牌', icon: '🛡', slot: '盾牌', mainStat: 'str', desc: '物理格挡' },
+      { id: 'orb', name: '魔法盾', icon: '🔮', slot: '盾牌', mainStat: 'int', desc: '魔法护盾' },
+      { id: 'boot', name: '战靴', icon: '👢', slot: '鞋子', mainStat: 'str', desc: '力量移动' },
+      { id: 'shoe', name: '轻鞋', icon: '👟', slot: '鞋子', mainStat: 'dex', desc: '速度提升' },
+      { id: 'glasses', name: '眼镜', icon: '👓', slot: '脸饰', mainStat: 'int', desc: '观察辅助' },
+      { id: 'mask', name: '面具', icon: '🎭', slot: '脸饰', mainStat: 'dex', mainStat2: 'str', desc: '神秘伪装' },
+      { id: 'eyepatch', name: '眼罩', icon: '🩹', slot: '眼饰', mainStat: 'str', desc: '单眼视界' },
+      { id: 'lens', name: '隐形眼镜', icon: '👁️', slot: '眼饰', mainStat: 'int', desc: '洞察一切' }
+    ];
+    const EQUIPMENT_DROP = { baseChance: 0.05, rarityWeights: [50, 25, 15, 7, 2, 0.8, 0.2] };
+    const AFFIXES = {
+      crit_rate: { name: '暴击率', effect: '+10%正确率', color: '#ff6b6b' },
+      exp_bonus: { name: '经验加成', effect: '+20%积分', color: '#4ecdc4' },
+      extra_hint: { name: '额外提示', effect: '+1提示', color: '#45b7d1' },
+      skip_chance: { name: '跳过机会', effect: '5%跳过', color: '#96ceb4' },
+      recover_life: { name: '生命恢复', effect: '答错+1生命', color: '#ffeaa7' },
+      combo_bonus: { name: '连击加成', effect: '连击+5%', color: '#dfe6e9' },
+      treasure_hunter: { name: '寻宝猎人', effect: '掉率+3%', color: '#fdcb6e' },
+      perfect_bonus: { name: '满分奖励', effect: '满分+50', color: '#e056fd' },
+      hp_boost: { name: '生命强化', effect: 'HP+50', color: '#ef4444' },
+      mp_boost: { name: '魔力强化', effect: 'MP+30', color: '#3b82f6' }
+    };
+    let selectedRarity = 1;
+    let selectedType = null;
+    let inventory = [];
+    let charStats = { base: { str: 10, dex: 10, int: 10 }, bonus: { str: 0, dex: 0, int: 0 }, hp: 100, hpBonus: 0, mp: 50, mpBonus: 0 };
+    let stats = { total: 0, mythic: 0, legendary: 0, epic: 0, totalMultiplier: 0 };
+
+    function initTypeButtons() {
+      const sc = document.getElementById('scienceTypes');
+      sc.innerHTML = SCIENCE_TYPES.map(t => `<button class="type-btn" data-type="${t.id}"><span class="type-icon">${t.icon}</span>${t.name}</button>`).join('');
+      const mc = document.getElementById('mapleTypes');
+      mc.innerHTML = MAPLE_TYPES.map(t => `<button class="type-btn" data-type="${t.id}"><span class="type-icon">${t.icon}</span>${t.name}</button>`).join('');
+      document.querySelectorAll('.type-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const was = btn.classList.contains('active');
+          document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+          if (!was) { btn.classList.add('active'); selectedType = btn.dataset.type; }
+          else selectedType = null;
+        });
+      });
+      document.querySelectorAll('.rarity-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.rarity-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          selectedRarity = parseInt(btn.dataset.rarity);
+        });
+      });
+    }
+
+    function loadData() {
+      const s = localStorage.getItem('diablo_inventory'); if (s) inventory = JSON.parse(s);
+      const st = localStorage.getItem('diablo_stats'); if (st) stats = JSON.parse(st);
+      const ch = localStorage.getItem('diablo_char'); if (ch) charStats = JSON.parse(ch);
+      updateInventoryDisplay(); updateStats(); updateCharPanel();
+    }
+    function saveData() {
+      localStorage.setItem('diablo_inventory', JSON.stringify(inventory));
+      localStorage.setItem('diablo_stats', JSON.stringify(stats));
+      localStorage.setItem('diablo_char', JSON.stringify(charStats));
+    }
+
+    function recalcCharStats() {
+      charStats.bonus = { str: 0, dex: 0, int: 0 };
+      charStats.hpBonus = 0; charStats.mpBonus = 0;
+      inventory.forEach(item => {
+        if (!item) return;
+        charStats.bonus.str += item.str || 0;
+        charStats.bonus.dex += item.dex || 0;
+        charStats.bonus.int += item.int || 0;
+        charStats.hpBonus += item.hpBonus || 0;
+        charStats.mpBonus += item.mpBonus || 0;
+      });
+      charStats.hp = 100 + charStats.bonus.str * 10 + charStats.hpBonus;
+      charStats.mp = 50 + charStats.bonus.int * 5 + charStats.mpBonus;
+    }
+
+    function updateCharPanel() {
+      const ts = charStats.base.str + charStats.bonus.str;
+      const td = charStats.base.dex + charStats.bonus.dex;
+      const ti = charStats.base.int + charStats.bonus.int;
+      document.getElementById('strValue').textContent = ts;
+      document.getElementById('dexValue').textContent = td;
+      document.getElementById('intValue').textContent = ti;
+      document.getElementById('hpValue').textContent = charStats.hp;
+      document.getElementById('mpValue').textContent = charStats.mp;
+      document.getElementById('strBar').style.width = Math.min(100, ts / 2) + '%';
+      document.getElementById('dexBar').style.width = Math.min(100, td / 2) + '%';
+      document.getElementById('intBar').style.width = Math.min(100, ti / 2) + '%';
+      document.getElementById('hpBar').style.width = Math.min(100, charStats.hp / 5) + '%';
+      document.getElementById('mpBar').style.width = Math.min(100, charStats.mp / 2) + '%';
+      const bonus = charStats.bonus.str + charStats.bonus.dex + charStats.bonus.int;
+      document.getElementById('equipBonus').textContent = bonus > 0 ? `+${bonus}` : '+0';
+      const level = Math.floor(1 + (ts + td + ti) / 30);
+      document.getElementById('charLevel').textContent = Math.min(99, level);
+    }
+
+    function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+    function getRandomRarity() {
+      const w = EQUIPMENT_DROP.rarityWeights;
+      const total = w.reduce((s, v) => s + v, 0);
+      let r = Math.random() * total;
+      for (let i = 0; i < w.length; i++) { r -= w[i]; if (r <= 0) return i + 1; }
+      return 1;
+    }
+
+    function generateEquipmentObject(rarity) {
+      let equipType;
+      if (selectedType) {
+        equipType = [...SCIENCE_TYPES, ...MAPLE_TYPES].find(t => t.id === selectedType);
+      } else {
+        const all = [...SCIENCE_TYPES, ...MAPLE_TYPES];
+        equipType = all[Math.floor(Math.random() * all.length)];
+      }
+      const ri = EQUIPMENT_RARITY[rarity];
+      const scale = RARITY_STAT_SCALE[rarity];
+      const mainVal = rand(scale.min, scale.max);
+      let str = 0, dex = 0, int = 0;
+      if (equipType.mainStat === 'str') str = mainVal;
+      else if (equipType.mainStat === 'dex') dex = mainVal;
+      else if (equipType.mainStat === 'int') int = mainVal;
+      if (equipType.mainStat2) {
+        const minor = Math.floor(mainVal * 0.3);
+        if (equipType.mainStat2 === 'str') str += minor;
+        else if (equipType.mainStat2 === 'dex') dex += minor;
+        else if (equipType.mainStat2 === 'int') int += minor;
+      }
+      if (rarity >= 4) {
+        const others = ['str', 'dex', 'int'].filter(s => !(equipType.mainStat === s || equipType.mainStat2 === s));
+        if (others.length > 0) {
+          const bs = others[Math.floor(Math.random() * others.length)];
+          if (bs === 'str') str += Math.floor(mainVal * 0.2);
+          else if (bs === 'dex') dex += Math.floor(mainVal * 0.2);
+          else if (bs === 'int') int += Math.floor(mainVal * 0.2);
+        }
+      }
+      let hpBonus = 0, mpBonus = 0;
+      if (rarity >= 5) { hpBonus = rand(10, 50); mpBonus = rand(5, 30); }
+      if (rarity >= 7) { hpBonus += rand(20, 100); mpBonus += rand(10, 50); }
+      const equip = {
+        id: `${equipType.id}_${rarity}_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+        typeId: equipType.id, icon: equipType.icon,
+        name: `${ri.name}的${equipType.name}`, type: equipType.name, slot: equipType.slot,
+        rarity, rarityName: ri.name, rarityColor: ri.color, multiplier: ri.multiplier,
+        desc: equipType.desc, str, dex, int, hpBonus, mpBonus, timestamp: Date.now()
+      };
+      if (rarity >= 6) {
+        const cnt = rarity === 7 ? 4 : 2;
+        const keys = Object.keys(AFFIXES), chosen = [];
+        while (chosen.length < cnt) { const k = keys[Math.floor(Math.random() * keys.length)]; if (!chosen.includes(k)) chosen.push(k); }
+        equip.affixes = chosen.map(k => ({ id: k, ...AFFIXES[k] }));
+      }
+      return equip;
+    }
+
+    function renderCard(equip) {
+      const card = document.createElement('div');
+      card.className = 'equipment-card';
+      card.dataset.rarity = equip.rarity;
+      const affixesHtml = equip.affixes ? `<div class="equipment-stats">${equip.affixes.map(a => `<div class="equip-stat-row"><span class="equip-stat-label" style="color:${a.color}">✦ ${a.name}</span><span class="equip-stat-value" style="font-size:0.8em">${a.effect}</span></div>`).join('')}</div>` : '';
+      card.innerHTML = `
+        <div class="equipment-icon">${equip.icon}</div>
+        <div class="equipment-info">
+          <div class="equipment-name">${equip.name}</div>
+          <div class="equipment-type">${equip.slot} · ${equip.type}</div>
+          <div class="equipment-stats">
+            ${equip.str > 0 ? `<div class="equip-stat-row"><span class="equip-stat-label">💪 力量</span><span class="equip-stat-value s">+${equip.str}</span></div>` : ''}
+            ${equip.dex > 0 ? `<div class="equip-stat-row"><span class="equip-stat-label">🏃 敏捷</span><span class="equip-stat-value d">+${equip.dex}</span></div>` : ''}
+            ${equip.int > 0 ? `<div class="equip-stat-row"><span class="equip-stat-label">🧠 智力</span><span class="equip-stat-value i">+${equip.int}</span></div>` : ''}
+            ${equip.hpBonus > 0 ? `<div class="equip-stat-row"><span class="equip-stat-label">❤️ HP</span><span class="equip-stat-value h">+${equip.hpBonus}</span></div>` : ''}
+            ${equip.mpBonus > 0 ? `<div class="equip-stat-row"><span class="equip-stat-label">💧 MP</span><span class="equip-stat-value m">+${equip.mpBonus}</span></div>` : ''}
+          </div>
+          ${affixesHtml}
+          <div class="equipment-multiplier">积分倍率: <span>${equip.multiplier.toFixed(2)}x</span></div>
+        </div>
+      `;
+      return card;
+    }
+
+    function updateStats() {
+      document.getElementById('totalGenerated').textContent = stats.total;
+      document.getElementById('mythicCount').textContent = stats.mythic;
+      document.getElementById('legendaryCount').textContent = stats.legendary;
+      document.getElementById('epicCount').textContent = stats.epic;
+      document.getElementById('avgMultiplier').textContent = stats.total > 0 ? (stats.totalMultiplier / stats.total).toFixed(2) + 'x' : '1.00x';
+    }
+
+    function updateInventoryDisplay() {
+      const grid = document.getElementById('inventoryGrid');
+      grid.innerHTML = '';
+      for (let i = 0; i < 100; i++) {
+        const slot = document.createElement('div');
+        slot.className = 'inventory-slot';
+        if (inventory[i]) {
+          const item = inventory[i];
+          slot.innerHTML = item.icon;
+          slot.dataset.rarity = item.rarity;
+          slot.style.borderColor = item.rarityColor;
+          const st = []; if (item.str) st.push(`STR+${item.str}`); if (item.dex) st.push(`DEX+${item.dex}`); if (item.int) st.push(`INT+${item.int}`);
+          slot.innerHTML += `<div class="tooltip">${item.name}<br>${st.join(' · ')}</div>`;
+          slot.onclick = () => showDetail(item);
+        } else { slot.classList.add('empty'); }
+        grid.appendChild(slot);
+      }
+      document.getElementById('inventoryCount').textContent = inventory.filter(Boolean).length;
+    }
+
+    function showDetail(item) {
+      const at = item.affixes ? '\n\n词缀：' + item.affixes.map(a => `${a.name}：${a.effect}`).join('、') : '';
+      alert(`${item.icon} ${item.name}\n\n稀有度：${item.rarityName}\n部位：${item.slot}\n倍率：${item.multiplier}x\n\n属性：\n💪 力量 +${item.str}\n🏃 敏捷 +${item.dex}\n🧠 智力 +${item.int}\n❤️ HP +${item.hpBonus}\n💧 MP +${item.mpBonus}${at}`);
+    }
+
+    function addToInventory(equip) {
+      const empty = inventory.findIndex(s => !s);
+      if (empty >= 0) inventory[empty] = equip;
+      else if (inventory.length < 100) inventory.push(equip);
+      recalcCharStats();
+      updateCharPanel();
+      updateInventoryDisplay();
+      saveData();
+    }
+
+    function generateEquipment() {
+      const equip = generateEquipmentObject(selectedRarity);
+      stats.total++; stats.totalMultiplier += equip.multiplier;
+      if (equip.rarity === 7) stats.mythic++;
+      else if (equip.rarity === 6) stats.legendary++;
+      else if (equip.rarity === 5) stats.epic++;
+      addToInventory(equip);
+      const grid = document.getElementById('equipmentGrid');
+      grid.insertBefore(renderCard(equip), grid.firstChild);
+      while (grid.children.length > 20) grid.removeChild(grid.lastChild);
+      updateStats();
+    }
+
+    function bulkGenerate(count) {
+      for (let i = 0; i < count; i++) {
+        const equip = generateEquipmentObject(selectedRarity);
+        stats.total++; stats.totalMultiplier += equip.multiplier;
+        if (equip.rarity === 7) stats.mythic++;
+        else if (equip.rarity === 6) stats.legendary++;
+        else if (equip.rarity === 5) stats.epic++;
+        addToInventory(equip);
+      }
+      updateStats();
+    }
+
+    function generateWithRandomRarity() {
+      if (Math.random() > EQUIPMENT_DROP.baseChance) {
+        alert('😢 没有掉落，再接再厉！\n答题正确有5%几率获得装备！');
+        return;
+      }
+      const rarity = getRandomRarity();
+      const equip = generateEquipmentObject(rarity);
+      stats.total++; stats.totalMultiplier += equip.multiplier;
+      if (equip.rarity === 7) stats.mythic++;
+      else if (equip.rarity === 6) stats.legendary++;
+      else if (equip.rarity === 5) stats.epic++;
+      addToInventory(equip);
+      const grid = document.getElementById('equipmentGrid');
+      grid.insertBefore(renderCard(equip), grid.firstChild);
+      while (grid.children.length > 20) grid.removeChild(grid.lastChild);
+      updateStats();
+      alert(`🎉 获得装备！\n\n${equip.icon} ${equip.name}\n稀有度：${equip.rarityName}\n💪+${equip.str} 🏃+${equip.dex} 🧠+${equip.int}`);
+    }
+
+    function sortInventory() {
+      inventory.sort((a, b) => {
+        if (!a) return 1; if (!b) return -1;
+        if (b.rarity !== a.rarity) return b.rarity - a.rarity;
+        return (b.str + b.dex + b.int) - (a.str + a.dex + a.int);
+      });
+      recalcCharStats(); updateCharPanel(); saveData(); updateInventoryDisplay();
+    }
+
+    function clearInventory() {
+      if (confirm('确定清空背包？')) {
+        inventory = [];
+        charStats = { base: { str: 10, dex: 10, int: 10 }, bonus: { str: 0, dex: 0, int: 0 }, hp: 100, hpBonus: 0, mp: 50, mpBonus: 0 };
+        stats = { total: stats.total, mythic: 0, legendary: 0, epic: 0, totalMultiplier: stats.totalMultiplier };
+        saveData(); updateInventoryDisplay(); updateCharPanel(); updateStats();
+      }
+    }
+
+    function exportInventory() {
+      const data = JSON.stringify(inventory.filter(Boolean), null, 2);
+      const blob = new Blob([data], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `equipment_${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => { initTypeButtons(); loadData(); });
+  </script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+{
+  "id": 1051803,
+  "name": "Explorer Fire/Poison Robe",
+  "description": ""
+}

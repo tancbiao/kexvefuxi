@@ -1,0 +1,5 @@
+{
+  "id": 1051271,
+  "name": "Elven Spirit Coat",
+  "description": "Don the Elven Spirit Band, Coat, Gloves, and Boots, then enter the#c /spirit# command to do a fun pose!"
+}

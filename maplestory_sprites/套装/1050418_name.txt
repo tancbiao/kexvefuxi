@@ -1,0 +1,5 @@
+{
+  "id": 1050418,
+  "name": "Cozy Fur Outfit",
+  "description": "A cozy outfit designed by the MapleStory China player Pipi. "
+}

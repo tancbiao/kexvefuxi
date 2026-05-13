@@ -1,0 +1,457 @@
+{
+  "batchId": "BATCH_MYTH_PETS_1778295279",
+  "batchName": "神话宠物发放",
+  "createdAt": "2026-05-09T10:54:39.175866",
+  "students": [
+    {
+      "studentId": "01210201",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_white_tiger"
+        }
+      ]
+    },
+    {
+      "studentId": "01210202",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_black_tortoise"
+        }
+      ]
+    },
+    {
+      "studentId": "01210203",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_phoenix"
+        }
+      ]
+    },
+    {
+      "studentId": "01210204",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_dragon"
+        }
+      ]
+    },
+    {
+      "studentId": "01210205",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_black_tortoise"
+        }
+      ]
+    },
+    {
+      "studentId": "01210206",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_phoenix"
+        }
+      ]
+    },
+    {
+      "studentId": "01210207",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_qilin"
+        }
+      ]
+    },
+    {
+      "studentId": "01210208",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_dragon"
+        }
+      ]
+    },
+    {
+      "studentId": "01210209",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_phoenix"
+        }
+      ]
+    },
+    {
+      "studentId": "01210210",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_qilin"
+        }
+      ]
+    },
+    {
+      "studentId": "01210211",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_qilin"
+        }
+      ]
+    },
+    {
+      "studentId": "01210212",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_qilin"
+        }
+      ]
+    },
+    {
+      "studentId": "01210213",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_phoenix"
+        }
+      ]
+    },
+    {
+      "studentId": "01210214",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_black_tortoise"
+        }
+      ]
+    },
+    {
+      "studentId": "01210215",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_white_tiger"
+        }
+      ]
+    },
+    {
+      "studentId": "01210216",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_dragon"
+        }
+      ]
+    },
+    {
+      "studentId": "01210217",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_dragon"
+        }
+      ]
+    },
+    {
+      "studentId": "01210218",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_phoenix"
+        }
+      ]
+    },
+    {
+      "studentId": "01210219",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_black_tortoise"
+        }
+      ]
+    },
+    {
+      "studentId": "01210220",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_qilin"
+        }
+      ]
+    },
+    {
+      "studentId": "01210221",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_dragon"
+        }
+      ]
+    },
+    {
+      "studentId": "01210222",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_phoenix"
+        }
+      ]
+    },
+    {
+      "studentId": "01210223",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_black_tortoise"
+        }
+      ]
+    },
+    {
+      "studentId": "01210224",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_dragon"
+        }
+      ]
+    },
+    {
+      "studentId": "01210225",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_black_tortoise"
+        }
+      ]
+    },
+    {
+      "studentId": "01210226",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_white_tiger"
+        }
+      ]
+    },
+    {
+      "studentId": "01210227",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_qilin"
+        }
+      ]
+    },
+    {
+      "studentId": "01210228",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_qilin"
+        }
+      ]
+    },
+    {
+      "studentId": "01210229",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_phoenix"
+        }
+      ]
+    },
+    {
+      "studentId": "01210230",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_qilin"
+        }
+      ]
+    },
+    {
+      "studentId": "01210231",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_phoenix"
+        }
+      ]
+    },
+    {
+      "studentId": "01210232",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_phoenix"
+        }
+      ]
+    },
+    {
+      "studentId": "01210233",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_white_tiger"
+        }
+      ]
+    },
+    {
+      "studentId": "01210234",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_qilin"
+        }
+      ]
+    },
+    {
+      "studentId": "01210235",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_phoenix"
+        }
+      ]
+    },
+    {
+      "studentId": "01210236",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_qilin"
+        }
+      ]
+    },
+    {
+      "studentId": "01210237",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_phoenix"
+        }
+      ]
+    },
+    {
+      "studentId": "01210238",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_dragon"
+        }
+      ]
+    },
+    {
+      "studentId": "01210239",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_black_tortoise"
+        }
+      ]
+    },
+    {
+      "studentId": "01210240",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_black_tortoise"
+        }
+      ]
+    },
+    {
+      "studentId": "01210241",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_phoenix"
+        }
+      ]
+    },
+    {
+      "studentId": "01210242",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_black_tortoise"
+        }
+      ]
+    },
+    {
+      "studentId": "01210243",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_phoenix"
+        }
+      ]
+    },
+    {
+      "studentId": "01210244",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_black_tortoise"
+        }
+      ]
+    },
+    {
+      "studentId": "01210245",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_qilin"
+        }
+      ]
+    },
+    {
+      "studentId": "01210246",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_qilin"
+        }
+      ]
+    },
+    {
+      "studentId": "01210247",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_dragon"
+        }
+      ]
+    },
+    {
+      "studentId": "01210248",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_black_tortoise"
+        }
+      ]
+    },
+    {
+      "studentId": "01210249",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_qilin"
+        }
+      ]
+    },
+    {
+      "studentId": "01210250",
+      "rewards": [
+        {
+          "type": "pet",
+          "id": "pet_black_tortoise"
+        }
+      ]
+    }
+  ]
+}
