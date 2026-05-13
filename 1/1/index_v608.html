@@ -3984,13 +3984,15 @@ function renderRankList(listEl, arr, sortField, myId) {
     }
     const isMe = (item.studentId === myId);
     const val = item[sortField] || 0;
-    const valStr = (sortField === 'equipBonus') ? '×' + val.toFixed(2) : val.toLocaleString();
-    const starHtml = (sortField === 'totalPoints' && _l5(val)) ? '<span class="ranking-stars">⭐⭐⭐⭐⭐</span>' : '';
+    const isMillion = (sortField === 'totalPoints' && _l5(val));
+    const valStr = isMillion
+      ? '<span class="ranking-stars">⭐⭐⭐⭐⭐</span>'
+      : ((sortField === 'equipBonus') ? '×' + val.toFixed(2) : val.toLocaleString());
 
     html += '<div class="ranking-item' + (isMe ? ' me' : '') + '">' +
       '<div class="ranking-pos ' + posClass + '">' + rank + '</div>' +
       '<div class="ranking-name">' + displayName + (isMe ? '（我）' : '') + '</div>' +
-      '<div class="ranking-value">' + valStr + starHtml + '</div>' +
+      '<div class="ranking-value">' + valStr + '</div>' +
       '</div>';
   });
   listEl.innerHTML = html;
