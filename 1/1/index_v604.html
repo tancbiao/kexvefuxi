@@ -1636,17 +1636,6 @@ function goToCourseSelect() {
   questionData = {};
   showScreen('courseScreen');
 }
- {
-  gameState.studentId = null;
-  gameState.isGuest = true;
-  hideLoginScreen();
-  checkAndResetStamina();
-  updateStaminaDisplay();
-  updateStatusBar();
-  // 显示选课界面（游客）
-  document.getElementById('studentDisplay').textContent = '游客';
-  showScreen('courseScreen');
-}
 
 function renderLevelGrid() {
   const grid = document.getElementById('levelGrid');
