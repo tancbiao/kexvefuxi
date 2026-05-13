@@ -4301,17 +4301,13 @@ function listUploadedLessons() {
   }
 })();
 
-// ====== 自动登录：从 localStorage 恢复上次登录的学号 ======
+// ====== 不再自动登录：首页先展示，用户点"开始挑战"才弹登录窗 ======
 (function() {
+  // 预填上次学号，方便用户
   var remembered = localStorage.getItem('rememberedStudentId');
   if (remembered && /^\d{8}$/.test(remembered)) {
-    // 自动填入学号并登录
     var input = document.getElementById('studentIdInput');
     if (input) input.value = remembered;
-    loginWithId();
-  } else {
-    // 显示登录弹窗
-    showLoginScreen();
   }
 })();
 
