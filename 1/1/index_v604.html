@@ -89,6 +89,31 @@
   .hero-subtitle { font-size: 1.2em; color: rgba(255,255,255,0.7); margin-bottom: 30px; }
   .hero-mascot { font-size: 6em; margin: 20px 0; animation: bounce 2s infinite; }
   
+  /* ========== 通知公告 ========== */
+  .notice-section {
+    margin-top: 10px; margin-bottom: 20px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,107,107,0.08));
+    border: 1px solid rgba(255,215,0,0.25);
+    border-radius: 16px;
+    text-align: left;
+    font-size: 0.92em;
+    line-height: 1.7;
+    color: rgba(255,255,255,0.85);
+  }
+  .notice-section .notice-title {
+    font-weight: 700;
+    color: #ffd700;
+    margin-bottom: 8px;
+    font-size: 1em;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .notice-section .notice-item {
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .notice-section .notice-item:last-child { border-bottom: none; }
+
   /* ========== 成就预览 ========== */
   .achievements-section {
     margin-top: 30px;
@@ -1134,6 +1159,12 @@
   </div>
 
   <div class="screen active" id="startScreen">
+    <!-- 通知公告 -->
+    <div class="notice-section" id="noticeSection">
+      <div class="notice-title">📢 通知公告</div>
+      <div class="notice-item">📌 欢迎同学们来到科学探险家！每天<strong style="color:#ffd700">20点体力</strong>，合理分配哦～</div>
+      <div class="notice-item">🔥 科技节即将到来，请大家积极参加科学闯关练习！</div>
+    </div>
     <div class="hero-section">
       <div class="hero-mascot">🔬</div>
       <h1 class="hero-title">科学探险家</h1>
@@ -1144,12 +1175,6 @@
       <button class="start-btn" onclick="showLoginScreen()">🚀 开始挑战</button>
       <button class="start-btn secondary" onclick="showWrongQuestions()" style="margin-top:12px;background:linear-gradient(135deg,#667eea,#764ba2);"><img src="../../icons/wrong-book.png" class="icon-24"> 错题本</button>
       <button class="start-btn secondary" id="uploadQBtn62" onclick="showUploadPasswordPrompt()" style="margin-top:8px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);font-size:0.85em;padding:8px 18px;border:1px solid rgba(255,255,255,0.1);">📤 上传题库</button>
-    </div>
-    
-    <!-- 成就预览 -->
-    <div class="achievements-section">
-      <div class="achievements-title" style="cursor:pointer;" onclick="showAchievements()">🏅 成就殿堂（点击查看）</div>
-      <div class="achievements-grid" id="achievementPreview"></div>
     </div>
   </div>
 
@@ -4061,8 +4086,8 @@ document.addEventListener('click', function(e) {
   if (e.target.classList.contains('achievement-overlay')) closeAchievements();
 });
 
-// 初始化时渲染成就预览
-setTimeout(renderAchievementPreview, 100);
+// 成就预览已在首页移除，不再自动渲染
+// setTimeout(renderAchievementPreview, 100);
 
 
 // ============ Q版可拖动人物 + 装备系统 ============
