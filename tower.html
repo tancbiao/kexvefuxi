@@ -611,7 +611,7 @@ body {
 .iframe-mode .home-stats { background: transparent; }
 .iframe-mode .stamina-indicator { position: static; }
 
-/* v611: Twemoji 表情尺寸 */
+/* v612: Twemoji 表情尺寸 */
 img.emoji { height: 1em; width: 1em; margin: 0 0.05em; vertical-align: -0.1em; }
 
 </style>
@@ -827,26 +827,37 @@ img.emoji { height: 1em; width: 1em; margin: 0 0.05em; vertical-align: -0.1em; }
 
 </div><!-- /main-container -->
 
-<!-- v611: Twemoji - Win7 表情兼容 -->
-<script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
+<!-- v612: Twemoji 异步加载，避免阻塞 -->
 <script src="equipment-gen.js"></script>
 <script>
-// ====== v611: Twemoji Win7 兼容层 ======
+// ====== v612: Twemoji Win7 兼容层（异步加载，不阻塞页面） ======
 (function(){
-  if (typeof twemoji === 'undefined') return;
   var twOpts = { folder: 'svg', ext: '.svg' };
-  function parseRoot() { twemoji.parse(document.body, twOpts); }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', parseRoot);
-  } else { parseRoot(); }
-  var observer = new MutationObserver(function(muts){
-    muts.forEach(function(m){ 
-      m.addedNodes.forEach(function(n){ 
-        if (n.nodeType === 1) twemoji.parse(n, twOpts); 
+
+  function initTwemoji() {
+    function parseRoot() { twemoji.parse(document.body, twOpts); }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', parseRoot);
+    } else { parseRoot(); }
+    var observer = new MutationObserver(function(muts){
+      muts.forEach(function(m){
+        m.addedNodes.forEach(function(n){
+          if (n.nodeType === 1) twemoji.parse(n, twOpts);
+        });
       });
     });
-  });
-  observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js';
+  var timeout = setTimeout(function(){
+    s.onerror = s.onload = null;
+    console.warn('Twemoji CDN 超时');
+  }, 5000);
+  s.onload = function(){ clearTimeout(timeout); initTwemoji(); };
+  s.onerror = function(){ clearTimeout(timeout); console.warn('Twemoji CDN 失败'); };
+  document.head.appendChild(s);
 })();
 
 // ============================================================
