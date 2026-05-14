@@ -109,11 +109,83 @@
     font-size: 1em;
     display: flex; align-items: center; gap: 6px;
   }
-  .notice-section .notice-item {
-    padding: 4px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
+  /* 通知分类标签 */
+  .notice-tabs {
+    display: flex; gap: 6px; margin-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding-bottom: 8px;
   }
-  .notice-section .notice-item:last-child { border-bottom: none; }
+  .notice-tab {
+    padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.5);
+    cursor: pointer; font-size: 0.85em; transition: all 0.25s;
+    font-family: inherit; user-select: none;
+  }
+  .notice-tab:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .notice-tab.active {
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    color: #1a1a2e; font-weight: 700; border-color: transparent;
+  }
+  /* 通知内容列表 */
+  .notice-content { min-height: 50px; }
+  .notice-item {
+    padding: 6px 0; cursor: pointer;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    transition: background 0.2s; border-radius: 6px; padding: 6px 8px;
+  }
+  .notice-item:hover { background: rgba(255,255,255,0.05); }
+  .notice-item:last-child { border-bottom: none; }
+  .notice-item .ni-tag {
+    display: inline-block; font-size: 0.75em; padding: 1px 8px;
+    border-radius: 8px; margin-right: 6px; font-weight: 700;
+  }
+  .notice-item .ni-tag.gold { background: #ffd70033; color: #ffd700; }
+  .notice-item .ni-tag.green { background: #4ade8033; color: #4ade80; }
+  .notice-item .ni-date {
+    font-size: 0.78em; color: rgba(255,255,255,0.3); margin-left: auto; white-space: nowrap;
+  }
+  .notice-more {
+    text-align: center; margin-top: 6px; font-size: 0.82em;
+    color: rgba(255,255,255,0.35); cursor: pointer; transition: color 0.2s;
+  }
+  .notice-more:hover { color: #ffd700; }
+  /* 通知详情弹窗 */
+  .notice-detail-overlay {
+    display: none;
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85); z-index: 9500;
+    justify-content: center; align-items: center;
+    animation: fadeIn 0.25s;
+  }
+  .notice-detail-overlay.show { display: flex; }
+  .notice-detail-box {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border: 1px solid rgba(255,215,0,0.3);
+    border-radius: 20px; padding: 28px; max-width: 520px; width: 90%;
+    max-height: 75vh; overflow-y: auto; position: relative;
+    animation: popIn 0.35s;
+  }
+  .notice-detail-box .nd-close {
+    position: absolute; top: 12px; right: 14px;
+    background: rgba(255,255,255,0.1); border: none; color: #fff;
+    width: 32px; height: 32px; border-radius: 50%;
+    cursor: pointer; font-size: 1.1em; transition: all 0.25s;
+  }
+  .notice-detail-box .nd-close:hover { background: rgba(255,255,255,0.2); transform: scale(1.1); }
+  .notice-detail-box .nd-header {
+    font-size: 1.3em; font-weight: 900; margin-bottom: 4px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .notice-detail-box .nd-date {
+    font-size: 0.8em; color: rgba(255,255,255,0.3); margin-bottom: 16px;
+  }
+  .notice-detail-box .nd-body {
+    font-size: 0.92em; line-height: 1.8; color: rgba(255,255,255,0.85);
+  }
+  .notice-detail-box .nd-body ul { padding-left: 20px; margin: 6px 0; }
+  .notice-detail-box .nd-body li { margin: 4px 0; }
+  .notice-detail-box .nd-body .hl { color: #ffd700; font-weight: 700; }
+  .notice-detail-box .nd-body .hl-green { color: #4ade80; font-weight: 700; }
 
   /* ========== 成就预览 ========== */
   .achievements-section {
@@ -1240,16 +1312,14 @@
     <!-- 通知公告 -->
     <div class="notice-section" id="noticeSection">
       <div class="notice-title">📢 通知公告</div>
-      <div class="notice-item" style="background:linear-gradient(135deg,rgba(255,215,0,0.15),rgba(255,107,0,0.1));border:1px solid rgba(255,215,0,0.35);border-radius:10px;padding:8px 12px;margin-bottom:6px;">
-        <span style="color:#ffd700;font-weight:900;">🎊 六年级限时活动开启！</span><br>
-        <span style="font-size:0.88em;color:rgba(255,255,255,0.75);">
-          🔑 每日登录送<strong style="color:#ffd700;">1万积分</strong>（宠物100连抽）<br>
-          🏰 爬塔20层送<strong style="color:#ffd700;">3万</strong> · 50层送<strong style="color:#ffd700;">4万</strong> · 100层送<strong style="color:#ffd700;">5万</strong>积分<br>
-          <span style="color:rgba(255,255,255,0.4);font-size:0.85em;">5月15日起 · 每天重置 · 六年级专属</span>
-        </span>
+      <div class="notice-tabs">
+        <button class="notice-tab active" onclick="switchNoticeTab('announce')">📋 公告</button>
+        <button class="notice-tab" onclick="switchNoticeTab('update')">🔄 更新</button>
       </div>
-      <div class="notice-item">📌 欢迎同学们来到科学探险家！每天<strong style="color:#ffd700">20点体力</strong>，合理分配哦～</div>
-      <div class="notice-item">🔥 科技节即将到来，请大家积极参加科学闯关练习！</div>
+      <div class="notice-content" id="noticeContent">
+        <!-- 由 JS 动态渲染 -->
+      </div>
+      <div class="notice-more" id="noticeMoreBtn" onclick="showNoticeDetail('announce', 0)">查看全部 →</div>
     </div>
     <div class="hero-section">
       <div class="hero-mascot">🔬</div>
@@ -4593,6 +4663,24 @@ window.addEventListener('message', function(e) {
       if (e.data.equipment && Array.isArray(e.data.equipment)) {
         mergeEquipmentFromTower(e.data.equipment);
       }
+      // 🆕 合并宠物碎片（爬塔掉落的碎片同步到宠物系统）
+      if (e.data.petPieces && typeof e.data.petPieces === 'object') {
+        try {
+          var petKey = 'petSystemStateV2_' + (gameState.studentId || '');
+          var petStateStr = localStorage.getItem(petKey);
+          var petState = petStateStr ? JSON.parse(petStateStr) : { studentId: gameState.studentId || '', pets: {}, battlePets: [], points: 0 };
+          if (!petState.pieces) petState.pieces = {};
+          for (var pid in e.data.petPieces) {
+            if (e.data.petPieces.hasOwnProperty(pid)) {
+              if (!petState.pieces[pid] || e.data.petPieces[pid] > petState.pieces[pid]) {
+                petState.pieces[pid] = e.data.petPieces[pid];
+              }
+            }
+          }
+          petState.studentId = gameState.studentId || '';
+          localStorage.setItem(petKey, JSON.stringify(petState));
+        } catch(e) { console.error('合并宠物碎片失败:', e); }
+      }
       // 🆕 v610: 保存爬塔数据
       gameState.towerHighestFloor = e.data.highestFloor || gameState.towerHighestFloor || 0;
       gameState.towerCoins = e.data.towerCoins || gameState.towerCoins || 0;
@@ -4962,6 +5050,7 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     const btn = document.getElementById('uploadQBtn62');
     if (btn) btn.onclick = showUploadPasswordPrompt;
+    initNoticeSection(); // 🆕 初始化通知公告
   });
 } else {
   const btn = document.getElementById('uploadQBtn62');
@@ -5141,6 +5230,160 @@ function checkActivityNotice(studentId) {
 function closeActivityNotice() {
   var overlay = document.getElementById('activityNoticeOverlay');
   if (overlay) overlay.classList.remove('show');
+}
+
+// ====== 通知公告系统 ======
+var NOTICE_DATA = {
+  // -------- 公告 ----------
+  announce: [
+    {
+      title: '🎊 六年级限时活动开启',
+      date: '2026-05-14',
+      tag: 'hot',
+      tagLabel: '🔥 热门',
+      content: '<p>六年级专属活动现已开启！</p>' +
+        '<ul>' +
+        '<li>🔑 <span class="hl">每日登录</span> 送 <span class="hl">1万积分</span>（宠物100连抽）</li>' +
+        '<li>🏰 爬塔 <span class="hl">20层</span> 送 <span class="hl">3万积分</span></li>' +
+        '<li>🏰 爬塔 <span class="hl">50层</span> 送 <span class="hl">4万积分</span></li>' +
+        '<li>🏰 爬塔 <span class="hl">100层</span> 送 <span class="hl">5万积分</span></li>' +
+        '</ul>' +
+        '<p style="color:rgba(255,255,255,0.4);font-size:0.88em;">⏰ 每日 00:00 重置 · 爬塔各层奖励每天独立计算<br>📅 活动时间：2026年5月15日起</p>'
+    },
+    {
+      title: '🔥 科技节即将到来',
+      date: '2026-05-13',
+      tag: '',
+      tagLabel: '',
+      content: '<p>科学探险家们，科技节即将到来！</p>' +
+        '<p>请大家积极参加科学闯关练习，为科技节做好准备。四科（科学、数学、心理、劳动）合并约50个摊位，科学科目有25个摊位。</p>' +
+        '<p>记得自带桌布参赛，还有"最美摊位"评选哦！</p>'
+    }
+  ],
+  // -------- 更新日志 ----------
+  update: [
+    {
+      title: '🐣 宠物碎片存储修复',
+      date: '2026-05-14',
+      tag: 'bugfix',
+      tagLabel: '🔧 修复',
+      content: '<p>修复了爬塔中获取宠物碎片后，<span class="hl">刷新页面碎片消失</span>的问题。</p>' +
+        '<ul>' +
+        '<li>碎片现在会正确保存到学号对应的存储位置</li>' +
+        '<li>iframe模式下也同步合并到主页面</li>' +
+        '<li>与装备一样，刷新后不会丢失</li>' +
+        '</ul>'
+    },
+    {
+      title: '📦 爬塔装备掉落实装',
+      date: '2026-05-14',
+      tag: 'feature',
+      tagLabel: '✨ 新功能',
+      content: '<p>爬塔爆装备功能全面升级！</p>' +
+        '<ul>' +
+        '<li>击败怪物掉落装备时，弹出<span class="hl">精美属性详情窗</span>让大家看</li>' +
+        '<li>显示：稀有度徽章、属性进度条、特殊词缀标签、层数来源</li>' +
+        '<li>支持 <span class="hl">⚔️ 立即装备</span> 或 <span class="hl">📦 收入背包</span></li>' +
+        '<li>修复了装备存入背包后<span class="hl">消失不见</span>的bug</li>' +
+        '</ul>'
+    },
+    {
+      title: '☁️ 手动云端同步按钮',
+      date: '2026-05-14',
+      tag: 'feature',
+      tagLabel: '✨ 新功能',
+      content: '<p>新增手动云端同步按钮（登录后可见）：</p>' +
+        '<ul>' +
+        '<li>☁️ <span class="hl">上传</span>：在家做完练习点一下，进度保存到云端</li>' +
+        '<li>📥 <span class="hl">下载</span>：到学校后点一下，从云端恢复进度</li>' +
+        '<li>再也不怕在家做完到学校进度丢失啦！</li>' +
+        '</ul>'
+    },
+    {
+      title: '🏰 爬塔系统优化 v610',
+      date: '2026-05-14',
+      tag: 'update',
+      tagLabel: '🔄 优化',
+      content: '<p>爬塔系统多项优化：</p>' +
+        '<ul>' +
+        '<li>新增 <span class="hl">保存/继续</span> 功能，退出后可以接着爬</li>' +
+        '<li>排行榜新增 <span class="hl">爬塔层数榜</span> 和 <span class="hl">神话装备榜</span></li>' +
+        '<li>装备掉落实时同步到主页面背包</li>' +
+        '<li>修复继续游戏时<span class="hl">题目加载卡死</span>的问题</li>' +
+        '</ul>'
+    },
+    {
+      title: '😊 Win7 表情兼容 v612',
+      date: '2026-05-14',
+      tag: 'bugfix',
+      tagLabel: '🔧 修复',
+      content: '<p>修复了 Windows 7 系统下部分表情显示为<span class="hl">方框</span>的问题。</p>' +
+        '<ul>' +
+        '<li>引入 Twemoji SVG 表情方案</li>' +
+        '<li>异步加载不阻塞页面</li>' +
+        '<li>加载失败时优雅降级为文字显示</li>' +
+        '</ul>'
+    }
+  ]
+};
+
+// 切换通知分类标签
+function switchNoticeTab(tab) {
+  var tabs = document.querySelectorAll('.notice-tab');
+  tabs.forEach(function(t) { t.classList.remove('active'); });
+  // 找到对应的 tab 按钮激活
+  var idx = tab === 'announce' ? 0 : 1;
+  if (tabs[idx]) tabs[idx].classList.add('active');
+  renderNoticeContent(tab);
+  // 更新"查看全部"链接
+  var moreBtn = document.getElementById('noticeMoreBtn');
+  if (moreBtn) {
+    moreBtn.onclick = function() { showNoticeDetail(tab, 0); };
+  }
+}
+
+// 渲染通知内容列表（预览）
+function renderNoticeContent(tab) {
+  var container = document.getElementById('noticeContent');
+  if (!container) return;
+  var data = NOTICE_DATA[tab] || [];
+  if (data.length === 0) {
+    container.innerHTML = '<div style="color:rgba(255,255,255,0.3);text-align:center;padding:10px;">暂无内容</div>';
+    return;
+  }
+  // 显示最近3条
+  var show = data.slice(0, 3);
+  var html = '';
+  show.forEach(function(item, i) {
+    var tagHtml = item.tagLabel ? '<span class="ni-tag ' + (item.tag === 'hot' ? 'gold' : 'green') + '">' + item.tagLabel + '</span>' : '';
+    html += '<div class="notice-item" onclick="showNoticeDetail(\'' + tab + '\',' + i + ')">' +
+      tagHtml +
+      '<span>' + item.title + '</span>' +
+      '<span class="ni-date">' + item.date + '</span>' +
+      '</div>';
+  });
+  container.innerHTML = html;
+}
+
+// 打开通知详情弹窗
+function showNoticeDetail(tab, index) {
+  var data = NOTICE_DATA[tab];
+  if (!data || !data[index]) return;
+  var item = data[index];
+  document.getElementById('ndHeader').innerHTML = item.title;
+  document.getElementById('ndDate').textContent = '📅 ' + item.date;
+  document.getElementById('ndBody').innerHTML = item.content;
+  document.getElementById('noticeDetailOverlay').classList.add('show');
+}
+
+// 关闭通知详情弹窗
+function closeNoticeDetail() {
+  document.getElementById('noticeDetailOverlay').classList.remove('show');
+}
+
+// 初始化通知（在页面加载时调用）
+function initNoticeSection() {
+  renderNoticeContent('announce');
 }
 
 /**
@@ -5431,6 +5674,16 @@ function checkTowerRewards() {
 
     <button class="activity-btn" onclick="closeActivityNotice()">🎉 我知道了</button>
     <div class="activity-notice-tip">💡 登录奖励已自动发放，爬塔奖励在闯塔成功后自动到账</div>
+  </div>
+</div>
+
+<!-- ====== 通知详情弹窗 ====== -->
+<div class="notice-detail-overlay" id="noticeDetailOverlay">
+  <div class="notice-detail-box">
+    <button class="nd-close" onclick="closeNoticeDetail()">✕</button>
+    <div class="nd-header" id="ndHeader">标题</div>
+    <div class="nd-date" id="ndDate"></div>
+    <div class="nd-body" id="ndBody"></div>
   </div>
 </div>
 

@@ -604,6 +604,99 @@ body {
   .monster-area .monster-emoji { font-size: 48px; }
   .result-stat .rs-val { font-size: 1.4em; }
 }
+/* ========== 奖励详情弹窗（装备/宠物碎片） ========== */
+.reward-detail-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.8); z-index: 600;
+  display: none; align-items: center; justify-content: center;
+  backdrop-filter: blur(6px);
+}
+.reward-detail-overlay.show { display: flex; }
+.reward-detail-box {
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 20px; padding: 28px; max-width: 420px; width: 90%;
+  text-align: center; animation: cardFlip 0.4s ease backwards;
+}
+.reward-detail-box .rd-icon { font-size: 56px; margin-bottom: 8px; }
+.reward-detail-box .rd-name { font-size: 1.3em; font-weight: bold; margin-bottom: 4px; }
+.reward-detail-box .rd-sub { font-size: 0.8em; color: rgba(255,255,255,0.4); margin-bottom: 14px; }
+.reward-detail-box .rd-stats {
+  background: rgba(0,0,0,0.3); border-radius: 12px; padding: 14px; margin: 12px 0;
+  text-align: left; font-size: 0.85em; line-height: 1.6;
+}
+.reward-detail-box .rd-stats .stat-row { display: flex; justify-content: space-between; padding: 2px 0; }
+.reward-detail-box .rd-stats .stat-row .stat-label { color: rgba(255,255,255,0.5); }
+.reward-detail-box .rd-stats .stat-row .stat-val { color: #ffd700; font-weight: bold; }
+.reward-detail-box .rd-stats .affix-row { color: #ff6b6b; font-size: 0.9em; padding: 2px 0; }
+.reward-detail-box .rd-btns { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
+.reward-detail-box .rd-btns button {
+  padding: 10px 24px; border-radius: 12px; border: none; font-size: 0.95em;
+  font-weight: bold; cursor: pointer; transition: all 0.2s; font-family: inherit;
+}
+.rd-btn-equip { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #1a1a2e; }
+.rd-btn-equip:hover { transform: scale(1.05); }
+.rd-btn-bag { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2) !important; }
+.rd-btn-bag:hover { background: rgba(255,255,255,0.2); transform: scale(1.05); }
+.rd-btn-next { background: linear-gradient(135deg, #4ade80, #22c55e); color: #1a1a2e; }
+.rd-btn-next:hover { transform: scale(1.05); }
+.rd-btn-ok { background: linear-gradient(135deg, #a78bfa, #7c3aed); color: #fff; }
+.rd-btn-ok:hover { transform: scale(1.05); }
+
+/* ====== 🆕 装备掉落弹窗增强 ====== */
+.rd-drop-header {
+  font-size: 0.85em; color: #ffd700; margin-bottom: 4px;
+  text-shadow: 0 0 10px rgba(255,215,0,0.5);
+  letter-spacing: 2px;
+}
+.rd-rarity-badge {
+  display: inline-block; padding: 2px 12px; border-radius: 10px;
+  font-size: 0.8em; font-weight: bold; margin-bottom: 8px;
+}
+.rd-floor-info {
+  font-size: 0.75em; color: rgba(255,255,255,0.3); margin-bottom: 4px;
+}
+/* 辉光动画 */
+@keyframes rdGlow {
+  0% { box-shadow: 0 0 5px var(--rd-color, #ffd700); }
+  50% { box-shadow: 0 0 25px var(--rd-color, #ffd700), 0 0 50px var(--rd-color, #ffd700); }
+  100% { box-shadow: 0 0 5px var(--rd-color, #ffd700); }
+}
+.reward-detail-box.glow {
+  animation: rdGlow 2s ease-in-out infinite, cardFlip 0.5s ease backwards;
+  border-width: 2px;
+  border-color: var(--rd-color, #ffd700);
+}
+/* 闪光划过效果 */
+@keyframes rdShine {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.rd-shine {
+  background: linear-gradient(90deg, transparent 30%, rgba(255,255,255,0.15) 50%, transparent 70%);
+  background-size: 200% 100%;
+  animation: rdShine 1.5s ease-in-out 0.3s;
+}
+/* 属性标签美化 */
+.rd-stats .stat-row .stat-icon { min-width: 20px; text-align: center; }
+.rd-stats .stat-bar-bg {
+  height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; flex: 1; margin: 0 8px;
+}
+.rd-stats .stat-bar-fill {
+  height: 100%; border-radius: 3px; transition: width 0.6s ease;
+}
+.rd-stats .stat-val-num {
+  min-width: 32px; text-align: right; font-weight: bold;
+}
+.rd-affix-tag {
+  display: inline-block; padding: 3px 10px; border-radius: 8px;
+  background: rgba(255,107,107,0.15); border: 1px solid rgba(255,107,107,0.3);
+  margin: 3px 4px 3px 0; font-size: 0.85em;
+}
+.rd-stats .rd-no-affix {
+  color: rgba(255,255,255,0.2); text-align: center; padding: 6px 0; font-size: 0.85em;
+}
+
 /* ====== iframe 模式：隐藏独立页面元素 ====== */
 .iframe-mode #screenLogin,
 .iframe-mode .top-bar-left { display: none !important; }
@@ -825,6 +918,20 @@ img.emoji { height: 1em; width: 1em; margin: 0 0.05em; vertical-align: -0.1em; }
   </div>
 </div>
 
+<!-- ========== 🆕 奖励详情弹窗（装备/宠物碎片）- 增强版 ========== -->
+<div class="reward-detail-overlay" id="rewardDetailOverlay">
+  <div class="reward-detail-box" id="rewardDetailBox">
+    <div class="rd-drop-header" id="rdDropHeader">📦 新装备掉落！</div>
+    <div class="rd-icon" id="rdIcon">📦</div>
+    <div id="rdRarityBadge"></div>
+    <div class="rd-name" id="rdName">装备名称</div>
+    <div class="rd-floor-info" id="rdFloorInfo"></div>
+    <div class="rd-sub" id="rdSub"></div>
+    <div class="rd-stats" id="rdStats"></div>
+    <div class="rd-btns" id="rdBtns"></div>
+  </div>
+</div>
+
 </div><!-- /main-container -->
 
 <!-- v612: Twemoji 异步加载，避免阻塞 -->
@@ -901,14 +1008,48 @@ function syncToParent(action) {
   if (!isIframeMode || window.parent === window) return;
   const towerData = getTowerData(studentId);
   const grade6Data = getGrade6UserData(studentId);
+  let petPiecesData = null;
+  try {
+    const petState = getPetState(studentId);
+    if (petState && petState.pieces) petPiecesData = petState.pieces;
+  } catch(e) {}
   window.parent.postMessage({
     type: 'tower_change',
     points: grade6Data.totalPoints || 0,
     towerCoins: towerData.totalTowerCoins || 0,
     highestFloor: towerData.highestFloor || 0,
     equipment: grade6Data.equipment || [],
+    petPieces: petPiecesData,  // 同步宠物碎片数据
     action: action || 'sync'
   }, parentOrigin);
+}
+
+// 🆕 独立模式：同步装备到主页面存储（scienceGame_user_ 前缀）
+// 确保爬塔掉落的装备在主页面背包中可见
+function syncEquipmentToMainStorage(sid, equipList) {
+  try {
+    if (!sid || !equipList) return;
+    var mainKey = 'scienceGame_user_' + sid;
+    var mainData = JSON.parse(localStorage.getItem(mainKey)) || {};
+    // 合并装备到主页面存储
+    var mainEquip = mainData.equipment || [];
+    equipList.forEach(function(eq) {
+      if (!eq || !eq.id) return;
+      var existing = mainEquip.findIndex(function(e) { return e && e.id === eq.id; });
+      if (existing >= 0) {
+        // 保留稀有度高的
+        if ((eq.rarity || 1) > (mainEquip[existing].rarity || 1)) {
+          mainEquip[existing] = eq;
+        }
+      } else {
+        var nullIdx = mainEquip.indexOf(null);
+        if (nullIdx >= 0) mainEquip[nullIdx] = eq;
+        else mainEquip.push(eq);
+      }
+    });
+    mainData.equipment = mainEquip;
+    localStorage.setItem(mainKey, JSON.stringify(mainData));
+  } catch(e) { console.warn('同步装备到主存储失败:', e); }
 }
 
 function getTotalPoints() {
@@ -1148,15 +1289,19 @@ const CARD_POOL = {
         if (typeof generateEquip === 'function') {
           const equip = generateEquip(1 + Math.floor(Math.random() * 4));
           const data = getGrade6UserData(studentId);
+          let idx = -1;
           if (data.equipment) {
-            const idx = data.equipment.indexOf(null);
+            idx = data.equipment.indexOf(null);
             if (idx !== -1) data.equipment[idx] = equip;
-            else data.equipment.push(equip);
+            else { data.equipment.push(equip); idx = data.equipment.length - 1; }
           } else {
             data.equipment = [equip];
+            idx = 0;
           }
           saveGrade6UserData(studentId, data);
           setBattleLog(`📦 获得装备：${equip.name}`);
+          // 记录待展示的装备奖励
+          _pendingReward = { type: 'equip', equip: equip, equipIdx: idx, source: 'card' };
         }
       } catch(e) { console.error('装备宝箱出错:', e); }
     } },
@@ -1169,15 +1314,20 @@ const CARD_POOL = {
       try {
         const petState = getPetState(studentId);
         if (!petState || !petState.pieces) petState.pieces = {};
-        const petIds = Object.keys(petState.pets || {});
-        // 碎片系统：随机给一个宠物加碎片
-        const allPetIds = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18];
+        const allPetIds = Object.keys(TOWER_PET_NAMES).map(Number);
         const targetId = allPetIds[Math.floor(Math.random() * allPetIds.length)];
         petState.pieces[targetId] = (petState.pieces[targetId] || 0) + 1;
         petState.studentId = studentId;
-        const petKey = 'petSystemStateV2';
+        const petKey = 'petSystemStateV2_' + studentId;
         localStorage.setItem(petKey, JSON.stringify(petState));
-        setBattleLog(`🐣 获得宠物碎片×1宠物ID: ${targetId}`);
+        const petInfo = TOWER_PET_NAMES[targetId] || { name: '未知', emoji: '🐣', rarity: '?' };
+        setBattleLog(`🐣 获得${petInfo.emoji}${petInfo.name}碎片×1`);
+        // 记录待展示的宠物碎片奖励
+        _pendingReward = {
+          type: 'petPiece', petId: targetId,
+          petName: petInfo.name, petEmoji: petInfo.emoji, petRarity: petInfo.rarity,
+          currentCount: petState.pieces[targetId]
+        };
       } catch(e) { console.error('宠物碎片出错:', e); }
     } },
   ],
@@ -1192,15 +1342,19 @@ const CARD_POOL = {
         if (typeof generateEquip === 'function') {
           const equip = generateEquip(5 + Math.floor(Math.random() * 3));
           const data = getGrade6UserData(studentId);
+          let idx = -1;
           if (data.equipment) {
-            const idx = data.equipment.indexOf(null);
+            idx = data.equipment.indexOf(null);
             if (idx !== -1) data.equipment[idx] = equip;
-            else data.equipment.push(equip);
+            else { data.equipment.push(equip); idx = data.equipment.length - 1; }
           } else {
             data.equipment = [equip];
+            idx = 0;
           }
           saveGrade6UserData(studentId, data);
           setBattleLog(`👑 获得传说装备：${equip.name}`);
+          // 记录待展示的装备奖励
+          _pendingReward = { type: 'equip', equip: equip, equipIdx: idx, source: 'card' };
         }
       } catch(e) {}
     } },
@@ -1259,6 +1413,44 @@ const TOWER_PET_DATA = [
   { id: 18, baseStats: { atk: 32, def: 28, str: 26 } },
 ];
 
+// 宠物名称/emoji/稀有度（用于显示碎片提示）
+const TOWER_PET_NAMES = {
+  1:  { name: '小鸡崽',   emoji: '🐤', rarity: 'N' },
+  2:  { name: '小奶狗',   emoji: '🐶', rarity: 'N' },
+  3:  { name: '小橘猫',   emoji: '🐱', rarity: 'N' },
+  4:  { name: '小白兔',   emoji: '🐰', rarity: 'N' },
+  5:  { name: '小鸭鸭',   emoji: '🦆', rarity: 'N' },
+  6:  { name: '小仓鼠',   emoji: '🐹', rarity: 'R' },
+  7:  { name: '小猪猪',   emoji: '🐷', rarity: 'R' },
+  8:  { name: '小刺猬',   emoji: '🦔', rarity: 'R' },
+  9:  { name: '小松鼠',   emoji: '🐿️', rarity: 'R' },
+  10: { name: '小狐狸',   emoji: '🦊', rarity: 'R' },
+  11: { name: '小狼崽',   emoji: '🐺', rarity: 'SR' },
+  12: { name: '小棕熊',   emoji: '🐻', rarity: 'SR' },
+  13: { name: '小豹子',   emoji: '🐆', rarity: 'SR' },
+  14: { name: '小鹰隼',   emoji: '🦅', rarity: 'SR' },
+  15: { name: '小熊猫',   emoji: '🐼', rarity: 'SR' },
+  16: { name: '小狮子',   emoji: '🦁', rarity: 'SSR' },
+  17: { name: '小老虎',   emoji: '🐯', rarity: 'SSR' },
+  18: { name: '小飞龙',   emoji: '🐉', rarity: 'SSR' },
+  19: { name: '小狼王',   emoji: '🐺', rarity: 'SSR' },
+  20: { name: '小象龟',   emoji: '🐘', rarity: 'SSR' },
+  21: { name: '火凤凰',   emoji: '🔥', rarity: 'UR' },
+  22: { name: '冰霜龙',   emoji: '❄️', rarity: 'UR' },
+  23: { name: '雷霆鹰',   emoji: '⚡', rarity: 'UR' },
+  24: { name: '暗影豹',   emoji: '🌑', rarity: 'UR' },
+  25: { name: '神圣独角兽', emoji: '🦄', rarity: 'HR' },
+  26: { name: '混沌麒麟',   emoji: '🦎', rarity: 'HR' },
+  27: { name: '时间龙龟',   emoji: '🐢', rarity: 'HR' },
+  28: { name: '星穹凤凰',   emoji: '🌟', rarity: 'HR' },
+};
+
+// 用于存储卡牌/掉落产生的临时奖励，供弹窗使用
+let _pendingReward = null;
+// type: 'equip' | 'petPiece'
+// equip: { equip, equipIdx, source: 'drop' | 'card' }
+// petPiece: { petId, petName, petEmoji, petRarity, currentCount }
+
 function getGrade6UserData(sid) {
   const key = 'scienceGame6_user_' + sid;
   try {
@@ -1279,11 +1471,11 @@ function getEquippedSlots(sid) {
 }
 
 function getPetState(sid) {
-  // 六年级页面用的全局 key 'petSystemStateV2'，保持一致
-  const key = 'petSystemStateV2';
+  // 使用与主页面一致的 key（带学号后缀）
+  const key = 'petSystemStateV2_' + sid;
   try {
     const data = JSON.parse(localStorage.getItem(key));
-    if (data && data.studentId === sid) return data;
+    if (data) return data;
     return {};
   } catch (e) { return {}; }
 }
@@ -2233,6 +2425,7 @@ function onMonsterDefeated() {
   }
 
   // 装备随机掉落（层数越高概率越大）
+  let droppedEquip = null;
   try {
     if (typeof generateEquip === 'function') {
       let dropChance = 0;
@@ -2249,20 +2442,32 @@ function onMonsterDefeated() {
         const rarity = 1 + Math.floor(Math.random() * rarityCap);
         const equip = generateEquip(rarity);
         const data = getGrade6UserData(studentId);
+        let idx = -1;
         if (data.equipment) {
-          const idx = data.equipment.indexOf(null);
+          idx = data.equipment.indexOf(null);
           if (idx !== -1) data.equipment[idx] = equip;
-          else data.equipment.push(equip);
+          else { data.equipment.push(equip); idx = data.equipment.length - 1; }
+        } else {
+          data.equipment = [equip];
+          idx = 0;
         }
         saveGrade6UserData(studentId, data);
+        // 🆕 独立模式也同步到主页面存储
+        syncEquipmentToMainStorage(studentId, data.equipment);
         syncToParent('drop'); // 🆕 v610: 实时同步装备掉落
         setBattleLog(`📦 怪物掉落了装备：${equip.name}（${(dropChance*100).toFixed(1)}%概率）`);
+        droppedEquip = { equip, equipIdx: idx };
       }
     }
   } catch(e) { console.error('装备掉落出错:', e); }
 
-  // 延迟显示奖励
-  setTimeout(() => showRewardScreen(), 1200);
+  if (droppedEquip) {
+    // 有掉落：先显示装备详情弹窗，再进入奖励选择
+    showEquipRewardPopup({ type: 'equip', equip: droppedEquip.equip, equipIdx: droppedEquip.equipIdx, source: 'drop' });
+  } else {
+    // 无掉落：延迟显示奖励
+    setTimeout(() => showRewardScreen(), 1200);
+  }
 }
 
 // ============================================================
@@ -2301,11 +2506,21 @@ function selectCard(idx) {
   const matched = allPools.find(c => c.name === cardName);
   if (matched) matched.apply();
 
-  // 延迟进入下一层
-  setTimeout(() => {
-    const nextFloor = run.floor + 1;
-    enterFloor(nextFloor);
-  }, 1500);
+  // 检查是否有待展示的奖励（装备/宠物碎片）
+  if (_pendingReward) {
+    if (_pendingReward.type === 'equip') {
+      showEquipRewardPopup(_pendingReward);
+    } else if (_pendingReward.type === 'petPiece') {
+      showPetPieceRewardPopup(_pendingReward);
+    }
+    _pendingReward = null; // 已处理
+  } else {
+    // 无特殊奖励，延迟进入下一层
+    setTimeout(() => {
+      const nextFloor = run.floor + 1;
+      enterFloor(nextFloor);
+    }, 1500);
+  }
 }
 
 // ============================================================
@@ -2331,6 +2546,8 @@ function onGameOver() {
   const grade6Data = getGrade6UserData(studentId);
   grade6Data.totalPoints = (grade6Data.totalPoints || 0) + run.earnedPoints;
   saveGrade6UserData(studentId, grade6Data);
+  // 🆕 游戏结束同步装备到主页面存储
+  if (grade6Data.equipment) syncEquipmentToMainStorage(studentId, grade6Data.equipment);
 
   // 通知父页面积分变动（iframe 模式）
   notifyTowerChange();
@@ -2777,6 +2994,176 @@ function showTowerPet() {
 }
 function closeTowerPet() {
   document.getElementById('petOverlay').classList.remove('show');
+}
+
+// ============================================================
+// 17. 奖励详情弹窗（装备/宠物碎片）
+// ============================================================
+
+// 显示装备奖励弹窗
+function showEquipRewardPopup(reward) {
+  const equip = reward.equip;
+  if (!equip) return;
+
+  const rarityColor = equip.rarityColor || '#ffd700';
+  const rarity = equip.rarity || 1;
+
+  // 弹窗辉光设色（给CSS变量赋值）
+  var box = document.getElementById('rewardDetailBox');
+  box.style.setProperty('--rd-color', rarityColor);
+  box.classList.add('glow');
+
+  document.getElementById('rdIcon').textContent = equip.icon || '📦';
+  document.getElementById('rdName').textContent = equip.name || '未知装备';
+  document.getElementById('rdName').style.color = rarityColor;
+
+  // 🆕 闪光划过效果
+  document.getElementById('rdName').classList.add('rd-shine');
+  setTimeout(function(){ document.getElementById('rdName').classList.remove('rd-shine'); }, 2500);
+
+  // 🆕 标题"新装备掉落！"
+  document.getElementById('rdDropHeader').textContent = '📦 新装备掉落！';
+
+  // 🆕 层数/怪物信息
+  var floorInfo = '';
+  if (typeof run !== 'undefined' && run.floor) {
+    floorInfo = '第 ' + run.floor + ' 层 · ' + (run.monster ? run.monster.name : '怪物') + ' 掉落';
+  }
+  document.getElementById('rdFloorInfo').textContent = floorInfo;
+
+  // 🆕 稀有度彩色徽章
+  var rarityBadge = '';
+  if (equip.rarityName) {
+    rarityBadge = '<span class="rd-rarity-badge" style="background:' + rarityColor + '22;color:' + rarityColor + ';border:1px solid ' + rarityColor + '55;">' + equip.rarityName + '</span>';
+  }
+  document.getElementById('rdRarityBadge').innerHTML = rarityBadge;
+
+  // 类型与稀有度
+  const slotName = equip.slot || '未知';
+  document.getElementById('rdSub').textContent = slotName;
+
+  // 🆕 增强属性显示（带进度条）
+  let statsHtml = '';
+  var statItems = [];
+  if (equip.str) statItems.push({ icon: '💪', label: '力量', val: equip.str, pct: Math.min(equip.str / 200 * 100, 100) });
+  if (equip.dex) statItems.push({ icon: '🏃', label: '敏捷', val: equip.dex, pct: Math.min(equip.dex / 200 * 100, 100) });
+  if (equip.int) statItems.push({ icon: '🧠', label: '智力', val: equip.int, pct: Math.min(equip.int / 200 * 100, 100) });
+  if (equip.hpBonus) statItems.push({ icon: '❤️', label: '生命', val: equip.hpBonus, pct: Math.min(equip.hpBonus / 200 * 100, 100) });
+  if (equip.mpBonus) statItems.push({ icon: '💙', label: '魔力', val: equip.mpBonus, pct: Math.min(equip.mpBonus / 200 * 100, 100) });
+
+  if (statItems.length > 0) {
+    statsHtml += '<div style="margin-bottom:10px;">';
+    statItems.forEach(function(item) {
+      statsHtml += '<div class="stat-row" style="align-items:center;margin:4px 0;">' +
+        '<span class="stat-icon">' + item.icon + '</span>' +
+        '<span class="stat-label" style="min-width:28px;">' + item.label + '</span>' +
+        '<div class="stat-bar-bg"><div class="stat-bar-fill" style="width:' + item.pct + '%;background:' + rarityColor + ';"></div></div>' +
+        '<span class="stat-val-num" style="color:' + rarityColor + ';">+' + item.val + '</span>' +
+      '</div>';
+    });
+    statsHtml += '</div>';
+  }
+
+  // 🆕 词缀：改成标签样式
+  if (equip.affixes && equip.affixes.length > 0) {
+    statsHtml += '<div style="margin-top:6px;border-top:1px solid rgba(255,255,255,0.06);padding-top:8px;">';
+    statsHtml += '<div style="font-size:0.8em;color:rgba(255,255,255,0.3);margin-bottom:4px;">✨ 特殊词缀</div>';
+    statsHtml += '<div>';
+    equip.affixes.forEach(function(affix) {
+      statsHtml += '<span class="rd-affix-tag" style="color:' + (affix.color || '#ff6b6b') + ';">' + (affix.name || '?') + '：' + (affix.effect || '') + '</span>';
+    });
+    statsHtml += '</div></div>';
+  } else if (equip.rarity < 6) {
+    statsHtml += '<div class="rd-no-affix">暂无特殊词缀（传说及以上品质才有机率附带）</div>';
+  }
+
+  // 积分倍率
+  if (equip.multiplier && equip.multiplier !== 1) {
+    statsHtml += '<div class="stat-row" style="margin-top:8px;border-top:1px solid rgba(255,255,255,0.06);padding-top:6px;"><span class="stat-label">💰 积分倍率</span><span class="stat-val-num" style="color:#ffd700;">×' + equip.multiplier + '</span></div>';
+  }
+
+  document.getElementById('rdStats').innerHTML = statsHtml;
+
+  // 按钮
+  var source = reward.source || 'card';
+  var equipIdx = reward.equipIdx;
+  document.getElementById('rdBtns').innerHTML =
+    '<button class="rd-btn-equip" onclick="onEquipRewardClick(' + equipIdx + ')">⚔️ 立即装备</button>' +
+    '<button class="rd-btn-bag" onclick="onBagRewardClick(\'' + source + '\')">📦 收入背包</button>';
+
+  document.getElementById('rewardDetailOverlay').classList.add('show');
+  setBattleLog('📦 <span style="color:' + rarityColor + ';font-weight:bold;">' + equip.name + '</span> 已存入背包！');
+}
+
+// 装备弹窗：立即装备
+function onEquipRewardClick(equipIdx) {
+  try {
+    equipByIdxTower(equipIdx);
+    setBattleLog('⚔️ 已装备新装备！');
+  } catch(e) { console.error('装备失败:', e); }
+  closeRewardDetailAndContinue('drop');
+}
+
+// 装备弹窗：收入背包
+function onBagRewardClick(source) {
+  closeRewardDetailAndContinue(source);
+}
+
+// 关闭弹窗并继续流程
+function closeRewardDetailAndContinue(source) {
+  // 🆕 清理弹窗增强元素
+  var box = document.getElementById('rewardDetailBox');
+  box.classList.remove('glow');
+  document.getElementById('rdDropHeader').textContent = '';
+  document.getElementById('rdFloorInfo').textContent = '';
+  document.getElementById('rdRarityBadge').innerHTML = '';
+  document.getElementById('rewardDetailOverlay').classList.remove('show');
+  if (source === 'drop') {
+    // 怪物掉落 → 继续显示奖励卡牌
+    setTimeout(function() { showRewardScreen(); }, 300);
+  }
+  // card来源：selectCard中已有后续逻辑（从nextFloor），不用额外处理
+}
+
+// 显示宠物碎片奖励弹窗
+function showPetPieceRewardPopup(reward) {
+  // 🆕 清理装备弹窗增强元素
+  var box = document.getElementById('rewardDetailBox');
+  box.classList.remove('glow');
+  document.getElementById('rdDropHeader').textContent = '🧩 宠物碎片！';
+  document.getElementById('rdFloorInfo').textContent = '';
+  document.getElementById('rdRarityBadge').innerHTML = '';
+
+  document.getElementById('rdIcon').textContent = reward.petEmoji || '🐣';
+  document.getElementById('rdName').textContent = reward.petName || '未知宠物';
+  var rarityColor = '#9e9e9e';
+  if (reward.petRarity === 'R') rarityColor = '#4caf50';
+  else if (reward.petRarity === 'SR') rarityColor = '#2196f3';
+  else if (reward.petRarity === 'SSR') rarityColor = '#9c27b0';
+  else if (reward.petRarity === 'UR') rarityColor = '#e91e63';
+  else if (reward.petRarity === 'HR') rarityColor = '#ff6600';
+  document.getElementById('rdName').style.color = rarityColor;
+  document.getElementById('rdSub').textContent = '稀有度：' + (reward.petRarity || '?') + ' · 当前碎片：' + (reward.currentCount || 0) + '片';
+
+  document.getElementById('rdStats').innerHTML =
+    '<div style="text-align:center;padding:8px 0;font-size:1.1em;">' +
+    '🎉 获得 ' + (reward.petEmoji || '') + (reward.petName || '未知') + ' 的碎片 ×1！' +
+    '</div>';
+
+  document.getElementById('rdBtns').innerHTML =
+    '<button class="rd-btn-next" onclick="onPetPieceContinue()">▶ 继续爬塔</button>';
+
+  document.getElementById('rewardDetailOverlay').classList.add('show');
+}
+
+// 宠物碎片弹窗：继续
+function onPetPieceContinue() {
+  document.getElementById('rewardDetailOverlay').classList.remove('show');
+  // 进入下一层
+  setTimeout(function() {
+    var nextFloor = run.floor + 1;
+    enterFloor(nextFloor);
+  }, 300);
 }
 
 // ============================================================
