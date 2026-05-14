@@ -1260,7 +1260,8 @@
     <div class="ranking-tabs">
       <div class="ranking-tab active" onclick="switchRankingTab('points', this)">📊 积分</div>
       <div class="ranking-tab" onclick="switchRankingTab('pet', this)">🐾 宠物战力</div>
-      <div class="ranking-tab" onclick="switchRankingTab('equip', this)">⚔ 装备加成</div>
+      <div class="ranking-tab" onclick="switchRankingTab('tower', this)">🏰 爬塔层数</div>
+      <div class="ranking-tab" onclick="switchRankingTab('mythic', this)">👑 神话装备</div>
       <div class="ranking-tab" onclick="switchRankingTab('ach', this)">🏅 成就</div>
       <div class="ranking-tab" onclick="switchRankingTab('questions', this)">📝 总答题</div>
       <div class="ranking-tab" onclick="switchRankingTab('accuracy', this)">🎯 正确率</div>
@@ -1406,6 +1407,8 @@ const gameState = {
   syncedWrongQuestions: [], // 从成绩分析系统同步的错题
   cloudQBank: {}, // 云端题库字典 { questionId: { id, question, options, answer, material, materialTitle, image } }
   lastSyncTime: null, // 最后一次同步时间
+  towerHighestFloor: 0,  // 🆕 v610: 爬塔最高层数
+  towerCoins: 0,         // 🆕 v610: 爬塔积分（塔币）
   totalQuestionsAnswered: 0,
   totalCorrectAnswers: 0, // 累计答对题数
   retrySuccessCount: 0,
@@ -2433,6 +2436,8 @@ function saveUserData() {
     petPieces: petPieces,
     dailyStamina: gameState.dailyStamina,
     lastStaminaDate: gameState.lastStaminaDate,
+    towerHighestFloor: gameState.towerHighestFloor || 0,  // 🆕 v610
+    towerCoins: gameState.towerCoins || 0,               // 🆕 v610
     gradeDataMerged: true, // 跨年级迁移标记（防止每次登录重复合并）
     lastUpdated: Date.now()
   };
@@ -3326,6 +3331,10 @@ function mergeUserData(localData, cloudData) {
     merged.petPieces = Object.assign({}, localData.petPieces || {}, cloudData.petPieces || {});
   }
 
+  // 🆕 v610: 塔数据取最大值
+  merged.towerHighestFloor = Math.max(localData.towerHighestFloor || 0, cloudData.towerHighestFloor || 0);
+  merged.towerCoins = Math.max(localData.towerCoins || 0, cloudData.towerCoins || 0);
+
   // 课次进度：合并并集（每个key取较大值，进度只增不减）
   const lpLocal = localData.lessonProgress || {};
   const lpCloud = cloudData.lessonProgress || {};
@@ -3377,6 +3386,9 @@ function mergeGradeData(base, add) {
   result.dailyStamina = Math.max(base.dailyStamina || 0, add.dailyStamina || 0);
   result.totalQuestionsAnswered = Math.max(base.totalQuestionsAnswered || 0, add.totalQuestionsAnswered || 0);
   result.totalCorrectAnswers = Math.max(base.totalCorrectAnswers || 0, add.totalCorrectAnswers || 0);
+  // 🆕 v610: 塔数据取最大值
+  result.towerHighestFloor = Math.max(base.towerHighestFloor || 0, add.towerHighestFloor || 0);
+  result.towerCoins = Math.max(base.towerCoins || 0, add.towerCoins || 0);
   // 同步错题：合并去重（按题目+答案），保留时间最新的
   var swMap = {};
   [].concat(base.syncedWrongQuestions || [], add.syncedWrongQuestions || []).forEach(function(w) {
@@ -3590,6 +3602,9 @@ function applyUserData(data) {
   gameState.totalCorrectAnswers = data.totalCorrectAnswers || 0;
   gameState.dailyStamina = (data.dailyStamina !== undefined) ? data.dailyStamina : 20;
   gameState.lastStaminaDate = data.lastStaminaDate || null;
+  // 🆕 v610: 恢复爬塔数据
+  gameState.towerHighestFloor = data.towerHighestFloor || 0;
+  gameState.towerCoins = data.towerCoins || 0;
   // 恢复宠物碎片到宠物系统 localStorage（v606: 从云端恢复）
   if (data.petPieces && gameState.studentId) {
     try {
@@ -4238,6 +4253,8 @@ async function pushRankingData() {
     const totalQ = gameState.totalQuestionsAnswered || 0;
     const totalC = gameState.totalCorrectAnswers || 0;
     const accuracyRate = totalQ >= 200 ? (totalQ > 0 ? (totalC / totalQ * 100).toFixed(1) : 0) : -1;
+    // 🆕 v610: 神话装备数量
+    const mythicCount = (gameState.equipment || []).filter(function(e) { return e && e.rarity === 7; }).length;
     const data = {
       studentId: gameState.studentId,
       totalPoints: gameState.totalPoints || 0,
@@ -4249,6 +4266,8 @@ async function pushRankingData() {
       totalQuestionsAnswered: totalQ,
       totalCorrectAnswers: totalC,
       accuracyRate: accuracyRate,
+      towerFloor: gameState.towerHighestFloor || 0,    // 🆕 v610
+      mythicCount: mythicCount,                         // 🆕 v610
       lastUpdated: Date.now()
     };
     await updateRanking(RANKING_GRADE_KEY, gameState.studentId, data);
@@ -4295,12 +4314,58 @@ function closeTowerModal() {
 window.addEventListener('message', function(e) {
   if (e.data && e.data.type === 'tower_change') {
     if (gameState) {
-      gameState.totalPoints = e.data.points || gameState.totalPoints;
+      // 🆕 v610: 更新积分
+      if (e.data.points !== undefined) {
+        gameState.totalPoints = e.data.points;
+      }
+      // 🆕 v610: 合并装备列表（从爬塔掉落的装备同步到首页）
+      if (e.data.equipment && Array.isArray(e.data.equipment)) {
+        mergeEquipmentFromTower(e.data.equipment);
+      }
+      // 🆕 v610: 保存爬塔数据
+      gameState.towerHighestFloor = e.data.highestFloor || gameState.towerHighestFloor || 0;
+      gameState.towerCoins = e.data.towerCoins || gameState.towerCoins || 0;
       updateStatusBar();
-      saveUserData();
+      saveUserData(); // 触发云同步
     }
   }
 });
+
+// 🆕 v610: 合并爬塔装备到首页装备背包
+function mergeEquipmentFromTower(towerEquipment) {
+  if (!towerEquipment || towerEquipment.length === 0) return;
+  const currentEquip = gameState.equipment || [];
+  // 确保背包足够大
+  while (currentEquip.length < towerEquipment.length) {
+    currentEquip.push(null);
+  }
+  let mergedCount = 0;
+  towerEquipment.forEach(function(eq) {
+    if (!eq || !eq.id) return;
+    // 检查是否已存在同id装备（保留稀有度高的）
+    const existingIdx = currentEquip.findIndex(function(e) { return e && e.id === eq.id; });
+    if (existingIdx >= 0) {
+      const existing = currentEquip[existingIdx];
+      if ((eq.rarity || 1) > (existing.rarity || 1)) {
+        currentEquip[existingIdx] = eq;
+        mergedCount++;
+      }
+    } else {
+      // 找空槽位放入
+      const nullIdx = currentEquip.indexOf(null);
+      if (nullIdx >= 0) {
+        currentEquip[nullIdx] = eq;
+      } else {
+        currentEquip.push(eq);
+      }
+      mergedCount++;
+    }
+  });
+  gameState.equipment = currentEquip;
+  if (mergedCount > 0) {
+    console.log('🔮 v610: 从爬塔合并了 ' + mergedCount + ' 件装备');
+  }
+}
 
 // 切换排行榜Tab
 async function switchRankingTab(tab, el) {
@@ -4325,7 +4390,8 @@ async function loadAndRenderRanking(type) {
     const myId = gameState.studentId;
     let sortField = 'totalPoints';
     if (type === 'pet') sortField = 'petPower';
-    else if (type === 'equip') sortField = 'equipBonus';
+    else if (type === 'tower') sortField = 'towerFloor';       // 🆕 v610
+    else if (type === 'mythic') sortField = 'mythicCount';     // 🆕 v610
     else if (type === 'ach') sortField = 'achievementCount';
     else if (type === 'questions') sortField = 'totalQuestionsAnswered';
     else if (type === 'accuracy') {
@@ -4392,7 +4458,10 @@ function renderRankList(listEl, arr, sortField, myId) {
     const isMillion = (sortField === 'totalPoints' && _l5(val));
     const valStr = isMillion
       ? '<span class="ranking-stars">⭐⭐⭐⭐⭐</span>'
-      : ((sortField === 'equipBonus') ? '×' + val.toFixed(2) : val.toLocaleString());
+      : ((sortField === 'towerFloor') ? val + ' 层'            // 🆕 v610
+      : ((sortField === 'mythicCount') ? val + ' 件'           // 🆕 v610
+      : ((sortField === 'equipBonus') ? '×' + val.toFixed(2)   // 保留兼容
+      : val.toLocaleString())));
 
     html += '<div class="ranking-item' + (isMe ? ' me' : '') + '">' +
       '<div class="ranking-pos ' + posClass + '">' + rank + '</div>' +

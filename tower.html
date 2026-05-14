@@ -680,6 +680,11 @@ body {
     ⚔️ 开始爬塔消耗 1 体力
   </button>
 
+  <!-- 🆕 v610: 继续爬塔（有进度时显示） -->
+  <button class="start-floor-btn" id="btnContinueTower" onclick="continueTower()" style="display:none;background:linear-gradient(135deg,#667eea,#764ba2);margin-top:8px;">
+    ▶ 继续爬塔
+  </button>
+
   <div class="stats-panel" style="margin-top:12px;">
     <h3>⚡ 当前体力</h3>
     <div class="stat-row">
@@ -854,15 +859,22 @@ window.addEventListener('message', function(e) {
 
 // 通知父页面积分/塔币变动
 function notifyTowerChange() {
-  if (isIframeMode && window.parent !== window) {
-    const towerData = getTowerData();
-    window.parent.postMessage({
-      type: 'tower_change',
-      points: getTotalPoints(),
-      towerCoins: towerData.totalTowerCoins || 0,
-      highestFloor: towerData.highestFloor || 0
-    }, parentOrigin);
-  }
+  syncToParent('sync');
+}
+
+// 🆕 v610: 完整同步装备、积分、塔数据到父页面
+function syncToParent(action) {
+  if (!isIframeMode || window.parent === window) return;
+  const towerData = getTowerData(studentId);
+  const grade6Data = getGrade6UserData(studentId);
+  window.parent.postMessage({
+    type: 'tower_change',
+    points: grade6Data.totalPoints || 0,
+    towerCoins: towerData.totalTowerCoins || 0,
+    highestFloor: towerData.highestFloor || 0,
+    equipment: grade6Data.equipment || [],
+    action: action || 'sync'
+  }, parentOrigin);
 }
 
 function getTotalPoints() {
@@ -1274,6 +1286,74 @@ function getTodayStr() {
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
 }
 
+// 🆕 v610: 爬塔进度保存/恢复（跨session，持久化到localStorage）
+function saveTowerProgress() {
+  if (!studentId) return;
+  const key = 'tower_progress_6_' + studentId;
+  const progress = {
+    run: {
+      floor: run.floor,
+      playerHP: run.playerHP,
+      playerMaxHP: run.playerMaxHP,
+      playerATK: run.playerATK,
+      playerDodge: run.playerDodge,
+      buffs: run.buffs,
+      earnedPoints: run.earnedPoints,
+      defeatedMonsters: run.defeatedMonsters
+    },
+    streakCount: streakCount,
+    monster: run.monster ? { name: run.monster.name, hp: run.monster.hp, maxHP: run.monster.maxHP, atk: run.monster.atk, type: run.monster.type, buffs: run.monster.buffs } : null,
+    savedAt: Date.now()
+  };
+  localStorage.setItem(key, JSON.stringify(progress));
+}
+
+function loadTowerProgress() {
+  if (!studentId) return null;
+  const key = 'tower_progress_6_' + studentId;
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+
+function clearTowerProgress() {
+  if (!studentId) return;
+  const key = 'tower_progress_6_' + studentId;
+  localStorage.removeItem(key);
+}
+
+function continueTower() {
+  if (!studentId) return;
+  const progress = loadTowerProgress();
+  if (!progress) {
+    alert('没有可继续的爬塔进度');
+    return;
+  }
+
+  // 恢复 run 状态
+  Object.assign(run, {
+    floor: progress.run.floor,
+    playerHP: progress.run.playerHP,
+    playerMaxHP: progress.run.playerMaxHP,
+    playerATK: progress.run.playerATK,
+    playerDodge: progress.run.playerDodge,
+    buffs: progress.run.buffs,
+    earnedPoints: progress.run.earnedPoints,
+    defeatedMonsters: progress.run.defeatedMonsters
+  });
+  streakCount = progress.streakCount || 0;
+  if (progress.monster) {
+    run.monster = progress.monster;
+  }
+
+  document.getElementById('btnHomeHeader').style.display = 'inline-block';
+  showScreen('Battle');
+  renderBattle();
+  updateTopBar();
+  refreshQuestion();
+}
+
 function calcPlayerStats(sid) {
   const equipList = getTowerEquipment();
   const slots = getTowerEquipped();
@@ -1444,6 +1524,16 @@ function goHome() {
     }).join('');
   }
 
+  // 🆕 v610: 继续爬塔按钮状态
+  const progress = loadTowerProgress();
+  const btnContinue = document.getElementById('btnContinueTower');
+  if (progress && progress.run && progress.run.floor > 0) {
+    btnContinue.style.display = 'block';
+    btnContinue.textContent = '▶ 继续爬塔（第 ' + progress.run.floor + ' 层）';
+  } else {
+    btnContinue.style.display = 'none';
+  }
+
   document.getElementById('btnHomeHeader').style.display = 'none';
   showScreen('Home');
   updateTopBar();
@@ -1470,6 +1560,9 @@ function startTower() {
 
   // 扣体力
   setTowerStamina(studentId, stamina - 1);
+
+  // 🆕 v610: 清除旧进度（全新开始）
+  clearTowerProgress();
 
   // 重置运行状态
   Object.assign(run, {
@@ -1529,6 +1622,9 @@ function enterFloor(floor) {
 
   // 重置答题状态
   resetQuestionState();
+
+  // 🆕 v610: 每进入新楼层自动保存进度
+  saveTowerProgress();
 
   showScreen('Battle');
   document.getElementById('btnHomeHeader').style.display = 'none';
@@ -2119,6 +2215,7 @@ function onMonsterDefeated() {
           else data.equipment.push(equip);
         }
         saveGrade6UserData(studentId, data);
+        syncToParent('drop'); // 🆕 v610: 实时同步装备掉落
         setBattleLog(`📦 怪物掉落了装备：${equip.name}（${(dropChance*100).toFixed(1)}%概率）`);
       }
     }
@@ -2197,6 +2294,7 @@ function onGameOver() {
 
   // 通知父页面积分变动（iframe 模式）
   notifyTowerChange();
+  syncToParent('gameover'); // 🆕 v610: 游戏结束完整同步
 
   // 排行榜
   pushTowerRanking(studentId, isNewRecord ? run.floor : prevBest);
