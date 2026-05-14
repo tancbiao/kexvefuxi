@@ -1287,6 +1287,7 @@ const CARD_POOL = {
       try {
         if (typeof generateEquip === 'function') {
           const equip = generateEquip(1 + Math.floor(Math.random() * 4));
+          if (!equip) { console.warn('装备宝箱：generateEquip 返回空'); return; }
           const data = getGrade6UserData(studentId);
           let idx = -1;
           if (data.equipment) {
@@ -1298,11 +1299,12 @@ const CARD_POOL = {
             idx = 0;
           }
           saveGrade6UserData(studentId, data);
-          syncToParent('card'); // 🆕 v701: 实时同步装备到父页面
           setBattleLog(`📦 获得装备：${equip.name}`);
-          // 记录待展示的装备奖励
+          // 记录待展示的装备奖励（必须在 syncToParent 之前设置）
           _pendingReward = { type: 'equip', equip: equip, equipIdx: idx, source: 'card' };
-        }
+          // 🆕 v701: 实时同步装备到父页面（独立try不阻断弹窗）
+          try { syncToParent('card'); } catch(e) { console.warn('equipBox syncToParent failed:', e); }
+        } else { console.warn('装备宝箱：generateEquip 不可用'); }
       } catch(e) { console.error('装备宝箱出错:', e); }
     } },
   ],
@@ -1320,15 +1322,16 @@ const CARD_POOL = {
         petState.studentId = studentId;
         const petKey = 'petSystemStateV2_' + studentId;
         localStorage.setItem(petKey, JSON.stringify(petState));
-        syncToParent('card'); // 🆕 v701: 实时同步宠物碎片到父页面
         const petInfo = TOWER_PET_NAMES[targetId] || { name: '未知', emoji: '🐣', rarity: '?' };
         setBattleLog(`🐣 获得${petInfo.emoji}${petInfo.name}碎片×1`);
-        // 记录待展示的宠物碎片奖励
+        // 记录待展示的宠物碎片奖励（必须在 syncToParent 之前设置）
         _pendingReward = {
           type: 'petPiece', petId: targetId,
           petName: petInfo.name, petEmoji: petInfo.emoji, petRarity: petInfo.rarity,
           currentCount: petState.pieces[targetId]
         };
+        // 🆕 v701: 实时同步宠物碎片到父页面（独立try不阻断弹窗）
+        try { syncToParent('card'); } catch(e) { console.warn('petPiece syncToParent failed:', e); }
       } catch(e) { console.error('宠物碎片出错:', e); }
     } },
   ],
@@ -1342,6 +1345,7 @@ const CARD_POOL = {
       try {
         if (typeof generateEquip === 'function') {
           const equip = generateEquip(5 + Math.floor(Math.random() * 3));
+          if (!equip) { console.warn('传说装备箱：generateEquip 返回空'); return; }
           const data = getGrade6UserData(studentId);
           let idx = -1;
           if (data.equipment) {
@@ -1354,10 +1358,12 @@ const CARD_POOL = {
           }
           saveGrade6UserData(studentId, data);
           setBattleLog(`👑 获得传说装备：${equip.name}`);
-          // 记录待展示的装备奖励
+          // 记录待展示的装备奖励（必须在 syncToParent 之前设置）
           _pendingReward = { type: 'equip', equip: equip, equipIdx: idx, source: 'card' };
-        }
-      } catch(e) {}
+          // 🆕 v701: 实时同步装备到父页面
+          try { syncToParent('card'); } catch(e) { console.warn('premiumEquip syncToParent failed:', e); }
+        } else { console.warn('传说装备箱：generateEquip 不可用'); }
+      } catch(e) { console.error('传说装备箱出错:', e); }
     } },
   ],
 };
@@ -2515,7 +2521,22 @@ function selectCard(idx) {
   const cardName = card.querySelector('.card-name').textContent;
   const allPools = [CARD_POOL.common, CARD_POOL.uncommon, CARD_POOL.rare, CARD_POOL.epic, CARD_POOL.legendary].flat();
   const matched = allPools.find(c => c.name === cardName);
-  if (matched) matched.apply();
+  // 记录apply前HP，用于展示变化
+  const hpBefore = run.playerHP, maxHPBefore = run.playerMaxHP;
+  if (matched) {
+    try { matched.apply(); } catch(e) { console.error('卡牌apply出错:', cardName, e); }
+  } else {
+    console.warn('未匹配到卡牌:', cardName);
+  }
+  // HP变化即时反馈
+  const hpChange = run.playerHP - hpBefore;
+  const maxHPChange = run.playerMaxHP - maxHPBefore;
+  let hpExtra = '';
+  if (hpChange > 0) hpExtra = ' ❤️+' + Math.floor(hpChange);
+  if (maxHPChange > 0) hpExtra += ' 💪上限+' + maxHPChange;
+  document.getElementById('rewardHint').textContent = '已选择 ✅' + hpExtra;
+  // 确保HP条更新
+  if (hpChange !== 0 || maxHPChange !== 0) updatePlayerHPBar();
 
   // 检查是否有待展示的奖励（装备/宠物碎片）
   if (_pendingReward) {
