@@ -2656,7 +2656,8 @@ async function loadFromCloud(studentId) {
   return null;
 }
 
-function saveUserData() {
+// v702: 改为 async，让云端保存能正确执行
+async function saveUserData() {
   if (gameState.isGuest) return;
   // 读取宠物系统的碎片数据（用于云端同步）
   var petPieces = {};
@@ -2688,7 +2689,7 @@ function saveUserData() {
     lastUpdated: Date.now()
   };
   localStorage.setItem('scienceGame_user_' + gameState.studentId, JSON.stringify(data));
-  saveToCloud(gameState.studentId, data);
+  await saveToCloud(gameState.studentId, data);
   pushRankingData();
 }
 // ====== Toast 提示 ======
