@@ -4,7 +4,7 @@
 轻量级 JSON 文件存储，支持排行榜 + 学生存档
 """
 
-import json, os, time
+import json, os, time, shutil
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
@@ -21,13 +21,34 @@ def _read_json(name):
     path = _data_path(name)
     if not os.path.exists(path):
         return {}
-    with open(path, 'r', encoding='utf-8') as f:
-        return json.load(f)
+    try:
+        with open(path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except (json.JSONDecodeError, ValueError):
+        print(f'[WARN] JSON 文件损坏: {path}，尝试恢复...')
+        # 尝试读取临时文件
+        tmp_path = path + '.tmp'
+        if os.path.exists(tmp_path):
+            try:
+                with open(tmp_path, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except:
+                pass
+        # 都不行，返回空
+        print(f'[ERROR] 无法恢复 {path}，返回空数据')
+        return {}
 
 def _write_json(name, data):
+    """原子写入：先写 .tmp 再 rename，防止写入中断导致文件损坏"""
     path = _data_path(name)
-    with open(path, 'w', encoding='utf-8') as f:
+    tmp_path = path + '.tmp'
+    # 先写临时文件
+    with open(tmp_path, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+        f.flush()
+        os.fsync(f.fileno())
+    # 确保写入完成再 rename（原子操作）
+    shutil.move(tmp_path, path)
 
 # ==================== 排行榜 API ====================
 # GET /api/ranking/{grade}
