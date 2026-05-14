@@ -1298,6 +1298,7 @@ const CARD_POOL = {
             idx = 0;
           }
           saveGrade6UserData(studentId, data);
+          syncToParent('card'); // 🆕 v701: 实时同步装备到父页面
           setBattleLog(`📦 获得装备：${equip.name}`);
           // 记录待展示的装备奖励
           _pendingReward = { type: 'equip', equip: equip, equipIdx: idx, source: 'card' };
@@ -1319,6 +1320,7 @@ const CARD_POOL = {
         petState.studentId = studentId;
         const petKey = 'petSystemStateV2_' + studentId;
         localStorage.setItem(petKey, JSON.stringify(petState));
+        syncToParent('card'); // 🆕 v701: 实时同步宠物碎片到父页面
         const petInfo = TOWER_PET_NAMES[targetId] || { name: '未知', emoji: '🐣', rarity: '?' };
         setBattleLog(`🐣 获得${petInfo.emoji}${petInfo.name}碎片×1`);
         // 记录待展示的宠物碎片奖励
@@ -2423,6 +2425,16 @@ function onMonsterDefeated() {
     setBattleLog(`👑 Boss 奖励 +50 积分！`);
   }
 
+  // 🆕 v701: 每次击败怪物立即提交积分到存储（防止中途关闭弹窗丢分）
+  const pointsThisFight = (10 + floorBonus) + (run.monster.type === 'boss' ? 50 : 0);
+  const incTower = getTowerData(studentId);
+  incTower.totalTowerCoins = (incTower.totalTowerCoins || 0) + pointsThisFight;
+  saveTowerData(studentId, incTower);
+  const incG6 = getGrade6UserData(studentId);
+  incG6.totalPoints = (incG6.totalPoints || 0) + pointsThisFight;
+  saveGrade6UserData(studentId, incG6);
+  syncToParent('earn'); // 实时同步积分到父页面状态栏
+
   // 装备随机掉落（层数越高概率越大）
   let droppedEquip = null;
   try {
@@ -2537,13 +2549,12 @@ function onGameOver() {
   if (isNewRecord) {
     towerData.highestFloor = run.floor;
   }
-  towerData.totalTowerCoins = (towerData.totalTowerCoins || 0) + run.earnedPoints;
+  // 🆕 v701: 积分已在每层击败时递增提交，不再重复累加 run.earnedPoints
   towerData.totalRuns = (towerData.totalRuns || 0) + 1;
   saveTowerData(studentId, towerData);
 
-  // 积分写入六年级
+  // 保存六年级数据（积分已递增提交，只保存其他字段）
   const grade6Data = getGrade6UserData(studentId);
-  grade6Data.totalPoints = (grade6Data.totalPoints || 0) + run.earnedPoints;
   saveGrade6UserData(studentId, grade6Data);
   // 🆕 游戏结束同步装备到主页面存储
   if (grade6Data.equipment) syncEquipmentToMainStorage(studentId, grade6Data.equipment);
