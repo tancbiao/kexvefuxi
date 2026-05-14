@@ -1381,11 +1381,17 @@ function continueTower() {
     run.monster = progress.monster;
   }
 
+  // 渲染战斗界面
+  renderMonster(run.monster);
+  updateTopBar();
+  updatePlayerHPBar();
+  updateMonsterHPBar();
+  resetQuestionState();
   document.getElementById('btnHomeHeader').style.display = 'inline-block';
   showScreen('Battle');
-  renderBattle();
-  updateTopBar();
-  refreshQuestion();
+  // 重置并开始玩家回合（加载题目）
+  questionLocked = false;
+  setTimeout(() => startPlayerTurn(), 500);
 }
 
 function calcPlayerStats(sid) {
