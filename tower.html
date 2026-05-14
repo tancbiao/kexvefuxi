@@ -3087,7 +3087,7 @@ function showEquipRewardPopup(reward) {
   var source = reward.source || 'card';
   var equipIdx = reward.equipIdx;
   document.getElementById('rdBtns').innerHTML =
-    '<button class="rd-btn-equip" onclick="onEquipRewardClick(' + equipIdx + ')">⚔️ 立即装备</button>' +
+    '<button class="rd-btn-equip" onclick="onEquipRewardClick(' + equipIdx + ', \'' + source + '\')">⚔️ 立即装备</button>' +
     '<button class="rd-btn-bag" onclick="onBagRewardClick(\'' + source + '\')">📦 收入背包</button>';
 
   document.getElementById('rewardDetailOverlay').classList.add('show');
@@ -3095,12 +3095,12 @@ function showEquipRewardPopup(reward) {
 }
 
 // 装备弹窗：立即装备
-function onEquipRewardClick(equipIdx) {
+function onEquipRewardClick(equipIdx, source) {
   try {
     equipByIdxTower(equipIdx);
     setBattleLog('⚔️ 已装备新装备！');
   } catch(e) { console.error('装备失败:', e); }
-  closeRewardDetailAndContinue('drop');
+  closeRewardDetailAndContinue(source || 'card');
 }
 
 // 装备弹窗：收入背包
@@ -3120,8 +3120,13 @@ function closeRewardDetailAndContinue(source) {
   if (source === 'drop') {
     // 怪物掉落 → 继续显示奖励卡牌
     setTimeout(function() { showRewardScreen(); }, 300);
+  } else {
+    // card/petPiece来源：进入下一层
+    setTimeout(function() {
+      var nextFloor = run.floor + 1;
+      enterFloor(nextFloor);
+    }, 300);
   }
-  // card来源：selectCard中已有后续逻辑（从nextFloor），不用额外处理
 }
 
 // 显示宠物碎片奖励弹窗
