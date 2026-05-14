@@ -5106,7 +5106,7 @@ function checkActivityNotice(studentId) {
 
   var today = getTodayDateStr();
   // 5月15日之前不触发
-  if (today < '2026-05-15') return;
+  if (today < '2026-05-14') return;
 
   // ===== 每日登录奖励：自动发放1万积分 =====
   var loginBonusKey = 'dailyLoginBonus_' + studentId + '_' + today;
@@ -5143,7 +5143,7 @@ function checkTowerRewards() {
   if (!gameState || !gameState.studentId || !isGrade6Student(gameState.studentId)) return;
 
   var today = getTodayDateStr();
-  if (today < '2026-05-15') return;
+  if (today < '2026-05-14') return;
 
   var floor = gameState.towerHighestFloor || 0;
   var changed = false;
