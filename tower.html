@@ -611,6 +611,9 @@ body {
 .iframe-mode .home-stats { background: transparent; }
 .iframe-mode .stamina-indicator { position: static; }
 
+/* v611: Twemoji 表情尺寸 */
+img.emoji { height: 1em; width: 1em; margin: 0 0.05em; vertical-align: -0.1em; }
+
 </style>
 </head>
 <body>
@@ -824,8 +827,28 @@ body {
 
 </div><!-- /main-container -->
 
+<!-- v611: Twemoji - Win7 表情兼容 -->
+<script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
 <script src="equipment-gen.js"></script>
 <script>
+// ====== v611: Twemoji Win7 兼容层 ======
+(function(){
+  if (typeof twemoji === 'undefined') return;
+  var twOpts = { folder: 'svg', ext: '.svg' };
+  function parseRoot() { twemoji.parse(document.body, twOpts); }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', parseRoot);
+  } else { parseRoot(); }
+  var observer = new MutationObserver(function(muts){
+    muts.forEach(function(m){ 
+      m.addedNodes.forEach(function(n){ 
+        if (n.nodeType === 1) twemoji.parse(n, twOpts); 
+      });
+    });
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+})();
+
 // ============================================================
 // 1. 数据模型
 // ============================================================

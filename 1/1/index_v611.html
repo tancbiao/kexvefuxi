@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🌟 科学探险家 · 统一闯关系统 v609</title>
-<!-- v609 更新：集成成绩分析系统入口（2026-05-13）-->
+<title>🌟 科学探险家 · 统一闯关系统 v611</title>
+<!-- v611 更新：Win7 表情兼容层 - Twemoji SVG 渲染（2026-05-14）-->
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   
@@ -1040,6 +1040,11 @@
 .toast.warn { background: #f59e0b; color: #333; }
 .toast.info { background: #3b82f6; }
 
+/* v611: Twemoji 表情图标尺寸控制 */
+img.emoji { height: 1em; width: 1em; margin: 0 0.05em 0 0.1em; vertical-align: -0.1em; }
+h1 img.emoji, h2 img.emoji, h3 img.emoji { height: 1.2em; width: 1.2em; }
+.status-icon img.emoji { height: 1.3em; width: 1.3em; vertical-align: middle; }
+
 </style>
 </head>
 <body>
@@ -1245,6 +1250,8 @@
   </div>
 </div>
 
+<!-- v611: Twemoji - Win7 表情兼容层 (jsdelivr CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
 <script src="../../equipment-gen.js?v=20260429"></script>
 <script src="../../js/cloud-config.js"></script>
 <script src="../../data/student-names.js"></script>
@@ -1284,6 +1291,28 @@
 </div>
 
 <script>
+// ====== v611: Twemoji Win7 兼容层 ======
+(function(){
+  if (typeof twemoji === 'undefined') return; // CDN 未加载则跳过
+  var twOpts = { folder: 'svg', ext: '.svg' };
+  // 初始解析
+  function parseRoot() { twemoji.parse(document.body, twOpts); }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', parseRoot);
+  } else { parseRoot(); }
+  // 动态内容监听
+  var observer = new MutationObserver(function(muts){
+    muts.forEach(function(m){ 
+      m.addedNodes.forEach(function(n){ 
+        if (n.nodeType === 1) twemoji.parse(n, twOpts); 
+      });
+    });
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+  // 暴露 reparse 供手动调用
+  window.reparseEmoji = function(el){ twemoji.parse(el || document.body, twOpts); };
+})();
+
 const equipmentSystem = {
   levels: typeof EQUIP_RARITY !== 'undefined' ? EQUIP_RARITY : {},
   equipTypes: typeof ALL_EQUIP_TYPES !== 'undefined' ? ALL_EQUIP_TYPES : [],
