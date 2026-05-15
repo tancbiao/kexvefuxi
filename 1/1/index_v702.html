@@ -1253,66 +1253,51 @@
 
 /* ====== 问候弹窗 ====== */
 .greeting-overlay {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 99999;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s;
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.85);
+  display: none; justify-content: center; align-items: center;
+  z-index: 2100;
 }
-.greeting-overlay.show {
-  opacity: 1;
-  pointer-events: auto;
-}
-.greeting-modal {
-  background: linear-gradient(135deg, #1a1a3e 0%, #2a1a4e 50%, #1a2a5e 100%);
-  border: 2px solid rgba(255,215,0,0.5);
-  border-radius: 20px;
-  padding: 36px 32px 28px;
-  text-align: center;
-  max-width: 420px;
+.greeting-overlay.show { display: flex; }
+.greeting-box {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 16px;
+  padding: 32px 28px;
+  max-width: 460px;
   width: 90%;
-  box-shadow: 0 0 40px rgba(255,215,0,0.15);
+  text-align: center;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.5);
 }
-.greeting-modal .greeting-icon {
-  font-size: 3em;
-  margin-bottom: 12px;
-}
-.greeting-modal .greeting-name {
-  font-size: 1.5em;
-  font-weight: bold;
+.greeting-box h2 {
+  margin: 0 0 16px 0;
+  font-size: 1.35em;
   color: #ffd700;
-  margin-bottom: 12px;
 }
-.greeting-modal .greeting-body {
-  font-size: 0.92em;
-  color: rgba(255,255,255,0.75);
-  line-height: 1.7;
-  margin-bottom: 24px;
+.greeting-body {
+  font-size: 0.95em;
+  line-height: 1.8;
+  color: rgba(255,255,255,0.85);
+  text-align: left;
+  margin-bottom: 20px;
+  padding: 0 4px;
 }
-.greeting-modal .greeting-body .hl {
+.greeting-body .hl {
   color: #ffd700;
-  font-weight: bold;
 }
 .greeting-btn {
-  background: linear-gradient(135deg, #ffd700, #ffaa00);
-  color: #1a1a2e;
-  border: none;
-  border-radius: 25px;
-  padding: 10px 36px;
+  background: linear-gradient(135deg, #ffd700, #ffa500);
+  border: none; border-radius: 10px;
+  padding: 10px 32px;
   font-size: 1em;
   font-weight: bold;
+  color: #1a1a2e;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.15s, box-shadow 0.15s;
 }
 .greeting-btn:hover {
   transform: scale(1.05);
-  box-shadow: 0 0 20px rgba(255,215,0,0.5);
+  box-shadow: 0 4px 20px rgba(255,215,0,0.4);
 }
 </style>
 </head>
@@ -1557,20 +1542,6 @@
     <div class="ranking-list" id="rankingList">
       <div class="ranking-loading">加载中...</div>
     </div>
-  </div>
-</div>
-
-<!-- ====== 问候弹窗 ====== -->
-<div class="greeting-overlay" id="greetingOverlay">
-  <div class="greeting-modal">
-    <div class="greeting-icon">👋</div>
-    <div class="greeting-name" id="greetingName">同学，你好</div>
-    <div class="greeting-body">
-      欢迎进入<span class="hl">科学探险家</span>！<br>
-      答题前请先<span class="hl">下载云端存档</span>获取最新进度；<br>
-      答题后记得<span class="hl">上传云端存档</span>保存数据。
-    </div>
-    <button class="greeting-btn" onclick="closeGreetingPopup()">👍 我知道了</button>
   </div>
 </div>
 
@@ -1827,10 +1798,8 @@ function loginWithId() {
   showScreen('courseScreen');
   // 六年级专属活动通知（登录奖励 + 爬塔奖励）
   checkActivityNotice(id);
-  // 问候弹窗（等活动通知先弹出；游客不弹）
-  if (!gameState.isGuest) {
-    setTimeout(function() { showGreetingPopup(); }, 800);
-  }
+  // 活动通知之后再弹出问候弹窗
+  showGreetingWithNoticeCheck();
 }
 
 function loginAsGuest() {
@@ -5411,21 +5380,6 @@ function listUploadedLessons() {
 })();
 
 // ====== 六年级专属活动系统（登录奖励 + 爬塔奖励） ======
-// ====== 问候弹窗 ======
-function showGreetingPopup() {
-  var overlay = document.getElementById('greetingOverlay');
-  var nameEl = document.getElementById('greetingName');
-  if (nameEl) {
-    nameEl.textContent = (gameState.studentName || gameState.studentId || '同学') + '，你好';
-  }
-  if (overlay) overlay.classList.add('show');
-}
-
-function closeGreetingPopup() {
-  var overlay = document.getElementById('greetingOverlay');
-  if (overlay) overlay.classList.remove('show');
-}
-
 /**
  * 判断学号是否为六年级学生（第3-4位为"20"）
  */
@@ -5476,6 +5430,41 @@ function checkActivityNotice(studentId) {
 function closeActivityNotice() {
   var overlay = document.getElementById('activityNoticeOverlay');
   if (overlay) overlay.classList.remove('show');
+  // 活动通知关闭后，如果有待显示问候弹窗则显示
+  if (window.__pendingGreeting) {
+    window.__pendingGreeting = false;
+    setTimeout(showGreetingPopup, 200);
+  }
+}
+
+/**
+ * 显示登录问候弹窗
+ */
+function showGreetingPopup() {
+  var name = gameState.studentName || gameState.studentId || '同学';
+  document.getElementById('greetingTitle').textContent = '👋 ' + name + '，你好！';
+  document.getElementById('greetingOverlay').classList.add('show');
+}
+
+/**
+ * 关闭问候弹窗
+ */
+function closeGreetingPopup() {
+  document.getElementById('greetingOverlay').classList.remove('show');
+}
+
+/**
+ * 检查活动通知状态并决定何时显示问候弹窗
+ */
+function showGreetingWithNoticeCheck() {
+  var overlay = document.getElementById('activityNoticeOverlay');
+  // 如果活动通知正在显示，设置待显示标记
+  if (overlay && overlay.classList.contains('show')) {
+    window.__pendingGreeting = true;
+  } else {
+    // 没有活动通知，直接显示问候
+    showGreetingPopup();
+  }
 }
 
 // ====== 通知公告系统 ======
@@ -5920,6 +5909,17 @@ function checkTowerRewards() {
 
     <button class="activity-btn" onclick="closeActivityNotice()">🎉 我知道了</button>
     <div class="activity-notice-tip">💡 登录奖励已自动发放，爬塔奖励在闯塔成功后自动到账</div>
+  </div>
+</div>
+
+<!-- ====== 登录问候弹窗 ====== -->
+<div class="greeting-overlay" id="greetingOverlay">
+  <div class="greeting-box">
+    <h2 id="greetingTitle">👋 同学你好！</h2>
+    <div class="greeting-body" id="greetingBody">
+      记得做完题目后点击<strong class="hl">「上传」</strong>，就可以同步积分到学校的网络。然后在学校里点击<strong class="hl">「下载」</strong>，就可以把家里的存档弄过来；在学校获得的存档又可以点<strong class="hl">「上传」</strong>，重新上回去。
+    </div>
+    <button class="greeting-btn" onclick="closeGreetingPopup()">我知道了 👌</button>
   </div>
 </div>
 
