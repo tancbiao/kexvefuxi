@@ -224,7 +224,7 @@
     // 重置内容
     var content = document.getElementById('aiTutorContent');
     if (content) {
-      content.innerHTML = '<div class="ai-tutor-empty"><span class="ai-tutor-empty-icon">🧠</span><p>点击下方按钮，让 AI 帮你分析错题</p><p style="font-size:12px;color:rgba(255,255,255,0.3);">当前错题数：' + ((window.gameState && window.gameState.wrongQuestions) ? window.gameState.wrongQuestions.length : 0) + ' 道</p></div>';
+      content.innerHTML = '<div class="ai-tutor-empty"><span class="ai-tutor-empty-icon">🧠</span><p>点击下方按钮，让 AI 帮你分析错题</p><p style="font-size:12px;color:rgba(255,255,255,0.3);">当前错题数：' + ((gameState && gameState.wrongQuestions) ? gameState.wrongQuestions.length : 0) + ' 道</p></div>';
     }
     // 重置tabs
     var tabs = document.querySelectorAll('.ai-tutor-tab');
@@ -258,7 +258,7 @@
   };
 
   window.startAIAnalysis = function() {
-    var wrongQuestions = window.gameState && window.gameState.wrongQuestions ? window.gameState.wrongQuestions : [];
+    var wrongQuestions = gameState && gameState.wrongQuestions ? gameState.wrongQuestions : [];
     if (!wrongQuestions || wrongQuestions.length === 0) {
       var content = document.getElementById('aiTutorContent');
       if (content) {
@@ -281,8 +281,8 @@
     if (startBtn) { startBtn.style.display = 'none'; }
 
     // 调用API
-    var studentName = (window.gameState && window.gameState.studentName) || '同学';
-    var grade = (window.gameState && window.gameState.currentGrade) || '';
+    var studentName = (gameState && gameState.studentName) || '同学';
+    var grade = (gameState && gameState.currentGrade) || '';
     var payload = {
       wrongQuestions: wrongQuestions.slice(0, 20),
       studentName: studentName,
