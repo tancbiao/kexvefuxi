@@ -1523,7 +1523,7 @@
 <script src="../../data/student-names.js"></script>
 <script>
 // ====== 成绩奖励数据（自动生成） ======
-var EXAM_REWARDS = {"over90": {"01220123": true, "01210351": true, "01210222": true, "01210648": true, "01210331": true, "01220605": true, "01220529": true, "01230316": true, "01220601": true, "01220138": true, "01220516": true, "01210325": true, "01210525": true, "01220346": true, "01220314": true, "01210529": true, "01210528": true, "01210246": true, "01220614": true, "01230524": true, "01210243": true, "01210305": true, "01210237": true, "01220611": true, "01210201": true, "01220304": true, "01210208": true, "01210445": true, "01220445": true, "01220613": true, "01200102": true, "01230205": true, "01200244": true, "01220633": true, "01200219": true, "01220239": true, "01230327": true, "01220317": true, "01220228": true, "01220305": true, "01220241": true, "01230407": true, "01200306": true, "01200145": true, "01220511": true, "01200520": true, "01220339": true, "01200119": true, "01230419": true, "01220433": true, "01220303": true, "01220342": true, "01210345": true, "01230313": true, "01220617": true, "01210501": true, "01230717": true, "01210540": true, "01210328": true, "01230125": true, "01220504": true, "01210332": true, "01210536": true, "01210640": true, "01210319": true, "01230423": true, "01210125": true, "01210534": true, "01220533": true, "01220316": true, "01220301": true, "01230739": true, "01220631": true, "01210327": true, "01210106": true, "01230518": true, "01210128": true, "01220415": true, "01210122": true, "01210649": true, "01210349": true, "01220444": true, "01210316": true, "01220118": true, "01230324": true, "01210224": true, "01220442": true, "01220607": true, "01200215": true, "01230516": true, "01200208": true, "01220208": true, "01200337": true, "01230236": true, "01220402": true, "01220233": true, "01210532": true, "01220245": true, "01210337": true, "01200315": true, "01230744": true, "01220203": true, "01210609": true, "01220509": true, "01210315": true, "01210213": true}, "grade5Top1": {"01210305": true}};
+var EXAM_REWARDS = {"over90": {"01220123": true, "01210351": true, "01210222": true, "01210648": true, "01210331": true, "01220605": true, "01220529": true, "01230316": true, "01220601": true, "01220138": true, "01220516": true, "01210325": true, "01210525": true, "01220346": true, "01220314": true, "01210529": true, "01210528": true, "01210246": true, "01220614": true, "01230524": true, "01210243": true, "01210305": true, "01210237": true, "01220611": true, "01210201": true, "01220304": true, "01210208": true, "01210445": true, "01220445": true, "01220613": true, "01200102": true, "01230205": true, "01200244": true, "01220633": true, "01200219": true, "01220239": true, "01230327": true, "01220317": true, "01220228": true, "01220305": true, "01220241": true, "01230407": true, "01200306": true, "01200145": true, "01220511": true, "01200520": true, "01220339": true, "01200119": true, "01230419": true, "01220433": true, "01220303": true, "01220342": true, "01210345": true, "01230313": true, "01220617": true, "01210501": true, "01230717": true, "01210540": true, "01210328": true, "01230125": true, "01220504": true, "01210332": true, "01210536": true, "01210640": true, "01210319": true, "01230423": true, "01210125": true, "01210534": true, "01220533": true, "01220316": true, "01220301": true, "01230739": true, "01220631": true, "01210327": true, "01210106": true, "01230518": true, "01210128": true, "01220415": true, "01210122": true, "01210649": true, "01210349": true, "01220444": true, "01210316": true, "01220118": true, "01230324": true, "01210224": true, "01220442": true, "01220607": true, "01200215": true, "01230516": true, "01200208": true, "01220208": true, "01200337": true, "01230236": true, "01220402": true, "01220233": true, "01210532": true, "01220245": true, "01210337": true, "01200315": true, "01230744": true, "01220203": true, "01210609": true, "01220509": true, "01210315": true, "01210213": true}, "grade5Top1": {"01210305": true}, "grade4Top1": {"01220304": true}, "grade6Top1": {"01200145": true}};
 var CLASS012102_IDS = ["01210236", "01210206", "01210222", "01210223", "01210231", "01210240", "01210224", "01210239", "01210214", "01210250", "01210235", "01210220", "01210233", "01210234", "01210225", "01210218", "01210242", "01210247", "01210207", "01210244", "01210227", "01210232", "01210246", "01210241", "01210210", "01210216", "01210229", "01210230", "01210243", "01210205", "01210237", "01210215", "01210203", "01210248", "01210249", "01210219", "01210245", "01210238", "01210226", "01210201", "01210209", "01210221", "01210204", "01210217", "01210211", "01210213", "01210208"];
 </script>
 <script src="../../admin/reward-collector.js"></script>
@@ -5511,9 +5511,17 @@ function checkOuhuangReward(studentId) {
     return equip ? { type: 'mythic', equip: equip, source: 'ouhuang' } : null;
   }
 
-  // ② 五年级年级第一 → 神话
-  if (EXAM_REWARDS.grade5Top1 && EXAM_REWARDS.grade5Top1[studentId]) {
+  // ② 赛季年级第一 → 专属冠名神话
+  var S1_TOP1_NAMES = { '01220304': '何钧聿', '01210305': '关浩隽', '01200145': '张庆阳' };
+  var isGradeTop1 = false;
+  if (EXAM_REWARDS.grade4Top1 && EXAM_REWARDS.grade4Top1[studentId]) isGradeTop1 = true;
+  if (EXAM_REWARDS.grade5Top1 && EXAM_REWARDS.grade5Top1[studentId]) isGradeTop1 = true;
+  if (EXAM_REWARDS.grade6Top1 && EXAM_REWARDS.grade6Top1[studentId]) isGradeTop1 = true;
+  if (isGradeTop1) {
     var equip = typeof generateEquip === 'function' ? generateEquip(7, null) : null;
+    if (equip && S1_TOP1_NAMES[studentId]) {
+      equip.name = 'S1赛季最强王者' + S1_TOP1_NAMES[studentId] + '的专属神话' + equip.type;
+    }
     return equip ? { type: 'mythic', equip: equip, source: 'top1' } : null;
   }
 
