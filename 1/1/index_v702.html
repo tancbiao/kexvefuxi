@@ -4743,7 +4743,7 @@ function bpClear62() {
   </div>`;
   document.body.appendChild(overlay);
 
-  function doClear(rarity) {
+  async function doClear(rarity) {
     const name = rarity === 1 ? '白色（普通）' : '绿色（精致）';
     if (!confirm('确定清理所有' + name + '装备？此操作不可恢复！')) return;
     var count = 0;
@@ -4766,7 +4766,9 @@ function bpClear62() {
       renderInventoryGrid62();
       updateCharPanel62();
       updateEquippedSlots62();
-      showToast('已清理 ' + count + ' 件' + name + '装备', 'success');
+      // v703: 清理后同步到云端
+      showToast('已清理 ' + count + ' 件' + name + '装备，正在同步到云端...', 'success');
+      await manualCloudUpload();
     } else {
       showToast('没有' + name + '装备可清理', 'info');
     }
