@@ -2742,7 +2742,8 @@ async function saveUserData() {
     towerHighestFloor: gameState.towerHighestFloor || 0,  // 🆕 v610
     towerCoins: gameState.towerCoins || 0,               // 🆕 v610
     gradeDataMerged: true, // 跨年级迁移标记（防止每次登录重复合并）
-    lastUpdated: Date.now()
+    lastUpdated: Date.now(),
+    equippedSlots: bpEquippedSlots62
   };
   localStorage.setItem('scienceGame_user_' + gameState.studentId, JSON.stringify(data));
   await saveToCloud(gameState.studentId, data);
@@ -4139,6 +4140,9 @@ function applyUserData(data) {
   updateStaminaDisplay();
   renderAchievementPreview();
   // 恢复装备槽（防止云端存档覆盖内存状态）
+  if (data.equippedSlots) {
+    Object.assign(bpEquippedSlots62, data.equippedSlots);
+  }
   loadEquippedState62();
   saveUserData();
 }
