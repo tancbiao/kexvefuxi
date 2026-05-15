@@ -2921,7 +2921,8 @@ async function manualCloudUpload() {
       totalPoints: gameState.totalPoints || 0,
       lessonProgress: gameState.lessonProgress || {},
       unlockedAchievements: gameState.unlockedAchievements || [],
-      equipment: gameState.equipment || [],
+      // v703: 上传时过滤null，云端只存有效装备
+      equipment: (gameState.equipment || []).filter(function(e) { return e !== null && e !== undefined; }),
       equipDropped: gameState.equipDropped || {},
       petPieces: petPieces,
       wrongQuestions: gameState.wrongQuestions || [],
@@ -2940,52 +2941,8 @@ async function manualCloudUpload() {
     // 保存到本地
     localStorage.setItem('scienceGame_user_' + gameState.studentId, JSON.stringify(data));
     
-    // 🆕 v703+: 上传前先读取云端数据，取最大值合并，防止低分覆盖高分
-    var cloudData = await loadFromCloud(gameState.studentId);
-    if (cloudData) {
-      // 积分取最大值
-      data.totalPoints = Math.max(data.totalPoints || 0, cloudData.totalPoints || 0);
-      data.totalQuestionsAnswered = Math.max(data.totalQuestionsAnswered || 0, cloudData.totalQuestionsAnswered || 0);
-      data.totalCorrectAnswers = Math.max(data.totalCorrectAnswers || 0, cloudData.totalCorrectAnswers || 0);
-      // 塔数据取最大值
-      data.towerHighestFloor = Math.max(data.towerHighestFloor || 0, cloudData.towerHighestFloor || 0);
-      data.towerCoins = Math.max(data.towerCoins || 0, cloudData.towerCoins || 0);
-      // 体力取最大值
-      data.dailyStamina = Math.max(data.dailyStamina || 0, cloudData.dailyStamina || 0);
-      // 课时进度：合并并集，每课取最大值
-      var lpLocal = data.lessonProgress || {};
-      var lpCloud = cloudData.lessonProgress || {};
-      var allLessonKeys = new Set([].concat(Object.keys(lpLocal), Object.keys(lpCloud)));
-      if (allLessonKeys.size > 0) {
-        data.lessonProgress = {};
-        allLessonKeys.forEach(function(key) {
-          data.lessonProgress[key] = Math.max(lpLocal[key] || 0, lpCloud[key] || 0);
-        });
-      }
-      // 装备：合并去重（id为key）
-      if (cloudData.equipment) {
-        var equipMap = {};
-        (data.equipment || []).concat(cloudData.equipment || []).forEach(function(e) { if (e && e.id) equipMap[e.id] = e; });
-        data.equipment = Object.values(equipMap);
-      }
-      // 成就：并集去重
-      var achSet = new Set([].concat(data.unlockedAchievements || [], cloudData.unlockedAchievements || []));
-      data.unlockedAchievements = Array.from(achSet);
-      // 错题：合并去重
-      if (cloudData.wrongQuestions) {
-        var wqMap = {};
-        (data.wrongQuestions || []).concat(cloudData.wrongQuestions || []).forEach(function(wq) {
-          if (wq) wqMap[wq.question + '|' + wq.correctAnswer] = wq;
-        });
-        data.wrongQuestions = Object.values(wqMap);
-      }
-      // 宠物碎片：合并（云端 + 本地，本地优先）
-      if (cloudData.petPieces) {
-        data.petPieces = Object.assign({}, cloudData.petPieces, data.petPieces || {});
-      }
-      // 更新最新时间戳
-      data.lastUpdated = Date.now();
-    }
+    // v703: 上传本地实际值，不合并云端（下载时再合并，避免消费被回滚）
+    data.lastUpdated = Date.now();
     
     // 等待云端保存完成
     var saveOk = await saveToCloud(gameState.studentId, data);
@@ -3035,6 +2992,8 @@ async function manualCloudDownload() {
       return;
     }
     // 构建当前本地数据
+    var localPetPieces = {};
+    try { var ps = JSON.parse(localStorage.getItem('petSystemStateV2_' + gameState.studentId) || '{}'); localPetPieces = ps.pieces || {}; } catch(e) {}
     var localData = {
       totalPoints: gameState.totalPoints || 0,
       lessonProgress: gameState.lessonProgress || {},
@@ -3051,11 +3010,63 @@ async function manualCloudDownload() {
       lastStaminaDate: gameState.lastStaminaDate,
       towerHighestFloor: gameState.towerHighestFloor || 0,
       towerCoins: gameState.towerCoins || 0,
+      petPieces: localPetPieces,
       lastUpdated: Date.now()
     };
-    // 合并云端数据
-    // v702: 云端存档直接用cloudData，不经过mergeUserData比较时间戳（避免lastUpdated被Date.now()覆盖导致云端数据被丢弃）
-    var merged = cloudData;
+    // 合并云端数据（v703: 本地优先合并，不直接覆盖）
+    var merged = {
+      // 积分：本地优先（学生可能在本地消费了积分）
+      totalPoints: localData.totalPoints,
+      // 答题统计：取最大值
+      totalQuestionsAnswered: Math.max(localData.totalQuestionsAnswered || 0, cloudData.totalQuestionsAnswered || 0),
+      totalCorrectAnswers: Math.max(localData.totalCorrectAnswers || 0, cloudData.totalCorrectAnswers || 0),
+      // 课时进度：合并并集，每课取最大值
+      lessonProgress: (function() {
+        var lp = {};
+        var allKeys = new Set([].concat(Object.keys(localData.lessonProgress || {}), Object.keys(cloudData.lessonProgress || {})));
+        allKeys.forEach(function(k) { lp[k] = Math.max((localData.lessonProgress || {})[k] || 0, (cloudData.lessonProgress || {})[k] || 0); });
+        return lp;
+      })(),
+      // 成就：并集去重
+      unlockedAchievements: (function() {
+        var s = new Set([].concat(localData.unlockedAchievements || [], cloudData.unlockedAchievements || []));
+        return Array.from(s);
+      })(),
+      // 装备：合并去重（按id），过滤null
+      equipment: (function() {
+        var eqMap = {};
+        [].concat(localData.equipment || [], cloudData.equipment || []).forEach(function(e) { if (e && e.id) eqMap[e.id] = e; });
+        return Object.values(eqMap);
+      })(),
+      // 装备掉落标记：云端+本地合并
+      equipDropped: Object.assign({}, cloudData.equipDropped || {}, localData.equipDropped || {}),
+      // 错题：云端优先（云端错题集更全），合并去重
+      wrongQuestions: (function() {
+        var wqMap = {};
+        // 云端优先：先加本地，再加云端（云端覆盖同question）
+        (localData.wrongQuestions || []).forEach(function(wq) { if (wq) wqMap[wq.question + '|' + wq.correctAnswer] = wq; });
+        (cloudData.wrongQuestions || []).forEach(function(wq) { if (wq) wqMap[wq.question + '|' + wq.correctAnswer] = wq; });
+        return Object.values(wqMap);
+      })(),
+      syncedWrongQuestions: cloudData.syncedWrongQuestions || localData.syncedWrongQuestions || [],
+      cloudQBank: Object.assign({}, localData.cloudQBank || {}, cloudData.cloudQBank || {}),
+      // 塔数据：取最大值
+      towerHighestFloor: Math.max(localData.towerHighestFloor || 0, cloudData.towerHighestFloor || 0),
+      towerCoins: Math.max(localData.towerCoins || 0, cloudData.towerCoins || 0),
+      // 体力：取较新的（按lastUpdated）
+      dailyStamina: (cloudData.lastUpdated || 0) > (localData.lastUpdated || 0) ? cloudData.dailyStamina : localData.dailyStamina,
+      lastStaminaDate: (cloudData.lastUpdated || 0) > (localData.lastUpdated || 0) ? cloudData.lastStaminaDate : localData.lastStaminaDate,
+      // 宠物碎片：云端+本地取最大值
+      petPieces: (function() {
+        var pp = {};
+        var cloudPp = cloudData.petPieces || {};
+        var localPp = localData.petPieces || {};
+        var allPpKeys = new Set([].concat(Object.keys(cloudPp), Object.keys(localPp)));
+        allPpKeys.forEach(function(k) { pp[k] = Math.max(cloudPp[k] || 0, localPp[k] || 0); });
+        return pp;
+      })(),
+      lastUpdated: Date.now()
+    };
     applyUserData(merged);
     var saveKey = 'scienceGame_user_' + gameState.studentId;
     localStorage.setItem(saveKey, JSON.stringify(merged));
