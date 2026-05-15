@@ -1521,6 +1521,11 @@
 <script src="../../equipment-gen.js?v=20260429"></script>
 <script src="../../js/cloud-config.js"></script>
 <script src="../../data/student-names.js"></script>
+<script>
+// ====== 成绩奖励数据（自动生成） ======
+var EXAM_REWARDS = {"over90": {"01220123": true, "01210351": true, "01210222": true, "01210648": true, "01210331": true, "01220605": true, "01220529": true, "01230316": true, "01220601": true, "01220138": true, "01220516": true, "01210325": true, "01210525": true, "01220346": true, "01220314": true, "01210529": true, "01210528": true, "01210246": true, "01220614": true, "01230524": true, "01210243": true, "01210305": true, "01210237": true, "01220611": true, "01210201": true, "01220304": true, "01210208": true, "01210445": true, "01220445": true, "01220613": true, "01200102": true, "01230205": true, "01200244": true, "01220633": true, "01200219": true, "01220239": true, "01230327": true, "01220317": true, "01220228": true, "01220305": true, "01220241": true, "01230407": true, "01200306": true, "01200145": true, "01220511": true, "01200520": true, "01220339": true, "01200119": true, "01230419": true, "01220433": true, "01220303": true, "01220342": true, "01210345": true, "01230313": true, "01220617": true, "01210501": true, "01230717": true, "01210540": true, "01210328": true, "01230125": true, "01220504": true, "01210332": true, "01210536": true, "01210640": true, "01210319": true, "01230423": true, "01210125": true, "01210534": true, "01220533": true, "01220316": true, "01220301": true, "01230739": true, "01220631": true, "01210327": true, "01210106": true, "01230518": true, "01210128": true, "01220415": true, "01210122": true, "01210649": true, "01210349": true, "01220444": true, "01210316": true, "01220118": true, "01230324": true, "01210224": true, "01220442": true, "01220607": true, "01200215": true, "01230516": true, "01200208": true, "01220208": true, "01200337": true, "01230236": true, "01220402": true, "01220233": true, "01210532": true, "01220245": true, "01210337": true, "01200315": true, "01230744": true, "01220203": true, "01210609": true, "01220509": true, "01210315": true, "01210213": true}, "grade5Top1": {"01210305": true}};
+var CLASS012102_IDS = ["01210236", "01210206", "01210222", "01210223", "01210231", "01210240", "01210224", "01210239", "01210214", "01210250", "01210235", "01210220", "01210233", "01210234", "01210225", "01210218", "01210242", "01210247", "01210207", "01210244", "01210227", "01210232", "01210246", "01210241", "01210210", "01210216", "01210229", "01210230", "01210243", "01210205", "01210237", "01210215", "01210203", "01210248", "01210249", "01210219", "01210245", "01210238", "01210226", "01210201", "01210209", "01210221", "01210204", "01210217", "01210211", "01210213", "01210208"];
+</script>
 <script src="../../admin/reward-collector.js"></script>
 
 <!-- ====== 排行榜弹窗 ====== -->
@@ -1800,6 +1805,13 @@ function loginWithId() {
   checkActivityNotice(id);
   // 活动通知之后再弹出问候弹窗
   showGreetingWithNoticeCheck();
+  // 欧皇祝福/成绩奖励弹窗（延迟1.5秒，等问候弹窗先显示）
+  setTimeout(function() {
+    var reward = getOrCreateReward(id);
+    if (reward) {
+      showSpecialRewardPopup(reward);
+    }
+  }, 1500);
 }
 
 function loginAsGuest() {
@@ -5482,6 +5494,159 @@ function showGreetingWithNoticeCheck() {
     // 没有活动通知，直接显示问候
     showGreetingPopup();
   }
+}
+
+// ====== 欧皇祝福 & 成绩奖励系统 ======
+
+/**
+ * 检查学生获得的奖励类型
+ */
+function checkOuhuangReward(studentId) {
+  if (!studentId || !EXAM_REWARDS) return null;
+
+  // ① 012102班欧皇祝福 → 神话（不限成绩，全班享受）
+  var isClass012102 = CLASS012102_IDS && CLASS012102_IDS.indexOf(studentId) !== -1;
+  if (isClass012102) {
+    var equip = typeof generateEquip === 'function' ? generateEquip(7, null) : null;
+    return equip ? { type: 'mythic', equip: equip, source: 'ouhuang' } : null;
+  }
+
+  // ② 五年级年级第一 → 神话
+  if (EXAM_REWARDS.grade5Top1 && EXAM_REWARDS.grade5Top1[studentId]) {
+    var equip = typeof generateEquip === 'function' ? generateEquip(7, null) : null;
+    return equip ? { type: 'mythic', equip: equip, source: 'top1' } : null;
+  }
+
+  // ③ 成绩>90分 → 金色传说
+  if (EXAM_REWARDS.over90 && EXAM_REWARDS.over90[studentId]) {
+    var equip = typeof generateEquip === 'function' ? generateEquip(6, null) : null;
+    return equip ? { type: 'legendary', equip: equip, source: 'exam' } : null;
+  }
+
+  return null;
+}
+
+/**
+ * 获取或创建奖励（localStorage管理，装备只给一次，弹窗显示20次）
+ */
+function getOrCreateReward(studentId) {
+  if (!studentId) return null;
+  var key = 'equipReward_given_' + studentId;
+  var stored = localStorage.getItem(key);
+  var reward = stored ? JSON.parse(stored) : null;
+
+  if (reward && reward.equip) {
+    if (reward.count < 20) {
+      reward.count++;
+      localStorage.setItem(key, JSON.stringify(reward));
+      return { equip: reward.equip, isNew: false, source: reward.source || 'unknown' };
+    }
+    return null;
+  }
+
+  // 第一次：生成奖励并自动装备
+  var result = checkOuhuangReward(studentId);
+  if (!result) return null;
+
+  reward = { equip: result.equip, source: result.source || 'unknown', count: 1 };
+  autoEquipReward(result.equip);
+  localStorage.setItem(key, JSON.stringify(reward));
+  return { equip: result.equip, isNew: true, source: result.source || 'unknown' };
+}
+
+/**
+ * 自动穿戴奖励装备
+ */
+function autoEquipReward(equip) {
+  if (!equip || !gameState || !gameState.equipment) return;
+  if (typeof getEquipSlotType62 !== 'function') return;
+
+  var slotType = getEquipSlotType62(equip);
+  if (!slotType) return;
+
+  // 加入背包（找空槽）
+  var invIdx = -1;
+  for (var i = 0; i < gameState.equipment.length; i++) {
+    if (!gameState.equipment[i]) { invIdx = i; break; }
+  }
+  if (invIdx === -1) {
+    gameState.equipment.push(equip);
+    invIdx = gameState.equipment.length - 1;
+  } else {
+    gameState.equipment[invIdx] = equip;
+  }
+
+  // 穿戴到对应槽位
+  if (typeof bpEquippedSlots62 !== 'undefined') {
+    if (slotType === 'treasure') {
+      bpEquippedSlots62.treasure = bpEquippedSlots62.treasure || [];
+      bpEquippedSlots62.treasure[0] = invIdx;
+    } else {
+      bpEquippedSlots62[slotType] = invIdx;
+    }
+  }
+
+  if (typeof saveEquippedState62 === 'function') saveEquippedState62();
+  if (typeof updateEquippedSlots62 === 'function') updateEquippedSlots62();
+  if (typeof updateCharPanel62 === 'function') updateCharPanel62();
+  if (typeof saveUserData === 'function') saveUserData();
+}
+
+/**
+ * 显示特殊奖励弹窗
+ */
+function showSpecialRewardPopup(reward) {
+  if (!reward || !reward.equip) return;
+
+  var RARITY_COLORS = ['#9e9e9e','#4caf50','#2196f3','#9c27b0','#e91e63','#ffd700','#ff5722'];
+  var equip = reward.equip;
+  var rarity = equip.rarity || 7;
+  var color = RARITY_COLORS[rarity - 1] || '#ff5722';
+
+  var title = '🎁 恭喜获得奖励装备！';
+  var subtitle = '';
+  if (reward.source === 'ouhuang') {
+    title = '🎉 恭喜你获得欧皇陈世开的祝福！';
+    subtitle = '全班享受神话级装备奖励';
+  } else if (reward.source === 'top1') {
+    title = '🏆 恭喜！全年级第一名专属奖励';
+    subtitle = '神话级装备，实力的象征';
+  } else if (reward.source === 'exam') {
+    title = '⭐ 期中考试优秀奖励';
+    subtitle = '成绩>90分，金色传说装备';
+  }
+
+  var equipHTML = '';
+  if (typeof genEquipDropHTML === 'function') {
+    equipHTML = genEquipDropHTML(equip);
+  } else {
+    equipHTML = '<div class="equip-drop-icon">' + (equip.icon || '🎁') + '</div>' +
+      '<div class="equip-drop-name" style="color:' + color + '">' + (equip.name || '神秘装备') + '</div>' +
+      '<div class="equip-drop-effect">' + (equip.effect || '') + '</div>';
+  }
+
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:flex;justify-content:center;align-items:center;z-index:10000;animation:fadeIn 0.5s;';
+  overlay.innerHTML = '<div style="background:linear-gradient(135deg,#1a1a2e,#2a1a3e);border-radius:20px;padding:30px 40px;text-align:center;border:3px solid ' + color + ';box-shadow:0 0 40px ' + color + '55;animation:bounceIn 0.6s;max-width:360px;width:90%;">' +
+    '<div style="font-size:22px;font-weight:bold;color:#fff;margin-bottom:8px;">' + title + '</div>' +
+    (subtitle ? '<div style="font-size:14px;color:' + color + ';margin-bottom:16px;">' + subtitle + '</div>' : '') +
+    equipHTML +
+    '<button onclick="this.parentElement.parentElement.remove()" style="margin-top:20px;padding:12px 40px;font-size:16px;font-weight:bold;border:none;border-radius:12px;background:linear-gradient(135deg,' + color + ', #ff8c00);color:#fff;cursor:pointer;box-shadow:0 4px 15px ' + color + '66;">' +
+    (reward.isNew ? '🎯 太棒了！已自动装备' : '👍 知道了！') +
+    '</button></div>';
+
+  if (!document.getElementById('rewardPopupStyle')) {
+    var s = document.createElement('style');
+    s.id = 'rewardPopupStyle';
+    s.textContent = '@keyframes bounceIn{0%{transform:scale(0);}50%{transform:scale(1.08);}100%{transform:scale(1);}}@keyframes fadeIn{from{opacity:0}to{opacity:1}}';
+    document.head.appendChild(s);
+  }
+
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) overlay.remove();
+  });
+  setTimeout(function() { if (overlay.parentNode) overlay.remove(); }, 8000);
 }
 
 // ====== 通知公告系统 ======
