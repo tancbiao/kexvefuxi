@@ -1798,6 +1798,8 @@ function loginWithId() {
   showScreen('courseScreen');
   // 六年级专属活动通知（登录奖励 + 爬塔奖励）
   checkActivityNotice(id);
+  // 活动通知之后再弹出问候弹窗
+  showGreetingWithNoticeCheck();
 }
 
 function loginAsGuest() {
@@ -5428,6 +5430,41 @@ function checkActivityNotice(studentId) {
 function closeActivityNotice() {
   var overlay = document.getElementById('activityNoticeOverlay');
   if (overlay) overlay.classList.remove('show');
+  // 活动通知关闭后，如果有待显示问候弹窗则显示
+  if (window.__pendingGreeting) {
+    window.__pendingGreeting = false;
+    setTimeout(showGreetingPopup, 200);
+  }
+}
+
+/**
+ * 显示登录问候弹窗
+ */
+function showGreetingPopup() {
+  var name = gameState.studentName || gameState.studentId || '同学';
+  document.getElementById('greetingTitle').textContent = '👋 ' + name + '，你好！';
+  document.getElementById('greetingOverlay').classList.add('show');
+}
+
+/**
+ * 关闭问候弹窗
+ */
+function closeGreetingPopup() {
+  document.getElementById('greetingOverlay').classList.remove('show');
+}
+
+/**
+ * 检查活动通知状态并决定何时显示问候弹窗
+ */
+function showGreetingWithNoticeCheck() {
+  var overlay = document.getElementById('activityNoticeOverlay');
+  // 如果活动通知正在显示，设置待显示标记
+  if (overlay && overlay.classList.contains('show')) {
+    window.__pendingGreeting = true;
+  } else {
+    // 没有活动通知，直接显示问候
+    showGreetingPopup();
+  }
 }
 
 // ====== 通知公告系统 ======
