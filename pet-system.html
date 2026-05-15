@@ -1300,6 +1300,8 @@
                     try {
                         var loaded = JSON.parse(saved);
                         for (var pk in loaded) gameState[pk] = loaded[pk];
+                        // 恢复父页面传来的权威积分（localStorage保存的可能过期）
+                        gameState.points = e.data.points || 0;
                     } catch(ex) {}
                 }
                 // 从旧全局 key 迁移
