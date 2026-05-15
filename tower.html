@@ -2435,6 +2435,8 @@ function onMonsterDefeated() {
   const pointsThisFight = (10 + floorBonus) + (run.monster.type === 'boss' ? 50 : 0);
   const incTower = getTowerData(studentId);
   incTower.totalTowerCoins = (incTower.totalTowerCoins || 0) + pointsThisFight;
+  // 🆕 实时更新最高层数（使父页面 checkTowerRewards 能正确判断 20/50/100 层奖励）
+  incTower.highestFloor = Math.max(incTower.highestFloor || 0, run.floor);
   saveTowerData(studentId, incTower);
   const incG6 = getGrade6UserData(studentId);
   incG6.totalPoints = (incG6.totalPoints || 0) + pointsThisFight;
