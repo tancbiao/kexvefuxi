@@ -3,8 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🔮 科学探险家 · 统一闯关系统 v702</title>
-<!-- v702 更新：修复云端存档上传后下载不回来的问题（saveToCloud 增加返回状态检查）-->
+<title>🔮 科学探险家 · 统一闯关系统 v703</title>
+<!-- v703+ 更新：
+  - 修复云端上传漏掉宠物碎片（manualCloudUpload 补齐 petPieces）
+  - 修复跨设备同步时云端数据被丢弃（mergeUserData 不再因时间戳提前返回）
+  - 修复上传/下载 Toast 只显示课进度，现展示积分/装备/宠物/错题等全部信息
+  - 🆕 云存档上传先读云端，积分/装备/进度/宠物碎片/错题取最大值合并后上传（防止低分覆盖高分）
+  - v702 更新：修复云端存档上传后下载不回来的问题（saveToCloud 增加返回状态检查）-->
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   
@@ -2851,6 +2856,15 @@ async function manualCloudUpload() {
   if (label) { label.textContent = '上传中...'; label.style.color = '#60a5fa'; }
 
   try {
+    // v703: 读取宠物碎片数据（与 saveUserData 保持一致）
+    var petPieces = {};
+    try {
+      var petStateStr = localStorage.getItem('petSystemStateV2_' + gameState.studentId);
+      if (petStateStr) {
+        var petState = JSON.parse(petStateStr);
+        petPieces = petState.pieces || {};
+      }
+    } catch(e) {}
     // 先确保本地已保存
     var data = {
       totalPoints: gameState.totalPoints || 0,
@@ -2858,6 +2872,7 @@ async function manualCloudUpload() {
       unlockedAchievements: gameState.unlockedAchievements || [],
       equipment: gameState.equipment || [],
       equipDropped: gameState.equipDropped || {},
+      petPieces: petPieces,
       wrongQuestions: gameState.wrongQuestions || [],
       syncedWrongQuestions: gameState.syncedWrongQuestions || [],
       cloudQBank: gameState.cloudQBank || {},
@@ -2873,12 +2888,69 @@ async function manualCloudUpload() {
     };
     // 保存到本地
     localStorage.setItem('scienceGame_user_' + gameState.studentId, JSON.stringify(data));
-    // 等待云端保存完成（v702: 检查返回值，只有真正成功才显示成功）
-    var saveOk = await saveToCloud(gameState.studentId, data);
     
+    // 🆕 v703+: 上传前先读取云端数据，取最大值合并，防止低分覆盖高分
+    var cloudData = await loadFromCloud(gameState.studentId);
+    if (cloudData) {
+      // 积分取最大值
+      data.totalPoints = Math.max(data.totalPoints || 0, cloudData.totalPoints || 0);
+      data.totalQuestionsAnswered = Math.max(data.totalQuestionsAnswered || 0, cloudData.totalQuestionsAnswered || 0);
+      data.totalCorrectAnswers = Math.max(data.totalCorrectAnswers || 0, cloudData.totalCorrectAnswers || 0);
+      // 塔数据取最大值
+      data.towerHighestFloor = Math.max(data.towerHighestFloor || 0, cloudData.towerHighestFloor || 0);
+      data.towerCoins = Math.max(data.towerCoins || 0, cloudData.towerCoins || 0);
+      // 体力取最大值
+      data.dailyStamina = Math.max(data.dailyStamina || 0, cloudData.dailyStamina || 0);
+      // 课时进度：合并并集，每课取最大值
+      var lpLocal = data.lessonProgress || {};
+      var lpCloud = cloudData.lessonProgress || {};
+      var allLessonKeys = new Set([].concat(Object.keys(lpLocal), Object.keys(lpCloud)));
+      if (allLessonKeys.size > 0) {
+        data.lessonProgress = {};
+        allLessonKeys.forEach(function(key) {
+          data.lessonProgress[key] = Math.max(lpLocal[key] || 0, lpCloud[key] || 0);
+        });
+      }
+      // 装备：合并去重（id为key）
+      if (cloudData.equipment) {
+        var equipMap = {};
+        (data.equipment || []).concat(cloudData.equipment || []).forEach(function(e) { if (e && e.id) equipMap[e.id] = e; });
+        data.equipment = Object.values(equipMap);
+      }
+      // 成就：并集去重
+      var achSet = new Set([].concat(data.unlockedAchievements || [], cloudData.unlockedAchievements || []));
+      data.unlockedAchievements = Array.from(achSet);
+      // 错题：合并去重
+      if (cloudData.wrongQuestions) {
+        var wqMap = {};
+        (data.wrongQuestions || []).concat(cloudData.wrongQuestions || []).forEach(function(wq) {
+          if (wq) wqMap[wq.question + '|' + wq.correctAnswer] = wq;
+        });
+        data.wrongQuestions = Object.values(wqMap);
+      }
+      // 宠物碎片：合并（云端 + 本地，本地优先）
+      if (cloudData.petPieces) {
+        data.petPieces = Object.assign({}, cloudData.petPieces, data.petPieces || {});
+      }
+      // 更新最新时间戳
+      data.lastUpdated = Date.now();
+    }
+    
+    // 等待云端保存完成
+    var saveOk = await saveToCloud(gameState.studentId, data);
     if (saveOk) {
       var progressCount = Object.values(data.lessonProgress || {}).filter(function(v) { return v >= 1; }).length;
-      showToast('☁️ 上传成功！已保存 ' + progressCount + ' 课进度，到学校点"下载"即可恢复', 'success', 5000);
+      var eqCount = (data.equipment || []).filter(function(e) { return e !== null; }).length;
+      var wqCount = (data.wrongQuestions || []).length;
+      var petPieceCount = Object.keys(data.petPieces || {}).reduce(function(s,k) { return s + (data.petPieces[k] || 0); }, 0);
+      var parts = ['☁️ 上传成功！'];
+      parts.push('📊积分:' + (data.totalPoints || 0));
+      if (progressCount > 0) parts.push('📖' + progressCount + '课');
+      if (eqCount > 0) parts.push('🎒' + eqCount + '件装备');
+      if (petPieceCount > 0) parts.push('🐾' + petPieceCount + '碎片');
+      if (wqCount > 0) parts.push('❌' + wqCount + '错题');
+      parts.push('到学校点"下载"即可恢复');
+      showToast(parts.join(' '), 'success', 5000);
       if (label) { label.textContent = '✅ 已上传'; label.style.color = '#4ade80'; }
     } else {
       showToast('❌ 上传失败：服务器暂不可用，请稍后重试，本地数据已保存', 'error', 5000);
@@ -2940,7 +3012,16 @@ async function manualCloudDownload() {
     // 同步回云端（让云端也保持最新）
     await saveToCloud(gameState.studentId, merged);
     var progressCount = Object.values(merged.lessonProgress || {}).filter(function(v) { return v >= 1; }).length;
-    showToast('📥 下载成功！已恢复 ' + progressCount + ' 课进度', 'success', 4000);
+    var eqCount = (merged.equipment || []).filter(function(e) { return e !== null; }).length;
+    var wqCount = (merged.wrongQuestions || []).length;
+    var petPieceCount = Object.keys(merged.petPieces || {}).reduce(function(s,k) { return s + (merged.petPieces[k] || 0); }, 0);
+    var parts = ['📥 下载成功！'];
+    parts.push('📊积分:' + (merged.totalPoints || 0));
+    if (progressCount > 0) parts.push('📖' + progressCount + '课');
+    if (eqCount > 0) parts.push('🎒' + eqCount + '件装备');
+    if (petPieceCount > 0) parts.push('🐾' + petPieceCount + '碎片');
+    if (wqCount > 0) parts.push('❌' + wqCount + '错题');
+    showToast(parts.join(' '), 'success', 4000);
     if (label) { label.textContent = '✅ 已下载'; label.style.color = '#4ade80'; }
     setTimeout(function() {
       var lbl = document.getElementById('downloadCloudLabel');
@@ -3668,13 +3749,20 @@ function practiceWrongQuestions() {
 function mergeUserData(localData, cloudData) {
   if (!cloudData) return localData;
   if (!localData) return cloudData;
+  // v703: 始终合并全部字段，不因时间戳提前返回
+  // （修复跨设备登录时 loadUserData 先调 applyUserData→saveUserData 刷新了本地 lastUpdated，导致云端数据被丢弃的bug）
   const localTs = localData.lastUpdated || 0;
   const cloudTs = cloudData.lastUpdated || 0;
-  if (cloudTs <= localTs) return localData;
+  // 以云端为基底（云端的标量字段优先）
   const merged = { ...cloudData };
+  // 积分取最大值（不因云端版本旧而降低）
+  merged.totalPoints = Math.max(localData.totalPoints || 0, cloudData.totalPoints || 0);
+  merged.totalQuestionsAnswered = Math.max(localData.totalQuestionsAnswered || 0, cloudData.totalQuestionsAnswered || 0);
+  merged.totalCorrectAnswers = Math.max(localData.totalCorrectAnswers || 0, cloudData.totalCorrectAnswers || 0);
+  merged.dailyStamina = Math.max(localData.dailyStamina || 0, cloudData.dailyStamina || 0);
   if (cloudData.equipment || localData.equipment) {
     const equipMap = {};
-    [...(localData.equipment || []), ...(cloudData.equipment || [])].forEach(e => { equipMap[e.id] = e; });
+    [...(localData.equipment || []), ...(cloudData.equipment || [])].forEach(e => { if(e) equipMap[e.id] = e; });
     merged.equipment = Object.values(equipMap);
   }
   if (cloudData.unlockedAchievements || localData.unlockedAchievements) {
