@@ -1,22 +1,42 @@
 /**
- * cloud-config.js - 云存储配置模块
+ * cloud-config.js - 云存储配置模块 v4
  * 
- * 使用自建 API (腾讯云轻量服务器) 通过 Cloudflare Tunnel 代理
+ * 使用 Cloudflare Tunnel 代理绕过 DNSPod 域名拦截
  * 
- * Tunnel URL 变化时需更新 TUNNEL_API_BASE
- * 当前 tunnel 地址: 服务器上 systemctl status cloudflared-tunnel 查看
+ * 自动发现机制：
+ * 1. 页面加载时从 tunnel-config.json 获取最新 tunnel URL
+ * 2. 如果获取失败，使用内置 fallback URL
+ * 3. 服务器 cron 每 5 分钟更新 tunnel-config.json
  * 
- * v3: Cloudflare Tunnel 代理，绕过 DNSPod 域名拦截
- * 优先级: Tunnel > 直连域名（ICP 备案后生效）
+ * ICP 备案完成后，改回 DIRECT_API_BASE 即可直连
  */
 
-// Cloudflare Tunnel 代理地址（服务器重启后可能变化，需更新）
+// 内置 fallback（服务器重启后可能变化，tunnel-config.json 会自动更新）
 const TUNNEL_API_BASE = 'https://hire-inserted-lying-camera.trycloudflare.com/api';
-// 直连域名备案后启用
+// 直连域名（ICP 备案后启用）
 const DIRECT_API_BASE = 'https://api.kexvefuxi.cn/api';
-// 当前生效的 API 地址
-const API_BASE = TUNNEL_API_BASE;
+// 当前生效的 API 地址（初始值，会被 initAPIConfig 更新）
+var API_BASE = TUNNEL_API_BASE;
 const FETCH_TIMEOUT = 8000; // 8 秒超时
+
+/** 页面加载时调用，从 tunnel-config.json 获取最新 API 地址 */
+async function initAPIConfig() {
+  try {
+    const res = await fetch('/tunnel-config.json?_=' + Date.now(), { cache: 'no-store' });
+    if (res.ok) {
+      const config = await res.json();
+      if (config.apiBase) {
+        API_BASE = config.apiBase;
+        console.log('[CloudConfig] 使用 tunnel API:', API_BASE);
+        return;
+      }
+    }
+  } catch (e) { /* fallback */ }
+  console.log('[CloudConfig] 使用 fallback API:', API_BASE);
+}
+
+// 脚本加载时自动初始化
+initAPIConfig();
 
 function setCloudKey(key) {}
 function getCloudKey() { return ''; }
