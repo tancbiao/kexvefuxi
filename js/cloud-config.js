@@ -1,17 +1,21 @@
 /**
  * cloud-config.js - 云存储配置模块
  * 
- * 使用自建 API (腾讯云轻量服务器)：
- * - 排行榜数据读写  
- * - 学生进度云同步
+ * 使用自建 API (腾讯云轻量服务器) 通过 Cloudflare Tunnel 代理
  * 
- * API 地址：https://api.kexvefuxi.cn (Let's Encrypt SSL)
- * 如遇连接问题，检查腾讯云安全组是否开放 443 端口
+ * Tunnel URL 变化时需更新 TUNNEL_API_BASE
+ * 当前 tunnel 地址: 服务器上 systemctl status cloudflared-tunnel 查看
  * 
- * v2: 所有 fetch 加 8 秒超时（AbortController），防止安全组封端口时页面卡死
+ * v3: Cloudflare Tunnel 代理，绕过 DNSPod 域名拦截
+ * 优先级: Tunnel > 直连域名（ICP 备案后生效）
  */
 
-const API_BASE = 'https://api.kexvefuxi.cn/api';
+// Cloudflare Tunnel 代理地址（服务器重启后可能变化，需更新）
+const TUNNEL_API_BASE = 'https://hire-inserted-lying-camera.trycloudflare.com/api';
+// 直连域名备案后启用
+const DIRECT_API_BASE = 'https://api.kexvefuxi.cn/api';
+// 当前生效的 API 地址
+const API_BASE = TUNNEL_API_BASE;
 const FETCH_TIMEOUT = 8000; // 8 秒超时
 
 function setCloudKey(key) {}
