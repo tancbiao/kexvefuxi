@@ -1,0 +1,20 @@
+name: Clear Pages Custom Domain
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  pages: write
+
+jobs:
+  clear-cname:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Unset custom domain from Pages
+        run: |
+          curl -X PUT \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/tancbiao/kexvefuxi/pages \
+            -d '{"cname":null}'
