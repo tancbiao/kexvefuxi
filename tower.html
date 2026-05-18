@@ -738,9 +738,9 @@ img.emoji { height: 1em; width: 1em; margin: 0 0.05em; vertical-align: -0.1em; }
     <div class="logo">🏰</div>
     <h1>科学爬塔</h1>
     <div class="sub">答对攻击 · 答错挨打 · 爬塔送神装</div>
-    <input class="login-input" id="loginInput" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="输入8位学号" autocomplete="off">
+    <input class="login-input" id="loginInput" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="输入8位学号" autocomplete="off" oninput="if(this.value.length===8) setTimeout(()=>doLogin(),100)">
     <div class="login-error" id="loginError"></div>
-    <button class="login-btn" onclick="doLogin()">🏰 开始爬塔</button>
+    <button class="login-btn" onclick="doLogin()" ontouchstart="this.style.opacity=0.7" ontouchend="this.style.opacity=1">🏰 开始爬塔</button>
   </div>
 </div>
 
@@ -1594,8 +1594,9 @@ function continueTower() {
 }
 
 function calcPlayerStats(sid) {
-  const equipList = getTowerEquipment();
-  const slots = getTowerEquipped();
+  const id = sid || studentId;
+  const equipList = getTowerEquipment(id);
+  const slots = getTowerEquipped(id);
 
   let equipATK = 0, equipHP = 0;
   const diabloBonus = { multiplier: 1.0, dropBonus: 0 };
@@ -1704,7 +1705,12 @@ function doLogin() {
   }
   err.textContent = '';
   studentId = id;
-  goHome();
+  try {
+    goHome();
+  } catch(e) {
+    console.error('goHome 出错:', e);
+    alert('登录出错: ' + e.message);
+  }
 }
 
 function goHome() {
@@ -1713,9 +1719,10 @@ function goHome() {
     return;
   }
 
-  const stats = calcPlayerStats(studentId);
-  const towerData = getTowerData(studentId);
-  const stamina = getTowerStamina(studentId);
+  try {
+    const stats = calcPlayerStats(studentId);
+    const towerData = getTowerData(studentId);
+    const stamina = getTowerStamina(studentId);
 
   // 开发测试：学号01200650登录时送两个神话装备（仅首次）
   if (studentId === '01200650' && typeof generateEquip === 'function') {
@@ -1776,6 +1783,10 @@ function goHome() {
   document.getElementById('btnHomeHeader').style.display = 'none';
   showScreen('Home');
   updateTopBar();
+  } catch(e) {
+    console.error('goHome 出错:', e);
+    alert('加载失败，请重试。错误：' + e.message);
+  }
 }
 
 // ============================================================
@@ -2688,9 +2699,10 @@ function saveDiabloEquipped(eq) {
 // 检测当前使用哪套装备系统
 let towerUseDiablo = false;
 
-function detectTowerEquipSystem() {
+function detectTowerEquipSystem(sid) {
+  const id = sid || studentId;
   // 优先用六年级装备
-  const g6 = getGrade6UserData(studentId);
+  const g6 = getGrade6UserData(id);
   const g6list = g6.equipment || [];
   if (g6list.filter(Boolean).length > 0) {
     towerUseDiablo = false;
@@ -2730,30 +2742,33 @@ function diabloToTowerEquip(dItem) {
   };
 }
 
-function getTowerEquipment() {
-  detectTowerEquipSystem();
+function getTowerEquipment(sid) {
+  const id = sid || studentId;
+  detectTowerEquipSystem(id);
   if (towerUseDiablo) {
     const diabloInv = getDiabloInventory();
     return diabloInv.map(d => diabloToTowerEquip(d));
   }
-  const data = getGrade6UserData(studentId);
+  const data = getGrade6UserData(id);
   return data.equipment || [];
 }
 
-function saveTowerEquipment(list) {
+function saveTowerEquipment(list, sid) {
+  const id = sid || studentId;
   if (towerUseDiablo) {
     // 暗黑装备：只保存带有diablo标记的原始暗黑装备
     const diabloItems = list.filter(i => i && i.diablo);
     if (diabloItems.length > 0) saveDiabloInventory(diabloItems);
     return;
   }
-  const data = getGrade6UserData(studentId);
+  const data = getGrade6UserData(id);
   data.equipment = list;
-  saveGrade6UserData(studentId, data);
+  saveGrade6UserData(id, data);
 }
 
-function getTowerEquipped() {
-  detectTowerEquipSystem();
+function getTowerEquipped(sid) {
+  const id = sid || studentId;
+  detectTowerEquipSystem(id);
   if (towerUseDiablo) {
     // 暗黑装备的穿戴模式：slot名→itemId，转成索引模式
     const diabloEq = getDiabloEquipped();
@@ -2779,7 +2794,7 @@ function getTowerEquipped() {
     return slots;
   }
   try {
-    return JSON.parse(localStorage.getItem('bpEquipped_6_' + studentId)) ||
+    return JSON.parse(localStorage.getItem('bpEquipped_6_' + id)) ||
       { weapon: null, hat: null, top: null, bottom: null, glove: null, cape: null,
         shield: null, shoes: null, face: null, eyes: null, treasure: [null, null] };
   } catch(e) {
