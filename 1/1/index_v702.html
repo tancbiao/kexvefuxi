@@ -2796,7 +2796,7 @@ async function syncFromCloudData() {
     var grade = yearMap[yearCode] || '6';
     
     // 2. 拉取云端题库
-    var qbRes = await fetch('https://api.kexvefuxi.cn/api/questionbank/' + grade);
+    var qbRes = await fetch('https://api.xixitime.cn/api/questionbank/' + grade);
     var qbQuestions = [];
     if (qbRes.ok) {
       var qbData = await qbRes.json();
@@ -2821,7 +2821,7 @@ async function syncFromCloudData() {
     gameState.cloudQBank = Object.assign({}, gameState.cloudQBank || {}, qbDict);
     
     // 3. 拉取学生信息（含错题ID列表）
-    var infoRes = await fetch('https://api.kexvefuxi.cn/api/student/info/' + sid);
+    var infoRes = await fetch('https://api.xixitime.cn/api/student/info/' + sid);
     var syncedRecords = [];
     if (infoRes.ok) {
       var infoData = await infoRes.json();
