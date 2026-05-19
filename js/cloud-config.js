@@ -9,7 +9,7 @@
  * 如遇连接问题，检查腾讯云安全组是否开放 443 端口
  */
 
-const API_BASE = 'https://api.kexvefuxi.cn/api';
+const API_BASE = 'https://thanks-families-sweet-anytime.trycloudflare.com/api';
 
 function setCloudKey(key) {}
 function getCloudKey() { return ''; }
