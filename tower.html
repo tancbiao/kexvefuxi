@@ -1052,6 +1052,47 @@ function syncEquipmentToMainStorage(sid, equipList) {
   } catch(e) { console.warn('同步装备到主存储失败:', e); }
 }
 
+// v704: 爬塔装备云存档——同步到主页面存储后，也上传到云端
+// 独立模式下 saveToCloud 不可用，直接用 fetch 调用 API
+async function saveTowerToCloud(sid) {
+  if (!sid) return;
+  try {
+    var mainKey = 'scienceGame_user_' + sid;
+    var mainRaw = localStorage.getItem(mainKey);
+    if (!mainRaw) return;
+    var mainData = JSON.parse(mainRaw);
+    // 合并爬塔独有字段
+    var towerData = getTowerData(sid);
+    var grade6Data = getGrade6UserData(sid);
+    var cloudData = {
+      totalPoints: mainData.totalPoints || 0,
+      lessonProgress: mainData.lessonProgress || {},
+      unlockedAchievements: mainData.unlockedAchievements || [],
+      equipment: (mainData.equipment || []).filter(function(e) { return e !== null && e !== undefined; }),
+      equipDropped: mainData.equipDropped || {},
+      wrongQuestions: mainData.wrongQuestions || [],
+      totalQuestionsAnswered: mainData.totalQuestionsAnswered || 0,
+      totalCorrectAnswers: mainData.totalCorrectAnswers || 0,
+      dailyStamina: getTowerStamina(sid),
+      lastStaminaDate: (function() {
+        try { var s = JSON.parse(localStorage.getItem('towerStamina6_' + sid)); return s ? s.lastDate : ''; } catch(e) { return ''; }
+      })(),
+      towerHighestFloor: towerData.highestFloor || 0,
+      towerCoins: towerData.totalTowerCoins || 0,
+      lastUpdated: Date.now()
+    };
+    // 上传到云端 API
+    var res = await fetch('https://api.xixitime.cn/api/student/grade_all/' + sid, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cloudData)
+    });
+    if (res.ok) {
+      console.log('☁️ 爬塔装备已云存档:', (cloudData.equipment || []).length, '件装备');
+    }
+  } catch(e) { console.warn('爬塔装备云存档失败:', e); }
+}
+
 function getTotalPoints() {
   try {
     const key = 'scienceGame6_user_' + studentId;
@@ -2484,6 +2525,7 @@ function onMonsterDefeated() {
         saveGrade6UserData(studentId, data);
         // 🆕 独立模式也同步到主页面存储
         syncEquipmentToMainStorage(studentId, data.equipment);
+        saveTowerToCloud(studentId); // v704: 爬塔装备立即云存档
         syncToParent('drop'); // 🆕 v610: 实时同步装备掉落
         setBattleLog(`📦 怪物掉落了装备：${equip.name}（${(dropChance*100).toFixed(1)}%概率）`);
         droppedEquip = { equip, equipIdx: idx };
@@ -2592,6 +2634,7 @@ function onGameOver() {
   saveGrade6UserData(studentId, grade6Data);
   // 🆕 游戏结束同步装备到主页面存储
   if (grade6Data.equipment) syncEquipmentToMainStorage(studentId, grade6Data.equipment);
+  saveTowerToCloud(studentId); // v704: 游戏结束装备云存档
 
   // 通知父页面积分变动（iframe 模式）
   notifyTowerChange();

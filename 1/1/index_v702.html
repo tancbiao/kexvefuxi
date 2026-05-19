@@ -1792,8 +1792,8 @@ function loginWithId() {
   localStorage.setItem('rememberedStudentId', id);
   // v606: 清除宠物系统的旧 localStorage 防止串号（保留当前学号的 key）
   clearOtherPetLocalStorage(id);
+  // v704: pushRankingData 移到 loadUserData 内异步执行，等云端数据加载后再推送
   loadUserData();
-  pushRankingData();
   checkAndResetStamina();
   updateStaminaDisplay();
   updateStatusBar();
@@ -4096,6 +4096,8 @@ function loadUserData() {
       }
     });
   }).finally(function() {
+    // v704: 云端数据加载完成后才推送排行，避免 0 分覆盖云端
+    pushRankingData();
     // 领取待发放奖励（称号/装备/宠物）
     if (typeof collectPendingRewards === 'function') {
       collectPendingRewards(gameState.studentId, showAchievementUnlock);
@@ -4843,6 +4845,19 @@ async function pushRankingData() {
       mythicCount: mythicCount,                         // 🆕 v610
       lastUpdated: Date.now()
     };
+
+    // v704: 安全守卫——如果本地数据全空，先查云端是否已有记录，避免 0 分覆盖
+    if (data.totalPoints === 0) {
+      try {
+        var existingRanking = await getRanking(RANKING_GRADE_KEY);
+        var existing = existingRanking && existingRanking[gameState.studentId];
+        if (existing && existing.totalPoints > 0) {
+          console.log('🔒 排行榜已有数据(积分:' + existing.totalPoints + ')，跳过 0 分推送');
+          return;
+        }
+      } catch(e) {}
+    }
+
     await updateRanking(RANKING_GRADE_KEY, gameState.studentId, data);
   } catch(e) { console.error('推送排名数据失败:', e); }
 }
