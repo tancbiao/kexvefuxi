@@ -21205,8 +21205,8 @@ function showScreen(screenId) {
         // 强制显示：内联样式覆盖所有 CSS 规则
         el.style.cssText = 'display:block !important; opacity:1 !important; position:relative !important; min-height:500px !important; height:auto !important; width:100% !important; visibility:visible !important; z-index:10 !important; overflow:visible !important';
     }
-} (debug: add console.log to trace levelScreen blank issue)
 }
+// debug: add console.log to trace levelScreen blank issue
 
 function showLoginScreen() { document.getElementById('loginOverlay').classList.add('show'); }
 function hideLoginScreen() { document.getElementById('loginOverlay').classList.remove('show'); }
@@ -21314,7 +21314,6 @@ var key = 'QUESTION_BANK_' + grade + '_' + sem + '_LESSONS';
 
 
 
- (debug: add console.log to trace levelScreen blank issue)
     if (window[key]) {
       Object.assign(questionData, window[key]);
     }
@@ -21331,11 +21330,10 @@ var key = 'QUESTION_BANK_' + grade + '_' + sem + '_LESSONS';
     _lessonsLoaded = true;
     renderLevelGrid();
     showScreen('levelScreen');
+    script.onerror = function() {
+      if (grid) grid.innerHTML = '<div style="text-align:center;padding:40px;color:#ff6b6b;">题库加载失败: ' + dataFile + '</div>';
   };
-  script.onerror = function() {
-    if (grid) grid.innerHTML = '<div style="text-align:center;padding:40px;color:#ff6b6b;">题库加载失败: ' + dataFile + '</div>';
-  };
-  document.head.appendChild(script);
+    document.head.appendChild(script);
 }
 
 // 返回选课界面
@@ -21375,7 +21373,6 @@ function renderLevelGrid() {
 
 
 
- (debug: add console.log to trace levelScreen blank issue)
   grid.innerHTML = '';
   
   for (const [unitKey, unit] of Object.entries(questionData)) {

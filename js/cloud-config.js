@@ -5,11 +5,11 @@
  * - 排行榜数据读写  
  * - 学生进度云同步
  * 
- * API 地址：https://api.kexvefuxi.cn (Let's Encrypt SSL)
- * 如遇连接问题，检查腾讯云安全组是否开放 443 端口
+ * API 地址：https://api.xixitime.cn (Let's Encrypt SSL)
+ * 备用：https://api.kexvefuxi.cn (同一证书，同指向)
  */
 
-const API_BASE = 'https://hourly-highest-lips-beneath.trycloudflare.com/api';
+const API_BASE = 'https://api.xixitime.cn/api';
 
 function setCloudKey(key) {}
 function getCloudKey() { return ''; }
