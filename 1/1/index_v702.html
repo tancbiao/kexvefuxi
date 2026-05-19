@@ -4860,6 +4860,11 @@ function closeRanking() {
 
 // ====== 爬塔弹窗 ======
 function showTowerModal() {
+  // 🆕 v704: 未登录时先弹登录窗，防止爬塔iframe空页面
+  if (!gameState.studentId || gameState.isGuest) {
+    showLoginScreen();
+    return;
+  }
   const modal = document.getElementById('towerModal');
   const iframe = document.getElementById('towerIframe');
   modal.classList.add('show');
