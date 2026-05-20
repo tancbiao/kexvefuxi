@@ -1025,6 +1025,7 @@ v704 更新：修复爬塔空白页 - showTowerModal 增加登录检查，未登
   max-width: 900px;
   width: 95%;
   max-height: 90vh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -1041,8 +1042,7 @@ v704 更新：修复爬塔空白页 - showTowerModal 增加登录检查，未登
 }
 .tower-modal-close:hover { background: rgba(255,255,255,0.2); }
 .tower-modal iframe {
-  width: 100%; height: 100%;
-  min-height: 600px;
+  width: 100%; flex: 1; min-height: 0;
   border: none; display: block;
   border-radius: 12px;
 }
@@ -1065,6 +1065,7 @@ v704 更新：修复爬塔空白页 - showTowerModal 增加登录检查，未登
   max-width: 900px;
   width: 95%;
   max-height: 90vh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -1081,8 +1082,7 @@ v704 更新：修复爬塔空白页 - showTowerModal 增加登录检查，未登
 }
 .ladder-modal-close:hover { background: rgba(255,255,255,0.2); }
 .ladder-modal iframe {
-  width: 100%; height: 100%;
-  min-height: 600px;
+  width: 100%; flex: 1; min-height: 0;
   border: none; display: block;
   border-radius: 12px;
 }

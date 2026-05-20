@@ -13,8 +13,12 @@ body {
   min-height: 100vh;
   color: #fff;
   overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   user-select: none;
 }
+body::-webkit-scrollbar { width: 8px; }
+body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 4px; }
 
 /* ========== 顶部状态栏 ========== */
 .top-bar {
