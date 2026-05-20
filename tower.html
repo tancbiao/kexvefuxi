@@ -711,6 +711,160 @@ body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius
 /* v612: Twemoji 表情尺寸 */
 img.emoji { height: 1em; width: 1em; margin: 0 0.05em; vertical-align: -0.1em; }
 
+/* ========== 盲盒商城 ========== */
+.shop-panel {
+  padding: 16px;
+  animation: fadeIn 0.3s ease;
+}
+.shop-title {
+  text-align: center;
+  font-size: 1.3em;
+  font-weight: bold;
+  margin-bottom: 6px;
+  color: #ffd700;
+}
+.shop-subtitle {
+  text-align: center;
+  font-size: 0.85em;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 16px;
+}
+.shop-coins {
+  text-align: center;
+  font-size: 1em;
+  color: #ffd700;
+  margin-bottom: 18px;
+  padding: 8px 12px;
+  background: rgba(255,215,0,0.08);
+  border-radius: 10px;
+  border: 1px solid rgba(255,215,0,0.15);
+}
+.box-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.box-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.box-card:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,215,0,0.3);
+}
+.box-card-icon {
+  font-size: 2em;
+  flex-shrink: 0;
+}
+.box-card-info {
+  flex: 1;
+  min-width: 0;
+}
+.box-card-name {
+  font-size: 1em;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 2px;
+}
+.box-card-range {
+  font-size: 0.78em;
+  color: rgba(255,255,255,0.45);
+}
+.box-card-price {
+  font-size: 1em;
+  font-weight: bold;
+  color: #ffd700;
+  white-space: nowrap;
+}
+.box-card-status {
+  font-size: 0.78em;
+  color: #ff6b6b;
+  text-align: right;
+  min-width: 60px;
+}
+
+/* 开盒动画 */
+.box-opening-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 3000;
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+.box-opening-overlay.show { display: flex; }
+
+.box-treasure {
+  width: 120px; height: 120px;
+  background: radial-gradient(circle, #8b5cf6 0%, #4c1d95 100%);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3em;
+  animation: boxBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+@keyframes boxBounce {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.2); }
+  75% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+.box-result-panel {
+  display: none;
+  background: rgba(20,20,40,0.95);
+  border: 2px solid rgba(255,215,0,0.2);
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+  min-width: 280px;
+  max-width: 340px;
+  animation: fadeIn 0.3s ease;
+}
+.box-result-panel.show { display: block; }
+
+.box-result-name {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin: 8px 0 4px;
+}
+.box-result-rarity {
+  font-size: 0.85em;
+  margin-bottom: 12px;
+}
+.box-result-stats {
+  font-size: 0.85em;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+.box-result-slots {
+  font-size: 0.78em;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 12px;
+}
+.box-confirm-btn {
+  padding: 10px 32px;
+  background: linear-gradient(135deg, #ffd700, #ff8c00);
+  border: none;
+  border-radius: 10px;
+  color: #000;
+  font-weight: bold;
+  font-size: 1em;
+  cursor: pointer;
+  font-family: inherit;
+}
+.box-confirm-btn:hover { opacity: 0.9; transform: scale(1.03); }
+
 </style>
 </head>
 <body>
@@ -797,6 +951,7 @@ img.emoji { height: 1em; width: 1em; margin: 0 0.05em; vertical-align: -0.1em; }
   <div class="home-btn-row">
     <button onclick="showTowerBackpack()">🎒 装备</button>
     <button onclick="showTowerPet()">🐾 宠物</button>
+    <button onclick="showTowerShop()">🎁 商城</button>
   </div>
 
   <div class="home-ranking" id="homeRanking">
@@ -3288,6 +3443,172 @@ document.addEventListener('keydown', (e) => {
 });
 
 updateTopBar();
+
+// ==================== 盲盒商城系统 ====================
+var BLIND_BOX_TYPES = [
+  { id: 'common', name: '🟢 普通盲盒', icon: '📦', cost: 200, minRarity: 1, maxRarity: 3, desc: '普通~良好装备' },
+  { id: 'fine',   name: '🔵 精致盲盒', icon: '🎀', cost: 500, minRarity: 2, maxRarity: 4, desc: '精致~稀有装备' },
+  { id: 'rare',   name: '🟣 稀有盲盒', icon: '💠', cost: 1200, minRarity: 3, maxRarity: 5, desc: '良好~史诗装备' },
+  { id: 'epic',   name: '🟠 史诗盲盒', icon: '💎', cost: 2500, minRarity: 4, maxRarity: 6, desc: '稀有~传说装备' },
+  { id: 'legend', name: '🔴 传说盲盒', icon: '🔮', cost: 5000, minRarity: 5, maxRarity: 7, desc: '史诗~神话装备' }
+];
+
+function showTowerShop() {
+  if (!studentId) { alert('请先登录'); return; }
+  var td = getTowerData(studentId);
+  document.getElementById('shopCoinDisplay').textContent = '🪙 塔币: ' + (td.totalTowerCoins || 0).toLocaleString();
+  renderBoxGrid();
+  document.getElementById('btnHomeHeader').style.display = 'inline-block';
+  showScreen('Shop');
+}
+
+function renderBoxGrid() {
+  var td = getTowerData(studentId);
+  var coins = td.totalTowerCoins || 0;
+  var html = '';
+  BLIND_BOX_TYPES.forEach(function(box) {
+    var canBuy = coins >= box.cost;
+    html += '<div class="box-card" onclick="' + (canBuy ? "buyBlindBox('" + box.id + "')" : '') + '" style="' + (canBuy ? '' : 'opacity:0.5;cursor:not-allowed;') + '">' +
+      '<div class="box-card-icon">' + box.icon + '</div>' +
+      '<div class="box-card-info">' +
+        '<div class="box-card-name">' + box.name + '</div>' +
+        '<div class="box-card-range">' + box.desc + '</div>' +
+      '</div>' +
+      '<div class="box-card-price">🪙 ' + box.cost.toLocaleString() + '</div>' +
+      '<div class="box-card-status">' + (canBuy ? '' : '币不足') + '</div>' +
+    '</div>';
+  });
+  document.getElementById('boxGrid').innerHTML = html;
+}
+
+function buyBlindBox(boxId) {
+  if (!studentId) return;
+  var box = BLIND_BOX_TYPES.find(function(b) { return b.id === boxId; });
+  if (!box) return;
+
+  var td = getTowerData(studentId);
+  if ((td.totalTowerCoins || 0) < box.cost) {
+    alert('塔币不足！');
+    return;
+  }
+
+  // 扣币
+  td.totalTowerCoins -= box.cost;
+  saveTowerData(studentId, td);
+
+  // 随机稀有度
+  var rarity;
+  if (box.id === 'legend') {
+    // 传说盲盒加权：80%史诗(5) / 18%传说(6) / 2%神话(7)
+    var r = Math.random();
+    if (r < 0.02) rarity = 7;
+    else if (r < 0.20) rarity = 6;
+    else rarity = 5;
+  } else {
+    rarity = box.minRarity + Math.floor(Math.random() * (box.maxRarity - box.minRarity + 1));
+  }
+
+  // 生成装备
+  if (typeof generateEquip !== 'function') {
+    alert('装备系统未加载，请刷新重试');
+    td.totalTowerCoins += box.cost;
+    saveTowerData(studentId, td);
+    return;
+  }
+  var equip = generateEquip(rarity);
+
+  // 存入装备库
+  var gd = getGrade6UserData(studentId);
+  if (!gd.equipment) gd.equipment = new Array(100).fill(null);
+  var nullIdx = gd.equipment.indexOf(null);
+  if (nullIdx >= 0) gd.equipment[nullIdx] = equip;
+  else gd.equipment.push(equip);
+  saveGrade6UserData(studentId, gd);
+
+  // 同步到主页面 + 云存档
+  syncEquipmentToMainStorage(studentId, gd.equipment);
+  syncToParent('shop');
+  saveTowerToCloud(studentId).catch(function(){});
+
+  // 更新塔币显示 + 商城重绘
+  document.getElementById('shopCoinDisplay').textContent = '🪙 塔币: ' + (td.totalTowerCoins || 0).toLocaleString();
+  document.getElementById('statTowerPoints').textContent = td.totalTowerCoins || 0;
+  updateTopBar();
+  renderBoxGrid();
+
+  // 开盒动画
+  showBoxOpening(equip);
+}
+
+function showBoxOpening(equip) {
+  document.getElementById('boxTreasureIcon').textContent = '🎁';
+  document.getElementById('boxResultPanel').classList.remove('show');
+  document.getElementById('boxAnimContainer').style.display = 'flex';
+  document.getElementById('boxOpeningOverlay').classList.add('show');
+
+  // 动画：宝箱抖动 → 打开
+  setTimeout(function() {
+    document.getElementById('boxTreasureIcon').textContent = '✨';
+  }, 600);
+  setTimeout(function() {
+    document.getElementById('boxAnimContainer').style.display = 'none';
+    showBoxResult(equip);
+  }, 1200);
+}
+
+function showBoxResult(equip) {
+  var rarityNames = ['','普通','精致','良好','稀有','史诗','传说','神话'];
+  var rarityColors = ['','#9e9e9e','#4caf50','#2196f3','#9c27b0','#e91e63','#ffd700','#ff6600'];
+  var r = equip.rarity || 1;
+
+  document.getElementById('boxResultIcon').textContent = equip.icon || '🎒';
+  document.getElementById('boxResultName').textContent = equip.name || '未知装备';
+  document.getElementById('boxResultName').style.color = rarityColors[r] || '#fff';
+  document.getElementById('boxResultRarity').textContent = '⭐ ' + (rarityNames[r] || '普通');
+  document.getElementById('boxResultRarity').style.color = rarityColors[r] || '#fff';
+
+  var stats = [];
+  if (equip.str) stats.push('⚔️ 力量 +' + equip.str);
+  if (equip.dex) stats.push('🏃 敏捷 +' + equip.dex);
+  if (equip.int) stats.push('🧠 智力 +' + equip.int);
+  if (equip.hp)  stats.push('❤️ 生命 +' + equip.hp);
+  if (equip.mp)  stats.push('💧 魔力 +' + equip.mp);
+  document.getElementById('boxResultStats').textContent = stats.join('  ') || '无属性';
+  document.getElementById('boxResultSlots').textContent = '槽位: ' + (equip.slot || '未知') + '  |  倍率: ×' + (equip.multiplier ? equip.multiplier.toFixed(2) : '1.00');
+
+  document.getElementById('boxResultPanel').classList.add('show');
+}
+
+function closeBoxOpening() {
+  document.getElementById('boxOpeningOverlay').classList.remove('show');
+  document.getElementById('boxAnimContainer').style.display = 'flex';
+  document.getElementById('boxResultPanel').classList.remove('show');
+}
+
 </script>
+<!-- ========== 盲盒商城弹窗 ========== -->
+<div class="screen" id="screenShop">
+  <div class="shop-panel">
+    <div class="shop-title">🎁 装备盲盒商城</div>
+    <div class="shop-subtitle">用爬塔获得的塔币购买随机装备</div>
+    <div class="shop-coins" id="shopCoinDisplay">🪙 塔币: 0</div>
+    <div class="box-grid" id="boxGrid"></div>
+    <button class="btn-home" onclick="goHome()" style="margin-top:16px;background:rgba(255,255,255,0.06);">🏠 返回首页</button>
+  </div>
+</div>
+<!-- 开盒动画 -->
+<div class="box-opening-overlay" id="boxOpeningOverlay">
+  <div id="boxAnimContainer">
+    <div class="box-treasure" id="boxTreasure"><span id="boxTreasureIcon">🎁</span></div>
+  </div>
+  <div class="box-result-panel" id="boxResultPanel">
+    <div id="boxResultIcon" style="font-size:3em;margin-bottom:8px;">🎒</div>
+    <div class="box-result-name" id="boxResultName"></div>
+    <div class="box-result-rarity" id="boxResultRarity"></div>
+    <div class="box-result-stats" id="boxResultStats"></div>
+    <div class="box-result-slots" id="boxResultSlots"></div>
+    <button class="box-confirm-btn" onclick="closeBoxOpening()">确认</button>
+  </div>
+</div>
 </body>
 </html>
