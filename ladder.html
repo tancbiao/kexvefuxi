@@ -1,0 +1,1878 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>天梯挑战 · 西西时光</title>
+<style>
+/* ========== 基础重置 ========== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: "微软雅黑", "PingFang SC", sans-serif;
+  background: linear-gradient(135deg, #0a0a1a 0%, #1a0a2e 40%, #0f1629 100%);
+  min-height: 100vh;
+  color: #fff;
+  overflow-x: hidden;
+  user-select: none;
+}
+
+/* ========== 动画 ========== */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+@keyframes glow {
+  0%,100% { box-shadow: 0 0 10px rgba(255,215,0,0.3); }
+  50% { box-shadow: 0 0 25px rgba(255,215,0,0.6); }
+}
+@keyframes floatUp {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-60px) scale(1.5); }
+}
+@keyframes tierUpgrade {
+  0% { transform: scale(1); filter: brightness(1); }
+  30% { transform: scale(1.3); filter: brightness(2); }
+  60% { transform: scale(0.95); filter: brightness(1.2); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+@keyframes scoreChange {
+  0% { opacity: 0; transform: translateY(20px); }
+  20% { opacity: 1; transform: translateY(0); }
+  80% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-30px); }
+}
+
+/* ========== 顶部状态栏 ========== */
+.top-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background: rgba(10,10,30,0.85);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  font-size: 0.85em;
+  min-height: 48px;
+}
+.top-bar .tb-left { display: flex; gap: 14px; align-items: center; }
+.top-bar .tb-right { display: flex; gap: 12px; align-items: center; }
+.tb-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: rgba(255,255,255,0.7);
+}
+.tb-item .tb-val {
+  font-weight: bold;
+  color: #ffd700;
+}
+.tb-btn {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85em;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.tb-btn:hover { background: rgba(255,255,255,0.15); }
+
+/* ========== 主容器 ========== */
+.main-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding-top: 60px;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* ========== 通用屏幕 ========== */
+.screen { display: none; padding: 20px; animation: fadeIn 0.3s ease; }
+.screen.active { display: block; }
+
+/* ========== 登录页 ========== */
+.login-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+  text-align: center;
+}
+.login-logo { font-size: 72px; margin-bottom: 16px; }
+.login-title {
+  font-size: 2em;
+  margin-bottom: 8px;
+  background: linear-gradient(90deg, #ffd700, #ff6b6b, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.login-sub { color: rgba(255,255,255,0.5); margin-bottom: 30px; font-size: 0.9em; }
+.login-input {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  padding: 14px 20px;
+  width: 260px;
+  font-size: 1.2em;
+  text-align: center;
+  color: #fff;
+  outline: none;
+  font-family: inherit;
+  letter-spacing: 4px;
+  transition: border-color 0.3s;
+}
+.login-input:focus { border-color: #ffd700; }
+.login-input::placeholder { letter-spacing: 0; color: rgba(255,255,255,0.3); font-size: 0.8em; }
+.login-btn {
+  margin-top: 20px;
+  background: linear-gradient(135deg, #ffd700, #ff8c00);
+  border: none;
+  padding: 14px 50px;
+  border-radius: 30px;
+  font-size: 1.1em;
+  font-weight: bold;
+  color: #1a1a2e;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: inherit;
+}
+.login-btn:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(255,215,0,0.4); }
+.login-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.login-error { color: #ff6b6b; font-size: 0.85em; margin-top: 10px; min-height: 24px; }
+.login-grade-info {
+  margin-top: 12px;
+  padding: 8px 20px;
+  background: rgba(255,215,0,0.1);
+  border: 1px solid rgba(255,215,0,0.2);
+  border-radius: 10px;
+  font-size: 0.9em;
+  color: #ffd700;
+  display: none;
+}
+
+/* ========== 首页 ========== */
+.home-header {
+  text-align: center;
+  padding: 20px 0;
+}
+.home-avatar {
+  font-size: 60px;
+  margin-bottom: 8px;
+}
+.home-grade {
+  font-size: 0.85em;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 4px;
+}
+.home-name {
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #ffd700;
+}
+
+/* 段位徽章 */
+.tier-badge-section {
+  text-align: center;
+  padding: 10px 0 20px;
+}
+.tier-badge {
+  display: inline-block;
+  padding: 16px 32px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.05);
+  border: 2px solid rgba(255,255,255,0.1);
+  transition: all 0.3s;
+}
+.tier-badge .tier-icon { font-size: 48px; display: block; margin-bottom: 6px; }
+.tier-badge .tier-name { font-size: 1.4em; font-weight: bold; }
+.tier-badge .tier-sub { font-size: 0.85em; color: rgba(255,255,255,0.6); }
+.tier-badge .tier-range { font-size: 0.75em; color: rgba(255,255,255,0.4); margin-top: 4px; }
+
+/* 积分面板 */
+.score-panel {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.score-card {
+  flex: 1;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 14px;
+  text-align: center;
+}
+.score-card .sc-label { font-size: 0.75em; color: rgba(255,255,255,0.5); margin-bottom: 6px; }
+.score-card .sc-value { font-size: 1.5em; font-weight: bold; color: #ffd700; }
+.score-card .sc-sub { font-size: 0.7em; color: rgba(255,255,255,0.4); margin-top: 4px; }
+
+/* 统计面板 */
+.stats-panel {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+.stats-panel h3 {
+  font-size: 0.8em;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 10px;
+}
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 0.9em;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.stat-row:last-child { border-bottom: none; }
+.stat-label { color: rgba(255,255,255,0.55); }
+.stat-value.win { color: #4ade80; font-weight: bold; }
+.stat-value.lose { color: #ff6b6b; font-weight: bold; }
+.stat-value.rate { color: #a78bfa; font-weight: bold; }
+
+/* 首页按钮 */
+.home-buttons { display: flex; gap: 12px; margin-bottom: 20px; }
+.btn-primary {
+  flex: 1;
+  background: linear-gradient(135deg, #ffd700, #ff8c00);
+  border: none;
+  padding: 16px 24px;
+  border-radius: 14px;
+  font-size: 1.1em;
+  font-weight: bold;
+  color: #1a1a2e;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: inherit;
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(255,215,0,0.3); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+.btn-secondary {
+  flex: 1;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  padding: 16px 24px;
+  border-radius: 14px;
+  font-size: 1em;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: inherit;
+}
+.btn-secondary:hover { background: rgba(255,255,255,0.12); }
+
+/* 每日剩余提示 */
+.daily-limit-info {
+  text-align: center;
+  font-size: 0.8em;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 16px;
+}
+.daily-limit-info .remaining { color: #4ade80; font-weight: bold; }
+.daily-limit-info .exhausted { color: #ff6b6b; }
+
+/* 连败连胜标签 */
+.streak-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  font-weight: bold;
+  margin-left: 8px;
+}
+.streak-badge.win { background: rgba(74,222,128,0.2); color: #4ade80; }
+.streak-badge.lose { background: rgba(255,107,107,0.2); color: #ff6b6b; }
+
+/* ========== 挑战页 ========== */
+.challenge-header {
+  text-align: center;
+  margin-bottom: 16px;
+}
+.challenge-progress {
+  font-size: 0.85em;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 8px;
+}
+.challenge-timer-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.challenge-timer {
+  font-size: 1.8em;
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+  transition: color 0.3s;
+}
+.challenge-timer.normal { color: #ffd700; }
+.challenge-timer.warning { color: #ff8c00; animation: pulse 1s infinite; }
+.challenge-timer.danger { color: #ff4444; animation: pulse 0.5s infinite; }
+.challenge-timer-icon { font-size: 1.4em; }
+
+.question-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 16px;
+  min-height: 120px;
+}
+.question-card .q-text {
+  font-size: 1.05em;
+  line-height: 1.7;
+  color: rgba(255,255,255,0.9);
+}
+.question-card .q-text img {
+  max-width: 100%;
+  max-height: 220px;
+  border-radius: 8px;
+  margin: 8px 0;
+}
+.question-card .q-material {
+  font-size: 0.85em;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.options-list { display: flex; flex-direction: column; gap: 10px; }
+.option-btn {
+  width: 100%;
+  text-align: left;
+  background: rgba(255,255,255,0.06);
+  border: 2px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 14px 18px;
+  font-size: 1em;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.option-btn:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,215,0,0.3); }
+.option-btn:disabled { cursor: default; }
+.option-btn.correct {
+  background: rgba(74,222,128,0.2) !important;
+  border-color: #4ade80 !important;
+  animation: pulse 0.3s ease;
+}
+.option-btn.wrong {
+  background: rgba(255,107,107,0.2) !important;
+  border-color: #ff6b6b !important;
+  animation: shake 0.4s ease;
+}
+.option-btn.show-correct {
+  border-color: #4ade80 !important;
+  opacity: 0.7;
+}
+.option-label {
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.1);
+  border-radius: 8px;
+  font-size: 0.85em;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+.option-text { flex: 1; }
+
+.challenge-next {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+.challenge-fail-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(255,0,0,0.08);
+  z-index: 150;
+  pointer-events: none;
+  animation: fadeIn 0.3s ease;
+  display: none;
+}
+.challenge-fail-overlay.show { display: block; }
+
+/* ========== 结算页 ========== */
+.result-container { text-align: center; padding: 20px 0; }
+.result-icon { font-size: 80px; display: block; margin-bottom: 16px; }
+.result-icon.win { animation: tierUpgrade 0.8s ease; }
+.result-icon.lose { animation: shake 0.6s ease; }
+.result-title { font-size: 1.6em; font-weight: bold; margin-bottom: 8px; }
+.result-title.win { color: #4ade80; }
+.result-title.lose { color: #ff6b6b; }
+.result-subtitle { color: rgba(255,255,255,0.5); font-size: 0.9em; margin-bottom: 20px; }
+
+.score-change-box {
+  display: inline-block;
+  padding: 20px 40px;
+  border-radius: 16px;
+  margin-bottom: 16px;
+  animation: slideUp 0.5s ease;
+}
+.score-change-box.win {
+  background: rgba(74,222,128,0.1);
+  border: 2px solid rgba(74,222,128,0.3);
+}
+.score-change-box.lose {
+  background: rgba(255,107,107,0.1);
+  border: 2px solid rgba(255,107,107,0.3);
+}
+.score-change-amount {
+  font-size: 2.5em;
+  font-weight: bold;
+}
+.score-change-amount.win { color: #4ade80; }
+.score-change-amount.lose { color: #ff6b6b; }
+.score-change-label { font-size: 0.8em; color: rgba(255,255,255,0.5); margin-top: 4px; }
+
+.tier-change-box {
+  padding: 12px 24px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  font-size: 0.95em;
+  animation: slideUp 0.6s ease;
+}
+.tier-change-box.upgrade {
+  background: rgba(255,215,0,0.1);
+  border: 1px solid rgba(255,215,0,0.3);
+  color: #ffd700;
+}
+.tier-change-box.downgrade {
+  background: rgba(255,107,107,0.1);
+  border: 1px solid rgba(255,107,107,0.3);
+  color: #ff6b6b;
+}
+.tier-change-box.same {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.5);
+}
+
+.result-detail {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+.result-detail .rd-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 0.9em;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.result-detail .rd-row:last-child { border-bottom: none; }
+.rd-label { color: rgba(255,255,255,0.55); }
+.rd-value { font-weight: bold; }
+
+/* ========== 排行榜弹窗 ========== */
+.overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.85);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+.overlay.show { display: flex; }
+.overlay-content {
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 20px;
+  width: 92%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 24px;
+  animation: slideUp 0.3s ease;
+}
+.overlay-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.overlay-header h2 { font-size: 1.3em; }
+.overlay-close {
+  background: none; border: none;
+  color: rgba(255,255,255,0.5);
+  font-size: 1.5em;
+  cursor: pointer;
+  padding: 4px 8px;
+  font-family: inherit;
+}
+.overlay-close:hover { color: #fff; }
+
+.ranking-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.ranking-tab {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.85em;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.ranking-tab:hover { background: rgba(255,255,255,0.1); }
+.ranking-tab.active { background: rgba(255,215,0,0.15); border-color: #ffd700; color: #ffd700; }
+
+.ranking-type-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.ranking-type-tab {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 0.85em;
+  text-align: center;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.ranking-type-tab.active { background: rgba(167,139,250,0.15); border-color: #a78bfa; color: #a78bfa; }
+
+.ranking-list { }
+.ranking-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  margin-bottom: 6px;
+  background: rgba(255,255,255,0.03);
+  transition: all 0.2s;
+}
+.ranking-item.mine { background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.2); }
+.rank-num {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 0.9em;
+  flex-shrink: 0;
+}
+.rank-num.top1 { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #1a1a2e; }
+.rank-num.top2 { background: linear-gradient(135deg, #c0c0c0, #a0a0a0); color: #1a1a2e; }
+.rank-num.top3 { background: linear-gradient(135deg, #cd7f32, #a0522d); color: #fff; }
+.rank-num.normal { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); }
+.rank-info { flex: 1; min-width: 0; }
+.rank-name { font-size: 0.95em; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rank-tier { font-size: 0.7em; color: rgba(255,255,255,0.4); }
+.rank-score { font-size: 1em; font-weight: bold; color: #ffd700; flex-shrink: 0; }
+.rank-rate { font-size: 1em; font-weight: bold; color: #a78bfa; flex-shrink: 0; }
+.ranking-empty {
+  text-align: center;
+  padding: 30px;
+  color: rgba(255,255,255,0.3);
+  font-size: 0.9em;
+}
+
+/* ========== Toast ========== */
+.toast {
+  position: fixed;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.85);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-size: 0.9em;
+  color: #fff;
+  z-index: 3000;
+  animation: slideUp 0.3s ease;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.toast.show { opacity: 1; }
+.toast.error { border-color: #ff6b6b; color: #ff6b6b; }
+.toast.success { border-color: #4ade80; color: #4ade80; }
+
+/* ========== 滚动条 ========== */
+.overlay-content::-webkit-scrollbar { width: 4px; }
+.overlay-content::-webkit-scrollbar-track { background: transparent; }
+.overlay-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+
+/* ====== iframe 模式：隐藏独立页面元素 ====== */
+.iframe-mode #screen-login,
+.iframe-mode .login-header { display: none !important; }
+.iframe-mode .main-container { padding-top: 0; }
+</style>
+</head>
+<body>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ========== 登录页 ========== -->
+<div class="screen active" id="screen-login">
+  <div class="login-box">
+    <div class="login-logo">⚔️</div>
+    <h1 class="login-title">西西时光 · 天梯挑战</h1>
+    <p class="login-sub">连胜攀登，成就最强王者</p>
+    <input type="text" class="login-input" id="loginInput" placeholder="请输入学号" maxlength="10" autocomplete="off">
+    <div class="login-grade-info" id="loginGradeInfo"></div>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">⚡ 进入天梯</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- ========== 首页 ========== -->
+<div class="screen" id="screen-home">
+  <div class="home-header">
+    <div class="home-avatar">🧑‍🎓</div>
+    <div class="home-grade" id="homeGrade"></div>
+    <div class="home-name" id="homeName"></div>
+  </div>
+
+  <div class="tier-badge-section">
+    <div class="tier-badge" id="tierBadge">
+      <span class="tier-icon" id="tierIcon">⚙️</span>
+      <span class="tier-name" id="tierName">黑铁</span>
+      <span class="tier-sub" id="tierSub">III</span>
+      <div class="tier-range" id="tierRange">1000 - 1119</div>
+    </div>
+    <div style="margin-top:10px;">
+      <span class="streak-badge" id="homeStreakBadge" style="display:none;"></span>
+    </div>
+  </div>
+
+  <div class="score-panel">
+    <div class="score-card">
+      <div class="sc-label">⚡ 天梯积分</div>
+      <div class="sc-value" id="homeScore">1000</div>
+      <div class="sc-sub" id="homeScoreDelta"></div>
+    </div>
+    <div class="score-card">
+      <div class="sc-label">📊 正确率</div>
+      <div class="sc-value" style="color:#a78bfa;" id="homeAccuracy">-</div>
+      <div class="sc-sub">总题数: <span id="homeTotalQ">0</span></div>
+    </div>
+  </div>
+
+  <div class="stats-panel">
+    <h3>📋 战斗记录</h3>
+    <div class="stat-row">
+      <span class="stat-label">挑战次数</span>
+      <span class="stat-value" id="statChallenges" style="color:#ffd700;">0</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">胜利</span>
+      <span class="stat-value win" id="statWins">0</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">失败</span>
+      <span class="stat-value lose" id="statLosses">0</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">当前连胜</span>
+      <span class="stat-value rate" id="statStreak">0</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">最高积分</span>
+      <span class="stat-value" style="color:#ffd700;" id="statBestScore">1000</span>
+    </div>
+  </div>
+
+  <div class="daily-limit-info" id="dailyLimitInfo">
+    今日剩余挑战次数：<span class="remaining" id="dailyRemaining">10</span> / 10
+  </div>
+
+  <div class="home-buttons">
+    <button class="btn-primary" id="btnStart" onclick="startChallenge()">⚔️ 开始挑战</button>
+    <button class="btn-secondary" onclick="showRanking()">🏆 排行榜</button>
+  </div>
+  <div style="text-align:center;">
+    <button class="btn-secondary" style="width:auto;padding:10px 30px;" onclick="logout()">↩ 切换账号</button>
+  </div>
+</div>
+
+<!-- ========== 挑战页 ========== -->
+<div class="screen" id="screen-challenge">
+  <div class="challenge-header">
+    <div class="challenge-progress" id="challengeProgress">第 1/10 题</div>
+    <div class="challenge-timer-wrap">
+      <span class="challenge-timer-icon">⏱</span>
+      <span class="challenge-timer normal" id="challengeTimer">50</span>
+    </div>
+  </div>
+
+  <div class="question-card" id="questionCard">
+    <div class="q-text" id="questionText"></div>
+  </div>
+
+  <div class="options-list" id="optionsList"></div>
+
+  <div class="challenge-next" id="challengeNext" style="display:none;">
+    <button class="btn-primary" id="btnNext" onclick="nextQuestion()">继续 ▶</button>
+  </div>
+
+  <div class="challenge-fail-overlay" id="challengeFailOverlay"></div>
+</div>
+
+<!-- ========== 结算页 ========== -->
+<div class="screen" id="screen-result">
+  <div class="result-container">
+    <span class="result-icon" id="resultIcon"></span>
+    <div class="result-title" id="resultTitle"></div>
+    <div class="result-subtitle" id="resultSubtitle"></div>
+
+    <div class="score-change-box" id="scoreChangeBox">
+      <div class="score-change-amount" id="scoreChangeAmount"></div>
+      <div class="score-change-label" id="scoreChangeLabel"></div>
+    </div>
+
+    <div class="tier-change-box" id="tierChangeBox" style="display:none;"></div>
+
+    <div class="result-detail">
+      <div class="rd-row">
+        <span class="rd-label">正确题数</span>
+        <span class="rd-value" id="rdCorrect" style="color:#4ade80;"></span>
+      </div>
+      <div class="rd-row">
+        <span class="rd-label">错误题数</span>
+        <span class="rd-value" id="rdWrong" style="color:#ff6b6b;"></span>
+      </div>
+      <div class="rd-row">
+        <span class="rd-label">新积分</span>
+        <span class="rd-value" style="color:#ffd700;" id="rdNewScore"></span>
+      </div>
+    </div>
+
+    <button class="btn-primary" style="width:100%;" onclick="goHome()">🏠 返回首页</button>
+    <button class="btn-secondary" style="width:100%;margin-top:10px;" onclick="showRanking()">🏆 查看排行榜</button>
+  </div>
+</div>
+
+<!-- ========== 排行榜弹窗 ========== -->
+<div class="overlay" id="rankingOverlay">
+  <div class="overlay-content">
+    <div class="overlay-header">
+      <h2>🏆 天梯排行榜</h2>
+      <button class="overlay-close" onclick="closeRanking()">✕</button>
+    </div>
+
+    <div class="ranking-tabs" id="rankingGradeTabs"></div>
+    <div class="ranking-type-tabs">
+      <button class="ranking-type-tab active" id="tabScore" onclick="switchRankingType('score')">⚡ 积分榜</button>
+      <button class="ranking-type-tab" id="tabAccuracy" onclick="switchRankingType('accuracy')">🎯 正确率榜</button>
+    </div>
+
+    <div class="ranking-list" id="rankingList"></div>
+  </div>
+</div>
+
+<!-- ========== 题库数据加载 ========== -->
+<script src="data/3-2-lessons.js"></script>
+<script src="data/4-2-lessons.js"></script>
+<script src="data/5-2-lessons.js"></script>
+<script src="data/6-2-lessons.js"></script>
+
+<!-- ========== 主逻辑 ========== -->
+<script>
+// ==================== 常量与配置 ====================
+const GRADE_MAP = { '20': '六年级', '21': '五年级', '22': '四年级', '23': '三年级' };
+const GRADE_KEYS = { '20': '6', '21': '5', '22': '4', '23': '3' };
+const GRADE_FULL = { '20': '6-2-lessons', '21': '5-2-lessons', '22': '4-2-lessons', '23': '3-2-lessons' };
+
+// 每日挑战上限
+const DAILY_LIMIT = 10;
+// 每题时间（秒）
+const QUESTION_TIME = 50;
+
+// ========== iframe 模式支持 ==========
+const isIframeMode = window !== window.parent;
+let parentOrigin = '*';
+
+if (isIframeMode) {
+  document.body.classList.add('iframe-mode');
+}
+
+// postMessage 监听（接收父页面传来的学号和初始化数据）
+window.addEventListener('message', function(e) {
+  if (!e.data || typeof e.data !== 'object') return;
+  if (e.data.type === 'init_ladder') {
+    var sid = e.data.studentId;
+    if (!sid) return;
+    parentOrigin = e.origin || '*';
+    // 直接以传入的学号登录
+    state.studentId = sid;
+    state.grade = sid.substring(2, 4);
+    state.gradeKey = GRADE_KEYS[state.grade] || '6';
+    // 从 localStorage 加载存档，如果没有就用默认值
+    loadState();
+    state.dailyDate = getToday();
+    if (state.dailyDate !== getToday()) {
+      state.dailyCount = 0;
+      state.dailyDate = getToday();
+    }
+    // 跳过登录页，直接进首页
+    showScreen('screen-home');
+    renderHome();
+  }
+});
+
+// 通知父页面积分变动
+function notifyLadderChange() {
+  if (!isIframeMode || window.parent === window) return;
+  window.parent.postMessage({
+    type: 'ladder_change',
+    points: state.score,
+    bestScore: state.bestScore,
+    tier: getTier(state.score)
+  }, parentOrigin);
+}
+
+// API 配置（复用 cloud-config 体系）
+var LADDER_API_BASE = 'https://api.xixitime.cn/api/ladder';
+
+// ==================== 段位体系 ====================
+var TIER_CONFIG = [
+  { name: '黑铁', icon: '⚙️', min: 1000, max: 1119, subs: ['III', 'II', 'I'], color: '#8B8B8B' },
+  { name: '青铜', icon: '🛡️', min: 1120, max: 1269, subs: ['III', 'II', 'I'], color: '#CD7F32' },
+  { name: '白银', icon: '⚪', min: 1270, max: 1419, subs: ['III', 'II', 'I'], color: '#C0C0C0' },
+  { name: '黄金', icon: '🥇', min: 1420, max: 1549, subs: ['IV', 'III', 'II', 'I'], color: '#FFD700' },
+  { name: '铂金', icon: '💎', min: 1550, max: 1669, subs: ['IV', 'III', 'II', 'I'], color: '#4FC3F7' },
+  { name: '钻石', icon: '💠', min: 1670, max: 1769, subs: ['V', 'IV', 'III', 'II', 'I'], color: '#7C4DFF' },
+  { name: '星耀', icon: '🌟', min: 1770, max: 1899, subs: ['V', 'IV', 'III', 'II', 'I'], color: '#FF6B6B' },
+  { name: '王者', icon: '👑', min: 1900, max: 99999, subs: [], color: '#FFD700' }
+];
+
+function getTier(score) {
+  for (var i = 0; i < TIER_CONFIG.length; i++) {
+    if (score >= TIER_CONFIG[i].min && score <= TIER_CONFIG[i].max) {
+      var tier = TIER_CONFIG[i];
+      var subIdx = 0;
+      if (tier.subs.length > 0) {
+        var range = tier.max - tier.min;
+        var segment = range / tier.subs.length;
+        subIdx = Math.min(Math.floor((score - tier.min) / segment), tier.subs.length - 1);
+      }
+      return {
+        idx: i,
+        name: tier.name,
+        icon: tier.icon,
+        color: tier.color,
+        sub: tier.subs.length > 0 ? tier.subs[subIdx] : '',
+        subIdx: subIdx,
+        subsCount: tier.subs.length,
+        min: tier.min,
+        max: tier.max
+      };
+    }
+  }
+  return { idx: 0, name: '黑铁', icon: '⚙️', color: '#8B8B8B', sub: 'III', subIdx: 0, subsCount: 3, min: 1000, max: 1119 };
+}
+
+// ==================== 积分算法 ====================
+function calcBaseReward(score) {
+  if (score >= 1800) return 1;
+  if (score >= 1500) return 10 - (score - 1500) * 0.03;
+  if (score >= 1000) return 20 - (score - 1000) * 0.02;
+  return 20;
+}
+
+function calcFreshness(timesSeen) {
+  if (timesSeen >= 3) return 0;
+  var map = [1.0, 0.5, 0.25];
+  return map[timesSeen] || 0;
+}
+
+function calcQuestionReward(score, timesSeen, totalQuestions) {
+  // 除以 totalQuestions：每题奖励 = 整局奖励 / 题数
+  return Math.round((calcBaseReward(score) / totalQuestions) * calcFreshness(timesSeen));
+}
+
+// ==================== 状态管理 ====================
+var state = {
+  studentId: '',
+  grade: '',
+  gradeKey: '',
+  score: 1000,
+  bestScore: 1000,
+  totalChallenges: 0,
+  totalWins: 0,
+  totalLosses: 0,
+  totalQuestions: 0,
+  totalCorrect: 0,
+  currentStreak: 0,  // 正=连胜, 负=连败
+  bestStreak: 0,
+  dailyCount: 0,
+  dailyDate: '',
+  questionHistory: {},  // {qid: timesSeen}
+  lastTierIdx: 0
+};
+
+var challengeState = {
+  questions: [],
+  currentIdx: 0,
+  correctCount: 0,
+  timerInterval: null,
+  timeLeft: 0,
+  answered: false,
+  scoreBefore: 0,
+  tierBefore: null
+};
+
+var currentRankingGrade = '';
+var currentRankingType = 'score';
+var cachedRankings = {};  // {grade: {score: [], accuracy: []}}
+
+// ==================== 题库转换 ====================
+var LADDER_QUESTIONS = {};  // {gradeKey: [{id, question, options, answer}]}
+
+function convertQuestionBank(bankData, gradeKey) {
+  var questions = [];
+  if (!bankData) return questions;
+  var qid = 0;
+  for (var unitKey in bankData) {
+    var unit = bankData[unitKey];
+    if (!unit || !unit.lessons) continue;
+    for (var li = 0; li < unit.lessons.length; li++) {
+      var lesson = unit.lessons[li];
+      var difficulties = ['basic', 'medium', 'hard'];
+      for (var di = 0; di < difficulties.length; di++) {
+        var diff = difficulties[di];
+        var arr = lesson[diff];
+        if (!arr || !arr.length) continue;
+        for (var qi = 0; qi < arr.length; qi++) {
+          var q = arr[qi];
+          questions.push({
+            id: gradeKey + '-' + lesson.id + '-' + diff[0] + '-' + qi,
+            question: q.q,
+            options: q.options,
+            answer: q.answer  // 0-based
+          });
+        }
+      }
+    }
+  }
+  return questions;
+}
+
+function initQuestionBanks() {
+  var bankKeys = {
+    '3': window.QUESTION_BANK_3_2_LESSONS,
+    '4': window.QUESTION_BANK_4_2_LESSONS,
+    '5': window.QUESTION_BANK_5_2_LESSONS,
+    '6': window.QUESTION_BANK_6_2_LESSONS
+  };
+  for (var gk in bankKeys) {
+    LADDER_QUESTIONS[gk] = convertQuestionBank(bankKeys[gk], gk);
+    console.log('[Ladder] 年级' + gk + '题库: ' + LADDER_QUESTIONS[gk].length + '题');
+  }
+}
+
+// ==================== 存储 ====================
+var STORAGE_KEY_PREFIX = 'ladder_';
+
+function getStorageKey() {
+  return STORAGE_KEY_PREFIX + state.studentId;
+}
+
+function saveLocal() {
+  var data = {
+    studentId: state.studentId,
+    grade: state.grade,
+    gradeKey: state.gradeKey,
+    score: state.score,
+    bestScore: state.bestScore,
+    totalChallenges: state.totalChallenges,
+    totalWins: state.totalWins,
+    totalLosses: state.totalLosses,
+    totalQuestions: state.totalQuestions,
+    totalCorrect: state.totalCorrect,
+    currentStreak: state.currentStreak,
+    bestStreak: state.bestStreak,
+    dailyCount: state.dailyCount,
+    dailyDate: state.dailyDate,
+    questionHistory: state.questionHistory,
+    lastTierIdx: state.lastTierIdx
+  };
+  try {
+    localStorage.setItem(getStorageKey(), JSON.stringify(data));
+  } catch (e) {
+    console.error('[Ladder] localStorage 保存失败:', e);
+  }
+}
+
+function loadLocal(studentId) {
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY_PREFIX + studentId);
+    if (raw) {
+      var data = JSON.parse(raw);
+      state.studentId = data.studentId || studentId;
+      state.grade = data.grade || '';
+      state.gradeKey = data.gradeKey || '';
+      state.score = data.score || 1000;
+      state.bestScore = data.bestScore || 1000;
+      state.totalChallenges = data.totalChallenges || 0;
+      state.totalWins = data.totalWins || 0;
+      state.totalLosses = data.totalLosses || 0;
+      state.totalQuestions = data.totalQuestions || 0;
+      state.totalCorrect = data.totalCorrect || 0;
+      state.currentStreak = data.currentStreak || 0;
+      state.bestStreak = data.bestStreak || 0;
+      state.dailyCount = data.dailyCount || 0;
+      state.dailyDate = data.dailyDate || '';
+      state.questionHistory = data.questionHistory || {};
+      state.lastTierIdx = data.lastTierIdx || 0;
+      return true;
+    }
+  } catch (e) {
+    console.error('[Ladder] localStorage 读取失败:', e);
+  }
+  return false;
+}
+
+async function saveCloud() {
+  try {
+    var resp = await fetchWithTimeout(LADDER_API_BASE + '/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        studentId: state.studentId,
+        grade: state.grade,
+        gradeKey: state.gradeKey,
+        score: state.score,
+        bestScore: state.bestScore,
+        totalChallenges: state.totalChallenges,
+        totalWins: state.totalWins,
+        totalLosses: state.totalLosses,
+        totalQuestions: state.totalQuestions,
+        totalCorrect: state.totalCorrect,
+        currentStreak: state.currentStreak,
+        bestStreak: state.bestStreak,
+        dailyCount: state.dailyCount,
+        dailyDate: state.dailyDate,
+        questionHistory: state.questionHistory,
+        lastUpdated: Date.now()
+      })
+    });
+    return resp && resp.ok;
+  } catch (e) {
+    console.error('[Ladder] 云同步保存失败:', e);
+    return false;
+  }
+}
+
+async function loadCloud() {
+  try {
+    var resp = await fetchWithTimeout(LADDER_API_BASE + '/profile/' + state.studentId);
+    if (resp && resp.ok) {
+      var data = await resp.json();
+      if (data && data.score !== undefined) {
+        // 智能合并：取本地和云端最大值
+        if (data.score > state.score) state.score = data.score;
+        if (data.bestScore > state.bestScore) state.bestScore = data.bestScore;
+        if (data.totalChallenges > state.totalChallenges) state.totalChallenges = data.totalChallenges;
+        if (data.totalWins > state.totalWins) state.totalWins = data.totalWins;
+        if (data.totalLosses > state.totalLosses) state.totalLosses = data.totalLosses;
+        if (data.totalQuestions > state.totalQuestions) state.totalQuestions = data.totalQuestions;
+        if (data.totalCorrect > state.totalCorrect) state.totalCorrect = data.totalCorrect;
+        if (data.bestStreak > state.bestStreak) state.bestStreak = data.bestStreak;
+        // 合并 questionHistory
+        if (data.questionHistory) {
+          for (var k in data.questionHistory) {
+            state.questionHistory[k] = Math.max(state.questionHistory[k] || 0, data.questionHistory[k] || 0);
+          }
+        }
+        // currentStreak 取最新的（最新的为准）
+        if (data.lastUpdated && data.lastUpdated > (state._cloudLastUpdated || 0)) {
+          state.currentStreak = data.currentStreak || state.currentStreak;
+          state.dailyCount = data.dailyCount || state.dailyCount;
+          state.dailyDate = data.dailyDate || state.dailyDate;
+        }
+        state._cloudLastUpdated = data.lastUpdated || Date.now();
+        saveLocal();
+        return true;
+      }
+    }
+  } catch (e) {
+    console.error('[Ladder] 云同步加载失败:', e);
+  }
+  return false;
+}
+
+// fetch 封装
+function fetchWithTimeout(url, options) {
+  var ctrl = new AbortController();
+  var timer = setTimeout(function() { ctrl.abort(); }, 8000);
+  var opts = Object.assign({}, options || {}, { signal: ctrl.signal });
+  return fetch(url, opts).finally(function() { clearTimeout(timer); });
+}
+
+// ==================== 年级识别 ====================
+function identifyGrade(studentId) {
+  if (!studentId || studentId.length < 4) return null;
+  var code = studentId.substring(2, 4);
+  return GRADE_MAP[code] || null;
+}
+
+function getGradeKey(studentId) {
+  if (!studentId || studentId.length < 4) return null;
+  var code = studentId.substring(2, 4);
+  return GRADE_KEYS[code] || null;
+}
+
+// ==================== 登录 ====================
+function doLogin() {
+  var input = document.getElementById('loginInput');
+  var error = document.getElementById('loginError');
+  var studentId = input.value.trim();
+
+  if (!studentId) {
+    error.textContent = '请输入学号';
+    return;
+  }
+
+  var grade = identifyGrade(studentId);
+  if (!grade) {
+    error.textContent = '无法识别年级，请检查学号是否正确';
+    return;
+  }
+
+  var gradeKey = getGradeKey(studentId);
+  if (!LADDER_QUESTIONS[gradeKey] || LADDER_QUESTIONS[gradeKey].length === 0) {
+    error.textContent = '该年级题库暂未配置';
+    return;
+  }
+
+  // 初始化状态
+  state.studentId = studentId;
+  state.grade = grade;
+  state.gradeKey = gradeKey;
+
+  // 先加载本地存档
+  loadLocal(studentId);
+
+  // 检查每日重置
+  var today = new Date().toISOString().split('T')[0];
+  if (state.dailyDate !== today) {
+    state.dailyDate = today;
+    state.dailyCount = 0;
+  }
+
+  // 显示首页
+  renderHome();
+  showScreen('screen-home');
+
+  // 异步加载云存档
+  loadCloud().then(function() {
+    renderHome();
+  });
+
+  // 尝试初始化 API 配置
+  initLadderAPIConfig();
+}
+
+async function initLadderAPIConfig() {
+  try {
+    var resp = await fetch('/tunnel-config.json?_=' + Date.now(), { cache: 'no-store' });
+    if (resp.ok) {
+      var config = await resp.json();
+      if (config.apiBase) {
+        LADDER_API_BASE = config.apiBase + '/ladder';
+        console.log('[Ladder] 使用 tunnel API:', LADDER_API_BASE);
+        return;
+      }
+    }
+  } catch (e) {}
+  console.log('[Ladder] 使用直连 API:', LADDER_API_BASE);
+}
+
+// ==================== 屏幕切换 ====================
+function showScreen(screenId) {
+  var screens = document.querySelectorAll('.screen');
+  for (var i = 0; i < screens.length; i++) {
+    screens[i].classList.remove('active');
+  }
+  document.getElementById(screenId).classList.add('active');
+}
+
+// ==================== 首页渲染 ====================
+function renderHome() {
+  var tier = getTier(state.score);
+  state.lastTierIdx = tier.idx;
+
+  document.getElementById('homeGrade').textContent = state.grade;
+  document.getElementById('homeName').textContent = '学号: ' + state.studentId;
+
+  // 段位徽章
+  document.getElementById('tierIcon').textContent = tier.icon;
+  document.getElementById('tierName').textContent = tier.name;
+  document.getElementById('tierName').style.color = tier.color;
+  document.getElementById('tierSub').textContent = tier.sub;
+  document.getElementById('tierRange').textContent = tier.min + ' - ' + (tier.max >= 99999 ? '∞' : tier.max);
+  document.getElementById('tierBadge').style.borderColor = tier.color + '40';
+  document.getElementById('tierBadge').style.boxShadow = '0 0 20px ' + tier.color + '20';
+
+  // 积分
+  document.getElementById('homeScore').textContent = state.score;
+  var deltaHtml = '最高: ' + state.bestScore;
+  document.getElementById('homeScoreDelta').textContent = deltaHtml;
+
+  // 正确率
+  var accuracy = state.totalQuestions > 0 ? (state.totalCorrect / state.totalQuestions * 100).toFixed(1) + '%' : '-';
+  document.getElementById('homeAccuracy').textContent = accuracy;
+  document.getElementById('homeTotalQ').textContent = state.totalQuestions;
+
+  // 统计
+  document.getElementById('statChallenges').textContent = state.totalChallenges;
+  document.getElementById('statWins').textContent = state.totalWins;
+  document.getElementById('statLosses').textContent = state.totalLosses;
+  document.getElementById('statStreak').textContent = Math.abs(state.currentStreak) + (state.currentStreak > 0 ? '连胜' : state.currentStreak < 0 ? '连败' : '');
+  document.getElementById('statBestScore').textContent = state.bestScore;
+
+  // 连胜/连败标签
+  var streakBadge = document.getElementById('homeStreakBadge');
+  if (state.currentStreak >= 3) {
+    streakBadge.style.display = 'inline-block';
+    streakBadge.textContent = '🔥 ' + state.currentStreak + '连胜';
+    streakBadge.className = 'streak-badge win';
+  } else if (state.currentStreak <= -3) {
+    streakBadge.style.display = 'inline-block';
+    streakBadge.textContent = '💔 ' + Math.abs(state.currentStreak) + '连败';
+    streakBadge.className = 'streak-badge lose';
+  } else {
+    streakBadge.style.display = 'none';
+  }
+
+  // 每日剩余
+  var remaining = DAILY_LIMIT - state.dailyCount;
+  document.getElementById('dailyRemaining').textContent = remaining;
+  if (remaining <= 0) {
+    document.getElementById('dailyLimitInfo').innerHTML = '<span class="exhausted">今日挑战次数已用完，明天再来吧！</span>';
+    document.getElementById('btnStart').disabled = true;
+  } else {
+    document.getElementById('btnStart').disabled = false;
+  }
+
+  saveLocal();
+}
+
+// ==================== 挑战逻辑 ====================
+function startChallenge() {
+  if (state.dailyCount >= DAILY_LIMIT) {
+    showToast('今日挑战次数已用完', 'error');
+    return;
+  }
+
+  var pool = LADDER_QUESTIONS[state.gradeKey];
+  if (!pool || pool.length === 0) {
+    showToast('题库未加载，请刷新页面', 'error');
+    return;
+  }
+
+  // 随机选取10题（优先选没见过或见的少的，保证新鲜度）
+  var weighted = [];
+  for (var i = 0; i < pool.length; i++) {
+    var q = pool[i];
+    var seen = state.questionHistory[q.id] || 0;
+    var weight = seen >= 3 ? 0.1 : (3 - seen) * 0.33 + 0.01; // 越新鲜权重越高
+    weighted.push({ q: q, w: weight });
+  }
+
+  // 加权随机采样10题（不重复）
+  var selected = [];
+  var remaining = weighted.slice();
+  while (selected.length < 10 && remaining.length > 0) {
+    var totalWeight = 0;
+    for (var j = 0; j < remaining.length; j++) totalWeight += remaining[j].w;
+    var rand = Math.random() * totalWeight;
+    var cumulative = 0;
+    for (var k = 0; k < remaining.length; k++) {
+      cumulative += remaining[k].w;
+      if (rand <= cumulative) {
+        selected.push(remaining[k].q);
+        remaining.splice(k, 1);
+        break;
+      }
+    }
+  }
+
+  // 如果不够10题（题库太少），从全题库随机补
+  if (selected.length < 10 && selected.length < pool.length) {
+    var allRemaining = pool.filter(function(q) {
+      return !selected.some(function(s) { return s.id === q.id; });
+    });
+    shuffleArray(allRemaining);
+    while (selected.length < 10 && allRemaining.length > 0) {
+      selected.push(allRemaining.shift());
+    }
+  }
+
+  // 题库不足10题时调整题目数
+  if (selected.length < 10) {
+    showToast('该年级题库仅' + selected.length + '题，已全部使用', '');
+  }
+  // 初始化挑战状态
+  challengeState = {
+    questions: selected,
+    totalQuestions: selected.length,
+    currentIdx: 0,
+    correctCount: 0,
+    timerInterval: null,
+    timeLeft: QUESTION_TIME,
+    answered: false,
+    scoreBefore: state.score,
+    tierBefore: getTier(state.score)
+  };
+
+  showScreen('screen-challenge');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  var cs = challengeState;
+  var q = cs.questions[cs.currentIdx];
+
+  document.getElementById('challengeProgress').textContent = '第 ' + (cs.currentIdx + 1) + '/' + cs.totalQuestions + ' 题';
+  document.getElementById('challengeNext').style.display = 'none';
+  document.getElementById('challengeFailOverlay').classList.remove('show');
+
+  // 渲染题目文本（支持图片和材料题标记）
+  var qText = q.question;
+  // 检测【材料题】标记，渲染为材料引用
+  var materialMatch = qText.match(/^【(.+?)】/);
+  if (materialMatch) {
+    // 材料题：分离材料标题和题目
+    var parts = qText.split('\n\n');
+    var materialPart = parts[0];
+    var questionPart = parts.length > 1 ? parts.slice(1).join('\n\n') : '';
+    document.getElementById('questionText').innerHTML =
+      '<div class="q-material">' + materialPart + '</div>' +
+      '<div>' + questionPart + '</div>';
+  } else {
+    // 支持内嵌 img 标签的题目
+    document.getElementById('questionText').innerHTML = qText;
+  }
+
+  // 渲染选项
+  var labels = ['A', 'B', 'C', 'D', 'E', 'F'];
+  var optionsHtml = '';
+  for (var i = 0; i < q.options.length; i++) {
+    optionsHtml += '<button class="option-btn" id="opt' + i + '" onclick="selectAnswer(' + i + ')">' +
+      '<span class="option-label">' + (labels[i] || i) + '</span>' +
+      '<span class="option-text">' + q.options[i] + '</span>' +
+      '</button>';
+  }
+  document.getElementById('optionsList').innerHTML = optionsHtml;
+
+  // 重置计时器
+  cs.timeLeft = QUESTION_TIME;
+  cs.answered = false;
+  updateTimerDisplay();
+  startTimer();
+}
+
+function startTimer() {
+  clearInterval(challengeState.timerInterval);
+  challengeState.timerInterval = setInterval(function() {
+    challengeState.timeLeft--;
+    updateTimerDisplay();
+    if (challengeState.timeLeft <= 0) {
+      clearInterval(challengeState.timerInterval);
+      if (!challengeState.answered) {
+        handleTimeout();
+      }
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  var t = challengeState.timeLeft;
+  var el = document.getElementById('challengeTimer');
+  el.textContent = t;
+
+  el.className = 'challenge-timer';
+  if (t <= 10) {
+    el.classList.add('danger');
+  } else if (t <= 20) {
+    el.classList.add('warning');
+  } else {
+    el.classList.add('normal');
+  }
+}
+
+function selectAnswer(idx) {
+  if (challengeState.answered) return;
+  challengeState.answered = true;
+  clearInterval(challengeState.timerInterval);
+
+  var q = challengeState.questions[challengeState.currentIdx];
+  var correctIdx = q.answer;
+  var isCorrect = (idx === correctIdx);
+
+  // 更新题目历史
+  state.questionHistory[q.id] = (state.questionHistory[q.id] || 0) + 1;
+
+  // 禁用所有选项
+  var btns = document.querySelectorAll('.option-btn');
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].disabled = true;
+  }
+
+  // 高亮
+  if (isCorrect) {
+    document.getElementById('opt' + idx).classList.add('correct');
+    challengeState.correctCount++;
+  } else {
+    document.getElementById('opt' + idx).classList.add('wrong');
+    document.getElementById('opt' + correctIdx).classList.add('show-correct');
+  }
+
+  // 如果答错，显示失败遮罩
+  if (!isCorrect) {
+    document.getElementById('challengeFailOverlay').classList.add('show');
+    // 延迟显示结果
+    setTimeout(function() {
+      showResult(false);
+    }, 800);
+  } else {
+    // 答对，显示下一题按钮
+    if (challengeState.currentIdx < challengeState.totalQuestions - 1) {
+      document.getElementById('challengeNext').style.display = 'flex';
+      document.getElementById('btnNext').textContent = '继续 ▶';
+    } else {
+      // 全部正确！
+      document.getElementById('challengeNext').style.display = 'flex';
+      document.getElementById('btnNext').textContent = '查看结果 🎉';
+    }
+  }
+}
+
+function handleTimeout() {
+  if (challengeState.answered) return;
+  challengeState.answered = true;
+
+  // 超时 = 答错
+  var q = challengeState.questions[challengeState.currentIdx];
+  state.questionHistory[q.id] = (state.questionHistory[q.id] || 0) + 1;
+
+  var btns = document.querySelectorAll('.option-btn');
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].disabled = true;
+  }
+  document.getElementById('opt' + q.answer).classList.add('show-correct');
+
+  document.getElementById('challengeFailOverlay').classList.add('show');
+  setTimeout(function() {
+    showResult(false);
+  }, 800);
+}
+
+function nextQuestion() {
+  challengeState.currentIdx++;
+  if (challengeState.currentIdx >= challengeState.totalQuestions) {
+    // 全部完成且全对 → 成功
+    showResult(true);
+  } else {
+    renderQuestion();
+  }
+}
+
+// ==================== 结算 ====================
+function showResult(success) {
+  clearInterval(challengeState.timerInterval);
+
+  var cs = challengeState;
+  var correctCount = cs.correctCount;
+  var totalCorrect = 0; // 本次涉及题的得分总和
+
+  // 计算积分变化
+  if (success) {
+    // 全部正确
+    var totalReward = 0;
+    for (var i = 0; i < cs.questions.length; i++) {
+      var q = cs.questions[i];
+      var timesSeen = state.questionHistory[q.id] - 1; // 减去本次
+      var reward = calcQuestionReward(cs.scoreBefore, timesSeen, cs.totalQuestions);
+      totalReward += Math.max(reward, 0);
+    }
+    totalCorrect = totalReward;
+    state.score += totalReward;
+    state.totalWins++;
+    state.currentStreak = state.currentStreak > 0 ? state.currentStreak + 1 : 1;
+  } else {
+    // 失败 - 对称惩罚
+    var totalPenalty = 0;
+    for (var i = 0; i < cs.questions.length; i++) {
+      var q = cs.questions[i];
+      var timesSeen = state.questionHistory[q.id] - 1;
+      var penalty = calcQuestionReward(cs.scoreBefore, timesSeen, cs.totalQuestions);
+      totalPenalty += Math.max(penalty, 0);
+    }
+    totalCorrect = -totalPenalty;
+    state.score = Math.max(0, state.score - totalPenalty);
+    state.totalLosses++;
+    state.currentStreak = state.currentStreak < 0 ? state.currentStreak - 1 : -1;
+  }
+
+  // 保底
+  if (state.score < 0) state.score = 0;
+  if (state.score > state.bestScore) state.bestScore = state.score;
+  if (Math.abs(state.currentStreak) > state.bestStreak) state.bestStreak = Math.abs(state.currentStreak);
+
+  state.totalChallenges++;
+  state.totalQuestions += cs.totalQuestions;
+  state.totalCorrect += correctCount;
+  state.dailyCount++;
+
+  // 通知父页面积分变动（iframe 模式）
+  notifyLadderChange();
+
+  // 段位变化
+  var newTier = getTier(state.score);
+  var oldTier = cs.tierBefore;
+  var tierChanged = newTier.idx !== oldTier.idx || newTier.sub !== oldTier.sub;
+
+  // 渲染结算页
+  document.getElementById('resultIcon').textContent = success ? '🏆' : '💔';
+  document.getElementById('resultIcon').className = 'result-icon ' + (success ? 'win' : 'lose');
+  document.getElementById('resultTitle').textContent = success ? '挑战成功！' : '挑战失败';
+  document.getElementById('resultTitle').className = 'result-title ' + (success ? 'win' : 'lose');
+  document.getElementById('resultSubtitle').textContent = success
+    ? cs.totalQuestions + '题全对，积分提升！'
+    : '答错一题，挑战中止';
+
+  // 积分变化
+  var changeBox = document.getElementById('scoreChangeBox');
+  changeBox.className = 'score-change-box ' + (success ? 'win' : 'lose');
+  document.getElementById('scoreChangeAmount').textContent = (totalCorrect >= 0 ? '+' : '') + totalCorrect;
+  document.getElementById('scoreChangeAmount').className = 'score-change-amount ' + (success ? 'win' : 'lose');
+  document.getElementById('scoreChangeLabel').textContent = success ? '天梯积分提升' : '天梯积分扣除';
+
+  // 段位变化
+  var tierBox = document.getElementById('tierChangeBox');
+  if (tierChanged) {
+    tierBox.style.display = 'block';
+    if (newTier.idx > oldTier.idx || (newTier.idx === oldTier.idx && newTier.subIdx > oldTier.subIdx)) {
+      // 升级（subIdx越大 = 子段越高，如III(0)→II(1)→I(2)）
+      tierBox.className = 'tier-change-box upgrade';
+      tierBox.textContent = '🎉 段位晋升！' + oldTier.name + ' ' + oldTier.sub + ' → ' + newTier.name + ' ' + (newTier.sub || '');
+    } else if (newTier.idx < oldTier.idx || (newTier.idx === oldTier.idx && newTier.subIdx < oldTier.subIdx)) {
+      // 降级
+      tierBox.className = 'tier-change-box downgrade';
+      tierBox.textContent = '📉 段位下降！' + oldTier.name + ' ' + oldTier.sub + ' → ' + newTier.name + ' ' + (newTier.sub || '');
+    } else {
+      tierBox.className = 'tier-change-box same';
+      tierBox.textContent = '段位不变：' + newTier.name + ' ' + (newTier.sub || '');
+    }
+  } else {
+    tierBox.style.display = 'none';
+  }
+
+  // 详细数据
+  document.getElementById('rdCorrect').textContent = correctCount + ' / ' + cs.totalQuestions;
+  document.getElementById('rdWrong').textContent = (cs.totalQuestions - correctCount) + ' / ' + cs.totalQuestions;
+  document.getElementById('rdNewScore').textContent = state.score;
+
+  // 保存
+  saveLocal();
+  saveCloud();
+
+  showScreen('screen-result');
+}
+
+// ==================== 排行榜 ====================
+async function showRanking() {
+  document.getElementById('rankingOverlay').classList.add('show');
+
+  // 默认显示当前年级积分榜
+  var grades = ['3', '4', '5', '6'];
+
+  // 渲染年级tab
+  var gradeTabsHtml = '';
+  for (var i = 0; i < grades.length; i++) {
+    var gradeName = { '3': '三年级', '4': '四年级', '5': '五年级', '6': '六年级' }[grades[i]];
+    var active = (grades[i] === state.gradeKey) ? ' active' : '';
+    gradeTabsHtml += '<button class="ranking-tab' + active + '" onclick="switchRankingGrade(\'' + grades[i] + '\')">' + gradeName + '</button>';
+  }
+  document.getElementById('rankingGradeTabs').innerHTML = gradeTabsHtml;
+
+  currentRankingGrade = state.gradeKey || '6';
+  currentRankingType = 'score';
+  document.getElementById('tabScore').classList.add('active');
+  document.getElementById('tabAccuracy').classList.remove('active');
+
+  await loadRanking(currentRankingGrade, currentRankingType);
+}
+
+function closeRanking() {
+  document.getElementById('rankingOverlay').classList.remove('show');
+}
+
+function switchRankingGrade(gradeKey) {
+  currentRankingGrade = gradeKey;
+  // 更新tab样式
+  var tabs = document.querySelectorAll('#rankingGradeTabs .ranking-tab');
+  var gradeNames = { '3': '三年级', '4': '四年级', '5': '五年级', '6': '六年级' };
+  for (var i = 0; i < tabs.length; i++) {
+    tabs[i].classList.toggle('active', tabs[i].textContent === gradeNames[gradeKey]);
+  }
+  loadRanking(gradeKey, currentRankingType);
+}
+
+function switchRankingType(type) {
+  currentRankingType = type;
+  document.getElementById('tabScore').classList.toggle('active', type === 'score');
+  document.getElementById('tabAccuracy').classList.toggle('active', type === 'accuracy');
+  renderRankingList(cachedRankings[currentRankingGrade + '_' + type] || []);
+}
+
+async function loadRanking(gradeKey, type) {
+  var cacheKey = gradeKey + '_' + type;
+  var list = [];
+
+  try {
+    var endpoint = type === 'score' ? '/ranking/score/' : '/ranking/accuracy/';
+    var resp = await fetchWithTimeout(LADER_API_BASE + endpoint + gradeKey);
+    if (resp && resp.ok) {
+      list = await resp.json();
+    }
+  } catch (e) {
+    console.error('[Ladder] 排行榜加载失败:', e);
+  }
+
+  // 如果服务器没有数据，生成本地排行
+  if (!list || list.length === 0) {
+    list = generateLocalRanking(gradeKey, type);
+  }
+
+  cachedRankings[cacheKey] = list;
+  renderRankingList(list);
+}
+
+function generateLocalRanking(gradeKey, type) {
+  // 从localStorage收集所有该年级的数据
+  var allData = [];
+  for (var i = 0; i < localStorage.length; i++) {
+    var key = localStorage.key(i);
+    if (key && key.startsWith(STORAGE_KEY_PREFIX)) {
+      try {
+        var data = JSON.parse(localStorage.getItem(key));
+        if (data && data.gradeKey === gradeKey) {
+          allData.push(data);
+        }
+      } catch (e) {}
+    }
+  }
+
+  if (type === 'score') {
+    allData.sort(function(a, b) { return (b.score || 0) - (a.score || 0); });
+    return allData.map(function(d) {
+      var tier = getTier(d.score || 1000);
+      return {
+        studentId: d.studentId,
+        score: d.score,
+        tier: tier.name + (tier.sub ? ' ' + tier.sub : ''),
+        accuracy: d.totalQuestions > 0 ? (d.totalCorrect / d.totalQuestions * 100).toFixed(1) : '0'
+      };
+    });
+  } else {
+    allData.sort(function(a, b) {
+      var ar = a.totalQuestions > 0 ? a.totalCorrect / a.totalQuestions : 0;
+      var br = b.totalQuestions > 0 ? b.totalCorrect / b.totalQuestions : 0;
+      return br - ar;
+    });
+    return allData.map(function(d) {
+      var rate = d.totalQuestions > 0 ? (d.totalCorrect / d.totalQuestions * 100).toFixed(1) : '0';
+      var tier = getTier(d.score || 1000);
+      return {
+        studentId: d.studentId,
+        score: d.score,
+        tier: tier.name + (tier.sub ? ' ' + tier.sub : ''),
+        accuracy: rate
+      };
+    });
+  }
+}
+
+function renderRankingList(list) {
+  var container = document.getElementById('rankingList');
+  if (!list || list.length === 0) {
+    container.innerHTML = '<div class="ranking-empty">暂无排行数据</div>';
+    return;
+  }
+
+  var html = '';
+  for (var i = 0; i < list.length; i++) {
+    var item = list[i];
+    var rank = i + 1;
+    var rankClass = rank === 1 ? 'top1' : rank === 2 ? 'top2' : rank === 3 ? 'top3' : 'normal';
+    var rankIcon = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+    var isMine = (item.studentId === state.studentId);
+
+    var valueHtml = currentRankingType === 'score'
+      ? '<span class="rank-score">' + (item.score || 0) + '</span>'
+      : '<span class="rank-rate">' + (item.accuracy || '0') + '%</span>';
+
+    html += '<div class="ranking-item' + (isMine ? ' mine' : '') + '">' +
+      '<div class="rank-num ' + rankClass + '">' + rankIcon + '</div>' +
+      '<div class="rank-info">' +
+        '<div class="rank-name">' + (item.studentId || '未知') + (isMine ? ' (你)' : '') + '</div>' +
+        '<div class="rank-tier">' + (item.tier || '') + '</div>' +
+      '</div>' +
+      valueHtml +
+      '</div>';
+  }
+  container.innerHTML = html;
+}
+
+// 也添加到当前学生
+async function syncSelfToRanking() {
+  try {
+    var data = {
+      studentId: state.studentId,
+      gradeKey: state.gradeKey,
+      score: state.score,
+      totalQuestions: state.totalQuestions,
+      totalCorrect: state.totalCorrect,
+      tier: getTier(state.score)
+    };
+    await fetchWithTimeout(LADER_API_BASE + '/ranking', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+  } catch (e) {}
+}
+
+// ==================== 辅助函数 ====================
+function shuffleArray(arr) {
+  for (var i = arr.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = tmp;
+  }
+  return arr;
+}
+
+function showToast(msg, type) {
+  var toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.className = 'toast show ' + (type || '');
+  clearTimeout(toast._timeout);
+  toast._timeout = setTimeout(function() {
+    toast.classList.remove('show');
+  }, 2000);
+}
+
+function logout() {
+  if (state.studentId) saveLocal();
+  state = {
+    studentId: '', grade: '', gradeKey: '',
+    score: 1000, bestScore: 1000,
+    totalChallenges: 0, totalWins: 0, totalLosses: 0,
+    totalQuestions: 0, totalCorrect: 0,
+    currentStreak: 0, bestStreak: 0,
+    dailyCount: 0, dailyDate: '',
+    questionHistory: {}, lastTierIdx: 0
+  };
+  document.getElementById('loginInput').value = '';
+  document.getElementById('loginError').textContent = '';
+  document.getElementById('loginGradeInfo').style.display = 'none';
+  showScreen('screen-login');
+}
+
+function goHome() {
+  renderHome();
+  showScreen('screen-home');
+}
+
+// ==================== 登录页实时识别 ====================
+document.getElementById('loginInput').addEventListener('input', function() {
+  var val = this.value.trim();
+  var gradeInfo = document.getElementById('loginGradeInfo');
+  var grade = identifyGrade(val);
+  if (grade) {
+    gradeInfo.textContent = '📍 识别年级：' + grade;
+    gradeInfo.style.display = 'block';
+  } else if (val.length >= 4) {
+    gradeInfo.textContent = '⚠️ 无法识别年级，学号第3-4位应为20(六)/21(五)/22(四)/23(三)';
+    gradeInfo.style.display = 'block';
+  } else {
+    gradeInfo.style.display = 'none';
+  }
+});
+
+// 回车登录
+document.getElementById('loginInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') doLogin();
+});
+
+// ==================== 初始化 ====================
+function init() {
+  initQuestionBanks();
+  // iframe 模式：等待父页面 postMessage 传学号，不自动登录
+  if (isIframeMode) {
+    document.getElementById('screen-login').classList.remove('active');
+    document.getElementById('screen-home').classList.add('active');
+    return;
+  }
+  // 尝试从 URL 参数读取学号（独立模式）
+  var params = new URLSearchParams(window.location.search);
+  var autoStudentId = params.get('studentId');
+  if (autoStudentId) {
+    document.getElementById('loginInput').value = autoStudentId;
+    // 自动登录
+    setTimeout(function() { doLogin(); }, 500);
+  }
+}
+
+// 页面加载完成后初始化
+window.addEventListener('DOMContentLoaded', function() {
+  // 等待题库加载
+  var checkBanks = setInterval(function() {
+    var allLoaded = true;
+    ['3', '4', '5', '6'].forEach(function(gk) {
+      var key = 'QUESTION_BANK_' + gk + '_2_LESSONS';
+      if (!window[key]) allLoaded = false;
+    });
+    if (allLoaded) {
+      clearInterval(checkBanks);
+      init();
+    }
+  }, 200);
+
+  // 超时保护：3秒后强制初始化
+  setTimeout(function() {
+    init();
+  }, 3000);
+});
+</script>
+
+</body>
+</html>
