@@ -830,11 +830,12 @@ window.addEventListener('message', function(e) {
     state.grade = sid.substring(2, 4);
     state.gradeKey = GRADE_KEYS[state.grade] || '6';
     // 从 localStorage 加载存档，如果没有就用默认值
-    loadState();
-    state.dailyDate = getToday();
-    if (state.dailyDate !== getToday()) {
+    loadLocal(sid);
+    // 检查每日重置
+    var today = new Date().toISOString().split('T')[0];
+    if (state.dailyDate !== today) {
+      state.dailyDate = today;
       state.dailyCount = 0;
-      state.dailyDate = getToday();
     }
     // 跳过登录页，直接进首页
     showScreen('screen-home');
