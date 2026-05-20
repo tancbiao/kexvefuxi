@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🔮 科学探险家 · 统一闯关系统 v704</title>
-<!-- v704 更新：修复爬塔空白页 - showTowerModal 增加登录检查，未登录先弹登录窗
+<!-- v705 更新：尖峰时刻天梯系统入口（iframe弹窗模式）+ 天梯积分变动双向同步
+v704 更新：修复爬塔空白页 - showTowerModal 增加登录检查，未登录先弹登录窗
   - v703+ 更新：
   - 修复云端上传漏掉宠物碎片（manualCloudUpload 补齐 petPieces）
   - 修复跨设备同步时云端数据被丢弃（mergeUserData 不再因时间戳提前返回）
@@ -1046,6 +1047,46 @@
   border-radius: 12px;
 }
 
+/* ====== 天梯（尖峰时刻）弹窗 ====== */
+.ladder-modal {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.85);
+  display: none; justify-content: center; align-items: center;
+  z-index: 2150;
+  animation: fadeIn 0.3s;
+}
+.ladder-modal.show { display: flex; }
+.ladder-modal-content {
+  background: rgba(15,15,25,0.97);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  padding: 24px;
+  max-width: 900px;
+  width: 95%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+.ladder-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.ladder-modal-title { font-size: 1.2em; font-weight: 700; }
+.ladder-modal-close {
+  background: none; border: none; color: rgba(255,255,255,0.5);
+  font-size: 1.5em; cursor: pointer; padding: 4px 10px; border-radius: 8px;
+}
+.ladder-modal-close:hover { background: rgba(255,255,255,0.2); }
+.ladder-modal iframe {
+  width: 100%; height: 100%;
+  min-height: 600px;
+  border: none; display: block;
+  border-radius: 12px;
+}
+
 
 /* ====== 选课界面 ====== */
 .course-grid {
@@ -1438,6 +1479,10 @@
       <span class="status-icon">🏰</span>
       <span>爬塔送神装</span>
     </div>
+    <div class="status-item" id="ladderBtn" style="cursor:pointer;" onclick="showLadderModal()">
+      <span class="status-icon">⚡</span>
+      <span>尖峰时刻</span>
+    </div>
     <div class="status-item" id="petBtn" style="cursor:pointer;" onclick="showPetBattle()">
       <span class="status-icon">🐾</span>
       <span id="statusPetInfo" style="color:#ff6b9d;font-size:0.85em">无加成</span>
@@ -1661,6 +1706,17 @@ var CLASS012102_IDS = ["01210236", "01210206", "01210222", "01210223", "01210231
       <button class="tower-modal-close" onclick="closeTowerModal()">✕</button>
     </div>
     <iframe id="towerIframe" src="../../tower.html"></iframe>
+  </div>
+</div>
+
+<!-- ====== 天梯（尖峰时刻）弹窗 ====== -->
+<div class="ladder-modal" id="ladderModal">
+  <div class="ladder-modal-content">
+    <div class="ladder-modal-header">
+      <div class="ladder-modal-title">⚡ 尖峰时刻 · 天梯挑战</div>
+      <button class="ladder-modal-close" onclick="closeLadderModal()">✕</button>
+    </div>
+    <iframe id="ladderIframe" src="../../ladder.html"></iframe>
   </div>
 </div>
 
@@ -5006,7 +5062,30 @@ function closeTowerModal() {
   document.getElementById('towerModal').classList.remove('show');
 }
 
-// 监听爬塔发来的积分变动
+// ====== 天梯（尖峰时刻）弹窗 ======
+function showLadderModal() {
+  if (!gameState.studentId || gameState.isGuest) {
+    showLoginScreen();
+    return;
+  }
+  const modal = document.getElementById('ladderModal');
+  const iframe = document.getElementById('ladderIframe');
+  modal.classList.add('show');
+  // 每次打开都重新加载 iframe
+  iframe.src = '../../ladder.html?' + Date.now();
+  iframe.onload = function() {
+    iframe.contentWindow.postMessage({
+      type: 'init_ladder',
+      studentId: gameState.studentId,
+      studentName: gameState.studentName || ''
+    }, '*');
+  };
+}
+function closeLadderModal() {
+  document.getElementById('ladderModal').classList.remove('show');
+}
+
+// 监听爬塔/天梯发来的积分变动
 window.addEventListener('message', function(e) {
   if (e.data && e.data.type === 'tower_change') {
     if (gameState) {
@@ -5043,6 +5122,20 @@ window.addEventListener('message', function(e) {
       saveUserData(); // 触发云同步
       // 六年级爬塔奖励检查
       checkTowerRewards();
+    }
+  }
+  // 监听天梯发来的积分变动
+  if (e.data && e.data.type === 'ladder_change') {
+    if (gameState) {
+      if (e.data.points !== undefined) {
+        gameState.totalPoints = e.data.points;
+      }
+      // 天梯排行榜数据
+      if (e.data.bestScore !== undefined) {
+        gameState.towerHighestFloor = Math.max(gameState.towerHighestFloor || 0, e.data.bestScore);
+      }
+      updateStatusBar();
+      saveUserData();
     }
   }
 });
