@@ -1383,6 +1383,12 @@
                 if (!gameState.battlePets) {
                     gameState.battlePets = [null, null, null];
                 }
+                if (!gameState.fragments) {
+                    gameState.fragments = {};
+                }
+                if (!gameState.inventory) {
+                    gameState.inventory = { food: 0 };
+                }
             }
         }
 

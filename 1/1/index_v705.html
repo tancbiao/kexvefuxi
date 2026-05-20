@@ -1775,7 +1775,7 @@ function showLevelSelect() {
     var progressKey = 'progress_grade' + currentCourse.grade + currentCourse.sem + '_' + gameState.studentId;
     try {
       var saved = localStorage.getItem(progressKey);
-      if (saved) gameState.lessonProgress = JSON.parse(saved);
+      if (saved) { var pg = JSON.parse(saved); for (var lk in pg) { gameState.lessonProgress[lk] = Math.max(gameState.lessonProgress[lk] || 0, pg[lk] || 0); } }
     } catch(e) {}
   }
   if (!_lessonsLoaded) {
@@ -2077,11 +2077,12 @@ function startCourse(grade, sem) {
     try {
       var saved = localStorage.getItem(progressKey);
       if (saved) {
-        gameState.lessonProgress = JSON.parse(saved);
-      } else {
-        gameState.lessonProgress = {};
+        var perGradeData = JSON.parse(saved);
+        for (var lk in perGradeData) {
+          gameState.lessonProgress[lk] = Math.max(gameState.lessonProgress[lk] || 0, perGradeData[lk] || 0);
+        }
       }
-    } catch(e) { gameState.lessonProgress = {}; }
+    } catch(e) {}
     _lessonsLoaded = true;
     renderLevelGrid();
     showScreen('levelScreen');
@@ -2896,7 +2897,7 @@ async function saveUserData() {
     var petStateStr = localStorage.getItem('petSystemStateV2_' + gameState.studentId);
     if (petStateStr) {
       var petState = JSON.parse(petStateStr);
-      petPieces = petState.fragments || petState.pieces || {};
+      var fk = Object.keys(petState.fragments || {}); var pk2 = Object.keys(petState.pieces || {}); petPieces = fk.length > 0 ? petState.fragments : (pk2.length > 0 ? petState.pieces : {});
     }
   } catch(e) {}
   const data = {
@@ -2921,6 +2922,7 @@ async function saveUserData() {
     equippedSlots: bpEquippedSlots62
   };
   localStorage.setItem('scienceGame_user_' + gameState.studentId, JSON.stringify(data));
+  if (currentCourse) { var pgKey = 'progress_grade' + currentCourse.grade + currentCourse.sem + '_' + gameState.studentId; localStorage.setItem(pgKey, JSON.stringify(gameState.lessonProgress)); }
   await saveToCloud(gameState.studentId, data);
   pushRankingData();
 }
@@ -3089,7 +3091,7 @@ async function manualCloudUpload() {
       var petStateStr = localStorage.getItem('petSystemStateV2_' + gameState.studentId);
       if (petStateStr) {
         var petState = JSON.parse(petStateStr);
-        petPieces = petState.fragments || petState.pieces || {};
+        var fk = Object.keys(petState.fragments || {}); var pk2 = Object.keys(petState.pieces || {}); petPieces = fk.length > 0 ? petState.fragments : (pk2.length > 0 ? petState.pieces : {});
       }
     } catch(e) {}
     // 先确保本地已保存
@@ -3169,7 +3171,7 @@ async function manualCloudDownload() {
     }
     // 构建当前本地数据
     var localPetPieces = {};
-    try { var ps = JSON.parse(localStorage.getItem('petSystemStateV2_' + gameState.studentId) || '{}'); localPetPieces = ps.fragments || ps.pieces || {}; } catch(e) {}
+    try { var ps = JSON.parse(localStorage.getItem('petSystemStateV2_' + gameState.studentId) || '{}'); var fk2 = Object.keys(ps.fragments || {}); var pk3 = Object.keys(ps.pieces || {}); localPetPieces = fk2.length > 0 ? ps.fragments : (pk3.length > 0 ? ps.pieces : {}); } catch(e) {}
     var localData = {
       totalPoints: gameState.totalPoints || 0,
       lessonProgress: gameState.lessonProgress || {},
@@ -4303,7 +4305,7 @@ function applyUserData(data) {
     try {
       var petKey = 'petSystemStateV2_' + gameState.studentId;
       var petStateStr = localStorage.getItem(petKey);
-      var petState = petStateStr ? JSON.parse(petStateStr) : { studentId: gameState.studentId, pets: {}, battlePets: [], points: 0 };
+      var petState = petStateStr ? JSON.parse(petStateStr) : { studentId: gameState.studentId, pets: {}, battlePets: [], points: 0, fragments: {}, inventory: { food: 0 } };
       // 向后兼容: 旧版 pieces → fragments 迁移
       if (petState.pieces) { petState.fragments = petState.fragments || {}; Object.assign(petState.fragments, petState.pieces); delete petState.pieces; }
       // 合并碎片：本地已有的保留，云端补充新的
