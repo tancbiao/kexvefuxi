@@ -2988,6 +2988,7 @@ async function syncFromCloudData() {
     // 3. 拉取学生信息（含错题ID列表）
     var infoRes = await fetch('https://api.xixitime.cn/api/student/info/' + sid);
     var syncedRecords = [];
+    var qbEmpty = (Object.keys(qbDict).length === 0);
     if (infoRes.ok) {
       var infoData = await infoRes.json();
       if (infoData && Object.keys(infoData).length > 0) {
@@ -2997,11 +2998,13 @@ async function syncFromCloudData() {
           wrongIds = wrongIds.split(/[,，、\s]+/).filter(Boolean);
         }
         var answers = infoData.answers || {};
+        // answers 可能被错误存为空数组 []（旧版bug），需要兼容
+        if (Array.isArray(answers)) { answers = {}; }
         var syncDate = formatDate(new Date(infoData.lastUpdated || Date.now()));
         
         wrongIds.forEach(function(wid) {
-          // Look up in question bank dictionary
-          var qData = qbDict[wid] || qbDict['qb_' + wid] || null;
+          // Look up in question bank dictionary (try multiple ID patterns)
+          var qData = qbDict[wid] || qbDict['qb_' + wid] || qbDict['x' + wid] || null;
           // Try to find by question text match
           if (!qData) {
             for (var k in qbDict) {
@@ -3013,18 +3016,38 @@ async function syncFromCloudData() {
           }
           
           var userAns = answers[wid] || '';
+          // 也尝试用数字键匹配（JSON序列化后数字键可能变成字符串）
+          if (!userAns && /^\d+$/.test(wid)) {
+            userAns = answers[parseInt(wid)] || answers[String(wid)] || '';
+          }
           var correctAns = '';
           if (qData) {
             var aIdx = typeof qData.answer === 'number' ? qData.answer : (parseInt(qData.answer) - 1);
             if (qData.options && qData.options[aIdx] !== undefined) {
               correctAns = qData.options[aIdx];
             } else {
-              correctAns = String(qData.answer || '');
+              // 答案可能是字母（判断题 F/T 等），标准化显示
+              var rawAns = String(qData.answer || '');
+              if (rawAns === 'F' || rawAns === '×' || rawAns === 'false') { correctAns = '×（错误）'; }
+              else if (rawAns === 'T' || rawAns === '√' || rawAns === 'true') { correctAns = '√（正确）'; }
+              else { correctAns = rawAns; }
             }
           }
           
+          // 题目显示：根据题库完整性分级
+          var questionDisplay;
+          if (qbEmpty) {
+            questionDisplay = '📌 题目#' + wid + '（教师尚未上传题库，请先在成绩分析系统中点击"同步题库"）';
+          } else if (qData && qData.question) {
+            questionDisplay = qData.question;
+          } else if (qData) {
+            questionDisplay = '⚠️ 题目#' + wid + '（题库中此题数据不完整，请重新上传题库）';
+          } else {
+            questionDisplay = '⚠️ 题目#' + wid + '（题库中未找到此题，请检查题库是否完整）';
+          }
+          
           syncedRecords.push({
-            question: qData ? (qData.question || '题目#' + wid) : '📌 题目#' + wid + '（教师未上传题库，仅显示题号）',
+            question: questionDisplay,
             questionId: wid,
             correctAnswer: correctAns,
             userAnswer: userAns,
@@ -3868,19 +3891,40 @@ function buildSyncedWrongItem(w, idx) {
   if (w.options && w.options.length > 0) {
     optionsHtml = '<div class="synced-options">' + w.options.map(function(opt, oi) {
       var cls = '';
+      var letter = String.fromCharCode(65 + oi); // A, B, C, D
       if (opt === w.correctAnswer) cls = 'synced-opt-correct';
-      else if (opt === w.userAnswer) cls = 'synced-opt-wrong';
-      var label = String.fromCharCode(65 + oi); // A, B, C, D
-      return '<span class="synced-opt ' + cls + '">' + label + '. ' + esc(opt) + '</span>';
+      else if (w.userAnswer) {
+        // 匹配用户答案：字母索引（A→选项0）或文本匹配
+        var uaIdx = w.userAnswer.charCodeAt(0) - 65;
+        if (uaIdx === oi) cls = 'synced-opt-wrong';
+        else if (opt === w.userAnswer) cls = 'synced-opt-wrong';
+        else if (w.userAnswer === letter) cls = 'synced-opt-wrong';
+      }
+      return '<span class="synced-opt ' + cls + '">' + letter + '. ' + esc(opt) + '</span>';
     }).join('') + '</div>';
   }
 
   // 格式化用户答案：有选项时显示完整文本如 "A. 水的沸点是100°C"
-  var userAnsDisplay = w.userAnswer || '未作答';
-  if (w.userAnswer && w.options && w.options.length > 0) {
-    var uIdx = w.userAnswer.charCodeAt(0) - 65; // A→0, B→1, ...
-    if (uIdx >= 0 && uIdx < w.options.length && w.options[uIdx]) {
-      userAnsDisplay = w.userAnswer + '. ' + w.options[uIdx];
+  var userAnsDisplay = '未作答';
+  if (w.userAnswer) {
+    // 判断题答案标准化
+    if (w.userAnswer === 'F' || w.userAnswer === '×' || w.userAnswer === 'false') {
+      userAnsDisplay = '×（错误）';
+    } else if (w.userAnswer === 'T' || w.userAnswer === '√' || w.userAnswer === 'true') {
+      userAnsDisplay = '√（正确）';
+    } else if (w.options && w.options.length > 0) {
+      // 尝试字母索引匹配 A→0, B→1, ...
+      var uIdx = w.userAnswer.charCodeAt(0) - 65;
+      if (uIdx >= 0 && uIdx < w.options.length && w.options[uIdx]) {
+        userAnsDisplay = w.userAnswer + '. ' + w.options[uIdx];
+      } else if (w.options.indexOf(w.userAnswer) !== -1) {
+        // 答案本身就是选项文本
+        userAnsDisplay = w.userAnswer;
+      } else {
+        userAnsDisplay = w.userAnswer;
+      }
+    } else {
+      userAnsDisplay = w.userAnswer;
     }
   }
 

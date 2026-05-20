@@ -43324,19 +43324,22 @@ const App = {
         students.push({
           studentId: s.id, name: s.name, className: s.className,
           wrongQuestions: wrongList,
-          answers: s.answers || [],
+          answers: s.answers || {},
           score: s.score || 0
         });
       }
       let synced = { students: 0, questions: 0 };
+      let syncErrors = [];
       if (students.length > 0) {
         const res = await fetch('https://api.xixitime.cn/api/students/batch', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ students })
         });
         if (res.ok) { const d = await res.json(); synced.students = d.count || 0; }
+        else { syncErrors.push('学生数据同步失败(HTTP ' + res.status + ')'); console.error('学生同步失败:', await res.text()); }
       }
-      if (this.questionBank && Object.keys(this.questionBank.questions).length > 0) {
+      var hasQB = this.questionBank && Object.keys(this.questionBank.questions).length > 0;
+      if (hasQB) {
         const qb = this.questionBank.questions;
         const questions = Object.entries(qb).map(([qId, q]) => ({
           id: 'qb_' + qId, question: q.text, options: q.options || [],
@@ -43351,10 +43354,19 @@ const App = {
             body: JSON.stringify({ questions })
           });
           if (res.ok) { const d = await res.json(); synced.questions = d.count || 0; }
+          else { syncErrors.push('题库同步失败(HTTP ' + res.status + ')'); console.error('题库同步失败:', await res.text()); }
         }
       }
-      status.textContent = '✅ 同步成功! 学生' + synced.students + '人, 题库' + synced.questions + '题';
-      status.style.color = '#4ecdc4';
+      if (syncErrors.length > 0) {
+        status.textContent = '⚠️ ' + syncErrors.join('; ');
+        status.style.color = '#ffa500';
+      } else if (synced.students > 0 && !hasQB) {
+        status.textContent = '✅ 学生数据已同步' + synced.students + '人。⚠️ 未检测到题库，请先上传题库文件';
+        status.style.color = '#ffd700';
+      } else {
+        status.textContent = '✅ 同步成功! 学生' + synced.students + '人, 题库' + synced.questions + '题';
+        status.style.color = '#4ecdc4';
+      }
     } catch(e) {
       status.textContent = '❌ 同步失败: ' + e.message;
       status.style.color = '#ff6b6b';
