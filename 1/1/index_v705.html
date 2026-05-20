@@ -3349,8 +3349,12 @@ function showWrongQuestions() {
   if (!overlay) {
     createWrongQuestionUI();
   }
-  renderWrongQuestionList();
   document.getElementById('wrongQuestionOverlay').classList.add('show');
+  // 首次打开时渲染列表，后续只显示（保持滚动位置和筛选状态）
+  if (!window._wrongQuestionsLoaded) {
+    renderWrongQuestionList();
+    window._wrongQuestionsLoaded = true;
+  }
 }
 
 function createWrongQuestionUI() {
@@ -5028,8 +5032,12 @@ async function pushRankingData() {
 // 显示排行榜
 async function showRanking() {
   document.getElementById('rankingOverlay').classList.add('show');
-  document.querySelector('#rankingOverlay .ranking-tab').classList.add('active');
-  await loadAndRenderRanking('points');
+  // 首次打开时加载数据，后续只显示（保持当前tab和滚动位置）
+  if (!window._rankingLoaded) {
+    document.querySelector('#rankingOverlay .ranking-tab').classList.add('active');
+    await loadAndRenderRanking('points');
+    window._rankingLoaded = true;
+  }
 }
 
 // 关闭排行榜
