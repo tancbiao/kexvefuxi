@@ -3116,7 +3116,13 @@ async function manualCloudUpload() {
       towerHighestFloor: gameState.towerHighestFloor || 0,
       towerCoins: gameState.towerCoins || 0,
       ladderBestScore: gameState.ladderBestScore || 0,
-      gradeDataMerged: true,，不合并云端（下载时再合并，避免消费被回滚）
+      gradeDataMerged: true, // 不合并云端（下载时再合并，避免消费被回滚）
+      lastUpdated: Date.now()
+    };
+    // 保存到本地
+    localStorage.setItem('scienceGame_user_' + gameState.studentId, JSON.stringify(data));
+    
+    // v703: 上传本地实际值，不合并云端（下载时再合并，避免消费被回滚）
     data.lastUpdated = Date.now();
     
     // 等待云端保存完成
