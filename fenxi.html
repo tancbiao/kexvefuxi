@@ -46515,7 +46515,8 @@ if (!this.data || !this.data.students) return;
           name: s.name || '',
           className: cls.name || '',
           score: s.score || 0,
-          wrongQuestions: s.wrongQuestions || []
+          wrongQuestions: s.wrongQuestions || [],
+          answers: s.answers || {}
         });
       }
     }

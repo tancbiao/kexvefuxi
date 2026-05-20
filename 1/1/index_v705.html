@@ -3024,7 +3024,7 @@ async function syncFromCloudData() {
           }
           
           syncedRecords.push({
-            question: qData ? (qData.question || '题目#' + wid) : '题目#' + wid,
+            question: qData ? (qData.question || '题目#' + wid) : '📌 题目#' + wid + '（教师未上传题库，仅显示题号）',
             questionId: wid,
             correctAnswer: correctAns,
             userAnswer: userAns,
@@ -3875,13 +3875,22 @@ function buildSyncedWrongItem(w, idx) {
     }).join('') + '</div>';
   }
 
+  // 格式化用户答案：有选项时显示完整文本如 "A. 水的沸点是100°C"
+  var userAnsDisplay = w.userAnswer || '未作答';
+  if (w.userAnswer && w.options && w.options.length > 0) {
+    var uIdx = w.userAnswer.charCodeAt(0) - 65; // A→0, B→1, ...
+    if (uIdx >= 0 && uIdx < w.options.length && w.options[uIdx]) {
+      userAnsDisplay = w.userAnswer + '. ' + w.options[uIdx];
+    }
+  }
+
   return '<div class="synced-wrong-item" data-sync-idx="' + idx + '">' +
     '<div class="synced-wrong-date">📅 ' + esc(w.syncDate || '未知日期') + ' 同步</div>' +
     '<div class="synced-wrong-question">' + esc(w.question) + '</div>' +
     materialHtml +
     optionsHtml +
     '<div class="synced-wrong-answer">' +
-      '<span class="synced-wrong-user">❌ 你的答案: ' + esc(w.userAnswer || '未作答') + '</span>' +
+      '<span class="synced-wrong-user">❌ 你的答案: ' + esc(userAnsDisplay) + '</span>' +
       '<span class="synced-wrong-correct">✅ 正确答案: ' + esc(w.correctAnswer || '未知') + '</span>' +
     '</div>' +
   '</div>';
