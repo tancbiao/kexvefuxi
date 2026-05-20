@@ -2894,7 +2894,7 @@ async function saveUserData() {
     var petStateStr = localStorage.getItem('petSystemStateV2_' + gameState.studentId);
     if (petStateStr) {
       var petState = JSON.parse(petStateStr);
-      petPieces = petState.pieces || {};
+      petPieces = petState.fragments || {};
     }
   } catch(e) {}
   const data = {
@@ -3087,7 +3087,7 @@ async function manualCloudUpload() {
       var petStateStr = localStorage.getItem('petSystemStateV2_' + gameState.studentId);
       if (petStateStr) {
         var petState = JSON.parse(petStateStr);
-        petPieces = petState.pieces || {};
+        petPieces = petState.fragments || {};
       }
     } catch(e) {}
     // 先确保本地已保存
@@ -3167,7 +3167,7 @@ async function manualCloudDownload() {
     }
     // 构建当前本地数据
     var localPetPieces = {};
-    try { var ps = JSON.parse(localStorage.getItem('petSystemStateV2_' + gameState.studentId) || '{}'); localPetPieces = ps.pieces || {}; } catch(e) {}
+    try { var ps = JSON.parse(localStorage.getItem('petSystemStateV2_' + gameState.studentId) || '{}'); localPetPieces = ps.fragments || {}; } catch(e) {}
     var localData = {
       totalPoints: gameState.totalPoints || 0,
       lessonProgress: gameState.lessonProgress || {},
@@ -4299,12 +4299,12 @@ function applyUserData(data) {
       var petStateStr = localStorage.getItem(petKey);
       var petState = petStateStr ? JSON.parse(petStateStr) : { studentId: gameState.studentId, pets: {}, battlePets: [], points: 0 };
       // 合并碎片：本地已有的保留，云端补充新的
-      if (!petState.pieces) petState.pieces = {};
+      if (!petState.fragments) petState.fragments = {};
       for (var pieceId in data.petPieces) {
         if (data.petPieces.hasOwnProperty(pieceId)) {
           // 云端数量大于本地时更新
-          if (!petState.pieces[pieceId] || data.petPieces[pieceId] > petState.pieces[pieceId]) {
-            petState.pieces[pieceId] = data.petPieces[pieceId];
+          if (!petState.fragments[pieceId] || data.petPieces[pieceId] > petState.fragments[pieceId]) {
+            petState.fragments[pieceId] = data.petPieces[pieceId];
           }
         }
       }
@@ -5103,11 +5103,11 @@ window.addEventListener('message', function(e) {
           var petKey = 'petSystemStateV2_' + (gameState.studentId || '');
           var petStateStr = localStorage.getItem(petKey);
           var petState = petStateStr ? JSON.parse(petStateStr) : { studentId: gameState.studentId || '', pets: {}, battlePets: [], points: 0 };
-          if (!petState.pieces) petState.pieces = {};
+          if (!petState.fragments) petState.fragments = {};
           for (var pid in e.data.petPieces) {
             if (e.data.petPieces.hasOwnProperty(pid)) {
-              if (!petState.pieces[pid] || e.data.petPieces[pid] > petState.pieces[pid]) {
-                petState.pieces[pid] = e.data.petPieces[pid];
+              if (!petState.fragments[pid] || e.data.petPieces[pid] > petState.fragments[pid]) {
+                petState.fragments[pid] = e.data.petPieces[pid];
               }
             }
           }
