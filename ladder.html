@@ -1530,14 +1530,8 @@ function showResult(success) {
     state.totalWins++;
     state.currentStreak = state.currentStreak > 0 ? state.currentStreak + 1 : 1;
   } else {
-    // 失败 - 对称惩罚
-    var totalPenalty = 0;
-    for (var i = 0; i < cs.questions.length; i++) {
-      var q = cs.questions[i];
-      var timesSeen = state.questionHistory[q.id] - 1;
-      var penalty = calcQuestionReward(cs.scoreBefore, timesSeen, cs.totalQuestions);
-      totalPenalty += Math.max(penalty, 0);
-    }
+    // 失败 - 梯度扣分：对0题扣10，对9题扣1（对的越多扣越少）
+    var totalPenalty = Math.max(1, 10 - correctCount);
     totalCorrect = -totalPenalty;
     state.score = Math.max(0, state.score - totalPenalty);
     state.totalLosses++;
@@ -1724,6 +1718,11 @@ function generateLocalRanking(gradeKey, type) {
   }
 }
 
+function getTierDisplay(score) {
+  var t = getTier(score || 1000);
+  return t.name + (t.sub ? ' ' + t.sub : '');
+}
+
 function renderRankingList(list) {
   var container = document.getElementById('rankingList');
   if (!list || list.length === 0) {
@@ -1747,7 +1746,7 @@ function renderRankingList(list) {
       '<div class="rank-num ' + rankClass + '">' + rankIcon + '</div>' +
       '<div class="rank-info">' +
         '<div class="rank-name">' + (item.studentId || '未知') + (isMine ? ' (你)' : '') + '</div>' +
-        '<div class="rank-tier">' + (item.tier || '') + '</div>' +
+        '<div class="rank-tier">' + (item.tier || getTierDisplay(item.score)) + '</div>' +
       '</div>' +
       valueHtml +
       '</div>';
