@@ -1618,6 +1618,16 @@ const TOWER_PET_DATA = [
   { id: 16, baseStats: { atk: 30, def: 26, str: 32 } },
   { id: 17, baseStats: { atk: 34, def: 24, str: 28 } },
   { id: 18, baseStats: { atk: 32, def: 28, str: 26 } },
+  { id: 19, baseStats: { atk: 36, def: 22, str: 30 } },
+  { id: 20, baseStats: { atk: 20, def: 40, str: 38 } },
+  { id: 21, baseStats: { atk: 50, def: 40, str: 45 } },
+  { id: 22, baseStats: { atk: 55, def: 45, str: 40 } },
+  { id: 23, baseStats: { atk: 60, def: 35, str: 42 } },
+  { id: 24, baseStats: { atk: 58, def: 38, str: 44 } },
+  { id: 25, baseStats: { atk: 80, def: 70, str: 75 } },
+  { id: 26, baseStats: { atk: 85, def: 75, str: 80 } },
+  { id: 27, baseStats: { atk: 70, def: 95, str: 90 } },
+  { id: 28, baseStats: { atk: 95, def: 65, str: 78 } },
 ];
 
 // 宠物名称/emoji/稀有度（用于显示碎片提示）
@@ -3201,10 +3211,10 @@ function showTowerPet() {
       }
       const petInfo = petState.pets[petId];
       const lv = petInfo.level || 1;
-      // 从TOWER_PET_DATA找名称和emoji
-      const petData = TOWER_PET_DATA.find(p => p.id == petId);
-      const name = petData ? (petState.petNames ? petState.petNames[petId] : '') || ('宠物#' + petId) : ('宠物#' + petId);
-      const emoji = petData ? '🐾' : '🐾';
+      // 从TOWER_PET_NAMES找名称和emoji
+      const nameMeta = TOWER_PET_NAMES[petId];
+      const name = nameMeta ? nameMeta.name : ('宠物#' + petId);
+      const emoji = nameMeta ? nameMeta.emoji : '🐾';
       slots.innerHTML += `<div class="pet-card">
         <div class="pet-emoji">${emoji}</div>
         <div class="pet-name">${name}</div>
