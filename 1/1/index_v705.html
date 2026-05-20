@@ -2918,6 +2918,7 @@ async function saveUserData() {
     lastStaminaDate: gameState.lastStaminaDate,
     towerHighestFloor: gameState.towerHighestFloor || 0,  // 🆕 v610
     towerCoins: gameState.towerCoins || 0,               // 🆕 v610
+    ladderBestScore: gameState.ladderBestScore || 0,      // 🆕 天梯最佳分数持久化
     gradeDataMerged: true, // 跨年级迁移标记（防止每次登录重复合并）
     lastUpdated: Date.now(),
     equippedSlots: bpEquippedSlots62
@@ -3114,13 +3115,8 @@ async function manualCloudUpload() {
       lastStaminaDate: gameState.lastStaminaDate,
       towerHighestFloor: gameState.towerHighestFloor || 0,
       towerCoins: gameState.towerCoins || 0,
-      gradeDataMerged: true,
-      lastUpdated: Date.now()
-    };
-    // 保存到本地
-    localStorage.setItem('scienceGame_user_' + gameState.studentId, JSON.stringify(data));
-    
-    // v703: 上传本地实际值，不合并云端（下载时再合并，避免消费被回滚）
+      ladderBestScore: gameState.ladderBestScore || 0,
+      gradeDataMerged: true,，不合并云端（下载时再合并，避免消费被回滚）
     data.lastUpdated = Date.now();
     
     // 等待云端保存完成
@@ -3232,6 +3228,7 @@ async function manualCloudDownload() {
       // 塔数据：取最大值
       towerHighestFloor: Math.max(localData.towerHighestFloor || 0, cloudData.towerHighestFloor || 0),
       towerCoins: Math.max(localData.towerCoins || 0, cloudData.towerCoins || 0),
+      ladderBestScore: Math.max(localData.ladderBestScore || 0, cloudData.ladderBestScore || 0),
       // 体力：取较新的（按lastUpdated）
       dailyStamina: (cloudData.lastUpdated || 0) > (localData.lastUpdated || 0) ? cloudData.dailyStamina : localData.dailyStamina,
       lastStaminaDate: (cloudData.lastUpdated || 0) > (localData.lastUpdated || 0) ? cloudData.lastStaminaDate : localData.lastStaminaDate,
@@ -4028,6 +4025,8 @@ function mergeUserData(localData, cloudData) {
   // 🆕 v610: 塔数据取最大值
   merged.towerHighestFloor = Math.max(localData.towerHighestFloor || 0, cloudData.towerHighestFloor || 0);
   merged.towerCoins = Math.max(localData.towerCoins || 0, cloudData.towerCoins || 0);
+  // 天梯最佳分数取最大值（可能合法减少？不，bestScore只增不减）
+  merged.ladderBestScore = Math.max(localData.ladderBestScore || 0, cloudData.ladderBestScore || 0);
 
   // 课次进度：合并并集（每个key取较大值，进度只增不减）
   const lpLocal = localData.lessonProgress || {};
@@ -4301,6 +4300,8 @@ function applyUserData(data) {
   // 🆕 v610: 恢复爬塔数据
   gameState.towerHighestFloor = data.towerHighestFloor || 0;
   gameState.towerCoins = data.towerCoins || 0;
+  // 🆕 恢复天梯最佳分数（持久化，防止刷新丢失）
+  gameState.ladderBestScore = data.ladderBestScore || 0;
   // 恢复宠物碎片到宠物系统 localStorage（v606: 从云端恢复）
   if (data.petPieces && gameState.studentId) {
     try {
