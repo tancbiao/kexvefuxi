@@ -1689,6 +1689,7 @@ var CLASS012102_IDS = ["01210236", "01210206", "01210222", "01210223", "01210231
       <div class="ranking-tab active" onclick="switchRankingTab('points', this)">📊 积分</div>
       <div class="ranking-tab" onclick="switchRankingTab('pet', this)">🐾 宠物战力</div>
       <div class="ranking-tab" onclick="switchRankingTab('tower', this)">🏰 爬塔层数</div>
+      <div class="ranking-tab" onclick="switchRankingTab('ladder', this)">⚡ 天梯段位</div>
       <div class="ranking-tab" onclick="switchRankingTab('mythic', this)">👑 神话装备</div>
       <div class="ranking-tab" onclick="switchRankingTab('ach', this)">🏅 成就</div>
       <div class="ranking-tab" onclick="switchRankingTab('questions', this)">📝 总答题</div>
@@ -5011,6 +5012,7 @@ async function pushRankingData() {
       totalCorrectAnswers: totalC,
       accuracyRate: accuracyRate,
       towerFloor: gameState.towerHighestFloor || 0,    // 🆕 v610
+      ladderScore: gameState.ladderBestScore || 0,       // 🆕 天梯段位
       mythicCount: mythicCount,                         // 🆕 v610
       lastUpdated: Date.now()
     };
@@ -5036,6 +5038,7 @@ async function showRanking() {
   document.getElementById('rankingOverlay').classList.add('show');
   // 首次打开时加载数据，后续只显示（保持当前tab和滚动位置）
   if (!window._rankingLoaded) {
+    await migrateLadderRankingData();
     document.querySelector('#rankingOverlay .ranking-tab').classList.add('active');
     await loadAndRenderRanking('points');
     window._rankingLoaded = true;
@@ -5157,7 +5160,8 @@ window.addEventListener('message', function(e) {
       if (e.data.bestScore !== undefined) {
         gameState.ladderBestScore = Math.max(gameState.ladderBestScore || 0, e.data.bestScore);
       }
-      // 天梯积分不触发状态栏刷新和云同步（独立体系）
+      // 推送天梯数据到排行榜（独立体系，不覆盖主站积分）
+      pushRankingData();
     }
   }
 });
@@ -5222,6 +5226,7 @@ async function loadAndRenderRanking(type) {
     let sortField = 'totalPoints';
     if (type === 'pet') sortField = 'petPower';
     else if (type === 'tower') sortField = 'towerFloor';       // 🆕 v610
+    else if (type === 'ladder') sortField = 'ladderScore';
     else if (type === 'mythic') sortField = 'mythicCount';     // 🆕 v610
     else if (type === 'ach') sortField = 'achievementCount';
     else if (type === 'questions') sortField = 'totalQuestionsAnswered';
@@ -5290,6 +5295,7 @@ function renderRankList(listEl, arr, sortField, myId) {
     const valStr = isMillion
       ? '<span class="ranking-stars">⭐⭐⭐⭐⭐</span>'
       : ((sortField === 'towerFloor') ? val + ' 层'            // 🆕 v610
+      : ((sortField === 'ladderScore') ? val + ' 段位分'       // 天梯段位
       : ((sortField === 'mythicCount') ? val + ' 件'           // 🆕 v610
       : ((sortField === 'equipBonus') ? '×' + val.toFixed(2)   // 保留兼容
       : val.toLocaleString())));
@@ -5301,6 +5307,33 @@ function renderRankList(listEl, arr, sortField, myId) {
       '</div>';
   });
   listEl.innerHTML = html;
+}
+
+// 数据迁移：将误存到 towerFloor 的天梯数据迁移到 ladderScore
+async function migrateLadderRankingData() {
+  if (localStorage.getItem("_rlmg2026")) return;
+  var toast = document.createElement("div");
+  toast.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#1a1a2e;color:#fff;padding:16px 24px;border-radius:12px;z-index:99999;font-size:0.9em;border:1px solid #ffd700;";
+  toast.textContent = "正在修复排行榜数据...";
+  document.body.appendChild(toast);
+  try {
+    var allData = await getRanking(RANKING_GRADE_KEY);
+    if (!allData || Object.keys(allData).length === 0) { toast.remove(); localStorage.setItem("_rlmg2026", "1"); return; }
+    var count = 0;
+    for (var sid in allData) {
+      var entry = allData[sid];
+      if (entry.towerFloor && entry.towerFloor > 300) {
+        entry.ladderScore = Math.max(entry.ladderScore || 0, entry.towerFloor);
+        entry.towerFloor = 0;
+        await updateRanking(RANKING_GRADE_KEY, sid, entry);
+        count++;
+      }
+    }
+    toast.textContent = count > 0 ? ("数据修复完成！迁移了 " + count + " 条天梯记录") : "数据正常，无需修复";
+    if (count > 0) window._rankingLoaded = false;
+  } catch(e) { toast.textContent = "数据修复失败: " + e.message; }
+  localStorage.setItem("_rlmg2026", "1");
+  setTimeout(function() { toast.remove(); }, 2500);
 }
 
 function showPetBattle() {
