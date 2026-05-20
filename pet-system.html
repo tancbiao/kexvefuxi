@@ -1433,9 +1433,8 @@
             setButtonsDisabled(true);
             updateCooldown();
 
-            // 扣除积分
+            // 扣除积分（先扣分，但不立即通知，等碎片保存完再一起同步）
             gameState.points -= cost;
-            notifyPointsChange(gameState.points);
 
             const results = [];
             let fragmentCount = 0;
@@ -1473,10 +1472,13 @@
             // 显示结果
             displayResults(results, count, fragmentCount, foodCount, hatchCount);
 
+            // ★ 必须先 saveGame() 再 notifyPointsChange，否则云同步会读到旧碎片状态
             saveGame();
             updateUI();
             renderFragments();
             renderMyPets();
+            // 碎片保存完毕后再通知父页面同步（此时 localStorage 已包含最新碎片数据）
+            notifyPointsChange(gameState.points);
 
             // 0.5秒后解除冷却
             drawTimeout = setTimeout(() => {

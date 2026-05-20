@@ -5144,18 +5144,18 @@ window.addEventListener('message', function(e) {
       checkTowerRewards();
     }
   }
-  // 监听天梯发来的积分变动
+  // 监听天梯发来的积分变动（天梯积分独立，不覆盖主站积分）
   if (e.data && e.data.type === 'ladder_change') {
     if (gameState) {
+      // 天梯积分存到独立字段，不覆盖 totalPoints（主站积分）
       if (e.data.points !== undefined) {
-        gameState.totalPoints = e.data.points;
+        gameState.ladderPoints = e.data.points;
       }
-      // 天梯排行榜数据
+      // 天梯排行榜最高分记录
       if (e.data.bestScore !== undefined) {
-        gameState.towerHighestFloor = Math.max(gameState.towerHighestFloor || 0, e.data.bestScore);
+        gameState.ladderBestScore = Math.max(gameState.ladderBestScore || 0, e.data.bestScore);
       }
-      updateStatusBar();
-      saveUserData();
+      // 天梯积分不触发状态栏刷新和云同步（独立体系）
     }
   }
 });
