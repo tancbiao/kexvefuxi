@@ -1662,7 +1662,7 @@ async function loadRanking(gradeKey, type) {
 
   try {
     var endpoint = type === 'score' ? '/ranking/score/' : '/ranking/accuracy/';
-    var resp = await fetchWithTimeout(LADER_API_BASE + endpoint + gradeKey);
+    var resp = await fetchWithTimeout(LADDER_API_BASE + endpoint + gradeKey);
     if (resp && resp.ok) {
       list = await resp.json();
     }
