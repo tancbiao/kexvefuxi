@@ -2896,7 +2896,7 @@ async function saveUserData() {
     var petStateStr = localStorage.getItem('petSystemStateV2_' + gameState.studentId);
     if (petStateStr) {
       var petState = JSON.parse(petStateStr);
-      petPieces = petState.fragments || {};
+      petPieces = petState.fragments || petState.pieces || {};
     }
   } catch(e) {}
   const data = {
@@ -3089,7 +3089,7 @@ async function manualCloudUpload() {
       var petStateStr = localStorage.getItem('petSystemStateV2_' + gameState.studentId);
       if (petStateStr) {
         var petState = JSON.parse(petStateStr);
-        petPieces = petState.fragments || {};
+        petPieces = petState.fragments || petState.pieces || {};
       }
     } catch(e) {}
     // 先确保本地已保存
@@ -3169,7 +3169,7 @@ async function manualCloudDownload() {
     }
     // 构建当前本地数据
     var localPetPieces = {};
-    try { var ps = JSON.parse(localStorage.getItem('petSystemStateV2_' + gameState.studentId) || '{}'); localPetPieces = ps.fragments || {}; } catch(e) {}
+    try { var ps = JSON.parse(localStorage.getItem('petSystemStateV2_' + gameState.studentId) || '{}'); localPetPieces = ps.fragments || ps.pieces || {}; } catch(e) {}
     var localData = {
       totalPoints: gameState.totalPoints || 0,
       lessonProgress: gameState.lessonProgress || {},
@@ -4300,6 +4300,8 @@ function applyUserData(data) {
       var petKey = 'petSystemStateV2_' + gameState.studentId;
       var petStateStr = localStorage.getItem(petKey);
       var petState = petStateStr ? JSON.parse(petStateStr) : { studentId: gameState.studentId, pets: {}, battlePets: [], points: 0 };
+      // 向后兼容: 旧版 pieces → fragments 迁移
+      if (petState.pieces) { petState.fragments = petState.fragments || {}; Object.assign(petState.fragments, petState.pieces); delete petState.pieces; }
       // 合并碎片：本地已有的保留，云端补充新的
       if (!petState.fragments) petState.fragments = {};
       for (var pieceId in data.petPieces) {
@@ -5105,6 +5107,8 @@ window.addEventListener('message', function(e) {
           var petKey = 'petSystemStateV2_' + (gameState.studentId || '');
           var petStateStr = localStorage.getItem(petKey);
           var petState = petStateStr ? JSON.parse(petStateStr) : { studentId: gameState.studentId || '', pets: {}, battlePets: [], points: 0 };
+          // 向后兼容: 旧版 pieces → fragments 迁移
+          if (petState.pieces) { petState.fragments = petState.fragments || {}; Object.assign(petState.fragments, petState.pieces); delete petState.pieces; }
           if (!petState.fragments) petState.fragments = {};
           for (var pid in e.data.petPieces) {
             if (e.data.petPieces.hasOwnProperty(pid)) {
