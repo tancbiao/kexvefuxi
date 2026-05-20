@@ -43192,6 +43192,10 @@ const App = {
       const wb = XLSX.read(data, { type: 'array' });
       const ws = wb.Sheets[wb.SheetNames[0]];
       const rows = XLSX.utils.sheet_to_json(ws);
+      // Detect format version: 课程序号 = new, 题号 = old
+      const headerKeys = rows.length > 0 ? Object.keys(rows[0]) : [];
+      const isNewFormat = headerKeys.includes('课程序号');
+      const isOldFormat = headerKeys.includes('题号');
       const zip = await JSZip.loadAsync(data);
       const images = {};
       try {
@@ -43208,26 +43212,101 @@ const App = {
           }
         }
       } catch(e) { console.warn('QB image extract error:', e); }
+      // Build DISPIMG ID -> media file mapping for new format
+      var dispimgMap = {};
+      if (isNewFormat) {
+        try {
+          const ciFile = zip.file('xl/cellimages.xml');
+          if (ciFile) {
+            const ciXml = await ciFile.async('text');
+            var idRe = /cNvPr\s+id="\d+"\s+name="([^"]+)"/g;
+            var blipRe = /<a:blip\s+r:embed="(rId\d+)"/g;
+            var dispIds = [], blipRids = [];
+            var m; while ((m = idRe.exec(ciXml)) !== null) dispIds.push(m[1]);
+            while ((m = blipRe.exec(ciXml)) !== null) blipRids.push(m[1]);
+            const relsFile = zip.file('xl/_rels/cellimages.xml.rels');
+            if (relsFile) {
+              const relsXml = await relsFile.async('text');
+              var relRe = /Id="(rId\d+)"[^>]*Target="([^"]+)"/g;
+              var relMap = {};
+              while ((m = relRe.exec(relsXml)) !== null) relMap[m[1]] = m[2].replace(/^(\.\.\/)*media\//, '');
+              for (var j = 0; j < Math.min(dispIds.length, blipRids.length); j++) {
+                if (blipRids[j] && relMap[blipRids[j]]) dispimgMap[dispIds[j]] = relMap[blipRids[j]];
+              }
+            }
+          }
+        } catch(e) { console.warn('DISPIMG parse error:', e); }
+      }
       const questions = {};
-      for (const r of rows) {
-        const qId = parseInt(r['题号']);
-        if (!qId) continue;
-        questions[qId] = {
-          material: r['材料名称'] || '',
-          materialText: r['材料内容'] || '',
-          materialImages: r['材料图片'] || '',
-          text: r['题目'] || '',
-          options: [r['选项A'], r['选项B'], r['选项C'], r['选项D']].filter(Boolean),
-          answer: r['答案'] || '',
-          note: r['注释/考点'] || ''
-        };
+      for (var idx = 0; idx < rows.length; idx++) {
+        var r = rows[idx];
+        if (isNewFormat) {
+          // New format: 课程序号/课程名称/题目/题型/选项A-D/正确答案/难度/备注/图表
+          var note = (r['备注'] || '').toString().trim();
+          var qNumMatch = note.match(/第(\d+)题/);
+          var qId = qNumMatch ? parseInt(qNumMatch[1]) : (idx + 1);
+          // Ensure unique key: use courseId + qId
+          var courseId = (r['课程序号'] || '').toString().trim();
+          var uniqueQId = qId;
+          while (questions[uniqueQId] !== undefined) uniqueQId = uniqueQId + '_dup' + idx;
+          // Extract material title from question text: 【材料：XXX】
+          var text = (r['题目'] || '').toString().trim();
+          var materialTitle = '';
+          var matMatch = text.match(/^【(.+?)】/);
+          if (matMatch) {
+            materialTitle = matMatch[1];
+            text = text.replace(/^【.+?】/, '').trim();
+          }
+          // Collect options
+          var opts = ['A','B','C','D'].map(function(k) { return r['选项' + k]; })
+            .filter(function(v) { return v != null && String(v).trim() !== '' && String(v).toLowerCase() !== 'nan'; });
+          // Normalize answer
+          var answer = String(r['正确答案'] || '').trim();
+          if (r['题型'] === '判断题') {
+            if (answer === '√' || answer === 'T' || answer === 'true' || answer === '对') answer = '√';
+            else if (answer === '×' || answer === 'F' || answer === 'false' || answer === '错') answer = '×';
+          }
+          // Parse DISPIMG formula for chart/image
+          var chartImage = '';
+          var chartVal = String(r['图表'] || '');
+          var dispMatch = chartVal.match(/DISPIMG\("([^"]+)/);
+          if (dispMatch && dispimgMap[dispMatch[1]]) {
+            var imgName = dispimgMap[dispMatch[1]];
+            chartImage = images[imgName] || '';
+          }
+          questions[uniqueQId] = {
+            material: materialTitle,
+            materialText: '',
+            materialImages: chartImage,
+            text: text,
+            options: opts,
+            answer: answer,
+            type: (r['题型'] || '').toString().trim(),
+            difficulty: (r['难度'] || '').toString().trim(),
+            courseId: courseId,
+            courseName: (r['课程名称'] || '').toString().trim(),
+            note: note
+          };
+        } else if (isOldFormat) {
+          var oldQId = parseInt(r['题号']);
+          if (!oldQId) continue;
+          questions[oldQId] = {
+            material: r['材料名称'] || '',
+            materialText: r['材料内容'] || '',
+            materialImages: r['材料图片'] || '',
+            text: r['题目'] || '',
+            options: [r['选项A'], r['选项B'], r['选项C'], r['选项D']].filter(Boolean),
+            answer: r['答案'] || '',
+            note: r['注释/考点'] || ''
+          };
+        }
       }
       this.questionBank = { questions, images };
-      const st = Util.$('qbStatus');
+      var st = Util.$('qbStatus');
       if (st) st.textContent = '✅ 题库已加载 (' + Object.keys(questions).length + '题)';
-      // Re-render exam match tab if visible
       if (this.currentTab === 'examAnalysis') this.renderExamMatch();
-      Util.toast('题库加载成功！共 ' + Object.keys(questions).length + ' 题', 'success');
+      var formatLabel = isNewFormat ? '（新版模板）' : (isOldFormat ? '' : '');
+      Util.toast('题库加载成功！共 ' + Object.keys(questions).length + ' 题' + formatLabel, 'success');
     } catch(e) {
       Util.toast('题库加载失败: ' + e.message, 'error', 7000);
       console.error(e);
@@ -43262,7 +43341,8 @@ const App = {
         const questions = Object.entries(qb).map(([qId, q]) => ({
           id: 'qb_' + qId, question: q.text, options: q.options || [],
           answer: typeof q.answer === 'number' ? q.answer : (['A','B','C','D','E'].indexOf(q.answer) + 1) || 0,
-          material: q.materialText || '', materialImages: q.materialImages || ''
+          material: q.materialText || '', materialImages: q.materialImages || '',
+          type: q.type || '', difficulty: q.difficulty || ''
         }));
         if (questions.length > 0) {
           const grade = students.length > 0 ? students[0].studentId.substring(0, 4) : '6';
@@ -46483,6 +46563,8 @@ if (!this.data || !this.data.students) return;
       if (q.material) entry.material = q.material;
       if (q.materialTitle) entry.materialTitle = q.materialTitle;
       if (q.image) entry.image = q.image;
+      if (q.type) entry.type = q.type;
+      if (q.difficulty) entry.difficulty = q.difficulty;
       return entry;
     });
     
