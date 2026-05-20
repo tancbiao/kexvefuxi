@@ -5047,20 +5047,23 @@ function showTowerModal() {
   const modal = document.getElementById('towerModal');
   const iframe = document.getElementById('towerIframe');
   modal.classList.add('show');
-  // 每次打开都重新加载 iframe，确保状态最新
-  iframe.src = '../../tower.html?' + Date.now();
-  iframe.onload = function() {
-    iframe.contentWindow.postMessage({
-      type: 'init_tower',
-      studentId: gameState.studentId,
-      saveData: {
-        totalPoints: gameState.totalPoints || 0,
-        equipment: gameState.equipment || [],
-        unlockedAchievements: gameState.unlockedAchievements || [],
-        lessonProgress: gameState.lessonProgress || {}
-      }
-    }, '*');
-  };
+  // 首次加载 iframe，后续只显示（不重载，保留状态）
+  if (!window._towerIframeLoaded) {
+    iframe.src = '../../tower.html?' + Date.now();
+    iframe.onload = function() {
+      window._towerIframeLoaded = true;
+      iframe.contentWindow.postMessage({
+        type: 'init_tower',
+        studentId: gameState.studentId,
+        saveData: {
+          totalPoints: gameState.totalPoints || 0,
+          equipment: gameState.equipment || [],
+          unlockedAchievements: gameState.unlockedAchievements || [],
+          lessonProgress: gameState.lessonProgress || {}
+        }
+      }, '*');
+    };
+  }
 }
 function closeTowerModal() {
   document.getElementById('towerModal').classList.remove('show');
@@ -5075,15 +5078,18 @@ function showLadderModal() {
   const modal = document.getElementById('ladderModal');
   const iframe = document.getElementById('ladderIframe');
   modal.classList.add('show');
-  // 每次打开都重新加载 iframe
-  iframe.src = '../../ladder.html?' + Date.now();
-  iframe.onload = function() {
-    iframe.contentWindow.postMessage({
-      type: 'init_ladder',
-      studentId: gameState.studentId,
-      studentName: gameState.studentName || ''
-    }, '*');
-  };
+  // 首次加载 iframe，后续只显示（不重载，保留状态）
+  if (!window._ladderIframeLoaded) {
+    iframe.src = '../../ladder.html?' + Date.now();
+    iframe.onload = function() {
+      window._ladderIframeLoaded = true;
+      iframe.contentWindow.postMessage({
+        type: 'init_ladder',
+        studentId: gameState.studentId,
+        studentName: gameState.studentName || ''
+      }, '*');
+    };
+  }
 }
 function closeLadderModal() {
   document.getElementById('ladderModal').classList.remove('show');
