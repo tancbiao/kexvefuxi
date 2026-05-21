@@ -42532,49 +42532,58 @@ const ExamPaperParser = {
 
 
 
-    // Find header row
-
+    // Find header row — 支持旧版（题号/题型）和新版（课程序号）
     let headerRow = -1;
-
+    let isNewTemplate = false;
     for (let i = 0; i < Math.min(rows.length, 10); i++) {
-
       const row = rows[i];
-
-      if (String(row[0] || '').trim() === '题号' && String(row[1] || '').trim() === '题型') {
-
+      const c0 = String(row[0] || '').trim();
+      const c1 = String(row[1] || '').trim();
+      if (c0 === '题号' && c1 === '题型') {
         headerRow = i;
-
         break;
-
       }
-
+      if (c0 === '课程序号') {
+        headerRow = i;
+        isNewTemplate = true;
+        break;
+      }
     }
-
-    if (headerRow === -1) throw new Error('未找到表头（题号/题型/题目），请确认Excel格式正确');
-
-
+    if (headerRow === -1) throw new Error('未找到表头（题号/题型 或 课程序号/课程名称），请确认Excel格式正确');
 
     const questions = [];
-
     let currentMaterial = '';
-
     let seen = {};
 
-
-
     for (let i = headerRow + 1; i < rows.length; i++) {
-
-      const row = rows[i];
-
-      const idStr = String(row[0] || '').trim();
-
-      const typeStr = String(row[1] || '').trim();
-
-      const questionText = String(row[2] || '').trim();
-
-      const optionsText = String(row[3] || '').trim();
-
-      const answerText = String(row[4] || '').trim();
+      const rawRow = rows[i];
+      let idStr, typeStr, questionText, optionsText, answerText;
+      
+      if (isNewTemplate) {
+        // 新版模板：课程序号|课程名称|题目|题型|选项A|选项B|选项C|选项D|正确答案|难度|备注|图表
+        const newType = String(rawRow[3] || '').trim();       // 题型
+        questionText = String(rawRow[2] || '').trim();        // 题目
+        answerText = String(rawRow[8] || '').trim();          // 正确答案
+        // 题号：从备注提取"第N题"，否则用行号
+        const remark = String(rawRow[10] || '').trim();
+        const nthMatch = remark.match(/第(\d+)题/);
+        idStr = nthMatch ? nthMatch[1] : String(i - headerRow);
+        typeStr = newType;
+        // 合并选项A-D → "A. xxx\nB. xxx\n..."
+        const optLabels = ['A','B','C','D'];
+        const optParts = [];
+        for (let oi = 0; oi < optLabels.length; oi++) {
+          const optVal = String(rawRow[4 + oi] || '').trim();
+          if (optVal) optParts.push(optLabels[oi] + '. ' + optVal);
+        }
+        optionsText = optParts.join('\n');
+      } else {
+        idStr = String(rawRow[0] || '').trim();
+        typeStr = String(rawRow[1] || '').trim();
+        questionText = String(rawRow[2] || '').trim();
+        optionsText = String(rawRow[3] || '').trim();
+        answerText = String(rawRow[4] || '').trim();
+      }
 
 
 
