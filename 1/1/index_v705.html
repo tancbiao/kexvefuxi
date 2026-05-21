@@ -3063,17 +3063,37 @@ async function syncFromCloudData() {
       }
     }
     
-    // 4. 合并同步错题（按题目文本去重，保留最新的）
+    // 4. 合并同步错题（按questionId去重，新数据优先，清除旧占位记录）
     var existingMap = {};
-    (gameState.syncedWrongQuestions || []).forEach(function(w, i) {
-      var key = (w.question || '') + '|' + (w.correctAnswer || '');
+    // 先加载已有记录，按 questionId 做key
+    (gameState.syncedWrongQuestions || []).forEach(function(w) {
+      var key = (w.questionId || '') + '|' + (w.correctAnswer || '');
       existingMap[key] = w;
     });
+    // 新记录覆盖旧记录（按相同 questionId+correctAnswer）
+    // 如果新记录包含真实题目（非占位），清除同questionId的其他占位记录
+    var newHasReal = {}; // questionId → 是否有真实题目
     syncedRecords.forEach(function(w) {
-      var key = (w.question || '') + '|' + (w.correctAnswer || '');
-      if (!existingMap[key] || (w.syncDate || '') > (existingMap[key].syncDate || '')) {
-        existingMap[key] = w;
+      var isPlaceholder = !w.question || w.question.indexOf('教师未上传题库') >= 0 || w.question.indexOf('题库数据不完整') >= 0 || w.question.indexOf('题库中未找到') >= 0;
+      if (!isPlaceholder && w.questionId) {
+        newHasReal[w.questionId] = true;
       }
+    });
+    // 清除旧的占位记录（同一questionId现在有真实题目了）
+    var cleanKeys = [];
+    for (var ek in existingMap) {
+      if (!existingMap.hasOwnProperty(ek)) continue;
+      var ew = existingMap[ek];
+      var eIsPlaceholder = !ew.question || ew.question.indexOf('教师未上传题库') >= 0 || ew.question.indexOf('题库数据不完整') >= 0 || ew.question.indexOf('题库中未找到') >= 0;
+      if (eIsPlaceholder && ew.questionId && newHasReal[ew.questionId]) {
+        cleanKeys.push(ek);
+      }
+    }
+    cleanKeys.forEach(function(k) { delete existingMap[k]; });
+    // 新记录写入
+    syncedRecords.forEach(function(w) {
+      var key = (w.questionId || '') + '|' + (w.correctAnswer || '');
+      existingMap[key] = w;  // 新数据直接覆盖（服务器是权威来源）
     });
     gameState.syncedWrongQuestions = Object.values(existingMap);
     gameState.lastSyncTime = Date.now();
