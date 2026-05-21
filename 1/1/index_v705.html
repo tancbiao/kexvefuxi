@@ -1465,10 +1465,6 @@ v704 更新：修复爬塔空白页 - showTowerModal 增加登录检查，未登
       <span class="status-icon">⚡</span>
       <span>体力: <span class="status-value" id="dailyStaminaDisplay">20</span>/20</span>
     </div>
-    <div class="status-item">
-      <span class="status-icon streak-fire" id="streakIcon">🔥</span>
-      <span>连击: <span class="status-value" id="currentStreak">0</span></span>
-    </div>
     <div class="status-item" id="ladderStatusItem" style="display:none;cursor:pointer;" onclick="document.getElementById('ladderOverlay') && document.getElementById('ladderOverlay').classList.add('show')">
       <span class="status-icon" id="ladderTierIcon">⚡</span>
       <span>天梯: <span class="status-value" id="ladderTierDisplay">-</span></span>
@@ -2192,8 +2188,6 @@ function renderLevelGrid() {
 
 function updateStatusBar() {
   document.getElementById('totalPoints').textContent = gameState.totalPoints;
-  document.getElementById('currentStreak').textContent = gameState.currentStreak;
-  document.getElementById('streakIcon').style.display = gameState.currentStreak >= 2 ? 'inline' : 'none';
   // 天梯段位显示
   var ladderItem = document.getElementById('ladderStatusItem');
   if (gameState.ladderPoints > 0 && gameState.ladderTier) {
