@@ -964,6 +964,7 @@ img.emoji { height: 1em; width: 1em; margin: 0 0.05em; vertical-align: -0.1em; }
 <div class="screen" id="screenBattle">
   <div class="battle-header">
     <span class="floor-tag" id="battleFloorTag">第 1 层</span>
+    <button onclick="location.reload()" style="position:absolute;right:12px;top:12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.6);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.8em;">🔄 刷新</button>
   </div>
 
   <div class="monster-area">
@@ -2962,7 +2963,16 @@ function getTowerEquipment(sid) {
     return diabloInv.map(d => diabloToTowerEquip(d));
   }
   const data = getGrade6UserData(id);
-  return data.equipment || [];
+  const equip = data.equipment || [];
+  // 🆕 如果旧存储无装备，尝试从主系统统一存储读取（scienceGame_user_）
+  if (!equip.filter(Boolean).length) {
+    try {
+      const mainData = JSON.parse(localStorage.getItem('scienceGame_user_' + id)) || {};
+      const mainEquip = mainData.equipment || [];
+      if (mainEquip.filter(Boolean).length) return mainEquip;
+    } catch(e) {}
+  }
+  return equip;
 }
 
 function saveTowerEquipment(list, sid) {
@@ -3006,7 +3016,12 @@ function getTowerEquipped(sid) {
     return slots;
   }
   try {
-    return JSON.parse(localStorage.getItem('bpEquipped_6_' + id)) ||
+    const oldSlots = JSON.parse(localStorage.getItem('bpEquipped_6_' + id));
+    if (oldSlots) return oldSlots;
+    // 🆕 Fallback: 主系统统一装备槽位（bpEquipped_）
+    const mainSlots = JSON.parse(localStorage.getItem('bpEquipped_' + id));
+    if (mainSlots) return mainSlots;
+    return
       { weapon: null, hat: null, top: null, bottom: null, glove: null, cape: null,
         shield: null, shoes: null, face: null, eyes: null, treasure: [null, null] };
   } catch(e) {
