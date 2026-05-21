@@ -3551,7 +3551,9 @@ function addWrongQuestionStyles() {
   border-radius: 20px;
   width: 90%;
   max-width: 600px;
-  max-height: 80vh;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   border: 1px solid rgba(255,255,255,0.15);
   box-shadow: 0 20px 60px rgba(0,0,0,0.5);
@@ -3639,9 +3641,10 @@ function addWrongQuestionStyles() {
   background: rgba(255,100,100,0.4);
 }
 .wrong-question-list {
-  max-height: 350px;
+  flex: 1;
   overflow-y: auto;
   padding: 15px 20px;
+  -webkit-overflow-scrolling: touch;
 }
 .wrong-empty {
   text-align: center;
@@ -3724,6 +3727,7 @@ function addWrongQuestionStyles() {
   opacity: 1;
 }
 .wrong-question-actions {
+  flex-shrink: 0;
   padding: 20px;
   text-align: center;
   border-top: 1px solid rgba(255,255,255,0.1);
