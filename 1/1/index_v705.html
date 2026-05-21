@@ -4425,6 +4425,9 @@ function loadUserData() {
     });
   }).finally(function() {
     // v704: 云端数据加载完成后才推送排行，避免 0 分覆盖云端
+    // 🆕 刷新状态栏和成就预览，确保云端数据同步后UI更新
+    updateStatusBar();
+    renderAchievementPreview();
     pushRankingData();
     // 领取待发放奖励（称号/装备/宠物）
     if (typeof collectPendingRewards === 'function') {
