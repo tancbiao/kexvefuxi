@@ -6296,39 +6296,84 @@ if (!this.data || !this.data.students) return;
 
   // Sync student data to kexvefuxi review system
   async syncQuestions() {
-    const d = this.data;
-    if (!d || !d.classes || !d.questions) { Util.toast('\u6ca1\u6709\u9898\u76ee\u6570\u636e\uff0c\u8bf7\u786e\u8ba4\u4e0a\u4f20\u7684\u6587\u4ef6\u542b\u6709\u9898\u76ee', 'error'); return; }
+    var d = this.data;
+    // 需要成绩数据来判断年级（或使用题库数据）
+    var hasStudents = d && Array.isArray(d.students) && d.students.length > 0;
+    var hasQB = this.questionBank && this.questionBank.questions && Object.keys(this.questionBank.questions).length > 0;
+    
+    if (!hasQB && (!d || !d.questions || !d.questions.length)) {
+      Util.toast('\u6ca1\u6709\u9898\u76ee\u6570\u636e\uff0c\u8bf7\u5148\u4e0a\u4f20\u9898\u5e93Excel', 'error');
+      return;
+    }
     
     // Determine grade from student IDs
-    const sids = d.classes.map(function(c) { return c.students || []; }).flat().filter(function(s) { return s && s.id; }).map(function(s) { return String(s.id); });
-    var sampleSid = sids.length > 0 ? sids[0] : '01200602';
-    var yearCode = sampleSid.length >= 4 ? sampleSid.substring(2, 4) : '20';
-    var yearMap = { '20': '6', '21': '5', '22': '4', '23': '3' };
-    var grade = yearMap[yearCode] || '6';
+    var grade = '6';
+    if (hasStudents) {
+      var sampleSid = String(d.students[0].id || '');
+      var yearCode = sampleSid.length >= 4 ? sampleSid.substring(2, 4) : '20';
+      var yearMap = { '20': '6', '21': '5', '22': '4', '23': '3' };
+      grade = yearMap[yearCode] || '6';
+    }
     
-    // Build questions array
-    const questions = d.questions.map(function(q, i) {
-      var entry = { id: 'x' + (i + 1), question: q.text || q.q || '', options: q.options || q.opts || [], answer: q.answer || 0 };
-      if (q.material) entry.material = q.material;
-      if (q.materialTitle) entry.materialTitle = q.materialTitle;
-      if (q.image) entry.image = q.image;
-      if (q.type) entry.type = q.type;
-      if (q.difficulty) entry.difficulty = q.difficulty;
-      return entry;
-    });
+    // Build questions: prefer questionBank (has full text), fallback to data.questions (stats only)
+    var questions = [];
+    if (hasQB) {
+      var qb = this.questionBank.questions;
+      Object.entries(qb).forEach(function(entry) {
+        var qId = entry[0];
+        var q = entry[1];
+        questions.push({
+          id: 'qb_' + qId,
+          question: q.text || q.question || '',
+          options: q.options || [],
+          answer: q.answer || '',
+          material: q.material || '',
+          materialTitle: q.material || '',
+          materialImages: q.materialImages || '',
+          type: q.type || '',
+          difficulty: q.difficulty || ''
+        });
+      });
+    } else if (d && d.questions && d.questions.length > 0) {
+      // Fallback: use stats sheet data, try to get text from questionBank
+      var qbLookup = (this.questionBank && this.questionBank.questions) ? this.questionBank.questions : {};
+      d.questions.forEach(function(q, i) {
+        var qNum = q.id || (i + 1);
+        var qbData = qbLookup[qNum] || qbLookup[String(qNum)] || {};
+        questions.push({
+          id: 'x' + (i + 1),
+          question: qbData.text || q.text || q.q || '',
+          options: qbData.options || q.options || q.opts || [],
+          answer: qbData.answer || q.answer || '',
+          material: qbData.material || q.material || '',
+          materialTitle: qbData.material || q.materialTitle || '',
+          materialImages: qbData.materialImages || '',
+          type: qbData.type || q.type || '',
+          difficulty: qbData.difficulty || q.difficulty || ''
+        });
+      });
+    }
     
     if (questions.length === 0) { Util.toast('\u6ca1\u6709\u53ef\u540c\u6b65\u7684\u9898\u76ee', 'error'); return; }
     
+    // 验证题目文本完整性
+    var emptyTextCount = questions.filter(function(q) { return !q.question || !q.question.trim(); }).length;
+    if (emptyTextCount > 0) {
+      console.warn('[syncQuestions] ' + emptyTextCount + '/' + questions.length + ' \u9898\u7f3a\u5c11\u9898\u76ee\u6587\u672c\uff0c\u8bf7\u786e\u8ba4\u9898\u5e93Excel\u5df2\u4e0a\u4f20');
+    }
+    
     try {
-      const res = await fetch('https://api.xixitime.cn/api/questionbank/' + grade, {
+      var res = await fetch('https://api.xixitime.cn/api/questionbank/' + grade, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ questions: questions })
       });
       if (!res.ok) throw new Error('HTTP ' + res.status);
-      const result = await res.json();
-      Util.toast('\u2191 \u540c\u6b65\u6210\u529f\uff01\u5c06 ' + result.count + ' \u9053\u9898\u540c\u6b65\u5230' + grade + '\u5e74\u7ea7\u722c\u5854\u9898\u5e93', 'success');
+      var result = await res.json();
+      var warnMsg = emptyTextCount > 0 ? ' \u26a0\ufe0f' + emptyTextCount + '\u9898\u7f3a\u6587\u672c' : '';
+      Util.toast('\u2191 \u540c\u6b65\u6210\u529f\uff01\u5c06 ' + (result.count || questions.length) + ' \u9053\u9898\u540c\u6b65\u5230' + grade + '\u5e74\u7ea7\u722c\u5854\u9898\u5e93' + warnMsg, emptyTextCount > 0 ? 'warn' : 'success');
     } catch(e) {
       Util.toast('\u540c\u6b65\u5931\u8d25: ' + e.message, 'error');
+      console.error(e);
     }
   },
 
