@@ -702,7 +702,6 @@ body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius
 }
 
 /* ====== iframe 模式：隐藏独立页面元素 ====== */
-.iframe-mode #screenLogin,
 .iframe-mode .top-bar-left { display: none !important; }
 .iframe-mode .main-container { padding-top: 0; }
 .iframe-mode .home-stats { background: transparent; }
@@ -3458,6 +3457,16 @@ if (isIframeMode) {
   document.getElementById('statHP').textContent = '...';
   document.getElementById('statBestFloor').textContent = '-';
   document.getElementById('statTowerPoints').textContent = '等待同步...';
+
+  // 🆕 2秒超时兜底：如果收不到 postMessage，退回登录屏
+  setTimeout(function() {
+    if (!studentId) {
+      console.warn('[Tower] iframe 模式超时，退回登录屏');
+      document.getElementById('screenHome').classList.remove('active');
+      document.getElementById('screenLogin').classList.add('active');
+      document.getElementById('statTowerPoints').textContent = '同步超时，请刷新';
+    }
+  }, 2000);
 }
 
 // 键盘回车登录
