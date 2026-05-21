@@ -1469,6 +1469,10 @@ v704 更新：修复爬塔空白页 - showTowerModal 增加登录检查，未登
       <span class="status-icon streak-fire" id="streakIcon">🔥</span>
       <span>连击: <span class="status-value" id="currentStreak">0</span></span>
     </div>
+    <div class="status-item" id="ladderStatusItem" style="display:none;cursor:pointer;" onclick="document.getElementById('ladderOverlay') && document.getElementById('ladderOverlay').classList.add('show')">
+      <span class="status-icon" id="ladderTierIcon">⚡</span>
+      <span>天梯: <span class="status-value" id="ladderTierDisplay">-</span></span>
+    </div>
     <div class="status-item" style="cursor:pointer;" onclick="showAchievements()">
       <span class="status-icon">🏆</span>
       <span>成就: <span class="status-value" id="achievementCount">0</span></span>
@@ -1849,6 +1853,9 @@ const gameState = {
   lastSyncTime: null, // 最后一次同步时间
   towerHighestFloor: 0,  // 🆕 v610: 爬塔最高层数
   towerCoins: 0,         // 🆕 v610: 爬塔积分（塔币）
+  ladderPoints: 0,       // 🆕 v705: 天梯积分
+  ladderBestScore: 0,    // 🆕 v705: 天梯最高分
+  ladderTier: null,      // 🆕 v705: 天梯段位 {name, icon, color, sub}
   totalQuestionsAnswered: 0,
   totalCorrectAnswers: 0, // 累计答对题数
   retrySuccessCount: 0,
@@ -1954,6 +1961,8 @@ function loginWithId() {
   gameState.towerHighestFloor = 0;
   gameState.towerCoins = 0;
   gameState.ladderBestScore = 0;
+  gameState.ladderPoints = 0;
+  gameState.ladderTier = null;
   // 重置错题本渲染缓存，让新账号重新渲染
   window._wrongQuestionsLoaded = false;
   gameState.studentId = id;
@@ -2011,6 +2020,8 @@ function loginAsGuest() {
   gameState.towerHighestFloor = 0;
   gameState.towerCoins = 0;
   gameState.ladderBestScore = 0;
+  gameState.ladderPoints = 0;
+  gameState.ladderTier = null;
   window._wrongQuestionsLoaded = false;
   gameState.studentId = null;
   gameState.isGuest = true;
@@ -2055,6 +2066,8 @@ function logout() {
   gameState.towerHighestFloor = 0;
   gameState.towerCoins = 0;
   gameState.ladderBestScore = 0;
+  gameState.ladderPoints = 0;
+  gameState.ladderTier = null;
   window._wrongQuestionsLoaded = false;
   localStorage.removeItem('rememberedStudentId');
   document.getElementById('uploadCloudBtn').style.display = 'none';
@@ -2181,6 +2194,21 @@ function updateStatusBar() {
   document.getElementById('totalPoints').textContent = gameState.totalPoints;
   document.getElementById('currentStreak').textContent = gameState.currentStreak;
   document.getElementById('streakIcon').style.display = gameState.currentStreak >= 2 ? 'inline' : 'none';
+  // 天梯段位显示
+  var ladderItem = document.getElementById('ladderStatusItem');
+  if (gameState.ladderPoints > 0 && gameState.ladderTier) {
+    ladderItem.style.display = 'flex';
+    document.getElementById('ladderTierIcon').textContent = gameState.ladderTier.icon || '⚡';
+    document.getElementById('ladderTierDisplay').textContent = gameState.ladderTier.name + ' ' + (gameState.ladderTier.sub || '');
+    document.getElementById('ladderTierDisplay').style.color = gameState.ladderTier.color || '#ffd700';
+  } else if (gameState.ladderPoints > 0) {
+    ladderItem.style.display = 'flex';
+    document.getElementById('ladderTierIcon').textContent = '⚡';
+    document.getElementById('ladderTierDisplay').textContent = gameState.ladderPoints;
+    document.getElementById('ladderTierDisplay').style.color = '';
+  } else {
+    ladderItem.style.display = 'none';
+  }
   var displayName = gameState.isGuest ? '游客' : (gameState.studentName || gameState.studentId);
   document.getElementById('userBadge').textContent = gameState.isGuest ? '🚶 游客' : '👤 ' + displayName;
   // 装备计数
@@ -2963,6 +2991,8 @@ async function saveUserData() {
     towerHighestFloor: gameState.towerHighestFloor || 0,  // 🆕 v610
     towerCoins: gameState.towerCoins || 0,               // 🆕 v610
     ladderBestScore: gameState.ladderBestScore || 0,      // 🆕 天梯最佳分数持久化
+    ladderPoints: gameState.ladderPoints || 0,            // 🆕 v705 天梯积分
+    ladderTier: gameState.ladderTier || null,             // 🆕 v705 天梯段位
     gradeDataMerged: true, // 跨年级迁移标记（防止每次登录重复合并）
     lastUpdated: Date.now(),
     equippedSlots: bpEquippedSlots62
@@ -4157,6 +4187,13 @@ function mergeUserData(localData, cloudData) {
   merged.towerCoins = Math.max(localData.towerCoins || 0, cloudData.towerCoins || 0);
   // 天梯最佳分数取最大值（可能合法减少？不，bestScore只增不减）
   merged.ladderBestScore = Math.max(localData.ladderBestScore || 0, cloudData.ladderBestScore || 0);
+  // 天梯积分和段位：以更高分的为准
+  merged.ladderPoints = Math.max(localData.ladderPoints || 0, cloudData.ladderPoints || 0);
+  if ((cloudData.ladderPoints || 0) > (localData.ladderPoints || 0)) {
+    merged.ladderTier = cloudData.ladderTier || null;
+  } else {
+    merged.ladderTier = localData.ladderTier || cloudData.ladderTier || null;
+  }
 
   // 课次进度：合并并集（每个key取较大值，进度只增不减）
   const lpLocal = localData.lessonProgress || {};
@@ -4432,6 +4469,8 @@ function applyUserData(data) {
   gameState.towerCoins = data.towerCoins || 0;
   // 🆕 恢复天梯最佳分数（持久化，防止刷新丢失）
   gameState.ladderBestScore = data.ladderBestScore || 0;
+  gameState.ladderPoints = data.ladderPoints || 0;
+  gameState.ladderTier = data.ladderTier || null;
   // 恢复宠物碎片到宠物系统 localStorage（v606: 从云端恢复）
   if (data.petPieces && gameState.studentId) {
     try {
@@ -5291,6 +5330,12 @@ window.addEventListener('message', function(e) {
       if (e.data.bestScore !== undefined) {
         gameState.ladderBestScore = Math.max(gameState.ladderBestScore || 0, e.data.bestScore);
       }
+      // 天梯段位
+      if (e.data.tier) {
+        gameState.ladderTier = e.data.tier;
+      }
+      // 天梯积分显示
+      updateStatusBar();
       // 推送天梯数据到排行榜（独立体系，不覆盖主站积分）
       pushRankingData();
     }

@@ -1600,6 +1600,7 @@ function showResult(success) {
   // 保存
   saveLocal();
   saveCloud();
+  syncSelfToRanking().catch(function(e) { console.error('[Ladder] 排行榜同步失败:', e); });
 
   showScreen('screen-result');
 }
