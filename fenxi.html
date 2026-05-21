@@ -3016,28 +3016,62 @@ const App = {
     const status = document.getElementById('syncStatus');
     status.textContent = '同步中...';
     status.style.color = '#ffd700';
+    // === 诊断日志 ===
+    var diag = [];
+    if (!this.data) diag.push('❌ this.data 为 null/undefined');
+    else if (typeof this.data !== 'object') diag.push('❌ this.data 类型异常:' + typeof this.data);
+    else {
+      if (!this.data.students) diag.push('❌ this.data.students 不存在(null/undefined)');
+      else if (!Array.isArray(this.data.students)) diag.push('❌ this.data.students 不是数组');
+      else diag.push('📊 this.data.students 有 ' + this.data.students.length + ' 名学生');
+      diag.push('📋 this.data.classes 有 ' + ((this.data.classes && this.data.classes.length) || 0) + ' 个班级');
+    }
+    if (this.questionBank) diag.push('📚 questionBank 有 ' + Object.keys(this.questionBank.questions || {}).length + ' 题');
+    else diag.push('⚠️ questionBank 未加载');
+    console.log('[syncToReviewSystem] 诊断:', diag.join(' | '));
+    // === 诊断日志结束 ===
     try {
       const students = [];
-      for (const s of (this.data && this.data.students ? this.data.students : [])) {
-        const wrongList = (s.wrongQuestions || '').split(/[,，、\s]+/).filter(Boolean);
-        students.push({
-          studentId: s.id, name: s.name, className: s.className,
-          wrongQuestions: wrongList,
-          answers: s.answers || {},
-          score: s.score || 0
-        });
+      if (this.data && Array.isArray(this.data.students)) {
+        for (const s of this.data.students) {
+          if (!s || !s.id) { console.warn('[sync] 跳过无效学生:', s); continue; }
+          const wrongList = (s.wrongQuestions || '').toString().split(/[,，、\s]+/).filter(function(x) { return x && x.trim(); });
+          // 转换 answers 数组 → 对象 {题号: 答案}
+          var answersObj = {};
+          if (Array.isArray(s.answers)) {
+            for (var ai = 0; ai < s.answers.length; ai++) {
+              if (s.answers[ai] != null) answersObj[(ai + 1).toString()] = String(s.answers[ai]);
+            }
+          } else if (typeof s.answers === 'object' && s.answers) {
+            answersObj = s.answers;
+          }
+          students.push({
+            studentId: String(s.id), name: s.name || '', className: s.className || '',
+            wrongQuestions: wrongList,
+            answers: answersObj,
+            score: typeof s.score === 'number' ? s.score : parseFloat(s.score) || 0
+          });
+        }
+      }
+      if (!this.data || !Array.isArray(this.data.students) || this.data.students.length === 0) {
+        Util.toast('⚠️ 未检测到学生成绩数据！请先在「成绩上传」区域上传学生成绩Excel（门口易测导出文件）', 'warn', 6000);
       }
       let synced = { students: 0, questions: 0 };
       let syncErrors = [];
       if (students.length > 0) {
-        const res = await fetch('https://api.xixitime.cn/api/students/batch', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ students })
-        });
-        if (res.ok) { const d = await res.json(); synced.students = d.count || 0; }
-        else { syncErrors.push('学生数据同步失败(HTTP ' + res.status + ')'); console.error('学生同步失败:', await res.text()); }
+        try {
+          const res = await fetch('https://api.xixitime.cn/api/students/batch', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ students })
+          });
+          if (res.ok) { const d = await res.json(); synced.students = d.count || 0; }
+          else { syncErrors.push('学生数据同步失败(HTTP ' + res.status + ')'); console.error('学生同步失败:', await res.text()); }
+        } catch(fetchErr) {
+          syncErrors.push('学生同步网络错误: ' + fetchErr.message);
+          console.error('学生同步网络错误:', fetchErr);
+        }
       }
-      var hasQB = this.questionBank && Object.keys(this.questionBank.questions).length > 0;
+      var hasQB = this.questionBank && this.questionBank.questions && Object.keys(this.questionBank.questions).length > 0;
       if (hasQB) {
         const qb = this.questionBank.questions;
         const questions = Object.entries(qb).map(([qId, q]) => ({
@@ -3047,13 +3081,18 @@ const App = {
           type: q.type || '', difficulty: q.difficulty || ''
         }));
         if (questions.length > 0) {
-          const grade = students.length > 0 ? students[0].studentId.substring(0, 4) : '6';
-          const res = await fetch('https://api.xixitime.cn/api/questionbank/' + grade, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ questions })
-          });
-          if (res.ok) { const d = await res.json(); synced.questions = d.count || 0; }
-          else { syncErrors.push('题库同步失败(HTTP ' + res.status + ')'); console.error('题库同步失败:', await res.text()); }
+          var grade = students.length > 0 ? String(students[0].studentId).substring(0, 4) : '6';
+          try {
+            const res = await fetch('https://api.xixitime.cn/api/questionbank/' + grade, {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ questions })
+            });
+            if (res.ok) { const d = await res.json(); synced.questions = d.count || 0; }
+            else { syncErrors.push('题库同步失败(HTTP ' + res.status + ')'); console.error('题库同步失败:', await res.text()); }
+          } catch(fetchErr2) {
+            syncErrors.push('题库同步网络错误: ' + fetchErr2.message);
+            console.error('题库同步网络错误:', fetchErr2);
+          }
         }
       }
       if (syncErrors.length > 0) {
@@ -6294,39 +6333,50 @@ if (!this.data || !this.data.students) return;
   },
 
   async syncStudents() {
-    const d = this.data;
-    if (!d || !d.classes) { Util.toast('\u6ca1\u6709\u5b66\u751f\u6570\u636e\uff0c\u8bf7\u5148\u4e0a\u4f20\u6587\u4ef6', 'error'); return; }
-    
-    const students = [];
-    for (const cls of d.classes) {
-      if (!cls.students) continue;
-      for (const s of cls.students) {
-        if (!s.id) continue;
-        students.push({
-          studentId: String(s.id),
-          name: s.name || '',
-          className: cls.name || '',
-          score: s.score || 0,
-          wrongQuestions: s.wrongQuestions || [],
-          answers: s.answers || {}
-        });
-      }
+    var d = this.data;
+    if (!d || !Array.isArray(d.students) || d.students.length === 0) {
+      Util.toast('\u26a0\ufe0f \u6ca1\u6709\u5b66\u751f\u6210\u7ee9\u6570\u636e\uff0c\u8bf7\u5148\u5728\u300c\u6210\u7ee9\u4e0a\u4f20\u300d\u533a\u57df\u4e0a\u4f20\u5b66\u751f\u6210\u7ee9Excel\uff08\u95e8\u53e3\u6613\u6d4b\u5bfc\u51fa\u6587\u4ef6\uff09', 'error', 5000);
+      return;
     }
-    
-    if (students.length === 0) { Util.toast('\u6ca1\u6709\u53ef\u540c\u6b65\u7684\u5b66\u751f\u6570\u636e', 'error'); return; }
-    
+    var students = [];
+    for (var i = 0; i < d.students.length; i++) {
+      var s = d.students[i];
+      if (!s || !s.id) continue;
+      var wrongList = (s.wrongQuestions || '').toString().split(/[,，、\s]+/).filter(function(x) { return x && x.trim(); });
+      // \u8f6c\u6362 answers \u6570\u7ec4 \u2192 \u5bf9\u8c61
+      var answersObj = {};
+      if (Array.isArray(s.answers)) {
+        for (var ai = 0; ai < s.answers.length; ai++) {
+          if (s.answers[ai] != null) answersObj[(ai + 1).toString()] = String(s.answers[ai]);
+        }
+      } else if (typeof s.answers === 'object' && s.answers) {
+        answersObj = s.answers;
+      }
+      students.push({
+        studentId: String(s.id),
+        name: s.name || '',
+        className: s.className || '',
+        score: typeof s.score === 'number' ? s.score : parseFloat(s.score) || 0,
+        wrongQuestions: wrongList,
+        answers: answersObj
+      });
+    }
+    if (students.length === 0) {
+      Util.toast('\u26a0\ufe0f \u6ca1\u6709\u6709\u6548\u5b66\u751f\u6570\u636e\uff08\u5b66\u53f7\u7f3a\u5931\u6216\u89e3\u6790\u5931\u8d25\uff09', 'error', 5000);
+      return;
+    }
     try {
-      const res = await fetch('https://api.xixitime.cn/api/students/batch', {
+      var res = await fetch('https://api.xixitime.cn/api/students/batch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ students })
+        body: JSON.stringify({ students: students })
       });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const result = await res.json();
-      Util.toast('\u2191 \u540c\u6b65\u6210\u529f\uff01\u5171\u540c\u6b65 ' + result.count + ' \u540d\u5b66\u751f\u6570\u636e\u5230\u590d\u4e60\u7cfb\u7edf', 'success');
+      if (!res.ok) throw new Error('HTTP ' + res.status + ': ' + (await res.text()));
+      var result = await res.json();
+      Util.toast('\u2191 \u540c\u6b65\u6210\u529f\uff01\u5171\u540c\u6b65 ' + (result.count || 0) + ' \u540d\u5b66\u751f\u6570\u636e\u5230\u590d\u4e60\u7cfb\u7edf', 'success');
     } catch(e) {
       Util.toast('\u540c\u6b65\u5931\u8d25: ' + e.message, 'error');
-      console.error(e);
+      console.error('\u5b66\u751f\u540c\u6b65\u9519\u8bef:', e);
     }
   },
 
