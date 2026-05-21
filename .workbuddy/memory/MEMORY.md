@@ -1,6 +1,16 @@
 # 科学复习系统 - 长期记忆
 
-## 天梯系统 (ladder.html) ✅ 基本完成
+## 账号隔离安全清单（2026-05-21 新增）
+**受影响函数**: `loginWithId()`, `logout()`, `loginAsGuest()` — 修改时需同步更新三个函数
+**必须重置的 gameState 字段**:
+- `wrongQuestions`, `syncedWrongQuestions`, `cloudQBank`, `lastSyncTime`
+- `totalQuestionsAnswered`, `totalCorrectAnswers`, `retrySuccessCount`
+- `towerHighestFloor`, `towerCoins`, `ladderBestScore`
+- `window._wrongQuestionsLoaded = false`（防止渲染缓存串号）
+- 已有字段（原已重置）：totalPoints, lessonProgress, unlockedAchievements, equipment, equippedSlots, pets, petPieces, currentStreak, maxStreak
+- 修复 commit: `26ab3b9`
+
+## 天梯系统
 - 路径：`_kexvefuxi/ladder.html`（与 tower.html 同级，~1878行）
 - 风格：暗黑冒险岛（继承 tower.html CSS 体系）
 - 题库：`data/3-2-lessons.js` ~ `6-2-lessons.js` 自动转换为 `{id, question, options, answer}` 格式
@@ -25,6 +35,9 @@
 - **同步函数**: `syncToReviewSystem()` (line ~43205), `syncStudents()` (line ~46472), `syncQuestions()` (line ~46437)
 - **复习系统端**: `syncFromCloudData()` 在 index_v705.html line 2946，学生点击"成绩分析"拉取同步的错题
 - **访问方式**: 教师直接访问 xixitime.cn/fenxi.html，输入密码后使用
+- **✅ v2026-05-20**: loadQuestionBank() 适配新版题库模板（课程序号/题目/题型/选项A-D/正确答案/难度/备注/图表列），支持 DISPIMG 图片提取、材料题拆分（【材料名】前缀）、判断题答案标准化（√/×）、syncQuestions/syncToReviewSystem 携带 type 和 difficulty 字段。向下兼容旧版（题号列）。commit `e1b7dc6`
+- **✅ v2026-05-20**: 同步显示修复 - syncToReviewSystem() answers默认值[]→{}、syncFromCloudData()题库匹配增强、判断答案T/F标准化、无题库明确提示。commit `e31d88c`
+- **✅ v2026-05-21**: _parseXlsx()命题卷分析适配新版模板（课程序号/课程名称），列映射（题号从备注提取、选项A-D合并）。commit `9fb4652`
 
 ## 服务端 API 端点一览（159.75.134.151, /data/api.py）
 | 端点 | 方法 | 说明 | 版本 |
