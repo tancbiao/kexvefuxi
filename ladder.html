@@ -1765,7 +1765,7 @@ async function syncSelfToRanking() {
       totalCorrect: state.totalCorrect,
       tier: getTier(state.score)
     };
-    await fetchWithTimeout(LADER_API_BASE + '/ranking', {
+    await fetchWithTimeout(LADDER_API_BASE + '/ranking', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
