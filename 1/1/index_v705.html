@@ -3035,6 +3035,7 @@ async function syncFromCloudData() {
     var qbEmpty = (Object.keys(qbDict).length === 0);
     if (infoRes.ok) {
       var infoData = await infoRes.json();
+      console.log('[syncFromCloudData] 学生信息拉取:', infoData ? '有数据' : '无数据', 'keys:', infoData ? Object.keys(infoData).join(',') : '(null)');
       if (infoData && Object.keys(infoData).length > 0) {
         var wrongIds = infoData.wrongQuestions || [];
         // wrongIds can be string "1,2,3" or array ["1","2","3"]
@@ -3150,7 +3151,13 @@ async function syncFromCloudData() {
       label.style.color = '#4ade80';
       setTimeout(function() { if (label) { label.textContent = oldText; label.style.color = '#4ade80'; } }, 3000);
     }
-    showToast('✅ 同步成功！题库 ' + totalQBank + ' 题，错题 ' + totalSynced + ' 条', 'success');
+    if (totalSynced === 0 && totalQBank > 0) {
+      showToast('⚠️ 题库已同步' + totalQBank + '题，但未找到你的错题数据。请在成绩分析系统中确认：(1)已上传学生成绩 (2)已点击"同步到复习系统" (3)同步结果中"学生"人数>0', 'warn', 8000);
+    } else if (totalSynced === 0 && totalQBank === 0) {
+      showToast('⚠️ 题库和错题均为空。请确认教师在成绩分析系统中已完成：(1)上传学生成绩Excel (2)上传题库Excel (3)点击"同步到复习系统"', 'warn', 8000);
+    } else {
+      showToast('✅ 同步成功！题库 ' + totalQBank + ' 题，错题 ' + totalSynced + ' 条', 'success');
+    }
     
     // 如果同步到错题，自动打开错题本
     if (totalSynced > 0 && document.getElementById('wrongQuestionOverlay')) {
