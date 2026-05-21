@@ -1944,6 +1944,18 @@ function loginWithId() {
   gameState.petPieces = {};
   gameState.currentStreak = 0;
   gameState.maxStreak = 0;
+  gameState.wrongQuestions = [];
+  gameState.syncedWrongQuestions = [];
+  gameState.cloudQBank = {};
+  gameState.lastSyncTime = null;
+  gameState.totalQuestionsAnswered = 0;
+  gameState.totalCorrectAnswers = 0;
+  gameState.retrySuccessCount = 0;
+  gameState.towerHighestFloor = 0;
+  gameState.towerCoins = 0;
+  gameState.ladderBestScore = 0;
+  // 重置错题本渲染缓存，让新账号重新渲染
+  window._wrongQuestionsLoaded = false;
   gameState.studentId = id;
   gameState.isGuest = false;
   gameState.studentName = getStudentName(id);
@@ -1979,6 +1991,27 @@ function loginWithId() {
 }
 
 function loginAsGuest() {
+  // 重置所有数据（防止旧用户数据残留）
+  gameState.totalPoints = 0;
+  gameState.lessonProgress = {};
+  gameState.unlockedAchievements = [];
+  gameState.equipment = [];
+  gameState.equippedSlots = {};
+  gameState.pets = {};
+  gameState.petPieces = {};
+  gameState.currentStreak = 0;
+  gameState.maxStreak = 0;
+  gameState.wrongQuestions = [];
+  gameState.syncedWrongQuestions = [];
+  gameState.cloudQBank = {};
+  gameState.lastSyncTime = null;
+  gameState.totalQuestionsAnswered = 0;
+  gameState.totalCorrectAnswers = 0;
+  gameState.retrySuccessCount = 0;
+  gameState.towerHighestFloor = 0;
+  gameState.towerCoins = 0;
+  gameState.ladderBestScore = 0;
+  window._wrongQuestionsLoaded = false;
   gameState.studentId = null;
   gameState.isGuest = true;
   hideLoginScreen();
@@ -2012,6 +2045,17 @@ function logout() {
   gameState.petPieces = {};
   gameState.unlockedAchievements = [];
   gameState.lessonProgress = {};
+  gameState.wrongQuestions = [];
+  gameState.syncedWrongQuestions = [];
+  gameState.cloudQBank = {};
+  gameState.lastSyncTime = null;
+  gameState.totalQuestionsAnswered = 0;
+  gameState.totalCorrectAnswers = 0;
+  gameState.retrySuccessCount = 0;
+  gameState.towerHighestFloor = 0;
+  gameState.towerCoins = 0;
+  gameState.ladderBestScore = 0;
+  window._wrongQuestionsLoaded = false;
   localStorage.removeItem('rememberedStudentId');
   document.getElementById('uploadCloudBtn').style.display = 'none';
   document.getElementById('downloadCloudBtn').style.display = 'none';
