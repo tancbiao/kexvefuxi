@@ -2,9 +2,10 @@
 """
 科学复习系统 - 云端存储 API
 轻量级 JSON 文件存储，支持排行榜 + 学生存档
+修复：文件锁防止并发写入竞态条件（2026-05-21）
 """
 
-import json, os, time, shutil
+import json, os, time, shutil, fcntl
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
@@ -39,16 +40,37 @@ def _read_json(name):
         return {}
 
 def _write_json(name, data):
-    """原子写入：先写 .tmp 再 rename，防止写入中断导致文件损坏"""
+    """原子写入 + 文件锁，防止多 worker 并发写入竞态"""
     path = _data_path(name)
     tmp_path = path + '.tmp'
-    # 先写临时文件
-    with open(tmp_path, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-        f.flush()
-        os.fsync(f.fileno())
-    # 确保写入完成再 rename（原子操作）
-    shutil.move(tmp_path, path)
+    lock_path = path + '.lock'
+    
+    # 1. 获取文件锁（阻塞等待，超时 5 秒）
+    lock_fd = open(lock_path, 'w')
+    try:
+        fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except (IOError, OSError):
+        # 锁已被占用，等待
+        fcntl.flock(lock_fd, fcntl.LOCK_EX)
+    
+    try:
+        # 2. 先写临时文件
+        with open(tmp_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+            f.flush()
+            os.fsync(f.fileno())
+        
+        # 3. 原子 rename
+        shutil.move(tmp_path, path)
+    finally:
+        # 4. 释放锁
+        fcntl.flock(lock_fd, fcntl.LOCK_UN)
+        lock_fd.close()
+        # 清理锁文件（可选）
+        try:
+            os.remove(lock_path)
+        except:
+            pass
 
 # ==================== 排行榜 API ====================
 # GET /api/ranking/{grade}
