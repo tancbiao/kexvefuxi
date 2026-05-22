@@ -2067,10 +2067,6 @@ function logout() {
   gameState.ladderPoints = 0;
   gameState.ladderTier = null;
   window._wrongQuestionsLoaded = false;
-  // 重置爬塔 iframe，防止换号后残留上个人的挑战状态
-  window._ladderIframeLoaded = false;
-  var ladderIframe = document.getElementById('ladderIframe');
-  if (ladderIframe) ladderIframe.src = 'about:blank';
   localStorage.removeItem('rememberedStudentId');
   document.getElementById('uploadCloudBtn').style.display = 'none';
   document.getElementById('downloadCloudBtn').style.display = 'none';
@@ -5271,23 +5267,18 @@ function showLadderModal() {
   const modal = document.getElementById('ladderModal');
   const iframe = document.getElementById('ladderIframe');
   modal.classList.add('show');
-  // 首次加载 iframe，后续只显示（不重载，保留状态）
-  if (!window._ladderIframeLoaded) {
-    iframe.src = '../../ladder.html?' + Date.now();
-    iframe.onload = function() {
-      window._ladderIframeLoaded = true;
-      iframe.contentWindow.postMessage({
-        type: 'init_ladder',
-        studentId: gameState.studentId,
-        studentName: gameState.studentName || ''
-      }, '*');
-    };
-  }
+  // 每次打开都重新加载 iframe，彻底杜绝换号残留
+  iframe.src = '../../ladder.html?' + Date.now();
+  iframe.onload = function() {
+    iframe.contentWindow.postMessage({
+      type: 'init_ladder',
+      studentId: gameState.studentId,
+      studentName: gameState.studentName || ''
+    }, '*');
+  };
 }
 function closeLadderModal() {
   document.getElementById('ladderModal').classList.remove('show');
-  // 关闭时重置，下次打开重新加载（避免换账号残留数据）
-  window._ladderIframeLoaded = false;
 }
 
 // 监听爬塔/天梯发来的积分变动
