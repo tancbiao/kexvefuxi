@@ -1,5 +1,6 @@
 // 共享月考题库（爬塔+天梯共用）
 // 自动生成于 2026-05-22
+// grade字段: 3/4/5/6 分别对应三~六年级
 // 向此文件追加新题即可无限扩充
 
 window.SHARED_EXAM_BANK = [
@@ -14,7 +15,8 @@ window.SHARED_EXAM_BANK = [
     "material": "",
     "type": "判断题",
     "difficulty": "基础",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "2",
@@ -27,7 +29,8 @@ window.SHARED_EXAM_BANK = [
     "material": "",
     "type": "判断题",
     "difficulty": "基础",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "3",
@@ -40,7 +43,8 @@ window.SHARED_EXAM_BANK = [
     "material": "",
     "type": "判断题",
     "difficulty": "基础",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "4",
@@ -53,7 +57,8 @@ window.SHARED_EXAM_BANK = [
     "material": "",
     "type": "判断题",
     "difficulty": "基础",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "5",
@@ -66,7 +71,8 @@ window.SHARED_EXAM_BANK = [
     "material": "",
     "type": "判断题",
     "difficulty": "基础",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "6",
@@ -79,7 +85,8 @@ window.SHARED_EXAM_BANK = [
     "material": "",
     "type": "判断题",
     "difficulty": "基础",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "7",
@@ -92,7 +99,8 @@ window.SHARED_EXAM_BANK = [
     "material": "",
     "type": "判断题",
     "difficulty": "基础",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "8",
@@ -105,7 +113,8 @@ window.SHARED_EXAM_BANK = [
     "material": "",
     "type": "判断题",
     "difficulty": "基础",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "9",
@@ -118,7 +127,8 @@ window.SHARED_EXAM_BANK = [
     "material": "",
     "type": "判断题",
     "difficulty": "基础",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "10",
@@ -131,7 +141,8 @@ window.SHARED_EXAM_BANK = [
     "material": "",
     "type": "判断题",
     "difficulty": "基础",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "11",
@@ -145,7 +156,8 @@ window.SHARED_EXAM_BANK = [
     "material": "材料：小鸟天堂",
     "type": "单选题",
     "difficulty": "基础",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "12",
@@ -159,7 +171,8 @@ window.SHARED_EXAM_BANK = [
     "material": "材料：小鸟天堂",
     "type": "单选题",
     "difficulty": "提升",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "13",
@@ -173,7 +186,8 @@ window.SHARED_EXAM_BANK = [
     "material": "材料：小鸟天堂",
     "type": "单选题",
     "difficulty": "基础",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "14",
@@ -187,7 +201,8 @@ window.SHARED_EXAM_BANK = [
     "material": "材料：小鸟天堂",
     "type": "单选题",
     "difficulty": "提升",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "15",
@@ -201,7 +216,8 @@ window.SHARED_EXAM_BANK = [
     "material": "材料：能源与发电",
     "type": "单选题",
     "difficulty": "基础",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "16",
@@ -215,7 +231,8 @@ window.SHARED_EXAM_BANK = [
     "material": "材料：能源与发电",
     "type": "单选题",
     "difficulty": "基础",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "17",
@@ -229,7 +246,8 @@ window.SHARED_EXAM_BANK = [
     "material": "材料：能源与发电",
     "type": "单选题",
     "difficulty": "提升",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "18",
@@ -243,7 +261,8 @@ window.SHARED_EXAM_BANK = [
     "material": "材料：能源与发电",
     "type": "单选题",
     "difficulty": "基础",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "19",
@@ -257,7 +276,8 @@ window.SHARED_EXAM_BANK = [
     "material": "材料：能源与发电",
     "type": "单选题",
     "difficulty": "提升",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "20",
@@ -271,7 +291,8 @@ window.SHARED_EXAM_BANK = [
     "material": "材料：航天科技",
     "type": "单选题",
     "difficulty": "基础",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "21",
@@ -285,7 +306,8 @@ window.SHARED_EXAM_BANK = [
     "material": "材料：航天科技",
     "type": "单选题",
     "difficulty": "基础",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "22",
@@ -299,7 +321,8 @@ window.SHARED_EXAM_BANK = [
     "material": "材料：航天科技",
     "type": "单选题",
     "difficulty": "提升",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "23",
@@ -313,7 +336,8 @@ window.SHARED_EXAM_BANK = [
     "material": "材料：航天科技",
     "type": "单选题",
     "difficulty": "提升",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "24",
@@ -327,7 +351,8 @@ window.SHARED_EXAM_BANK = [
     "material": "材料：航天科技",
     "type": "单选题",
     "difficulty": "提升",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "25",
@@ -341,7 +366,8 @@ window.SHARED_EXAM_BANK = [
     "material": "材料：红树林生态系统",
     "type": "单选题",
     "difficulty": "基础",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "26",
@@ -355,7 +381,8 @@ window.SHARED_EXAM_BANK = [
     "material": "材料：红树林生态系统",
     "type": "单选题",
     "difficulty": "基础",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "27",
@@ -369,7 +396,8 @@ window.SHARED_EXAM_BANK = [
     "material": "材料：红树林生态系统",
     "type": "单选题",
     "difficulty": "提升",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "28",
@@ -383,7 +411,8 @@ window.SHARED_EXAM_BANK = [
     "material": "材料：红树林生态系统",
     "type": "单选题",
     "difficulty": "基础",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "29",
@@ -397,7 +426,8 @@ window.SHARED_EXAM_BANK = [
     "material": "材料：红树林生态系统",
     "type": "单选题",
     "difficulty": "提升",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "30",
@@ -411,7 +441,8 @@ window.SHARED_EXAM_BANK = [
     "material": "保温效果实验",
     "type": "单选题",
     "difficulty": "提升",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "31",
@@ -425,7 +456,8 @@ window.SHARED_EXAM_BANK = [
     "material": "保温效果实验",
     "type": "单选题",
     "difficulty": "基础",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "32",
@@ -439,7 +471,8 @@ window.SHARED_EXAM_BANK = [
     "material": "保温效果实验",
     "type": "单选题",
     "difficulty": "提升",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "33",
@@ -453,7 +486,8 @@ window.SHARED_EXAM_BANK = [
     "material": "保温效果实验",
     "type": "单选题",
     "difficulty": "提升",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "34",
@@ -467,7 +501,8 @@ window.SHARED_EXAM_BANK = [
     "material": "保温效果实验",
     "type": "单选题",
     "difficulty": "挑战",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "35",
@@ -481,7 +516,8 @@ window.SHARED_EXAM_BANK = [
     "material": "探究电磁铁磁力大小与线圈匝数的关系",
     "type": "单选题",
     "difficulty": "基础",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "36",
@@ -495,7 +531,8 @@ window.SHARED_EXAM_BANK = [
     "material": "探究电磁铁磁力大小与线圈匝数的关系",
     "type": "单选题",
     "difficulty": "基础",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "37",
@@ -509,7 +546,8 @@ window.SHARED_EXAM_BANK = [
     "material": "探究电磁铁磁力大小与线圈匝数的关系",
     "type": "单选题",
     "difficulty": "提升",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "38",
@@ -523,7 +561,8 @@ window.SHARED_EXAM_BANK = [
     "material": "探究电磁铁磁力大小与线圈匝数的关系",
     "type": "单选题",
     "difficulty": "提升",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "39",
@@ -537,7 +576,8 @@ window.SHARED_EXAM_BANK = [
     "material": "探究电磁铁磁力大小与线圈匝数的关系",
     "type": "单选题",
     "difficulty": "基础",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "40",
@@ -551,7 +591,8 @@ window.SHARED_EXAM_BANK = [
     "material": "探究电磁铁磁力大小与线圈匝数的关系",
     "type": "单选题",
     "difficulty": "基础",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "41",
@@ -565,7 +606,8 @@ window.SHARED_EXAM_BANK = [
     "material": "风能小吊车实验",
     "type": "单选题",
     "difficulty": "基础",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "42",
@@ -579,7 +621,8 @@ window.SHARED_EXAM_BANK = [
     "material": "风能小吊车实验",
     "type": "单选题",
     "difficulty": "基础",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "43",
@@ -593,7 +636,8 @@ window.SHARED_EXAM_BANK = [
     "material": "风能小吊车实验",
     "type": "单选题",
     "difficulty": "基础",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "44",
@@ -607,7 +651,8 @@ window.SHARED_EXAM_BANK = [
     "material": "风能小吊车实验",
     "type": "单选题",
     "difficulty": "提升",
-    "img": ""
+    "img": "",
+    "grade": "6"
   },
   {
     "id": "45",
@@ -621,7 +666,8 @@ window.SHARED_EXAM_BANK = [
     "material": "某生态系统食物网",
     "type": "单选题",
     "difficulty": "基础",
-    "img": "icons/tower_table_baowen.jpeg"
+    "img": "icons/tower_table_baowen.jpeg",
+    "grade": "6"
   },
   {
     "id": "46",
@@ -635,7 +681,8 @@ window.SHARED_EXAM_BANK = [
     "material": "某生态系统食物网",
     "type": "单选题",
     "difficulty": "挑战",
-    "img": "icons/tower_table_baowen.jpeg"
+    "img": "icons/tower_table_baowen.jpeg",
+    "grade": "6"
   },
   {
     "id": "47",
@@ -649,7 +696,8 @@ window.SHARED_EXAM_BANK = [
     "material": "某生态系统食物网",
     "type": "单选题",
     "difficulty": "基础",
-    "img": "icons/tower_table_baowen.jpeg"
+    "img": "icons/tower_table_baowen.jpeg",
+    "grade": "6"
   },
   {
     "id": "48",
@@ -663,7 +711,8 @@ window.SHARED_EXAM_BANK = [
     "material": "某生态系统食物网",
     "type": "单选题",
     "difficulty": "基础",
-    "img": "icons/tower_table_baowen.jpeg"
+    "img": "icons/tower_table_baowen.jpeg",
+    "grade": "6"
   },
   {
     "id": "49",
@@ -677,7 +726,8 @@ window.SHARED_EXAM_BANK = [
     "material": "某生态系统食物网",
     "type": "单选题",
     "difficulty": "提升",
-    "img": "icons/tower_table_baowen.jpeg"
+    "img": "icons/tower_table_baowen.jpeg",
+    "grade": "6"
   },
   {
     "id": "50",
@@ -692,6 +742,7 @@ window.SHARED_EXAM_BANK = [
     "material": "某生态系统食物网",
     "type": "单选题",
     "difficulty": "提升",
-    "img": "icons/tower_table_baowen.jpeg"
+    "img": "icons/tower_table_baowen.jpeg",
+    "grade": "6"
   }
 ];
