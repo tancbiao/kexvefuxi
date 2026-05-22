@@ -1811,11 +1811,20 @@ function renderRankingList(list) {
       ? '<span class="rank-score">' + (item.score || 0) + '</span>'
       : '<span class="rank-rate">' + (item.accuracy || '0') + '%</span>';
 
+    var displaySid = (item.studentId || '未知');
+    if (displaySid.length >= 5) displaySid = displaySid.substring(0, 2) + '**' + displaySid.substring(displaySid.length - 2);
+    var tierDisplay = '';
+    if (item.tier) {
+      tierDisplay = typeof item.tier === 'object' ? (item.tier.name + (item.tier.sub ? ' ' + item.tier.sub : '')) : String(item.tier);
+    } else {
+      tierDisplay = getTierDisplay(item.score);
+    }
+
     html += '<div class="ranking-item' + (isMine ? ' mine' : '') + '">' +
       '<div class="rank-num ' + rankClass + '">' + rankIcon + '</div>' +
       '<div class="rank-info">' +
-        '<div class="rank-name">' + (item.studentId || '未知') + (isMine ? ' (你)' : '') + '</div>' +
-        '<div class="rank-tier">' + (item.tier || getTierDisplay(item.score)) + '</div>' +
+        '<div class="rank-name">' + displaySid + (isMine ? ' (你)' : '') + '</div>' +
+        '<div class="rank-tier">' + tierDisplay + '</div>' +
       '</div>' +
       valueHtml +
       '</div>';
