@@ -1098,6 +1098,7 @@ img.emoji { height: 1em; width: 1em; margin: 0 0.05em; vertical-align: -0.1em; }
 
 <!-- v612: Twemoji 异步加载，避免阻塞 -->
 <script src="equipment-gen.js"></script>
+<script src="data/shared-exam-bank.js"></script>
 <script>
 // ====== v612: Twemoji Win7 兼容层（异步加载，不阻塞页面） ======
 (function(){
@@ -1353,6 +1354,22 @@ const TOWER_QUESTIONS = [
   { id: "x49", question: "【某生态系统食物网】右图为一个复杂的食物网示意图，包含以下生物：\n食物链中存在多条相互交织的食物链。\n右图中，如果鹰大量灭绝，食虫鸟的数量会<br><img src=\"icons/tower_q_img_50.jpeg\" style=\"max-width:100%;max-height:300px;border-radius:8px;margin-top:8px;\">", options: ["增多", "减少", "先增多再减少"], answer: 2 },
   { id: "x50", question: "【某生态系统食物网】右图为一个复杂的食物网示意图，包含以下生物：\n图中数量最少的是<br><img src=\"icons/tower_q_img_51.jpeg\" style=\"max-width:100%;max-height:300px;border-radius:8px;margin-top:8px;\">", options: ["鹰", "草", "蛇", "蝗虫"], answer: 0 },
 ];
+// ====== 合并共享月考题库（去重：已存在的跳过） ======
+(function() {
+  if (!window.SHARED_EXAM_BANK) return;
+  var existingIds = new Set(TOWER_QUESTIONS.map(function(q) { return q.id.replace('x',''); }));
+  window.SHARED_EXAM_BANK.forEach(function(q) {
+    if (existingIds.has(String(q.id))) return;
+    var imgHtml = q.img ? '\n<img src=\"' + q.img + '\" style=\"max-width:100%;max-height:280px;border-radius:8px;margin:8px 0;\">' : '';
+    TOWER_QUESTIONS.push({
+      id: 'x' + q.id,
+      question: (q.material ? '【' + q.material + '】' : '') + q.question + imgHtml,
+      options: q.options,
+      answer: q.answer
+    });
+  });
+  console.log('[Tower] 合并共享题库: ' + TOWER_QUESTIONS.length + '题（含共享）');
+})();
 function shuffleArray(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));

@@ -801,6 +801,7 @@ body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius
 <script src="data/4-2-lessons.js"></script>
 <script src="data/5-2-lessons.js"></script>
 <script src="data/6-2-lessons.js"></script>
+<script src="data/shared-exam-bank.js"></script>
 
 <!-- ========== 主逻辑 ========== -->
 <script>
@@ -1015,6 +1016,22 @@ function initQuestionBanks() {
   for (var gk in bankKeys) {
     LADDER_QUESTIONS[gk] = convertQuestionBank(bankKeys[gk], gk);
     console.log('[Ladder] 年级' + gk + '题库: ' + LADDER_QUESTIONS[gk].length + '题');
+  }
+  // ====== 合并共享月考题库 ======
+  if (window.SHARED_EXAM_BANK && window.SHARED_EXAM_BANK.length > 0) {
+    var examQs = window.SHARED_EXAM_BANK.map(function(q, i) {
+      return {
+        id: 'exam_' + q.id,
+        question: (q.material ? '【' + q.material + '】' : '') + q.question,
+        options: q.options,
+        answer: q.answer,  // 0-based
+        _exam: true,        // 标记为月考题目
+        _difficulty: q.difficulty || ''
+      };
+    });
+    // 共享入库所有年级（存入 'exam' key，不混入年级题库）
+    LADDER_QUESTIONS['exam'] = examQs;
+    console.log('[Ladder] 共享月考题库: ' + examQs.length + '题');
   }
 }
 
@@ -1317,6 +1334,14 @@ function startChallenge() {
   if (!pool || pool.length === 0) {
     showToast('题库未加载，请刷新页面', 'error');
     return;
+  }
+
+  // 青铜及以上段位：混入共享月考题库
+  var currentTier = getTier(state.score);
+  var tierIdx = TIER_CONFIG.findIndex(function(t) { return t.name === currentTier.name; });
+  var bronzeIdx = TIER_CONFIG.findIndex(function(t) { return t.name === '青铜'; });
+  if (tierIdx >= bronzeIdx && LADDER_QUESTIONS['exam'] && LADDER_QUESTIONS['exam'].length > 0) {
+    pool = pool.concat(LADDER_QUESTIONS['exam']);
   }
 
   // 随机选取10题（优先选没见过或见的少的，保证新鲜度）
