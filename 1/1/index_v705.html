@@ -2958,7 +2958,8 @@ async function loadFromCloud(studentId) {
 }
 
 // v702: 改为 async，让云端保存能正确执行
-async function saveUserData() {
+// v706: skipCloud 参数——applyUserData 等内部调用跳过云端上传
+async function saveUserData(skipCloud) {
   if (gameState.isGuest) return;
   // 读取宠物系统的碎片数据（用于云端同步）
   var petPieces = {};
@@ -2995,8 +2996,10 @@ async function saveUserData() {
   };
   localStorage.setItem('scienceGame_user_' + gameState.studentId, JSON.stringify(data));
   if (currentCourse) { var pgKey = 'progress_grade' + currentCourse.grade + currentCourse.sem + '_' + gameState.studentId; localStorage.setItem(pgKey, JSON.stringify(gameState.lessonProgress)); }
-  await saveToCloud(gameState.studentId, data);
-  pushRankingData();
+  if (!skipCloud) {
+    await saveToCloud(gameState.studentId, data);
+    pushRankingData();
+  }
 }
 // ====== Toast 提示 ======
 function showToast(msg, type, duration) {
@@ -4504,7 +4507,7 @@ function applyUserData(data) {
     Object.assign(bpEquippedSlots62, data.equippedSlots);
   }
   loadEquippedState62();
-  saveUserData();
+  saveUserData(true);  // v706: skipCloud=true，仅存本地不触发云上传
 }
 document.getElementById('loginBtn').addEventListener('click', loginWithId);
 document.getElementById('guestBtn').addEventListener('click', loginAsGuest);
