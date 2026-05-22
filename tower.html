@@ -963,7 +963,10 @@ img.emoji { height: 1em; width: 1em; margin: 0 0.05em; vertical-align: -0.1em; }
 <div class="screen" id="screenBattle">
   <div class="battle-header">
     <span class="floor-tag" id="battleFloorTag">第 1 层</span>
-    <button onclick="location.reload()" style="position:absolute;right:12px;top:12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.6);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.8em;">🔄 刷新</button>
+    <div style="position:absolute;right:12px;top:12px;display:flex;gap:6px;">
+      <button onclick="if(confirm('确定要放弃本次爬塔吗？已获得的积分和装备会保留。')){goHome()}" style="background:rgba(255,100,100,0.2);border:1px solid rgba(255,100,100,0.4);color:rgba(255,255,255,0.7);padding:6px 10px;border-radius:6px;cursor:pointer;font-size:0.75em;" title="放弃本次爬塔，返回首页（保留积分和装备）">🏠 退出</button>
+      <button onclick="location.reload()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.5);padding:6px 10px;border-radius:6px;cursor:pointer;font-size:0.75em;" title="卡住时刷新页面">🔄</button>
+    </div>
   </div>
 
   <div class="monster-area">
@@ -1856,7 +1859,7 @@ function calcPlayerStats(sid) {
 
   return {
     atk: Math.max(equipATK + petATK, 5),
-    maxHP: Math.max(100 + equipHP + petDEF, 50),
+    maxHP: Math.max(100 + equipHP + petDEF + (run.buffs ? run.buffs.maxHPBoost || 0 : 0), 50),
     dodge: 0.2,
   };
 }
@@ -1930,6 +1933,18 @@ function goHome() {
   }
 
   try {
+    // 🆕 如果战斗中退出，保存当前进度
+    if (run.floor > 1) {
+      saveTowerProgress();
+      // 更新最高楼层和积分
+      const td = getTowerData(studentId);
+      td.highestFloor = Math.max(td.highestFloor || 0, run.floor);
+      td.totalTowerCoins = (td.totalTowerCoins || 0) + (run.earnedPoints || 0);
+      saveTowerData(studentId, td);
+      // 同步回主页面
+      try { syncToParent('exit'); } catch(e) {}
+    }
+
     const stats = calcPlayerStats(studentId);
     const towerData = getTowerData(studentId);
     const stamina = getTowerStamina(studentId);
@@ -2185,6 +2200,12 @@ function startPlayerTurn() {
 
 function showNextQuestion() {
   const q = getNextQuestion();
+  if (!q || !q.question) {
+    console.error('[Tower] 题目加载失败（题库为空或损坏）');
+    document.getElementById('qText').innerHTML = '⚠️ 题库加载失败，请<button onclick="goHome()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 12px;border-radius:6px;cursor:pointer;">返回首页</button>';
+    document.getElementById('qOptions').innerHTML = '';
+    return;
+  }
   currentQuestion = q;
   document.getElementById('qText').innerHTML = q.question;
 
