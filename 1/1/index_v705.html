@@ -2198,6 +2198,34 @@ function renderLevelGrid() {
   updateStatusBar();
 }
 
+// ====== 天梯队位计算 ======
+var TIER_LIST = [
+  { name:'黑铁', icon:'⚙️', min:1000, max:1119, subs:['III','II','I'], color:'#8B8B8B', cls:'tier-iron' },
+  { name:'青铜', icon:'🛡️', min:1120, max:1269, subs:['III','II','I'], color:'#CD7F32', cls:'tier-bronze' },
+  { name:'白银', icon:'⚪', min:1270, max:1419, subs:['III','II','I'], color:'#C0C0C0', cls:'tier-silver' },
+  { name:'黄金', icon:'🥇', min:1420, max:1549, subs:['IV','III','II','I'], color:'#FFD700', cls:'tier-gold' },
+  { name:'铂金', icon:'💎', min:1550, max:1669, subs:['IV','III','II','I'], color:'#4FC3F7', cls:'tier-plat' },
+  { name:'钻石', icon:'💠', min:1670, max:1769, subs:['V','IV','III','II','I'], color:'#7C4DFF', cls:'tier-dia' },
+  { name:'星耀', icon:'🌟', min:1770, max:1899, subs:['V','IV','III','II','I'], color:'#FF6B6B', cls:'tier-star' },
+  { name:'王者', icon:'👑', min:1900, max:99999, subs:[], color:'#FFD700', cls:'tier-king' }
+];
+function getLadderTier(score) {
+  for (var i = 0; i < TIER_LIST.length; i++) {
+    var t = TIER_LIST[i];
+    if (score >= t.min && score <= t.max) {
+      var subIdx = 0;
+      if (t.subs.length > 0) {
+        var range = t.max - t.min;
+        var seg = range / t.subs.length;
+        subIdx = Math.min(Math.floor((score - t.min) / seg), t.subs.length - 1);
+        return { name:t.name, icon:t.icon, sub:t.subs[subIdx], color:t.color, cls:t.cls };
+      }
+      return { name:t.name, icon:t.icon, sub:'', color:t.color, cls:t.cls };
+    }
+  }
+  return { name:'黑铁', icon:'⚙️', sub:'III', color:'#8B8B8B', cls:'tier-iron' };
+}
+
 function updateStatusBar() {
   document.getElementById('totalPoints').textContent = gameState.totalPoints;
   // 天梯队位徽章显示
@@ -2205,19 +2233,13 @@ function updateStatusBar() {
   var badge = document.getElementById('ladderTierBadge');
   var icon = document.getElementById('ladderTierIcon');
   var tierClassMap = { '黑铁':'tier-iron','青铜':'tier-bronze','白银':'tier-silver','黄金':'tier-gold','铂金':'tier-plat','钻石':'tier-dia','星耀':'tier-star','王者':'tier-king' };
-  if (gameState.ladderPoints > 0 && gameState.ladderTier) {
+  if (gameState.ladderPoints > 0) {
     ladderItem.style.display = 'flex';
-    var t = gameState.ladderTier;
+    var t = gameState.ladderTier || getLadderTier(gameState.ladderPoints);
     icon.textContent = t.icon || '⚡';
     badge.textContent = t.name + ' ' + (t.sub || '');
     badge.className = 'tier-badge ' + (tierClassMap[t.name] || '');
     badge.style.color = t.color || '#ffd700';
-  } else if (gameState.ladderPoints > 0) {
-    ladderItem.style.display = 'flex';
-    icon.textContent = '⚡';
-    badge.textContent = gameState.ladderPoints + '分';
-    badge.className = 'tier-badge';
-    badge.style.color = '';
   } else {
     ladderItem.style.display = 'none';
   }
@@ -5521,7 +5543,7 @@ function renderRankList(listEl, arr, sortField, myId) {
     const valStr = isMillion
       ? '<span class="ranking-stars">⭐⭐⭐⭐⭐</span>'
       : ((sortField === 'towerFloor') ? val + ' 层'            // 🆕 v610
-      : ((sortField === 'ladderScore') ? val + ' 段位分'       // 天梯段位
+      : ((sortField === 'ladderScore') ? '<span class="tier-badge ' + getLadderTier(val).cls + '" style="color:' + getLadderTier(val).color + '">' + getLadderTier(val).icon + ' ' + getLadderTier(val).name + ' ' + getLadderTier(val).sub + '</span>'
       : ((sortField === 'mythicCount') ? val + ' 件'           // 🆕 v610
       : ((sortField === 'equipBonus') ? '×' + val.toFixed(2)   // 保留兼容
       : val.toLocaleString()))));
