@@ -5346,6 +5346,37 @@ window.addEventListener('message', function(e) {
       pushRankingData();
     }
   }
+  // 接收天梯传来的错题记录
+  if (e.data && e.data.type === 'ladder_wrong_questions') {
+    if (gameState && e.data.wrongAnswers && e.data.wrongAnswers.length > 0) {
+      var gradeInfo = e.data.grade || '';
+      var gradeName = { '20': '六', '21': '五', '22': '四', '23': '三' }[gradeInfo] || '';
+      e.data.wrongAnswers.forEach(function(wa) {
+        var letters = ['A','B','C','D','E','F'];
+        var userAnsText = wa.userAnswer >= 0 ? (letters[wa.userAnswer] || String(wa.userAnswer)) : '超时未答';
+        var correctAnsText = letters[wa.answer] || String(wa.answer);
+        gameState.wrongQuestions.push({
+          unitId: 0,
+          lessonId: 'ladder',
+          lessonName: gradeName + '年级天梯挑战',
+          question: wa.question,
+          questionType: '',
+          userAnswer: userAnsText,
+          correctAnswer: correctAnsText,
+          timestamp: Date.now(),
+          count: 1,
+          source: 'ladder',
+          options: wa.options || []
+        });
+      });
+      saveUserData();
+      showToast('⚡ 天梯错题已记录（' + e.data.wrongAnswers.length + '道），可在错题本查看', 'success');
+      // 如果错题本已打开，刷新显示
+      if (document.getElementById('wrongQuestionOverlay') && document.getElementById('wrongQuestionOverlay').classList.contains('show')) {
+        renderWrongQuestionList();
+      }
+    }
+  }
 });
 
 // 🆕 v610: 合并爬塔装备到首页装备背包

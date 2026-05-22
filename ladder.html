@@ -858,6 +858,18 @@ function notifyLadderChange() {
   }, parentOrigin);
 }
 
+// 通知父页面错题记录（挑战结束时调用）
+function notifyLadderWrongQuestions() {
+  if (!isIframeMode || window.parent === window) return;
+  if (!challengeState || !challengeState.wrongAnswers || challengeState.wrongAnswers.length === 0) return;
+  window.parent.postMessage({
+    type: 'ladder_wrong_questions',
+    gradeKey: state.gradeKey,
+    grade: state.grade,
+    wrongAnswers: challengeState.wrongAnswers
+  }, parentOrigin);
+}
+
 // API 配置（复用 cloud-config 体系）
 var LADDER_API_BASE = 'https://api.xixitime.cn/api/ladder';
 
@@ -1347,6 +1359,7 @@ function startChallenge() {
     totalQuestions: selected.length,
     currentIdx: 0,
     correctCount: 0,
+    wrongAnswers: [],    // 错题记录：{question, options, answer, userAnswer}
     timerInterval: null,
     timeLeft: QUESTION_TIME,
     answered: false,
@@ -1455,6 +1468,13 @@ function selectAnswer(idx) {
   } else {
     document.getElementById('opt' + idx).classList.add('wrong');
     document.getElementById('opt' + correctIdx).classList.add('show-correct');
+    // 记录错题
+    challengeState.wrongAnswers.push({
+      question: q.question,
+      options: q.options,
+      answer: q.answer,
+      userAnswer: idx
+    });
   }
 
   // 如果答错，显示失败遮罩
@@ -1490,6 +1510,14 @@ function handleTimeout() {
     btns[i].disabled = true;
   }
   document.getElementById('opt' + q.answer).classList.add('show-correct');
+
+  // 超时也记录错题（用户未作答）
+  challengeState.wrongAnswers.push({
+    question: q.question,
+    options: q.options,
+    answer: q.answer,
+    userAnswer: -1  // 超时未答
+  });
 
   document.getElementById('challengeFailOverlay').classList.add('show');
   setTimeout(function() {
@@ -1550,6 +1578,9 @@ function showResult(success) {
 
   // 通知父页面积分变动（iframe 模式）
   notifyLadderChange();
+
+  // 通知父页面错题记录（iframe 模式）
+  notifyLadderWrongQuestions();
 
   // 段位变化
   var newTier = getTier(state.score);
