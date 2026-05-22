@@ -3020,9 +3020,8 @@ function getTowerEquipped(sid) {
     // 🆕 Fallback: 主系统统一装备槽位（bpEquipped_）
     const mainSlots = JSON.parse(localStorage.getItem('bpEquipped_' + id));
     if (mainSlots) return mainSlots;
-    return
-      { weapon: null, hat: null, top: null, bottom: null, glove: null, cape: null,
-        shield: null, shoes: null, face: null, eyes: null, treasure: [null, null] };
+    return { weapon: null, hat: null, top: null, bottom: null, glove: null, cape: null,
+             shield: null, shoes: null, face: null, eyes: null, treasure: [null, null] };
   } catch(e) {
     return { weapon: null, hat: null, top: null, bottom: null, glove: null, cape: null,
              shield: null, shoes: null, face: null, eyes: null, treasure: [null, null] };
