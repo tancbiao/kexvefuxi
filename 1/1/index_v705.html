@@ -2237,7 +2237,7 @@ function updateStatusBar() {
     ladderItem.style.display = 'flex';
     var t = gameState.ladderTier || getLadderTier(gameState.ladderPoints);
     icon.textContent = t.icon || '⚡';
-    badge.textContent = t.name + ' ' + (t.sub || '');
+    badge.textContent = t.name + ' ' + (t.sub || '') + ' · ' + gameState.ladderPoints + '分';
     badge.className = 'tier-badge ' + (tierClassMap[t.name] || '');
     badge.style.color = t.color || '#ffd700';
   } else {
@@ -5543,7 +5543,7 @@ function renderRankList(listEl, arr, sortField, myId) {
     const valStr = isMillion
       ? '<span class="ranking-stars">⭐⭐⭐⭐⭐</span>'
       : ((sortField === 'towerFloor') ? val + ' 层'            // 🆕 v610
-      : ((sortField === 'ladderScore') ? '<span class="tier-badge ' + getLadderTier(val).cls + '" style="color:' + getLadderTier(val).color + '">' + getLadderTier(val).icon + ' ' + getLadderTier(val).name + ' ' + getLadderTier(val).sub + '</span>'
+      : ((sortField === 'ladderScore') ? '<span class="tier-badge ' + getLadderTier(val).cls + '" style="color:' + getLadderTier(val).color + '">' + getLadderTier(val).icon + ' ' + getLadderTier(val).name + ' ' + getLadderTier(val).sub + '</span> <span style="font-size:0.75em;color:rgba(255,255,255,0.4);">' + val + '分</span>'
       : ((sortField === 'mythicCount') ? val + ' 件'           // 🆕 v610
       : ((sortField === 'equipBonus') ? '×' + val.toFixed(2)   // 保留兼容
       : val.toLocaleString()))));
