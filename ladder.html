@@ -835,6 +835,14 @@ window.addEventListener('message', function(e) {
     state.gradeKey = GRADE_KEYS[state.grade] || '6';
     // 从 localStorage 加载存档，如果没有就用默认值
     loadLocal(sid);
+    // 重置挑战状态（防止上一个人残留的暂停数据）
+    challengeState = {
+      questions: [], totalQuestions: 0, currentIdx: 0,
+      correctCount: 0, wrongAnswers: [],
+      timerInterval: null, timeLeft: QUESTION_TIME,
+      answered: false, scoreBefore: state.score,
+      tierBefore: getTier(state.score)
+    };
     // 检查每日重置
     var today = new Date().toISOString().split('T')[0];
     if (state.dailyDate !== today) {
