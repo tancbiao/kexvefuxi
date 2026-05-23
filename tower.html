@@ -1845,8 +1845,11 @@ function calcPlayerStats(sid) {
   const slots = getTowerEquipped(id);
 
   let equipATK = 0, equipHP = 0;
+  let equipCount = 0;
   const diabloBonus = { multiplier: 1.0, dropBonus: 0 };
   
+  console.log('[calcPlayerStats] sid=' + id + ' | 装备数=' + equipList.filter(Boolean).length + ' | 槽位:', JSON.stringify(slots));
+
   for (const slot in slots) {
     if (slot === 'treasure') {
       (slots.treasure || []).forEach(idx => {
@@ -1890,9 +1893,12 @@ function calcPlayerStats(sid) {
     }
   } catch(e) {}
 
+  const finalATK = Math.max(equipATK + petATK, 20);
+  const finalHP = Math.max(100 + equipHP + petDEF + (run.buffs ? run.buffs.maxHPBoost || 0 : 0), 50);
+  console.log('[calcPlayerStats] 结果 | equipATK=' + equipATK + ' petATK=' + petATK + ' → ATK=' + finalATK + ' | HP=' + finalHP);
   return {
-    atk: Math.max(equipATK + petATK, 20),
-    maxHP: Math.max(100 + equipHP + petDEF + (run.buffs ? run.buffs.maxHPBoost || 0 : 0), 50),
+    atk: finalATK,
+    maxHP: finalHP,
     dodge: 0.2,
   };
 }
@@ -2136,7 +2142,7 @@ function enterFloor(floor) {
   saveTowerProgress();
 
   showScreen('Battle');
-  document.getElementById('btnHomeHeader').style.display = 'none';
+  document.getElementById('btnHomeHeader').style.display = 'inline-block';
 
   // 开始回合
   setTimeout(() => {
