@@ -2019,6 +2019,8 @@ function loginWithId() {
       showSpecialRewardPopup(reward);
     }
   }, 1500);
+  // 🆕 延迟5秒自动刷新pending队列
+  setTimeout(function() { flushPendingSync(); }, 5000);
 }
 
 function loginAsGuest() {
@@ -2974,13 +2976,52 @@ async function saveToCloud(studentId, data) {
     if (ok) {
       console.log('云端同步成功:', CLOUD_GRADE_KEY + '_' + studentId);
       return true;
-    } else {
-      console.warn('云端同步失败（API返回false）:', CLOUD_GRADE_KEY + '_' + studentId);
-      return false;
+    } else { console.warn('云端同步失败（API返回false）:', CLOUD_GRADE_KEY + '_' + studentId); return false; }
+  } catch (e) { console.error('云端同步出错:', e); return false; }
+}
+
+// 🆕 带重试+退避的云同步
+async function saveToCloudWithRetry(studentId, data, maxRetries) {
+  maxRetries = maxRetries || 3;
+  for (var i = 0; i < maxRetries; i++) {
+    var ok = await saveToCloud(studentId, data);
+    if (ok) return true;
+    if (i < maxRetries - 1) {
+      var delay = 2000 * (i + 1); // 2s, 4s backoff
+      console.warn('云端保存重试 ' + (i+2) + '/' + maxRetries + '，等待' + delay + 'ms...');
+      await new Promise(function(r) { setTimeout(r, delay); });
     }
-  } catch (e) {
-    console.error('云端同步出错:', e);
-    return false;
+  }
+  console.error('云端保存失败：已重试' + maxRetries + '次，存入pending队列');
+  // 失败时存入pending队列，下次重试
+  try {
+    var pq = JSON.parse(localStorage.getItem('pendingCloudSync') || '[]');
+    pq.push({ sid: studentId, data: data, time: Date.now() });
+    if (pq.length > 5) pq = pq.slice(-5); // 最多保留5条pending
+    localStorage.setItem('pendingCloudSync', JSON.stringify(pq));
+  } catch(e) {}
+  return false;
+}
+
+// 🆕 刷新pending队列
+async function flushPendingSync() {
+  var pqRaw = localStorage.getItem('pendingCloudSync');
+  if (!pqRaw) return;
+  var pq;
+  try { pq = JSON.parse(pqRaw); } catch(e) { return; }
+  if (!pq || pq.length === 0) return;
+  console.log('[flushPendingSync] 尝试提交 ' + pq.length + ' 条pending数据...');
+  var remaining = [];
+  for (var i = 0; i < pq.length; i++) {
+    var ok = await saveToCloud(pq[i].sid, pq[i].data);
+    if (!ok) remaining.push(pq[i]);
+  }
+  if (remaining.length === 0) {
+    localStorage.removeItem('pendingCloudSync');
+    console.log('[flushPendingSync] 全部提交完成');
+  } else {
+    localStorage.setItem('pendingCloudSync', JSON.stringify(remaining));
+    console.warn('[flushPendingSync] ' + remaining.length + ' 条仍失败，保留在队列');
   }
 }
 
@@ -3058,7 +3099,12 @@ async function saveUserData(skipCloud) {
   localStorage.setItem('scienceGame_user_' + gameState.studentId, JSON.stringify(data));
   if (currentCourse) { var pgKey = 'progress_grade' + currentCourse.grade + currentCourse.sem + '_' + gameState.studentId; localStorage.setItem(pgKey, JSON.stringify(gameState.lessonProgress)); }
   if (!skipCloud) {
-    await saveToCloud(gameState.studentId, data);
+    // 🆕 先尝试提交pending队列
+    await flushPendingSync();
+    var cloudOk = await saveToCloudWithRetry(gameState.studentId, data);
+    if (!cloudOk) {
+      console.warn('[saveUserData] 云端保存失败，数据已暂存本地+pending队列');
+    }
     pushRankingData();
   }
 }
