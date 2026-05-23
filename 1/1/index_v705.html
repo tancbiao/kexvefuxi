@@ -2006,6 +2006,8 @@ function loginWithId() {
   checkActivityNotice(id);
   // 云服务回档补偿通知（所有实名认证学生均可领取一次）
   checkCompensationNotice(id);
+  // 🆕 S0赛季爬塔结算奖励
+  checkS0SeasonReward(id);
   // 活动通知之后再弹出问候弹窗
   showGreetingWithNoticeCheck();
   // 欧皇祝福/成绩奖励弹窗（延迟1.5秒，等问候弹窗先显示）
@@ -6259,6 +6261,74 @@ function claimCompensation() {
   showToast('🎁 补偿已发放！+50,000积分 + 谭老师的愤怒水杯 🏆', 'success', 5000);
 }
 
+// ====== S0赛季爬塔奖励 ======
+function checkS0SeasonReward(studentId) {
+  if (!studentId || gameState.isGuest) return;
+  if (!getStudentName(studentId)) return;
+  var claimedKey = 's0_season_reward_claimed_' + studentId;
+  if (localStorage.getItem(claimedKey)) return;
+
+  var tdRaw = localStorage.getItem('tower6_' + studentId);
+  var highestFloor = 0;
+  try {
+    if (tdRaw) { var td = JSON.parse(tdRaw); highestFloor = td.highestFloor || 0; }
+  } catch(e) {}
+  if (highestFloor <= 100) return;
+
+  document.getElementById('s0seasonFloor').textContent = highestFloor;
+  var overlay = document.getElementById('s0seasonOverlay');
+  if (overlay) overlay.classList.add('show');
+}
+
+function claimS0Reward() {
+  var overlay = document.getElementById('s0seasonOverlay');
+  if (overlay) overlay.classList.remove('show');
+  var studentId = gameState.studentId;
+  if (!studentId || !getStudentName(studentId)) return;
+  var claimedKey = 's0_season_reward_claimed_' + studentId;
+  if (localStorage.getItem(claimedKey)) return;
+
+  // 神话装备
+  var mythicEquip = null;
+  try { if (typeof window.generateEquip === 'function') mythicEquip = window.generateEquip(7); } catch(e) {}
+  if (mythicEquip) {
+    var es = gameState.equipment.indexOf(null);
+    if (es !== -1) gameState.equipment[es] = mythicEquip;
+    else gameState.equipment.push(mythicEquip);
+  }
+  // UR宠物
+  var urPetIds = [21,22,23,24];
+  var pid = urPetIds[Math.floor(Math.random() * urPetIds.length)];
+  var pn = { 21:{n:'火凤凰',e:'🔥'}, 22:{n:'冰霜龙',e:'❄️'}, 23:{n:'雷霆鹰',e:'⚡'}, 24:{n:'暗影豹',e:'🌑'} };
+  var pi = pn[pid] || {n:'未知',e:'🐣'};
+  try {
+    var pk = 'petSystemStateV2_' + studentId;
+    var ps = JSON.parse(localStorage.getItem(pk) || '{}');
+    if (!ps.studentId) ps.studentId = studentId;
+    if (!ps.pets) ps.pets = {};
+    if (!ps.battlePets) ps.battlePets = [];
+    ps.pets[String(pid)] = { id: pid, name: pi.n, emoji: pi.e, rarity: 'UR', level: 1, obtainedAt: Date.now() };
+    if (ps.battlePets.length < 3 && !ps.battlePets.includes(pid)) ps.battlePets.push(pid);
+    localStorage.setItem(pk, JSON.stringify(ps));
+  } catch(e) {}
+  // 积分
+  gameState.totalPoints += 50000;
+  // 回退层数
+  gameState.towerHighestFloor = 100;
+  try {
+    var tr2 = localStorage.getItem('tower6_' + studentId);
+    var td2 = tr2 ? JSON.parse(tr2) : {};
+    td2.highestFloor = 100;
+    localStorage.setItem('tower6_' + studentId, JSON.stringify(td2));
+    localStorage.removeItem('tower_progress_6_' + studentId);
+  } catch(e) {}
+  // 标记
+  localStorage.setItem(claimedKey, '1');
+  saveUserData();
+  updateStatusBar();
+  showToast('🎉 S0赛季奖励！神话装备 +' + pi.e + pi.n + ' +50,000积分', 'success', 6000);
+}
+
 // ====== 通知公告系统 ======
 var NOTICE_DATA = {
   // -------- 公告 ----------
@@ -6750,6 +6820,50 @@ function checkTowerRewards() {
     </div>
 
     <button class="compensation-btn" onclick="claimCompensation()">🎁 领取补偿</button>
+  </div>
+</div>
+
+<!-- ====== S0赛季爬塔奖励弹窗 ====== -->
+<div class="compensation-overlay" id="s0seasonOverlay">
+  <div class="compensation-box" style="border-color:#ff6600; box-shadow:0 8px 40px rgba(0,0,0,0.6), 0 0 30px rgba(255,102,0,0.3);">
+    <div class="compensation-badge" style="background:linear-gradient(135deg, #ff6600, #ff9800);">🏆 S0赛季结束</div>
+    <div class="compensation-title">🔥 赛季结算奖励</div>
+    <div class="compensation-subtitle" id="s0seasonMsg">
+      感谢你在S0赛季爬塔中达到了 <b id="s0seasonFloor">100+</b> 层！<br>获得以下结算奖励：
+    </div>
+
+    <div class="compensation-items">
+      <div class="compensation-item">
+        <div class="compensation-item-icon">⭐</div>
+        <div class="compensation-item-info">
+          <div class="compensation-item-label">随机神话装备 ×1</div>
+          <div class="compensation-item-desc">最高稀有度装备</div>
+        </div>
+      </div>
+      <div class="compensation-item">
+        <div class="compensation-item-icon">🐉</div>
+        <div class="compensation-item-info">
+          <div class="compensation-item-label">随机传说宠物 ×1</div>
+          <div class="compensation-item-desc">UR级宠物随机获取</div>
+        </div>
+      </div>
+      <div class="compensation-item">
+        <div class="compensation-item-icon">💰</div>
+        <div class="compensation-item-info">
+          <div class="compensation-item-label">+50,000 积分</div>
+          <div class="compensation-item-desc">赛季排名奖励</div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="compensation-divider">
+
+    <div class="compensation-tip" style="color:rgba(255,255,255,0.5);">
+      ⚠️ 爬塔层数将重置为 <b>100层</b><br>
+      S1赛季等你再次挑战！
+    </div>
+
+    <button class="compensation-btn" style="background:linear-gradient(135deg, #ff6600, #ff9800);" onclick="claimS0Reward()">🎁 领取奖励</button>
   </div>
 </div>
 
