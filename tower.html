@@ -1498,7 +1498,7 @@ const CARD_POOL = {
   common: [
     { id: 'atkBoost15', name: '⚔️ 攻击强化', effect: '攻击力+15%', rarity: 'common', apply: () => { run.buffs.atkBoost += 15; } },
     { id: 'skillReduce', name: '🔥 技能减免', effect: '怪物技能率-10%', rarity: 'common', apply: () => { run.buffs.skillReduce += 10; } },
-    { id: 'heal30', name: '💚 生命恢复', effect: '恢复30HP', rarity: 'common', apply: () => { run.playerHP = Math.min(run.playerHP + 30, run.playerMaxHP); } },
+    { id: 'heal30', name: '💚 生命恢复', effect: '恢复30HP', rarity: 'common', apply: () => { run.playerHP = Math.min(run.playerHP + 30, run.playerMaxHP); updatePlayerHPBar(); } },
     { id: 'economy3', name: '💰 经济+3', effect: '每层多得3积分', rarity: 'common', apply: () => { run.buffs.floorBonusPoints += 3; } },
   ],
   uncommon: [
@@ -1506,7 +1506,7 @@ const CARD_POOL = {
     { id: 'hpMax30', name: '❤️ 生命上限', effect: '最大HP+30', rarity: 'uncommon', apply: () => { run.playerMaxHP += 30; run.playerHP = Math.min(run.playerHP + 30, run.playerMaxHP); } },
     { id: 'dodge10', name: '💨 闪避强化', effect: '闪避率+10%', rarity: 'uncommon', apply: () => { run.buffs.dodgeBoost += 10; } },
     { id: 'economy5', name: '💰 经济+5', effect: '每层多得5积分', rarity: 'uncommon', apply: () => { run.buffs.floorBonusPoints += 5; } },
-    { id: 'recoverAll', name: '💖 完全恢复', effect: 'HP回满', rarity: 'uncommon', apply: () => { run.playerHP = run.playerMaxHP; } },
+    { id: 'recoverAll', name: '💖 完全恢复', effect: 'HP回满', rarity: 'uncommon', apply: () => { run.playerHP = run.playerMaxHP; updatePlayerHPBar(); } },
   ],
   rare: [
     { id: 'combo', name: '💫 连击强化', effect: '连续答对伤害+20%', rarity: 'rare', apply: () => { run.buffs.combo = true; } },
