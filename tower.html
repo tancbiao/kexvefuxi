@@ -1793,6 +1793,12 @@ function continueTower() {
     alert('没有可继续的爬塔进度');
     return;
   }
+  if (progress.run.playerHP <= 0) {
+    alert('上次爬塔已经阵亡，无法继续，请开始新的一局');
+    clearTowerProgress();
+    goHome();
+    return;
+  }
 
   // 恢复 run 状态
   Object.assign(run, {
@@ -1875,7 +1881,7 @@ function calcPlayerStats(sid) {
   } catch(e) {}
 
   return {
-    atk: Math.max(equipATK + petATK, 5),
+    atk: Math.max(equipATK + petATK, 20),
     maxHP: Math.max(100 + equipHP + petDEF + (run.buffs ? run.buffs.maxHPBoost || 0 : 0), 50),
     dodge: 0.2,
   };
@@ -2012,10 +2018,10 @@ function goHome() {
     }).join('');
   }
 
-  // 🆕 v610: 继续爬塔按钮状态
+  // 🆕 v610: 继续爬塔按钮状态（HP必须大于0才显示，防止死亡后循环）
   const progress = loadTowerProgress();
   const btnContinue = document.getElementById('btnContinueTower');
-  if (progress && progress.run && progress.run.floor > 0) {
+  if (progress && progress.run && progress.run.floor > 0 && progress.run.playerHP > 0) {
     btnContinue.style.display = 'block';
     btnContinue.textContent = '▶ 继续爬塔（第 ' + progress.run.floor + ' 层）';
   } else {
@@ -2823,6 +2829,9 @@ function selectCard(idx) {
 
 function onGameOver() {
   if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+
+  // 🆕 死亡后清除爬塔进度（防止 HP=0 继续爬塔循环死亡）
+  clearTowerProgress();
 
   // 保存数据
   const towerData = getTowerData(studentId);
