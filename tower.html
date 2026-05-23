@@ -1503,7 +1503,7 @@ const CARD_POOL = {
   ],
   uncommon: [
     { id: 'crit10', name: '🎯 暴击率', effect: '暴击率+10%', rarity: 'uncommon', apply: () => { run.buffs.critRate += 10; } },
-    { id: 'hpMax30', name: '❤️ 生命上限', effect: '最大HP+30', rarity: 'uncommon', apply: () => { run.playerMaxHP += 30; run.playerHP = Math.min(run.playerHP + 30, run.playerMaxHP); updatePlayerHPBar(); } },
+    { id: 'hpMax30', name: '❤️ 生命上限', effect: '最大HP+30并回满', rarity: 'uncommon', apply: () => { console.log('[hpMax30] 加前:', run.playerHP, '/', run.playerMaxHP); run.playerMaxHP += 30; run.playerHP = run.playerMaxHP; console.log('[hpMax30] 加后:', run.playerHP, '/', run.playerMaxHP); updatePlayerHPBar(); } },
     { id: 'dodge10', name: '💨 闪避强化', effect: '闪避率+10%', rarity: 'uncommon', apply: () => { run.buffs.dodgeBoost += 10; } },
     { id: 'economy5', name: '💰 经济+5', effect: '每层多得5积分', rarity: 'uncommon', apply: () => { run.buffs.floorBonusPoints += 5; } },
     { id: 'recoverAll', name: '💖 完全恢复', effect: 'HP回满', rarity: 'uncommon', apply: () => { run.playerHP = run.playerMaxHP; updatePlayerHPBar(); } },
