@@ -1277,7 +1277,7 @@ const run = {
   floor: 1,
   playerMaxHP: 100,
   playerHP: 100,
-  playerATK: 10,
+  playerATK: 20,
   playerDodge: 0.2,
   // 本局buff
   buffs: {
@@ -1815,7 +1815,7 @@ function continueTower() {
     floor: progress.run.floor,
     playerHP: progress.run.playerHP,
     playerMaxHP: progress.run.playerMaxHP,
-    playerATK: progress.run.playerATK,
+    playerATK: Math.max(progress.run.playerATK || 20, 20),
     playerDodge: progress.run.playerDodge,
     buffs: progress.run.buffs,
     earnedPoints: progress.run.earnedPoints,
