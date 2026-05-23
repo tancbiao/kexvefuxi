@@ -2788,7 +2788,7 @@ function showRewardScreen() {
   const grid = document.getElementById('cardGrid');
 
   grid.innerHTML = cards.map((card, i) => `
-    <div class="reward-card" onclick="selectCard(${i})" data-idx="${i}">
+    <div class="reward-card" onclick="selectCard(${i})" data-idx="${i}" data-card-id="${card.id}">
       <div class="card-icon">${card.id.includes('atk') ? '⚔️' : card.id.includes('crit') ? '🎯' : card.id.includes('heal') || card.id.includes('recover') ? '💚' : card.id.includes('dodge') ? '💨' : card.id.includes('hpMax') ? '❤️' : card.id.includes('combo') ? '💫' : card.id.includes('armorBreak') || card.id.includes('double') ? '🗡️' : card.id.includes('shield') ? '🛡️' : card.id.includes('skill') ? '🔥' : card.id.includes('king') || card.id.includes('premium') ? '👑' : card.id.includes('points') ? '💰' : card.id.includes('equip') ? '📦' : card.id.includes('pet') ? '🐣' : '💎'}</div>
       <div class="card-name">${card.name}</div>
       <div class="card-effect">${card.effect}</div>
@@ -2809,17 +2809,17 @@ function selectCard(idx) {
   card.classList.add('selected');
   document.getElementById('rewardHint').textContent = '已选择 ✅';
 
-  // 从DOM读取卡牌名称，匹配对应buff并应用
-  const cardName = card.querySelector('.card-name').textContent;
-  console.log('[selectCard] 选中卡牌:', cardName, '| HP前:', run.playerHP + '/' + run.playerMaxHP);
+  // 通过 data-card-id 直接匹配卡牌（不用 textContent 避免 emoji 编码不一致）
+  const cardId = card.getAttribute('data-card-id');
+  console.log('[selectCard] 选中卡牌id:', cardId, '| HP前:', run.playerHP + '/' + run.playerMaxHP);
   const allPools = [CARD_POOL.common, CARD_POOL.uncommon, CARD_POOL.rare, CARD_POOL.epic, CARD_POOL.legendary].flat();
-  const matched = allPools.find(c => c.name === cardName);
+  const matched = allPools.find(c => c.id === cardId);
   // 记录apply前HP，用于展示变化
   const hpBefore = run.playerHP, maxHPBefore = run.playerMaxHP;
   if (matched) {
-    try { matched.apply(); } catch(e) { console.error('卡牌apply出错:', cardName, e); }
+    try { matched.apply(); } catch(e) { console.error('卡牌apply出错:', cardId, e); }
   } else {
-    console.warn('未匹配到卡牌:', cardName);
+    console.warn('未匹配到卡牌id:', cardId);
   }
   // HP变化即时反馈
   const hpChange = run.playerHP - hpBefore;
