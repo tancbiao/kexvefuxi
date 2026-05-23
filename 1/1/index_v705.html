@@ -3042,6 +3042,15 @@ async function saveUserData(skipCloud) {
     ladderBestScore: gameState.ladderBestScore || 0,      // 🆕 天梯最佳分数持久化
     ladderPoints: gameState.ladderPoints || 0,            // 🆕 v705 天梯积分
     ladderTier: gameState.ladderTier || null,             // 🆕 v705 天梯段位
+    // 🆕 一次性奖励标记（防跨设备重复领取）
+    compensationClaimed: !!localStorage.getItem('compensation_claimed_' + gameState.studentId),
+    s0RewardClaimed: !!localStorage.getItem('s0_season_reward_claimed_' + gameState.studentId),
+    g6StreakReward3: !!localStorage.getItem('g6_streak_reward_3_' + gameState.studentId),
+    g6StreakReward7: !!localStorage.getItem('g6_streak_reward_7_' + gameState.studentId),
+    g45StreakReward3: !!localStorage.getItem('g45_streak_reward_3_' + gameState.studentId),
+    g45StreakReward7: !!localStorage.getItem('g45_streak_reward_7_' + gameState.studentId),
+    loginStreakG6: JSON.parse(localStorage.getItem('g6_login_streak_' + gameState.studentId) || 'null'),
+    loginStreakG45: JSON.parse(localStorage.getItem('g45_login_streak_' + gameState.studentId) || 'null'),
     gradeDataMerged: true, // 跨年级迁移标记（防止每次登录重复合并）
     lastUpdated: Date.now(),
     equippedSlots: bpEquippedSlots62
@@ -4550,6 +4559,20 @@ function applyUserData(data) {
       petState.studentId = gameState.studentId;
       localStorage.setItem(petKey, JSON.stringify(petState));
     } catch(e) { console.error('恢复宠物碎片失败:', e); }
+  }
+  // 🆕 从云端恢复一次性奖励标记（防跨设备重复领取）
+  if (data.compensationClaimed) localStorage.setItem('compensation_claimed_' + gameState.studentId, '1');
+  if (data.s0RewardClaimed) localStorage.setItem('s0_season_reward_claimed_' + gameState.studentId, '1');
+  if (data.g6StreakReward3) localStorage.setItem('g6_streak_reward_3_' + gameState.studentId, '1');
+  if (data.g6StreakReward7) localStorage.setItem('g6_streak_reward_7_' + gameState.studentId, '1');
+  if (data.g45StreakReward3) localStorage.setItem('g45_streak_reward_3_' + gameState.studentId, '1');
+  if (data.g45StreakReward7) localStorage.setItem('g45_streak_reward_7_' + gameState.studentId, '1');
+  // 恢复连续登录追踪
+  if (data.loginStreakG6 && !localStorage.getItem('g6_login_streak_' + gameState.studentId)) {
+    localStorage.setItem('g6_login_streak_' + gameState.studentId, JSON.stringify(data.loginStreakG6));
+  }
+  if (data.loginStreakG45 && !localStorage.getItem('g45_login_streak_' + gameState.studentId)) {
+    localStorage.setItem('g45_login_streak_' + gameState.studentId, JSON.stringify(data.loginStreakG45));
   }
   updateStatusBar();
   updateStaminaDisplay();
