@@ -7,6 +7,16 @@
 <meta http-equiv="expires" content="0">
 <title>🔮 科学探险家 · 统一闯关系统 v709</title>
 <!-- v709: 天梯队位彩色徽章+爬塔换号隔离+共享月考题库+错题本AI讲解 -->
+<!-- PAGE_VERSION 用于版本自检：url?v= 不匹配时自动跳转最新 -->
+<script>
+(function(){
+  var PAGE_VERSION = '20260523';
+  var m = location.search.match(/[?&]v=(\d+)/);
+  if (m && m[1] !== PAGE_VERSION) {
+    location.replace(location.pathname + '?v=' + PAGE_VERSION);
+  }
+})();
+</script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   
