@@ -2262,7 +2262,7 @@ function showNextQuestion() {
   ).join('');
 
   // 倒计时
-  const timeLimit = Math.max(15 - Math.floor(run.floor / 5), 5);
+  const timeLimit = Math.max(30 - Math.floor(run.floor / 5), 10);
   timeLeft = timeLimit;
   startTimer(timeLimit, () => {
     // 超时 = 答错
@@ -2560,7 +2560,7 @@ function doMonsterDamageToPlayer(customAtk, callback, ignoreDodge, sureHit, dmgM
   ).join('');
 
   // 倒计时
-  const timeLimit = Math.max(15 - Math.floor(run.floor / 5), 5);
+  const timeLimit = Math.max(30 - Math.floor(run.floor / 5), 10);
   timeLeft = timeLimit;
   questionLocked = false;
   startTimer(timeLimit, () => {
