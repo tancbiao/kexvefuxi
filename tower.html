@@ -1303,6 +1303,7 @@ const run = {
   // 战斗中的持续效果
   monsterBuffs: {},
   playerBuffs: {},
+  skillLevels: {}, // 可升级技能卡等级
 };
 
 // ============================================================
@@ -1464,12 +1465,21 @@ function generateMonster(floor) {
   };
   const m = mults[type];
 
+  // 🆕 100层以上怪物血量翻倍
+  let hpMultAdj = m.hpMult;
+  if (floor >= 100) hpMultAdj *= 2;
+  let baseHP = Math.floor(5 + floor * hpMultAdj);
+  // 🆕 100层以上每10层boss额外+50%血量
+  if (isBoss && floor >= 100 && floor % 10 === 0) {
+    baseHP = Math.floor(baseHP * 1.5);
+  }
+
   const monster = {
     type,
     name: namePool[Math.floor(Math.random() * namePool.length)],
     emoji: emojiPool[Math.floor(Math.random() * emojiPool.length)],
-    maxHP: 5 + floor * m.hpMult,
-    hp: 5 + floor * m.hpMult,
+    maxHP: baseHP,
+    hp: baseHP,
     atk: 3 + floor * m.atkMult,
     skills: [],
     buffs: {}, // 怪物自身buff
@@ -1542,6 +1552,17 @@ const CARD_POOL = {
     { id: 'shield30', name: '🛡️ 护盾术', effect: '护盾吸收30伤害', rarity: 'epic', apply: () => { run.buffs.shieldHP += 30; } },
     { id: 'doubleStrike', name: '⚡ 双倍打击', effect: '下次攻击2倍伤害', rarity: 'epic', apply: () => { run.buffs.doubleStrike = true; } },
     { id: 'economy15', name: '💰 经济+15', effect: '每层多得15积分', rarity: 'epic', apply: () => { run.buffs.floorBonusPoints += 15; } },
+    { id: 'warCry', name: '🦁 战吼', effect: 'LV1 10%概率+5%攻+10盾2回合', rarity: 'epic', isLevelable: true, maxLevel: 7, apply: () => {
+      if (!run.skillLevels) run.skillLevels = {};
+      const lv = (run.skillLevels.warCry || 0) + 1;
+      run.skillLevels.warCry = Math.min(lv, 7);
+      if (!run.buffs.warCry) run.buffs.warCry = { level: run.skillLevels.warCry, turnsLeft: 0 };
+    } },
+    { id: 'multiShot', name: '🏹 多重射击', effect: 'LV1 10%概率连射2次55%伤害', rarity: 'epic', isLevelable: true, maxLevel: 7, apply: () => {
+      if (!run.skillLevels) run.skillLevels = {};
+      const lv = (run.skillLevels.multiShot || 0) + 1;
+      run.skillLevels.multiShot = Math.min(lv, 7);
+    } },
     { id: 'petPiece', name: '🐣 宠物碎片', effect: '获得随机宠物碎片×1', rarity: 'epic', apply: () => {
       try {
         const petState = getPetState(studentId);
@@ -1609,15 +1630,28 @@ function generateCards(monsterType) {
   const cards = [];
   const usedIds = new Set();
   for (let i = 0; i < 3; i++) {
-    // 从剩余未使用的卡牌中选
+    // 从剩余未使用的卡牌中选（过滤已满级的可升级卡牌）
     const available = pool.filter(r => {
       const choices = CARD_POOL[r];
-      return choices.some(c => !usedIds.has(c.id));
+      return choices.some(c => !usedIds.has(c.id) && !(c.isLevelable && (run.skillLevels[c.id] || 0) >= c.maxLevel));
     });
-    if (available.length === 0) break; // 没可选的了
+    if (available.length === 0) break;
     const rarity = available[Math.floor(Math.random() * available.length)];
-    const choices = CARD_POOL[rarity].filter(c => !usedIds.has(c.id));
-    const card = choices[Math.floor(Math.random() * choices.length)];
+    const choices = CARD_POOL[rarity].filter(c => !usedIds.has(c.id) && !(c.isLevelable && (run.skillLevels[c.id] || 0) >= c.maxLevel));
+    const card = { ...choices[Math.floor(Math.random() * choices.length)] };
+    // 可升级卡牌：展示当前等级和升级效果
+    if (card.isLevelable) {
+      const curLv = run.skillLevels[card.id] || 0;
+      const nextLv = curLv + 1;
+      if (curLv > 0) card.name += ' ↑Lv' + nextLv;
+      if (card.id === 'warCry') {
+        const prob = nextLv * 10; const atk = nextLv * 5; const shield = nextLv * 10;
+        card.effect = 'LV' + nextLv + ' ' + prob + '%概率+'+atk+'%攻+'+shield+'盾2回合';
+      } else if (card.id === 'multiShot') {
+        const prob = nextLv * 10; const hits = nextLv >= 6 ? 4 : nextLv >= 3 ? 3 : 2; const dmg = 50 + nextLv * 5;
+        card.effect = 'LV' + nextLv + ' ' + prob + '%概率连射'+hits+'次'+dmg+'%伤害';
+      }
+    }
     usedIds.add(card.id);
     cards.push({ ...card });
   }
@@ -1772,7 +1806,8 @@ function saveTowerProgress() {
       playerDodge: run.playerDodge,
       buffs: run.buffs,
       earnedPoints: run.earnedPoints,
-      defeatedMonsters: run.defeatedMonsters
+      defeatedMonsters: run.defeatedMonsters,
+      skillLevels: run.skillLevels
     },
     streakCount: streakCount,
     monster: run.monster ? { name: run.monster.name, hp: run.monster.hp, maxHP: run.monster.maxHP, atk: run.monster.atk, type: run.monster.type, buffs: run.monster.buffs } : null,
@@ -1819,7 +1854,8 @@ function continueTower() {
     playerDodge: progress.run.playerDodge,
     buffs: progress.run.buffs,
     earnedPoints: progress.run.earnedPoints,
-    defeatedMonsters: progress.run.defeatedMonsters
+    defeatedMonsters: progress.run.defeatedMonsters,
+    skillLevels: progress.run.skillLevels || {}
   });
   streakCount = progress.streakCount || 0;
   if (progress.monster) {
@@ -2094,6 +2130,7 @@ function startTower() {
     isPlayerTurn: true,
     monsterBuffs: {},
     playerBuffs: {},
+    skillLevels: {},
   });
   streakCount = 0;
   questionLocked = false;
@@ -2295,9 +2332,44 @@ function answerPlayerTurn(idx) {
 
   if (isCorrect) {
     streakCount++;
-    // 玩家攻击怪物
-    const dmgResult = calcPlayerDamage();
+    // 🆕 战吼触发判定
+    let wcTriggered = false;
+    if (run.buffs.warCry && run.buffs.warCry.level > 0) {
+      const wc = run.buffs.warCry;
+      if (Math.random() * 100 < wc.level * 10) {
+        wcTriggered = true;
+        wc.activeAtkBonus = wc.level * 5;
+        wc.activeShieldBonus = wc.level * 10;
+        wc.turnsLeft = 2;
+        run.buffs.atkBoost += wc.activeAtkBonus;
+        run.buffs.shieldHP += wc.activeShieldBonus;
+        console.log('[战吼] LV'+wc.level+' 触发! +'+wc.activeAtkBonus+'%攻 +'+wc.activeShieldBonus+'盾 持续2回合');
+      }
+    }
+
+    // 🆕 多重射击判定
+    let msTriggered = false;
+    let dmgResult;
+    if (run.skillLevels.multiShot > 0) {
+      const msLv = run.skillLevels.multiShot;
+      if (Math.random() * 100 < msLv * 10) {
+        msTriggered = true;
+        const hits = msLv >= 6 ? 4 : msLv >= 3 ? 3 : 2;
+        const dmgPct = (50 + msLv * 5) / 100;
+        let totalDmg = 0, critLog = '';
+        for (let i = 0; i < hits; i++) {
+          const dr = calcPlayerDamage();
+          const hitDmg = Math.floor(dr.damage * dmgPct);
+          totalDmg += hitDmg;
+          if (dr.isCrit) critLog += (critLog ? ' ' : '') + '💥';
+        }
+        dmgResult = { damage: totalDmg, isCrit: false };
+        setBattleLog((wcTriggered ? '🦁战吼! ' : '') + '🏹多重射击! ' + critLog + hits + '连射共' + totalDmg + '伤害');
+      }
+    }
+    if (!dmgResult) dmgResult = calcPlayerDamage();
     const dmg = dmgResult.damage;
+    if (wcTriggered && !msTriggered) setBattleLog('🦁 战吼! 攻击力+'+run.buffs.warCry.activeAtkBonus+'% 护盾+'+run.buffs.warCry.activeShieldBonus);
 
     // 破甲
     let finalDmg = dmg;
@@ -2703,6 +2775,17 @@ function updateBuffDurations() {
   if (run.monster && run.monster.buffs) {
     if (run.monster.buffs.armored !== undefined && run.monster.buffs.armored > 0) {
       run.monster.buffs.armored--;
+    }
+  }
+  // 🆕 战吼过期
+  if (run.buffs.warCry && run.buffs.warCry.turnsLeft > 0) {
+    run.buffs.warCry.turnsLeft--;
+    if (run.buffs.warCry.turnsLeft === 0 && run.buffs.warCry.activeAtkBonus) {
+      run.buffs.atkBoost = Math.max(0, (run.buffs.atkBoost || 0) - run.buffs.warCry.activeAtkBonus);
+      run.buffs.shieldHP = Math.max(0, (run.buffs.shieldHP || 0) - run.buffs.warCry.activeShieldBonus);
+      setBattleLog('🦁 战吼效果消散了');
+      run.buffs.warCry.activeAtkBonus = 0;
+      run.buffs.warCry.activeShieldBonus = 0;
     }
   }
 }
