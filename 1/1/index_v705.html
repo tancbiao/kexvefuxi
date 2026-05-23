@@ -2004,6 +2004,8 @@ function loginWithId() {
   showScreen('courseScreen');
   // 六年级专属活动通知（登录奖励 + 爬塔奖励）
   checkActivityNotice(id);
+  // 🆕 四五年级登录活动
+  checkGrade45Activity(id);
   // 云服务回档补偿通知（所有实名认证学生均可领取一次）
   checkCompensationNotice(id);
   // 🆕 S0赛季爬塔结算奖励
@@ -6029,6 +6031,109 @@ function showGreetingWithNoticeCheck() {
   }
 }
 
+// ====== 四五年级登录活动 ======
+function isGrade45Student(studentId) {
+  var g = studentId.substring(2,4);
+  return g === '21' || g === '22';
+}
+
+function getYesterdayDateStr() {
+  var d = new Date();
+  d.setDate(d.getDate() - 1);
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function checkGrade45Activity(studentId) {
+  if (!studentId || gameState.isGuest || !getStudentName(studentId)) return;
+  if (!isGrade45Student(studentId)) return;
+
+  var today = getTodayDateStr();
+
+  // ===== 每日登录奖励 =====
+  var loginBonusKey = 'dailyLoginBonus_' + studentId + '_' + today;
+  if (!localStorage.getItem(loginBonusKey)) {
+    gameState.totalPoints += 10000;
+    localStorage.setItem(loginBonusKey, '1');
+    saveUserData();
+    updateStatusBar();
+    showToast('🎉 每日登录奖励 +10,000 积分已到账！', 'success', 5000);
+  }
+
+  // ===== 连续登录追踪 =====
+  var streakKey = 'g45_login_streak_' + studentId;
+  var streakData = JSON.parse(localStorage.getItem(streakKey) || '{}');
+  var yesterday = getYesterdayDateStr();
+  var yesterdayKey = 'dailyLoginBonus_' + studentId + '_' + yesterday;
+  var hadYesterday = !!localStorage.getItem(yesterdayKey);
+
+  // 今天还没算入天数的话
+  if (streakData.lastDate !== today) {
+    if (hadYesterday) {
+      streakData.count = (streakData.count || 0) + 1;
+    } else {
+      streakData.count = 1;
+    }
+    streakData.lastDate = today;
+  }
+
+  // ===== 连续3天：传说装备 =====
+  var reward3Key = 'g45_streak_reward_3_' + studentId;
+  if (streakData.count >= 3 && !localStorage.getItem(reward3Key)) {
+    try {
+      if (typeof window.generateEquip === 'function') {
+        var legEquip = window.generateEquip(6);
+        if (legEquip) {
+          var es = gameState.equipment.indexOf(null);
+          if (es !== -1) gameState.equipment[es] = legEquip;
+          else gameState.equipment.push(legEquip);
+          localStorage.setItem(reward3Key, '1');
+          saveUserData();
+          updateStatusBar();
+          showToast('🏆 连续登录3天！传说装备 ' + (legEquip.name) + ' 已到账！', 'success', 6000);
+        }
+      }
+    } catch(e) {}
+  }
+
+  // ===== 连续7天：神话装备 =====
+  var reward7Key = 'g45_streak_reward_7_' + studentId;
+  if (streakData.count >= 7 && !localStorage.getItem(reward7Key)) {
+    try {
+      if (typeof window.generateEquip === 'function') {
+        var mythEquip = window.generateEquip(7);
+        if (mythEquip) {
+          var es2 = gameState.equipment.indexOf(null);
+          if (es2 !== -1) gameState.equipment[es2] = mythEquip;
+          else gameState.equipment.push(mythEquip);
+          localStorage.setItem(reward7Key, '1');
+          saveUserData();
+          updateStatusBar();
+          showToast('👑 连续登录7天！神话装备 ' + (mythEquip.name) + ' 已到账！', 'success', 8000);
+        }
+      }
+    } catch(e) {}
+  }
+
+  localStorage.setItem(streakKey, JSON.stringify(streakData));
+
+  // ===== 活动通知弹窗（每天一次） =====
+  var noticeKey = 'activityNotice45_' + studentId + '_' + today;
+  if (!localStorage.getItem(noticeKey)) {
+    localStorage.setItem(noticeKey, '1');
+    var overlay = document.getElementById('activityNoticeGrade45Overlay');
+    if (overlay) overlay.classList.add('show');
+  }
+}
+
+function closeGrade45ActivityNotice() {
+  var overlay = document.getElementById('activityNoticeGrade45Overlay');
+  if (overlay) overlay.classList.remove('show');
+  if (window.__pendingGreeting) {
+    window.__pendingGreeting = false;
+    setTimeout(showGreetingPopup, 200);
+  }
+}
+
 // ====== 欧皇祝福 & 成绩奖励系统 ======
 
 /**
@@ -6433,6 +6538,21 @@ var NOTICE_DATA = {
         '<li>异步加载不阻塞页面</li>' +
         '<li>加载失败时优雅降级为文字显示</li>' +
         '</ul>'
+    },
+    {
+      title: '🏰 爬塔S1赛季大更新',
+      date: '2026-05-23',
+      tag: 'feature',
+      tagLabel: '✨ 大更新',
+      content: '<p>爬塔系统S1赛季重大更新：</p>' +
+        '<ul>' +
+        '<li>🦁 <span class="hl">战吼技能卡</span>：攻击概率触发，+攻击力+护盾，可升级LV1→7</li>' +
+        '<li>🏹 <span class="hl">多重射击技能卡</span>：概率连射2-4次，每击独立暴击</li>' +
+        '<li>👹 <span class="hl">100层以上怪物血量指数增长</span>：倒逼神装</li>' +
+        '<li>⏱️ <span class="hl">答题时间翻倍</span>：30秒基础时间，更从容</li>' +
+        '<li>🔥 <span class="hl">S0赛季结算</span>：100层以上同学获神话装备+传说宠物+5万积分</li>' +
+        '<li>🎁 <span class="hl">四五年级登录活动</span>：每日1万积分+连续3天传说+7天神装</li>' +
+        '</ul>'
     }
   ]
 };
@@ -6784,6 +6904,50 @@ function checkTowerRewards() {
 
     <button class="activity-btn" onclick="closeActivityNotice()">🎉 我知道了</button>
     <div class="activity-notice-tip">💡 登录奖励已自动发放，爬塔奖励在闯塔成功后自动到账</div>
+  </div>
+</div>
+
+<!-- ====== 四五活动通知弹窗 ====== -->
+<div class="activity-overlay" id="activityNoticeGrade45Overlay">
+  <div class="activity-box">
+    <div class="activity-badge" style="background:linear-gradient(135deg, #ff6600, #ff9800);">🎊 限时活动</div>
+    <div class="activity-title">⭐ 四五年级专属福利</div>
+    <div class="activity-subtitle">即日起，每日登录送积分+连续登录送神装！</div>
+
+    <div class="activity-reward">
+      <div class="activity-reward-icon">🔑</div>
+      <div class="activity-reward-info">
+        <div class="activity-reward-label">每日登录</div>
+        <div class="activity-reward-desc">每天登录自动领取</div>
+      </div>
+      <div class="activity-reward-extra">+10,000</div>
+    </div>
+
+    <div class="activity-reward">
+      <div class="activity-reward-icon">⭐</div>
+      <div class="activity-reward-info">
+        <div class="activity-reward-label">连续登录 3 天</div>
+        <div class="activity-reward-desc">传说装备 ×1（自动到账）</div>
+      </div>
+      <div class="activity-reward-extra">🏆传说</div>
+    </div>
+
+    <div class="activity-reward">
+      <div class="activity-reward-icon">👑</div>
+      <div class="activity-reward-info">
+        <div class="activity-reward-label">连续登录 7 天</div>
+        <div class="activity-reward-desc">神话装备 ×1（自动到账）</div>
+      </div>
+      <div class="activity-reward-extra">⭐神话</div>
+    </div>
+
+    <div class="activity-date">
+      📅 活动时间：<strong>即日起</strong><br>
+      ⏰ 中断登录则天数重置 · 每日 00:00 刷新
+    </div>
+
+    <button class="activity-btn" onclick="closeGrade45ActivityNotice()">🎉 我知道了</button>
+    <div class="activity-notice-tip">💡 登录奖励已自动发放，连续登录奖励达标后自动到账</div>
   </div>
 </div>
 
