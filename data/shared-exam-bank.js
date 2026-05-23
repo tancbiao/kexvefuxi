@@ -376,7 +376,7 @@ window.SHARED_EXAM_BANK = [
       "竞争关系",
       "捕食关系"
     ],
-    "answer": 1,
+    "answer": 2,
     "material": "材料：红树林生态系统",
     "type": "单选题",
     "difficulty": "基础",
@@ -421,7 +421,7 @@ window.SHARED_EXAM_BANK = [
       "在食物网中，任何两种生物之间都有着直接或间接的关系",
       "在食物网中，任何一种生物的灭绝都会导致另外一种生物的灭绝"
     ],
-    "answer": 2,
+    "answer": 1,
     "material": "材料：红树林生态系统",
     "type": "单选题",
     "difficulty": "提升",
