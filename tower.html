@@ -1469,9 +1469,12 @@ function generateMonster(floor) {
   let hpMultAdj = m.hpMult;
   if (floor >= 100) hpMultAdj *= 2;
   let baseHP = Math.floor(5 + floor * hpMultAdj);
-  // 🆕 100层以上每10层boss额外+50%血量
+  // 🆕 100层以上boss每10层指数增长：110=100×1.5, 120=110×1.5...
   if (isBoss && floor >= 100 && floor % 10 === 0) {
-    baseHP = Math.floor(baseHP * 1.5);
+    // 以100层boss血量为基准，每+10层×1.5
+    const baseHP_100 = Math.floor(5 + 100 * m.hpMult * 2);
+    const decadeIdx = (floor - 100) / 10;
+    baseHP = Math.floor(baseHP_100 * Math.pow(1.5, decadeIdx));
   }
 
   const monster = {
