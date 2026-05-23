@@ -864,6 +864,16 @@ img.emoji { height: 1em; width: 1em; margin: 0 0.05em; vertical-align: -0.1em; }
 }
 .box-confirm-btn:hover { opacity: 0.9; transform: scale(1.03); }
 
+/* 🆕 材料题文本样式：长文本可滚动，换行清晰 */
+.q-text {
+  max-height: 40vh;
+  overflow-y: auto;
+  line-height: 1.7;
+  padding: 8px 12px;
+  white-space: normal;
+  word-break: break-word;
+}
+
 </style>
 </head>
 <body>
@@ -2230,7 +2240,14 @@ function showNextQuestion() {
     return;
   }
   currentQuestion = q;
-  document.getElementById('qText').innerHTML = q.question;
+  var questionHTML = q.question;
+  // 🆕 材料题换行 + 材料高亮 + 缺失配图提示
+  questionHTML = questionHTML.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+  questionHTML = questionHTML.replace(/【(材料[：:][^】]+)】/g, '<span style="color:#fbbf24;font-weight:bold;">【$1】</span>');
+  if (/如.*图/.test(questionHTML) && !/<img/.test(questionHTML)) {
+    questionHTML += '<br><span style="color:#f87171;font-size:0.8em;">⚠️ 本题配图缺失，请参考原始试卷</span>';
+  }
+  document.getElementById('qText').innerHTML = questionHTML;
 
   const container = document.getElementById('qOptions');
   container.innerHTML = q.options.map((opt, i) =>
@@ -2522,7 +2539,13 @@ function doMonsterDamageToPlayer(customAtk, callback, ignoreDodge, sureHit, dmgM
 
   const q = getNextQuestion();
   currentQuestion = q;
-  document.getElementById('qText').innerHTML = q.question;
+  var qHTML = q.question;
+  qHTML = qHTML.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+  qHTML = qHTML.replace(/【(材料[：:][^】]+)】/g, '<span style="color:#fbbf24;font-weight:bold;">【$1】</span>');
+  if (/如.*图/.test(qHTML) && !/<img/.test(qHTML)) {
+    qHTML += '<br><span style="color:#f87171;font-size:0.8em;">⚠️ 本题配图缺失，请参考原始试卷</span>';
+  }
+  document.getElementById('qText').innerHTML = qHTML;
 
   const container = document.getElementById('qOptions');
   container.innerHTML = q.options.map((opt, i) =>
