@@ -1,213 +1,202 @@
-# 科学趣味闯关网站 · 交接文档
+# 科学复习系统 · 交接文档
 
-> 本文档由 WorkBuddy 生成，交接给本地 IMA 小龙虾维护。
-> 日期：2026-04-22
+> 最后更新：2026-05-23
+> 项目名称：西西时光（xixitime.cn / kexvefuxi.cn）
 
 ---
 
-## 一、GitHub 账号信息
+## 一、项目概览
 
 | 项目 | 内容 |
 |------|------|
-| **GitHub 用户名** | `tancbiao` |
-| **仓库名** | `kexvefuxi` |
-| **仓库地址** | https://github.com/tancbiao/kexvefuxi |
-| **部署分支** | `master` |
-| **在线访问地址** | https://tancbiao.github.io/kexvefuxi |
-| **自定义域名** | https://kexvefuxi.cn（CNAME 已配置） |
-
-> ⚠️ GitHub 账号密码由用户谭政自行保管，如需 push 代码请让用户在本地操作或使用已配置好的 Git credential。
+| **本地主目录** | `D:\kexvefuxi\`（2026-05-23 从 WPS 云盘迁移） |
+| **旧路径（废弃）** | `C:\Users\tanc\Documents\WPSDrive\362543761\WPS云盘\谭政\科学复习系统\_kexvefuxi\` |
+| **GitHub** | `tancbiao/kexvefuxi`，分支 `main` |
+| **推送代理** | 需走 Clash Verge 代理 `http://127.0.0.1:7897` |
+| **在线访问** | https://xixitime.cn/kexvefuxi / https://kexvefuxi.cn |
+| **部署方式** | GitHub Pages + 自定义域名（CNAME） |
+| **服务器** | 159.75.134.151，API 服务 `/data/api.py` v706，systemctl 管理 |
+| **负责人** | 谭政（谭谭），广东江门范罗冈小学科学教师 |
 
 ---
 
-## 二、项目文件结构
-
-本项目代码位于：`C:\Users\Administrator\Desktop\四2班科学\_kexvefuxi\`
+## 二、系统架构
 
 ```
-kexvefuxi/
-├── index.html              # 首页：年级/学期选择界面
-├── CNAME                   # 自定义域名配置：kexvefuxi.cn
-├── README.md               # 项目说明
+┌──────────────────────────────────────────────────────┐
+│  学生端                                              │
+│  index.html → index_v705.html                        │
+│  ├── 闯关模式（年级/学期选择）                        │
+│  ├── 爬塔送神桩 → tower.html（iframe）               │
+│  └── 尖峰时刻 → ladder.html（iframe）                │
+│  域名：xixitime.cn/kexvefuxi                         │
+├──────────────────────────────────────────────────────┤
+│  教师端                                              │
+│  fenxi.html（成绩分析系统，1.96MB独立页面）            │
+│  密码：ketan2026                                     │
+│  域名：xixitime.cn/fenxi.html                        │
+├──────────────────────────────────────────────────────┤
+│  服务端                                              │
+│  159.75.134.151, /data/api.py v706                   │
+│  api.xixitime.cn / api.kexvefuxi.cn                  │
+│  systemctl restart kexvefuxi-api                     │
+├──────────────────────────────────────────────────────┤
+│  CDN                                                 │
+│  GitHub Pages → Cloudflare → 自定义域名               │
+└──────────────────────────────────────────────────────┘
+```
+
+---
+
+## 三、核心文件结构
+
+```
+D:\kexvefuxi\
+├── index.html                  # Git LFS 追踪的大型入口页面
+├── CNAME                       # kexvefuxi.cn
 ├── data/
-│   ├── 4-2.js              # 四年级下册题库数据（主力题库）
-│   └── 6-2.js              # 六年级下册题库数据
-├── css/                    # 公共样式
-├── js/                     # 公共脚本
-├── 4/
-│   ├── 1/                  # 四年级上册（已上线）
-│   └── 2/
-│       ├── index.html      # 🎮 四年级下册·闯关模式（主要维护对象）
-│       └── vs.html         # ⚔️ 四年级下册·对战模式
-├── 5/                      # 五年级（结构预留，内容待填）
-├── 6/
-│   └── 2/                  # 六年级下册（已有题库）
-└── ...
-```
-
-**重点文件**：`4/2/index.html` 是目前最活跃的文件，四年级下册闯关游戏。
-
----
-
-## 三、四年级下册闯关游戏说明（4/2/index.html）
-
-### 游戏结构
-
-- **四个单元**：植物大观园 🌿 / 动物的需求 🦁 / 运动和力 🚗 / 太阳地球月球 🌙
-- **三级难度**：基础（5题）→ 提升（5题）→ 挑战（3道综合题）
-- **解锁机制**：第 N 单元的当前难度，需要第 N-1 单元完成同级难度才解锁
-- **题型**：单选题、判断题、排序题、连连看
-
-### 进度存储
-
-使用 `localStorage`，key 为 `scienceGameState`，存储字段：
-
-```js
-{
-  totalPoints: 0,
-  unlockedAchievements: [],
-  unitProgress: [0, 0, 0, 0]  // 每个单元完成的难度级别（0=未开始, 1=完成基础, 2=完成提升, 3=完成挑战）
-}
-```
-
-### 成就系统（10个）
-
-| ID | 名称 | 解锁条件 |
-|----|------|---------|
-| first_blood | 首战告捷 | 完成第一题 |
-| streak_3 | 三连斩 | 连续答对3题 |
-| streak_5 | 五福临门 | 连续答对5题 |
-| no_hint | 独立思考 | 不使用提示通关 |
-| perfect | 满分答卷 | 一次通关满分 |
-| plant_master | 植物专家 | 完成植物单元全部三级难度 |
-| animal_master | 动物专家 | 完成动物单元全部三级难度 |
-| motion_master | 运动达人 | 完成运动单元全部三级难度 |
-| space_master | 太空探索者 | 完成天文单元全部三级难度 |
-| all_complete | 科学探险家 | 完成所有关卡 |
-
----
-
-## 四、题库数据结构（data/4-2.js）
-
-题库挂载在全局变量 `questionBank`，结构如下：
-
-```js
-questionBank = {
-  1: {  // 单元编号（1~4）
-    basic: [      // 基础难度，5道题
-      {
-        type: 'choice',      // 题型: choice / truefalse / sort / match
-        question: '题目文字',
-        options: ['A', 'B', 'C', 'D'],  // choice 题必填
-        answer: 0,           // choice: 正确选项索引；truefalse: true/false
-        hint: ['提示1', '提示2', '提示3'],  // 三级提示
-        explanation: '解析文字'
-      },
-      // ...
-    ],
-    advance: [ /* 5道提升题 */ ],
-    challenge: [ /* 3道挑战题 */ ]
-  },
-  2: { /* 单元2 */ },
-  3: { /* 单元3 */ },
-  4: { /* 单元4 */ }
-}
-```
-
-**排序题（sort）**格式：
-```js
-{
-  type: 'sort',
-  question: '请将以下步骤排序',
-  items: ['步骤A', '步骤B', '步骤C'],
-  answer: [2, 0, 1],  // 正确顺序的索引
-  hint: [...],
-  explanation: '...'
-}
-```
-
-**连连看（match）**格式：
-```js
-{
-  type: 'match',
-  question: '将左列与右列连线',
-  leftItems: ['左1', '左2', '左3'],
-  rightItems: ['右1', '右2', '右3'],
-  answer: [[0,1], [1,0], [2,2]],  // [左索引, 右索引] 对应关系
-  hint: [...],
-  explanation: '...'
-}
+│   ├── 3-2-lessons.js ~ 6-2-lessons.js  # 各年级题库
+│   └── *.py                    # 题库处理脚本
+├── 1/ ~ 6/                     # 各年级目录（25个HTML）
+├── _kexvefuxi/                 # 子项目
+│   ├── index_v705.html         # 🎮 主游戏页面（最活跃维护）
+│   ├── tower.html              # 🏰 爬塔送神桩
+│   ├── ladder.html             # ⚡ 尖峰时刻（天梯）
+│   ├── fenxi.html              # 📊 成绩分析系统
+│   └── cloud-config.js         # 云端配置
+├── icons/                      # 图标资源（82个文件）
+├── generated-assets/           # AI生成的素材
+├── admin/                      # 管理后台
+├── debug-tools/                # 调试工具（34个文件）
+└── .workbuddy/                 # WorkBuddy 工作记忆
+    └── memory/
+        ├── MEMORY.md           # 长期记忆
+        └── YYYY-MM-DD.md       # 每日日志
 ```
 
 ---
 
-## 五、后续更新网站的操作流程
+## 四、服务端 API（159.75.134.151, /data/api.py v706）
 
-### 场景A：修改/新增题目
+| 端点 | 方法 | 说明 |
+|------|------|------|
+| `/api/health` | GET | 健康检查 |
+| `/api/ranking/<grade>` | GET/POST | 排行榜 |
+| `/api/student/<grade>/<studentId>` | GET/POST | 学生存档（v706智能合并） |
+| `/api/student/info/<studentId>` | GET/POST | 学生错题信息 |
+| `/api/students/batch` | POST | 批量学生同步 |
+| `/api/questionbank/<grade>` | GET/POST | 题库存储 |
+| `/api/ai-tutor` | POST | AI错题讲解 |
+| `/api/ladder/ranking/score/<grade>` | GET | 天梯积分榜 |
+| `/api/ladder/ranking/accuracy/<grade>` | GET | 天梯正确率榜 |
+| `/api/ladder/ranking` | POST | 天梯提交排行 |
+| `/api/ladder/profile/<studentId>` | GET | 天梯云存档读取 |
+| `/api/ladder/profile` | POST | 天梯云存档保存 |
 
-1. 打开 `data/4-2.js`
-2. 找到对应单元和难度，按上面的数据结构格式增删改题目
-3. 保存后，进行 Git 提交（见下方步骤）
+---
 
-### 场景B：修改游戏逻辑/界面
+## 五、关键修复记录
 
-1. 打开 `4/2/index.html`（闯关模式）或 `4/2/vs.html`（对战模式）
-2. 直接修改 HTML 文件内的 CSS / JS / HTML 结构
-3. 用浏览器打开本地文件预览效果：`file:///C:/Users/Administrator/Desktop/四2班科学/_kexvefuxi/4/2/index.html`
-4. 确认无误后 Git 提交
+### v706 云存档三大P0修复（2026-05-22）
+1. **Bug 1（根因）**: 服务端 `data[key] = body` 直接覆盖 → 新增智能合并（Math.max/装备去重/成就并集/错题合并/零分守卫）
+2. **Bug 2**: 统一 `.tmp` 并发竞态 → `os.replace()` + PID 隔离
+3. **Bug 3**: 数据丢失 → 从 6 个 corrupted 备份恢复至 52 条，548名学生完整存档待学生重新登录从 localStorage 恢复
 
-### 场景C：新增年级/学期
+### 云合并策略
+- `totalPoints`: `new==0 && cloud>0 ? cloud : new`（零分守卫，信任客户端）
+- 装备去重、成就并集、错题合并
 
-1. 在对应年级目录（如 `5/1/`）新建 `index.html`
-2. 参照 `4/2/index.html` 的结构复制改造
-3. 在 `data/` 目录创建对应的题库文件（如 `5-1.js`）
-4. 修改根目录 `index.html`，在年级选择界面加上对应入口
+### 爬塔修复（2026-05-23）
+- 死亡后禁止继续
+- 初始攻击力 10→20
+- 材料题显示（【材料】金色高亮 + 配图）
+- 回血卡牌即时刷新
+- CDN缓存刷新：URL版本号差异化
 
-### Git 提交流程（每次改完都要做）
+### 账号隔离
+- 受影响函数：`loginWithId()`, `logout()`, `loginAsGuest()`
+- 必须重置：wrongQuestions, towerHighestFloor, towerCoins, ladderBestScore 等
+- commit: `26ab3b9`
+
+---
+
+## 六、Git 状态（2026-05-23）
+
+| 项目 | 状态 |
+|------|------|
+| **最新提交** | `40f9d69`（回血卡牌修复） |
+| **D盘当前** | `a134fb8` — 缺少 `40f9d69` |
+| **待操作** | D盘项目需 `git pull` 拉取最新提交 |
+| **BGM恢复提交** | `b2cbd2c`（如果已合并到main），可能是本地未推送 |
+
+执行：
+```bash
+cd /d/kexvefuxi
+git pull origin main
+```
+
+> 注：D盘项目已配置代理 `http://127.0.0.1:7897`，确保 Clash Verge 开启。
+
+---
+
+## 七、CDN 缓存刷新
+
+GitHub Pages 不支持自定义 Cache-Control，需用 **URL 差异化** 破缓存：
+
+1. 入口重定向加版本号：`index.html` → `index_v705.html?v=20260521`
+2. 页面级 meta：`<meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">`
+3. 资源加版本号：`<script src="cloud-config.js?v=20260521">`
+4. iframe 动态刷新：`src = 'tower.html?' + Date.now()`
+
+每次重要部署后更新版本号日期。
+
+---
+
+## 八、已知问题（2026-05-23）
+
+| 问题 | 状态 | 说明 |
+|------|------|------|
+| 学生完整存档丢失 | ⚠️ 恢复中 | 548名学生仅52人有完整存档，其余需重新登录从 localStorage 恢复 |
+| D盘项目缺最新提交 | ⚠️ 待处理 | `git pull` 拉取 `40f9d69`（回血卡牌修复） |
+| 材料题前10题无材料文本 | ✅ 正常 | 设计如此 |
+| CDN缓存导致旧代码 | ⚠️ 需监控 | 部署后更新版本号日期 |
+
+---
+
+## 九、实用命令
 
 ```bash
-cd C:\Users\Administrator\Desktop\四2班科学\_kexvefuxi
+# Git 推送（需代理）
+cd /d/kexvefuxi
+git pull origin main
+# 修改后
 git add .
-git commit -m "说明这次改了什么"
-git push origin master
+git commit -m "描述"
+git push origin main
+
+# 服务端
+ssh root@159.75.134.151
+systemctl status kexvefuxi-api
+systemctl restart kexvefuxi-api
+tail -f /var/log/kexvefuxi-api.log
 ```
 
-提交后约 1~2 分钟，GitHub Pages 自动更新上线，访问 https://tancbiao.github.io/kexvefuxi 即可看到最新版本。
+---
 
-> ⚠️ **注意**：当前有一处未提交的修改：`4/2/index.html`（修复了成就解锁后单元按钮消失的bug + 返回选关逻辑优化）。需要先执行一次 `git add . && git commit -m "fix: 修复成就解锁后单元消失问题" && git push` 把这次修复上线。
+## 十、本地技能资源
+
+WorkBuddy 已安装的项目技能：
+
+| 技能名 | 用途 |
+|--------|------|
+| `kexvefuxi-project` | 项目开发、bug修复、功能添加 |
+| `kexvefuxi-tower` | 爬塔系统开发 |
+| `kexvefuxi-syntax-check` | JS语法错误诊断 |
+| `git-deploy` | Git 推送部署 |
+| `github-push-with-proxy` | GitHub推送代理管理 |
+| `tencent-cloud-server` | 服务器管理 |
+| `exam-to-question-bank` | 试卷转题库 |
 
 ---
 
-## 六、已知问题和注意事项
-
-| 问题描述 | 状态 | 说明 |
-|---------|------|------|
-| 成就解锁后关卡选择单元按钮消失 | ✅ 已修复（待提交） | `showLevelSelect()` 新增 tab 状态同步，`renderLevelGrid()` 加防御性检查 |
-| 结果页面完成挑战后难度不重置 | ✅ 已修复（待提交） | `finishQuiz()` 完成后自动重置难度为 `basic` |
-| 结果页面只剩"返回选关"一个按钮 | ✅ 已调整 | 之前是"再闯一关 + 返回首页"，现已合并为"返回选关" |
-| 排序题操作方式 | ✅ 已修复 | 改为单击交换，添加选中高亮 |
-| 对战模式不支持 sort/match 题型 | ✅ 已修复 | 自动过滤这两种题型 |
-
----
-
-## 七、教材背景信息
-
-- **教材**：粤教粤科版（广东省地方教材）四年级下册科学
-- **四个单元**：
-  1. 植物大观园（叶、茎、根、花、果实、种子）
-  2. 动物的需求（食物、栖息地、繁殖）
-  3. 运动和力（参照物、摩擦力、弹力、重力）
-  4. 太阳地球月球（昼夜、四季、月相）
-- **使用场景**：广东江门小学四年级期末复习课
-
----
-
-## 八、联系信息
-
-- **项目负责人**：谭政（谭谭）
-- **学校**：广东省江门市小学
-- **GitHub 主页**：https://github.com/tancbiao
-
----
-
-*文档由 WorkBuddy 整理，2026-04-22。如有疑问，查 git log 或直接问谭谭。*
+*由 WorkBuddy 千寻整理，2026-05-23。如本文档与 MEMORY.md 有冲突，以 MEMORY.md 为准。*

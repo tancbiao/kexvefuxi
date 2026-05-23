@@ -1503,7 +1503,7 @@ const CARD_POOL = {
   ],
   uncommon: [
     { id: 'crit10', name: '🎯 暴击率', effect: '暴击率+10%', rarity: 'uncommon', apply: () => { run.buffs.critRate += 10; } },
-    { id: 'hpMax30', name: '❤️ 生命上限', effect: '最大HP+30', rarity: 'uncommon', apply: () => { run.playerMaxHP += 30; run.playerHP = Math.min(run.playerHP + 30, run.playerMaxHP); } },
+    { id: 'hpMax30', name: '❤️ 生命上限', effect: '最大HP+30', rarity: 'uncommon', apply: () => { run.playerMaxHP += 30; run.playerHP = Math.min(run.playerHP + 30, run.playerMaxHP); updatePlayerHPBar(); } },
     { id: 'dodge10', name: '💨 闪避强化', effect: '闪避率+10%', rarity: 'uncommon', apply: () => { run.buffs.dodgeBoost += 10; } },
     { id: 'economy5', name: '💰 经济+5', effect: '每层多得5积分', rarity: 'uncommon', apply: () => { run.buffs.floorBonusPoints += 5; } },
     { id: 'recoverAll', name: '💖 完全恢复', effect: 'HP回满', rarity: 'uncommon', apply: () => { run.playerHP = run.playerMaxHP; updatePlayerHPBar(); } },
@@ -2103,6 +2103,7 @@ function startTower() {
 
 function enterFloor(floor) {
   run.floor = floor;
+  console.log('[enterFloor] 第' + floor + '层 | HP=' + run.playerHP + '/' + run.playerMaxHP + ' | monster HP=' + (run.monster ? run.monster.hp : '新生成'));
 
   // 生成怪物
   const monster = generateMonster(floor);
@@ -2810,6 +2811,7 @@ function selectCard(idx) {
 
   // 从DOM读取卡牌名称，匹配对应buff并应用
   const cardName = card.querySelector('.card-name').textContent;
+  console.log('[selectCard] 选中卡牌:', cardName, '| HP前:', run.playerHP + '/' + run.playerMaxHP);
   const allPools = [CARD_POOL.common, CARD_POOL.uncommon, CARD_POOL.rare, CARD_POOL.epic, CARD_POOL.legendary].flat();
   const matched = allPools.find(c => c.name === cardName);
   // 记录apply前HP，用于展示变化
@@ -2822,11 +2824,12 @@ function selectCard(idx) {
   // HP变化即时反馈
   const hpChange = run.playerHP - hpBefore;
   const maxHPChange = run.playerMaxHP - maxHPBefore;
+  console.log('[selectCard] apply后 | HP:', run.playerHP + '/' + run.playerMaxHP, '| 变化:', '+' + hpChange + 'HP, +' + maxHPChange + '上限');
   let hpExtra = '';
   if (hpChange > 0) hpExtra = ' ❤️+' + Math.floor(hpChange);
   if (maxHPChange > 0) hpExtra += ' 💪上限+' + maxHPChange;
   document.getElementById('rewardHint').textContent = '已选择 ✅' + hpExtra;
-  // 确保HP条更新
+  // 确保HP条更新（预热：此时Battle屏隐藏，但值已写入DOM）
   if (hpChange !== 0 || maxHPChange !== 0) updatePlayerHPBar();
 
   // 检查是否有待展示的奖励（装备/宠物碎片）
