@@ -873,6 +873,60 @@ img.emoji { height: 1em; width: 1em; margin: 0 0.05em; vertical-align: -0.1em; }
   white-space: normal;
   word-break: break-word;
 }
+/* ====== 职业系统 ====== */
+.class-select-box {
+  text-align: center;
+  padding: 24px 16px;
+}
+.class-title {
+  font-size: 1.4em;
+  margin-bottom: 20px;
+  color: #ffd700;
+}
+.class-card-grid, .branch-card-grid {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  max-width: 640px;
+  margin: 0 auto;
+}
+.class-card, .branch-card {
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  border: 2px solid rgba(255,255,255,0.2);
+  border-radius: 14px;
+  padding: 18px 14px;
+  width: 150px;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-align: center;
+}
+.class-card:hover, .branch-card:hover {
+  border-color: #ffd700;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(255,215,0,0.2);
+}
+.class-card.hidden-class { border-color: rgba(255,102,0,0.4); background: linear-gradient(135deg, #2a0a0a, #1a0a0a); }
+.class-card.hidden-class:hover { border-color: #ff6600; box-shadow: 0 8px 24px rgba(255,102,0,0.3); }
+.class-card-emoji { font-size: 2.2em; margin-bottom: 8px; }
+.class-card-name { font-size: 1.1em; font-weight: bold; color: #fff; margin-bottom: 4px; }
+.class-card-hidden-tag {
+  display: inline-block;
+  background: #ff6600;
+  color: #fff;
+  font-size: 0.7em;
+  padding: 1px 8px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+}
+.class-card-desc { font-size: 0.78em; color: rgba(255,255,255,0.5); }
+.class-hint { font-size: 0.78em; color: rgba(255,255,255,0.3); margin-top: 16px; }
+
+.class-tierup-emoji { animation: tierupGrow 0.6s ease-out; }
+@keyframes tierupGrow {
+  0% { transform: scale(0.3); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
 
 </style>
 </head>
@@ -1063,6 +1117,33 @@ img.emoji { height: 1em; width: 1em; margin: 0 0.05em; vertical-align: -0.1em; }
       <button class="btn-replay" onclick="startTower()">🔄 再来一次</button>
       <button class="btn-home" onclick="goHome()">🏠 返回首页</button>
     </div>
+  </div>
+</div>
+
+<!-- ====== 职业选择屏 ====== -->
+<div class="screen" id="screenClassSelect">
+  <div class="class-select-box">
+    <h2 class="class-title">🗡️ 选择你的职业</h2>
+    <div class="class-card-grid" id="classCardGrid"></div>
+    <div class="class-hint">💡 本功能由012104班提出 · 第10层可进阶分支</div>
+  </div>
+</div>
+
+<!-- ====== 分支选择屏 ====== -->
+<div class="screen" id="screenBranchSelect">
+  <div class="class-select-box">
+    <h2 class="class-title" id="branchTitle">🌟 选择进阶路线</h2>
+    <div class="branch-card-grid" id="branchCardGrid"></div>
+  </div>
+</div>
+
+<!-- ====== 进阶弹窗 ====== -->
+<div class="modal-overlay" id="tierUpOverlay">
+  <div class="modal-box" style="text-align:center;padding:24px;">
+    <div class="class-tierup-emoji" id="tierUpEmoji" style="font-size:3em;"></div>
+    <h3 id="tierUpTitle" style="color:#ffd700;margin:12px 0;"></h3>
+    <p id="tierUpDesc" style="color:rgba(255,255,255,0.6);"></p>
+    <button class="btn-action" onclick="closeTierUp()" style="margin-top:16px;">✨ 继续冒险</button>
   </div>
 </div>
 
@@ -1628,8 +1709,66 @@ function getCardPoolByType(monsterType) {
   return ['common','common','common','uncommon','uncommon','rare'];
 }
 
+// 🆕 获取职业专属技能卡（用于混入卡牌池）
+function getClassSkillCards() {
+  var skills = [];
+  var pc = run.playerClass;
+  if (!pc || !pc.id || !pc.branch || pc.tier < 2) return skills;
+  var cd = CLASS_DATA[pc.id];
+  if (!cd || !cd.branches[pc.branch]) return skills;
+  var bn = cd.branches[pc.branch];
+  if (!bn.skills) return skills;
+  bn.skills.forEach(function(s) {
+    var curLv = (run.skillLevels && run.skillLevels[s.id]) || 0;
+    if (curLv >= 7) return; // 满级不出现
+    var nextLv = curLv + 1;
+    var lv1 = s.lv1, lvmax = s.lvmax;
+    // 线性插值
+    var progress = (nextLv - 1) / 6;
+    var effectDesc = '';
+    if (lv1.prob !== undefined) {
+      var prob = Math.round(lv1.prob + (lvmax.prob - lv1.prob) * progress);
+      effectDesc += prob + '%概率';
+    }
+    if (lv1.mult !== undefined) {
+      var mult = (lv1.mult + (lvmax.mult - lv1.mult) * progress).toFixed(1);
+      effectDesc += ' ' + mult + '倍伤害';
+    }
+    if (lv1.hits !== undefined) { var h = lv1.hits + Math.round((lvmax.hits - lv1.hits) * progress); effectDesc += ' ' + h + '连射'; }
+    if (lv1.dmgPct !== undefined) { var dp = Math.round(lv1.dmgPct + (lvmax.dmgPct - lv1.dmgPct) * progress); effectDesc += ' ' + dp + '%伤'; }
+    if (lv1.burn !== undefined) { var b = Math.round(lv1.burn + (lvmax.burn - lv1.burn) * progress); effectDesc += ' 灼烧' + b + '%'; }
+    if (lv1.freeze !== undefined) { effectDesc += ' 冻结' + (lvmax.freeze > 1 ? '2' : '1') + '回合'; }
+    if (lv1.poison !== undefined) { var ps = Math.round(lv1.poison + (lvmax.poison - lv1.poison) * progress); effectDesc += ' 叠毒' + ps + '%'; }
+    if (lv1.healPct !== undefined) { var hp = Math.round(lv1.healPct + (lvmax.healPct - lv1.healPct) * progress); effectDesc += ' 回复' + hp + '%HP'; }
+    if (lv1.lifesteal !== undefined) { var ls = Math.round(lv1.lifesteal + (lvmax.lifesteal - lv1.lifesteal) * progress); effectDesc += ' 吸血' + ls + '%'; }
+    if (lv1.shield !== undefined) { var sh = Math.round(lv1.shield + (lvmax.shield - lv1.shield) * progress); effectDesc += ' +' + sh + '盾'; }
+    if (lv1.reduce !== undefined) { var rd = Math.round(lv1.reduce + (lvmax.reduce - lv1.reduce) * progress); effectDesc += ' 减伤' + rd + '%'; }
+    if (lv1.oneHitKill !== undefined) { var ohk = Math.round(lv1.oneHitKill + (lvmax.oneHitKill - lv1.oneHitKill) * progress); effectDesc += ' 秒杀' + ohk + '%'; }
+    if (lv1.increment !== undefined) { var inc = (lv1.increment + (lvmax.increment - lv1.increment) * progress).toFixed(1); effectDesc += ' 递增x' + inc; }
+    if (lv1.decayPct !== undefined) { var dc = Math.round(lv1.decayPct + (lvmax.decayPct - lv1.decayPct) * progress); effectDesc += ' 凋零' + dc + '%'; }
+    if (lv1.petMult !== undefined) { var pm = Math.round(lv1.petMult + (lvmax.petMult - lv1.petMult) * progress); effectDesc += ' 宠物x' + pm; }
+    if (lv1.elemDmg !== undefined) effectDesc += ' 元素伤害';
+
+    skills.push({
+      id: s.id, name: s.name, effect: 'LV' + nextLv + ' ' + effectDesc,
+      rarity: 'epic', isLevelable: true, maxLevel: 7,
+      apply: (function(skillId, nextLvl) {
+        return function() {
+          if (!run.skillLevels) run.skillLevels = {};
+          run.skillLevels[skillId] = nextLvl;
+        };
+      })(s.id, nextLv)
+    });
+  });
+  return skills;
+}
+
 function generateCards(monsterType) {
   const pool = getCardPoolByType(monsterType);
+  // 🆕 注入职业专属技能卡到epic池
+  var classSkills = getClassSkillCards();
+  var classSkillIds = classSkills.map(function(s) { return s.id; });
+
   const cards = [];
   const usedIds = new Set();
   for (let i = 0; i < 3; i++) {
@@ -1640,7 +1779,12 @@ function generateCards(monsterType) {
     });
     if (available.length === 0) break;
     const rarity = available[Math.floor(Math.random() * available.length)];
-    const choices = CARD_POOL[rarity].filter(c => !usedIds.has(c.id) && !(c.isLevelable && (run.skillLevels[c.id] || 0) >= c.maxLevel));
+    var choices = CARD_POOL[rarity].filter(c => !usedIds.has(c.id) && !(c.isLevelable && (run.skillLevels[c.id] || 0) >= c.maxLevel));
+    // 🆕 混入职业专属技能卡（epic池）
+    if (rarity === 'epic') {
+      choices = choices.concat(classSkills.filter(function(s) { return !usedIds.has(s.id) && !(run.skillLevels[s.id] || 0) >= 7; }));
+    }
+    if (choices.length === 0) break;
     const card = { ...choices[Math.floor(Math.random() * choices.length)] };
     // 可升级卡牌：展示当前等级和升级效果
     if (card.isLevelable) {
@@ -1660,6 +1804,209 @@ function generateCards(monsterType) {
   }
   return cards;
 }
+
+// ============================================================
+// 4.5. 职业系统
+// ============================================================
+
+const CLASS_DATA = {
+  warrior: {
+    id: 'warrior', name: '🗡️ 剑士', emoji: '⚔️', hidden: false,
+    desc: '攻守兼备的近战斗士',
+    base: { atkPct: 10, dmgReduce: 5 },
+    branches: {
+      gladiator: { name: '🛡️ 剑斗士', emoji: '🗡️', desc: '坚如磐石的战士之路',
+        tier2: { atkPct: 20, dmgReduce: 10 },
+        tier3: { atkPct: 35, dmgReduce: 15 }, tier3_name: '剑圣',
+        tier4: { atkPct: 50, dmgReduce: 20, doubleChance: 15 }, tier4_name: '剑神',
+        skills: [
+          { id: 'heavySlash', name: '💥 重斩', desc: '概率触发大伤害', lv1: { prob: 10, mult: 1.5 }, lvmax: { prob: 70, mult: 2.5, armorBreak: true } },
+          { id: 'whirlwind', name: '🌪️ 旋风斩', desc: '概率全体攻击', lv1: { prob: 15, dmgPct: 60 }, lvmax: { prob: 70, dmgPct: 100, crit: true } }
+        ]
+      },
+      magicSword: { name: '🔮 魔剑士', emoji: '⚡', desc: '暗炎附魔的魔武双修',
+        tier2: { atkPct: 15, darkBurn: 0.15, darkBurnTurns: 2 },
+        tier3: { atkPct: 30, darkBurn: 0.30, lifesteal: 5 }, tier3_name: '魔剑统领',
+        tier4: { atkPct: 45, darkBurn: 0.50, lifesteal: 15 }, tier4_name: '混沌剑帝',
+        skills: [
+          { id: 'darkSlash', name: '🔥 暗炎斩', desc: '暗属性灼烧', lv1: { prob: 15, burn: 15, turns: 2 }, lvmax: { prob: 70, burn: 60, turns: 2 } },
+          { id: 'chaosStorm', name: '🌑 魔刃风暴', desc: '全体吸血', lv1: { prob: 10, lifesteal: 10 }, lvmax: { prob: 70, lifesteal: 30 } }
+        ]
+      }
+    }
+  },
+  mage: {
+    id: 'mage', name: '🧙 魔法师', emoji: '🔮', hidden: false,
+    desc: '高攻脆皮的远程炮台',
+    base: { atkPct: 15, hpReduce: 10 },
+    branches: {
+      fire: { name: '🔥 火焰法师', emoji: '🔥', desc: '灼烧一切的烈焰',
+        tier2: { atkPct: 25, burn: 0.30, burnTurns: 2 },
+        tier3: { atkPct: 40, burn: 0.60, fireRing: 10 }, tier3_name: '炎魔导师',
+        tier4: { atkPct: 60, burn: 1.0, revive: 1 }, tier4_name: '凤凰使者',
+        skills: [
+          { id: 'meteorite', name: '☄️ 陨石术', desc: '概率大伤害', lv1: { prob: 15, mult: 1.8 }, lvmax: { prob: 70, mult: 3.0 } },
+          { id: 'fireStorm', name: '🔥 烈焰风暴', desc: '全体灼烧', lv1: { prob: 12, burn: 20 }, lvmax: { prob: 70, burn: 80 } }
+        ]
+      },
+      ice: { name: '❄️ 冰霜法师', emoji: '❄️', desc: '冻结万物的寒冰',
+        tier2: { atkPct: 25, freeze: 0.15, freezeTurns: 1 },
+        tier3: { atkPct: 40, freeze: 0.30, shield: 30 }, tier3_name: '极寒导师',
+        tier4: { atkPct: 60, freeze: 0.50, iceShield: 80 }, tier4_name: '绝对零度',
+        skills: [
+          { id: 'iceAge', name: '❄️ 冰河世纪', desc: '概率冻结', lv1: { prob: 15, freeze: 1 }, lvmax: { prob: 70, freeze: 2, shield: 50 } },
+          { id: 'blizzard', name: '🌨️ 暴风雪', desc: '全体减速+伤害', lv1: { prob: 12, dmgPct: 50 }, lvmax: { prob: 70, dmgPct: 100 } }
+        ]
+      },
+      poison: { name: '☠️ 毒系法师', emoji: '🧪', desc: '持续叠毒的瘟疫',
+        tier2: { atkPct: 20, poison: 0.20, poisonTurns: 3 },
+        tier3: { atkPct: 35, poison: 0.40, spreadChance: 20 }, tier3_name: '瘟疫导师',
+        tier4: { atkPct: 55, poison: 0.80, fullPoison: true }, tier4_name: '万毒之王',
+        skills: [
+          { id: 'venomNova', name: '☠️ 万毒噬心', desc: '叠毒爆发', lv1: { prob: 15, poison: 30 }, lvmax: { prob: 70, poison: 90 } },
+          { id: 'plague', name: '🦠 瘟疫蔓延', desc: '全体叠毒', lv1: { prob: 12, poison: 15 }, lvmax: { prob: 70, poison: 60 } }
+        ]
+      }
+    }
+  },
+  priest: {
+    id: 'priest', name: '✝️ 牧师', emoji: '💚', hidden: false,
+    desc: '治疗与守护的支援者',
+    base: { healPerCorrect: 5, shieldBonus: 10 },
+    branches: {
+      light: { name: '☀️ 光明牧师', emoji: '✨', desc: '圣光庇护的治疗者',
+        tier2: { healPerCorrect: 15, shieldBonus: 25 },
+        tier3: { healPerCorrect: 25, reviveChance: 30, reviveOnce: true }, tier3_name: '主教',
+        tier4: { healPerCorrect: 40, healPerTurn: 10, teamReduce: 10 }, tier4_name: '圣光使者',
+        skills: [
+          { id: 'holyLight', name: '💫 圣光术', desc: '概率大回复', lv1: { prob: 15, healPct: 50 }, lvmax: { prob: 70, healPct: 100, bonusShield: 30 } },
+          { id: 'revive', name: '🕊️ 复活术', desc: '死亡时概率复活', lv1: { prob: 5, healPct: 30 }, lvmax: { prob: 35, healPct: 100, invincible: 1 } }
+        ]
+      },
+      shadow: { name: '🌑 暗影牧师', emoji: '🖤', desc: '汲取生命的暗影',
+        tier2: { lifesteal: 10, healToDmg: true },
+        tier3: { lifesteal: 20, shadowShield: 30 }, tier3_name: '暗影主教',
+        tier4: { lifesteal: 35, shieldFromDmg: 50 }, tier4_name: '虚空行者',
+        skills: [
+          { id: 'lifeDrain', name: '🩸 生命汲取', desc: '概率吸血', lv1: { prob: 20, lifesteal: 15 }, lvmax: { prob: 70, lifesteal: 40 } },
+          { id: 'voidConsume', name: '🕳️ 虚空吞噬', desc: '大伤害+吸血', lv1: { prob: 10, mult: 1.5, lifesteal: 10 }, lvmax: { prob: 70, mult: 4, lifesteal: 30 } }
+        ]
+      }
+    }
+  },
+  ranger: {
+    id: 'ranger', name: '🏹 游侠', emoji: '🎯', hidden: false,
+    desc: '敏捷闪避的远程猎手',
+    base: { dodge: 15, critRate: 5 },
+    branches: {
+      sniper: { name: '🎯 神射手', emoji: '🏹', desc: '精准致命的远程射手',
+        tier2: { critRate: 15, critDmg: 1.8 },
+        tier3: { critRate: 25, bounceChance: 30 }, tier3_name: '鹰眼',
+        tier4: { critRate: 40, multiHit: 2 }, tier4_name: '猎神',
+        skills: [
+          { id: 'preciseShot', name: '🎯 精准射击', desc: '概率必暴', lv1: { prob: 20, crit: true }, lvmax: { prob: 70, crit: true, armorBreak: true } },
+          { id: 'arrowRain', name: '🌧️ 箭雨', desc: '概率连射', lv1: { prob: 15, hits: 3, dmgPct: 40 }, lvmax: { prob: 70, hits: 5, dmgPct: 60 } }
+        ]
+      },
+      assassin: { name: '🗡️ 刺客', emoji: '🌑', desc: '暗杀一击的近战刺客',
+        tier2: { critDmg: 2.5, stealth: true },
+        tier3: { critDmg: 3.5, stealthDmg: 2.0 }, tier3_name: '暗杀者',
+        tier4: { critDmg: 5.0, dodgeReflect: 20 }, tier4_name: '影刃',
+        skills: [
+          { id: 'assassinate', name: '🗡️ 暗杀', desc: '概率超高暴击', lv1: { prob: 15, mult: 3 }, lvmax: { prob: 70, mult: 6 } },
+          { id: 'shadowStrike', name: '🌑 影袭', desc: '连斩至未暴', lv1: { prob: 15, increment: 1.2 }, lvmax: { prob: 70, increment: 1.5 } }
+        ]
+      }
+    }
+  },
+  // ===== 隐藏职业 =====
+  shadowBlade: {
+    id: 'shadowBlade', name: '🌑 暗影刺客', emoji: '🖤', hidden: true,
+    desc: '极限玻璃大炮',
+    base: { hpReduce: 25, critRate: 30, critDmg: 3 },
+    branches: {
+      pureAssassin: { name: '⚡ 暗杀者', emoji: '💀', desc: '极致物理暴击',
+        tier2: { critRate: 40, critDmg: 4 },
+        tier3: { critRate: 50, ignoreShield: true }, tier3_name: '影刃',
+        tier4: { critRate: 70, oneHitKill: 20 }, tier4_name: '夜之主',
+        skills: [
+          { id: 'deathBlow', name: '💀 必杀一击', desc: '概率一击必杀', lv1: { prob: 10, oneHitKill: 10 }, lvmax: { prob: 50, oneHitKill: 30 } },
+          { id: 'frenzy', name: '🌀 狂暴连斩', desc: '连斩至未暴+递增', lv1: { prob: 15, increment: 1.3 }, lvmax: { prob: 70, increment: 2.0 } }
+        ]
+      },
+      shadowMage: { name: '🌌 影魔', emoji: '🌀', desc: '暗影法术双修',
+        tier2: { atkPct: 25, darkDmg: 30 },
+        tier3: { atkPct: 45, darkDmg: 80 }, tier3_name: '虚空行者',
+        tier4: { atkPct: 70, darkDmg: 120, darkExplosion: true }, tier4_name: '深渊之主',
+        skills: [
+          { id: 'darkBolt', name: '🌑 暗影弹', desc: '概率暗属性爆发', lv1: { prob: 20, mult: 1.8 }, lvmax: { prob: 70, mult: 4 } },
+          { id: 'abyssalRift', name: '🕳️ 深渊裂隙', desc: '全屏暗爆', lv1: { prob: 10, dmgPct: 60 }, lvmax: { prob: 70, dmgPct: 120 } }
+        ]
+      }
+    }
+  },
+  paladin: {
+    id: 'paladin', name: '🛡️ 圣骑士', emoji: '⚜️', hidden: true,
+    desc: '坚不可摧的坦克',
+    base: { hpIncrease: 35, dmgReduce: 20 },
+    branches: {
+      holy: { name: '✨ 圣殿骑士', emoji: '🛡️', desc: '光之守护者',
+        tier2: { hpIncrease: 50, dmgReduce: 30 },
+        tier3: { hpIncrease: 65, teamReduce: 15 }, tier3_name: '光之守护者',
+        tier4: { hpIncrease: 80, shieldPerTurn: 100 }, tier4_name: '不灭圣盾',
+        skills: [
+          { id: 'holyShield', name: '💫 圣盾', desc: '概率+大量护盾', lv1: { prob: 15, shield: 50 }, lvmax: { prob: 70, shield: 200 } },
+          { id: 'taunt', name: '📢 嘲讽', desc: '概率减怪物伤害', lv1: { prob: 15, reduce: 30 }, lvmax: { prob: 70, reduce: 70 } }
+        ]
+      },
+      deathKnight: { name: '💀 死亡骑士', emoji: '☠️', desc: '坦克+吸血',
+        tier2: { hpIncrease: 30, lifesteal: 15 },
+        tier3: { lifesteal: 25, decayAura: 10 }, tier3_name: '亡灵领主',
+        tier4: { lifesteal: 40, deathRevive: true }, tier4_name: '凋零之王',
+        skills: [
+          { id: 'deathGrip', name: '🖐️ 死亡之握', desc: '概率大伤害+吸血', lv1: { prob: 15, mult: 1.5, lifesteal: 20 }, lvmax: { prob: 70, mult: 3, lifesteal: 50 } },
+          { id: 'decay', name: '🦴 凋零光环', desc: '持续扣怪物HP', lv1: { prob: 15, decayPct: 5 }, lvmax: { prob: 70, decayPct: 20 } }
+        ]
+      }
+    }
+  },
+  summoner: {
+    id: 'summoner', name: '🐾 召唤师', emoji: '🌟', hidden: true,
+    desc: '召唤宠物协同作战',
+    base: { petDmg: 30, atkReduce: 10 },
+    branches: {
+      beast: { name: '🦁 兽王', emoji: '🐾', desc: '强化出战宠物',
+        tier2: { petDmg: 60, petCount: 2 },
+        tier3: { petDmg: 100, petCount: 3 }, tier3_name: '万兽之王',
+        tier4: { petDmg: 150, petCount: 4, petCrit: 30 }, tier4_name: '兽神',
+        skills: [
+          { id: 'beastFury', name: '🐾 兽灵狂暴', desc: '概率宠物双倍伤害', lv1: { prob: 15, petMult: 2 }, lvmax: { prob: 70, petMult: 4 } },
+          { id: 'packHunt', name: '🐺 群猎', desc: '概率所有宠物同时攻击', lv1: { prob: 10 }, lvmax: { prob: 70, dmgBonus: 50 } }
+        ]
+      },
+      elemental: { name: '🔥 元素使', emoji: '✨', desc: '召唤元素助战',
+        tier2: { atkPct: 20, elemDmg: 40 },
+        tier3: { atkPct: 40, dualElement: true }, tier3_name: '元素领主',
+        tier4: { atkPct: 70, quadElement: 250 }, tier4_name: '元素之主',
+        skills: [
+          { id: 'fireElement', name: '🔥 火元素', desc: '概率召唤火元素', lv1: { prob: 15, dmgPct: 80 }, lvmax: { prob: 70, dmgPct: 180 } },
+          { id: 'iceElement', name: '❄️ 冰元素', desc: '概率冻结+伤害', lv1: { prob: 12, freeze: 1, dmgPct: 50 }, lvmax: { prob: 70, freeze: 2, dmgPct: 120 } }
+        ]
+      }
+    }
+  }
+};
+
+// 职业稀有度（普通 vs 隐藏权重）
+const CLASS_ODDS = [
+  { id: 'warrior', weight: 25 },
+  { id: 'mage', weight: 25 },
+  { id: 'priest', weight: 20 },
+  { id: 'ranger', weight: 25 },
+  { id: 'shadowBlade', weight: 5 },  // 隐藏
+  { id: 'paladin', weight: 5 },       // 隐藏
+  { id: 'summoner', weight: 5 }       // 隐藏
+];
 
 // ============================================================
 // 5. 六年级数据对接
@@ -1810,7 +2157,8 @@ function saveTowerProgress() {
       buffs: run.buffs,
       earnedPoints: run.earnedPoints,
       defeatedMonsters: run.defeatedMonsters,
-      skillLevels: run.skillLevels
+      skillLevels: run.skillLevels,
+      playerClass: run.playerClass
     },
     streakCount: streakCount,
     monster: run.monster ? { name: run.monster.name, hp: run.monster.hp, maxHP: run.monster.maxHP, atk: run.monster.atk, type: run.monster.type, buffs: run.monster.buffs } : null,
@@ -1858,7 +2206,8 @@ function continueTower() {
     buffs: progress.run.buffs,
     earnedPoints: progress.run.earnedPoints,
     defeatedMonsters: progress.run.defeatedMonsters,
-    skillLevels: progress.run.skillLevels || {}
+    skillLevels: progress.run.skillLevels || {},
+    playerClass: progress.run.playerClass || null
   });
   streakCount = progress.streakCount || 0;
   if (progress.monster) {
@@ -1933,7 +2282,12 @@ function calcPlayerStats(sid) {
   } catch(e) {}
 
   const finalATK = Math.max(equipATK + petATK, 20);
-  const finalHP = Math.max(100 + equipHP + petDEF + (run.buffs ? run.buffs.maxHPBoost || 0 : 0), 50);
+  var finalHP = Math.max(100 + equipHP + petDEF + (run.buffs ? run.buffs.maxHPBoost || 0 : 0), 50);
+  // 🆕 职业被动HP修正
+  var cp = getClassPassive();
+  if (cp.hpIncrease) finalHP = Math.floor(finalHP * (1 + cp.hpIncrease / 100));
+  if (cp.hpReduce) finalHP = Math.floor(finalHP * (1 - cp.hpReduce / 100));
+  if (cp.shieldBonus && run.buffs) run.buffs.shieldHP = (run.buffs.shieldHP || 0) + cp.shieldBonus;
   console.log('[calcPlayerStats] 结果 | equipATK=' + equipATK + ' petATK=' + petATK + ' → ATK=' + finalATK + ' | HP=' + finalHP);
   return {
     atk: finalATK,
@@ -2134,13 +2488,207 @@ function startTower() {
     monsterBuffs: {},
     playerBuffs: {},
     skillLevels: {},
+    playerClass: null,
   });
   streakCount = 0;
   questionLocked = false;
   if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
 
   document.getElementById('btnHomeHeader').style.display = 'inline-block';
+  // 🆕 职业选择
+  showClassSelection();
+}
+
+// ====== 职业选择 ======
+function showClassSelection() {
+  // 随机抽3个职业（带权重）
+  var pool = [], totalWeight = 0;
+  CLASS_ODDS.forEach(function(o) { totalWeight += o.weight; });
+  var picked = [];
+  for (var i = 0; i < 3; i++) {
+    var r = Math.random() * totalWeight;
+    var acc = 0;
+    for (var j = 0; j < CLASS_ODDS.length; j++) {
+      acc += CLASS_ODDS[j].weight;
+      if (r <= acc && picked.indexOf(CLASS_ODDS[j].id) === -1) {
+        picked.push(CLASS_ODDS[j].id);
+        break;
+      }
+    }
+  }
+  var grid = document.getElementById('classCardGrid');
+  grid.innerHTML = picked.map(function(id) {
+    var c = CLASS_DATA[id];
+    if (!c) return '';
+    return '<div class="class-card'+(c.hidden?' hidden-class':'')+'" onclick="selectClass(\''+id+'\')">' +
+      (c.hidden ? '<div class="class-card-hidden-tag">隐藏</div>' : '') +
+      '<div class="class-card-emoji">'+c.emoji+'</div>' +
+      '<div class="class-card-name">'+c.name+'</div>' +
+      '<div class="class-card-desc">'+c.desc+'</div>' +
+    '</div>';
+  }).join('');
+  showScreen('ClassSelect');
+}
+
+function selectClass(classId) {
+  var c = CLASS_DATA[classId];
+  if (!c) return;
+  run.playerClass = { id: classId, branch: null, tier: 1, skills: {} };
+  console.log('[Class] 选择职业:', c.name);
   enterFloor(1);
+}
+
+// ====== 分支选择 ======
+function showBranchSelection() {
+  var c = CLASS_DATA[run.playerClass.id];
+  if (!c) { enterFloor(11); return; }
+  var branches = c.branches;
+  var branchKeys = Object.keys(branches);
+  document.getElementById('branchTitle').textContent = c.emoji + ' ' + c.name + ' 进阶路线';
+  var grid = document.getElementById('branchCardGrid');
+  grid.innerHTML = branchKeys.map(function(bk) {
+    var b = branches[bk];
+    var stats = b.tier2;
+    var detail = '';
+    if (stats.atkPct) detail += 'ATK+' + stats.atkPct + '% ';
+    if (stats.dmgReduce) detail += '受伤-' + stats.dmgReduce + '% ';
+    if (stats.burn) detail += '灼烧' + Math.round(stats.burn*100) + '% ';
+    if (stats.freeze) detail += '冻结' + Math.round(stats.freeze*100) + '% ';
+    if (stats.poison) detail += '叠毒' + Math.round(stats.poison*100) + '% ';
+    if (stats.critRate) detail += '暴击+' + stats.critRate + '% ';
+    if (stats.healPerCorrect) detail += '回复+' + stats.healPerCorrect + 'HP ';
+    if (stats.lifesteal) detail += '吸血' + stats.lifesteal + '% ';
+    if (stats.hpIncrease) detail += 'HP+' + stats.hpIncrease + '% ';
+    if (stats.petDmg) detail += '宠物伤+' + stats.petDmg + '% ';
+    if (stats.darkDmg) detail += '暗伤+' + stats.darkDmg + '% ';
+    return '<div class="branch-card" onclick="selectBranch(\''+classId+'\',\''+bk+'\')">' +
+      '<div class="class-card-emoji">'+b.emoji+'</div>' +
+      '<div class="class-card-name">'+b.name+'</div>' +
+      '<div class="class-card-desc">'+b.desc+'</div>' +
+      '<div class="class-card-desc" style="color:#ffd700;margin-top:4px;">'+detail+'</div>' +
+    '</div>';
+  }.bind(null, run.playerClass.id)).join('');
+  showScreen('BranchSelect');
+}
+
+function selectBranch(classId, branchKey) {
+  var c = CLASS_DATA[classId];
+  if (!c || !c.branches[branchKey]) return;
+  run.playerClass.branch = branchKey;
+  run.playerClass.tier = 2;
+  var bn = c.branches[branchKey];
+  console.log('[Class] 进阶分支:', bn.name);
+  showTierUpPopup(bn.emoji, bn.name, '二阶进阶！' + bn.desc + '\n新技能已解锁');
+  enterFloor(11);
+}
+
+// ====== 进阶检查 ======
+function checkClassAdvancement(floor) {
+  var pc = run.playerClass;
+  if (!pc || !pc.branch) return;
+  if (floor === 50 && pc.tier < 3) {
+    pc.tier = 3;
+    var c = CLASS_DATA[pc.id].branches[pc.branch];
+    var tName = c.tier3_name || '三阶';
+    showTierUpPopup(c.emoji, tName, '三阶进阶！属性和技能大幅提升');
+  }
+  if (floor === 100 && pc.tier < 4) {
+    pc.tier = 4;
+    var c2 = CLASS_DATA[pc.id].branches[pc.branch];
+    var tName2 = c2.tier4_name || '终极';
+    showTierUpPopup(c2.emoji, tName2, '终极进阶！获得全部力量');
+  }
+}
+
+function showTierUpPopup(emoji, title, desc) {
+  document.getElementById('tierUpEmoji').textContent = emoji;
+  document.getElementById('tierUpTitle').textContent = title;
+  document.getElementById('tierUpDesc').textContent = desc;
+  document.getElementById('tierUpOverlay').classList.add('show');
+}
+
+function closeTierUp() {
+  document.getElementById('tierUpOverlay').classList.remove('show');
+}
+
+// ====== 获取职业被动属性 ======
+function getClassPassive() {
+  var pc = run.playerClass;
+  var passive = { atkPct: 0, dmgReduce: 0, hpIncrease: 0, hpReduce: 0, critRate: 0, critDmg: 1,
+    dodge: 0, healPerCorrect: 0, shieldBonus: 0, lifesteal: 0, petDmg: 0, atkReduce: 0,
+    darkDmg: 0, darkBurn: 0, burn: 0, poison: 0, freeze: 0,
+    multiHit: 0, reviveOnce: false, ignoreShield: false, oneHitKill: 0, doubleChance: 0,
+    teamReduce: 0, healPerTurn: 0, shieldPerTurn: 0 };
+  if (!pc || !pc.id) return passive;
+  var cd = CLASS_DATA[pc.id];
+  if (!cd) return passive;
+
+  // 基础被动
+  var bp = cd.base;
+  if (bp.atkPct) passive.atkPct += bp.atkPct;
+  if (bp.dmgReduce) passive.dmgReduce += bp.dmgReduce;
+  if (bp.hpIncrease) passive.hpIncrease += bp.hpIncrease;
+  if (bp.hpReduce) passive.hpReduce += bp.hpReduce;
+  if (bp.critRate) passive.critRate += bp.critRate;
+  if (bp.critDmg) passive.critDmg = bp.critDmg;
+  if (bp.dodge) passive.dodge += bp.dodge;
+  if (bp.healPerCorrect) passive.healPerCorrect += bp.healPerCorrect;
+  if (bp.shieldBonus) passive.shieldBonus += bp.shieldBonus;
+  if (bp.petDmg) passive.petDmg += bp.petDmg;
+  if (bp.atkReduce) passive.atkReduce += bp.atkReduce;
+
+  if (pc.tier >= 2 && pc.branch) {
+    var bn = cd.branches[pc.branch];
+    var t2 = bn.tier2, t3 = pc.tier >= 3 ? bn.tier3 : null, t4 = pc.tier >= 4 ? bn.tier4 : null;
+    [t2, t3, t4].forEach(function(t) {
+      if (!t) return;
+      if (t.atkPct) passive.atkPct += t.atkPct;
+      if (t.dmgReduce) passive.dmgReduce += t.dmgReduce;
+      if (t.hpIncrease) passive.hpIncrease += t.hpIncrease;
+      if (t.hpReduce) passive.hpReduce += t.hpReduce;
+      if (t.critRate) passive.critRate += t.critRate;
+      if (t.critDmg) passive.critDmg = t.critDmg;
+      if (t.dodge) passive.dodge += t.dodge;
+      if (t.healPerCorrect) passive.healPerCorrect += t.healPerCorrect;
+      if (t.shieldBonus) passive.shieldBonus += t.shieldBonus;
+      if (t.lifesteal) passive.lifesteal += t.lifesteal;
+      if (t.petDmg) passive.petDmg += t.petDmg;
+      if (t.atkReduce) passive.atkReduce += t.atkReduce;
+      if (t.burn) passive.burn = Math.max(passive.burn, t.burn);
+      if (t.poison) passive.poison = Math.max(passive.poison, t.poison);
+      if (t.freeze) passive.freeze = Math.max(passive.freeze, t.freeze);
+      if (t.darkDmg) passive.darkDmg += t.darkDmg;
+      if (t.darkBurn) passive.darkBurn = Math.max(passive.darkBurn, t.darkBurn);
+      if (t.multiHit) passive.multiHit = t.multiHit;
+      if (t.reviveOnce) passive.reviveOnce = true;
+      if (t.ignoreShield) passive.ignoreShield = true;
+      if (t.oneHitKill) passive.oneHitKill = Math.max(passive.oneHitKill, t.oneHitKill);
+      if (t.doubleChance) passive.doubleChance = Math.max(passive.doubleChance, t.doubleChance);
+      if (t.teamReduce) passive.teamReduce = Math.max(passive.teamReduce, t.teamReduce);
+      if (t.healPerTurn) passive.healPerTurn += t.healPerTurn;
+      if (t.shieldPerTurn) passive.shieldPerTurn += t.shieldPerTurn;
+      if (t.revive) passive.reviveOnce = true;
+      if (t.deathRevive) passive.reviveOnce = true;
+      if (t.fullPoison) passive.fullPoison = true;
+      if (t.fireRing) passive.fireRing = (passive.fireRing || 0) + t.fireRing;
+      if (t.iceShield) passive.iceShield = Math.max(passive.iceShield || 0, t.iceShield);
+      if (t.spreadChance) passive.spreadChance = t.spreadChance;
+      if (t.shadowShield) passive.shadowShield = (passive.shadowShield || 0) + t.shadowShield;
+      if (t.shieldFromDmg) passive.shieldFromDmg = t.shieldFromDmg;
+      if (t.bounceChance) passive.bounceChance = t.bounceChance;
+      if (t.stealth) passive.stealth = true;
+      if (t.stealthDmg) passive.stealthDmg = t.stealthDmg;
+      if (t.dodgeReflect) passive.dodgeReflect = t.dodgeReflect;
+      if (t.darkExplosion) passive.darkExplosion = true;
+      if (t.decayAura) passive.decayAura = t.decayAura;
+      if (t.petCount) passive.petCount = Math.max(passive.petCount || 0, t.petCount);
+      if (t.petCrit) passive.petCrit = t.petCrit;
+      if (t.dualElement) passive.dualElement = true;
+      if (t.quadElement) passive.quadElement = t.quadElement;
+      if (t.elemDmg) passive.elemDmg += t.elemDmg;
+    });
+  }
+  return passive;
 }
 
 // ============================================================
@@ -2150,6 +2698,14 @@ function startTower() {
 function enterFloor(floor) {
   run.floor = floor;
   console.log('[enterFloor] 第' + floor + '层 | HP=' + run.playerHP + '/' + run.playerMaxHP + ' | monster HP=' + (run.monster ? run.monster.hp : '新生成'));
+
+  // 🆕 第11层：分支选择（第10层boss已击败）
+  if (floor === 11 && run.playerClass && run.playerClass.id && !run.playerClass.branch) {
+    showBranchSelection();
+    return;
+  }
+  // 🆕 职业进阶
+  checkClassAdvancement(floor);
 
   // 生成怪物
   const monster = generateMonster(floor);
@@ -2237,6 +2793,11 @@ function updatePlayerHPBar() {
 
 function calcCurrentATK() {
   let atk = run.playerATK;
+  // 🆕 职业被动ATK加成
+  var cp = getClassPassive();
+  if (cp.atkPct) atk *= (1 + cp.atkPct / 100);
+  if (cp.atkReduce) atk *= (1 - cp.atkReduce / 100);
+
   atk *= (1 + run.buffs.atkBoost / 100);
   if (run.buffs.doubleStrike) atk *= 2;
   // 连击加成
@@ -2349,6 +2910,9 @@ function answerPlayerTurn(idx) {
         console.log('[战吼] LV'+wc.level+' 触发! +'+wc.activeAtkBonus+'%攻 +'+wc.activeShieldBonus+'盾 持续2回合');
       }
     }
+
+    // 🆕 职业专属技能触发
+    triggerClassSkills();
 
     // 🆕 多重射击判定
     let msTriggered = false;
@@ -2791,6 +3355,47 @@ function updateBuffDurations() {
       run.buffs.warCry.activeShieldBonus = 0;
     }
   }
+}
+
+// 🆕 职业专属技能触发
+function triggerClassSkills() {
+  var pc = run.playerClass;
+  if (!pc || !pc.id || !pc.branch || pc.tier < 2) return;
+  var skLevels = run.skillLevels || {};
+
+  var allClassSkillIds = [];
+  try {
+    var bn = CLASS_DATA[pc.id].branches[pc.branch];
+    if (bn && bn.skills) bn.skills.forEach(function(s) { allClassSkillIds.push(s.id); });
+  } catch(e) { return; }
+
+  allClassSkillIds.forEach(function(sid) {
+    var lv = skLevels[sid] || 0;
+    if (lv <= 0) return;
+    var skillDef = findSkillDef(sid);
+    if (!skillDef) return;
+    var lv1 = skillDef.lv1, lvmax = skillDef.lvmax;
+    var progress = (lv - 1) / 6;
+    var prob = lv1.prob + (lvmax.prob - lv1.prob) * progress;
+    if (Math.random() * 100 >= prob) return;
+
+    if (lv1.mult) { var mult = lv1.mult + (lvmax.mult - lv1.mult) * progress; var dmg = Math.floor(calcCurrentATK() * mult); if (run.monster) { run.monster.hp -= dmg; updateMonsterHPBar(); } setBattleLog('⚡'+skillDef.name+'! '+dmg+'额外伤害'); }
+    if (lv1.burn && run.monster) { var bp = (lv1.burn + (lvmax.burn - lv1.burn) * progress) / 100; var bd = Math.floor(run.monster.maxHP * bp); run.monster.hp -= bd; updateMonsterHPBar(); setBattleLog('🔥'+skillDef.name+' 灼烧'+bd+'点'); }
+    if (lv1.freeze && run.monster) { var ft = lvmax.freeze || 1; run.monster.buffs.frozen = ft; setBattleLog('❄️'+skillDef.name+' 冻结'+ft+'回合'); }
+    if (lv1.lifesteal && run.monster) { var lp = (lv1.lifesteal + (lvmax.lifesteal - lv1.lifesteal) * progress) / 100; var ha = Math.floor(calcCurrentATK() * lp); run.playerHP = Math.min(run.playerHP + ha, run.playerMaxHP); updatePlayerHPBar(); setBattleLog('🩸'+skillDef.name+' 吸血+'+ha+'HP'); }
+    if (lv1.healPct) { var hp2 = (lv1.healPct + (lvmax.healPct - lv1.healPct) * progress) / 100; var ha2 = Math.floor(run.playerMaxHP * hp2); run.playerHP = Math.min(run.playerHP + ha2, run.playerMaxHP); updatePlayerHPBar(); setBattleLog('💚'+skillDef.name+' 回复+'+ha2+'HP'); }
+    if (lv1.shield) { var sa = Math.round(lv1.shield + (lvmax.shield - lv1.shield) * progress); run.buffs.shieldHP = (run.buffs.shieldHP || 0) + sa; setBattleLog('🛡️'+skillDef.name+' +'+sa+'护盾'); }
+  });
+}
+
+function findSkillDef(skillId) {
+  var cl = Object.values(CLASS_DATA);
+  for (var i = 0; i < cl.length; i++)
+    for (var bk in cl[i].branches)
+      if (cl[i].branches[bk].skills)
+        for (var j = 0; j < cl[i].branches[bk].skills.length; j++)
+          if (cl[i].branches[bk].skills[j].id === skillId) return cl[i].branches[bk].skills[j];
+  return null;
 }
 
 // ============================================================
