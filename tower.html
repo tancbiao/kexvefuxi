@@ -1636,7 +1636,6 @@ const CARD_POOL = {
   ],
   epic: [
     { id: 'shield30', name: '🛡️ 护盾术', effect: '护盾吸收30伤害', rarity: 'epic', apply: () => { run.buffs.shieldHP += 30; } },
-    { id: 'doubleStrike', name: '⚡ 双倍打击', effect: '下次攻击2倍伤害', rarity: 'epic', apply: () => { run.buffs.doubleStrike = true; } },
     { id: 'economy15', name: '💰 经济+15', effect: '每层多得15积分', rarity: 'epic', apply: () => { run.buffs.floorBonusPoints += 15; } },
     { id: 'warCry', name: '🦁 战吼', effect: 'LV1 10%概率+5%攻+10盾2回合', rarity: 'epic', isLevelable: true, maxLevel: 7, apply: () => {
       if (!run.skillLevels) run.skillLevels = {};
@@ -2801,7 +2800,6 @@ function calcCurrentATK() {
   if (cp.atkReduce) atk *= (1 - cp.atkReduce / 100);
 
   atk *= (1 + run.buffs.atkBoost / 100);
-  if (run.buffs.doubleStrike) atk *= 2;
   // 连击加成
   if (run.buffs.combo && streakCount >= 2) {
     atk *= (1 + streakCount * 0.1);
@@ -2980,9 +2978,6 @@ function answerPlayerTurn(idx) {
     setBattleLog(`✅ 答对了！${critText}对 ${run.monster.name} 造成 <span class="log-damage">${finalDmg}</span> 点伤害`);
     updateMonsterHPBar();
     updateTopBar();
-
-    // 双倍打击用完即消
-    if (run.buffs.doubleStrike) run.buffs.doubleStrike = false;
 
     // 检查怪物死亡
     if (run.monster.hp <= 0) {
