@@ -5349,7 +5349,6 @@ function closeRanking() {
 
 // ====== 爬塔弹窗 ======
 function showTowerModal() {
-  // 🆕 v704: 未登录时先弹登录窗，防止爬塔iframe空页面
   if (!gameState.studentId || gameState.isGuest) {
     showLoginScreen();
     return;
@@ -5357,11 +5356,18 @@ function showTowerModal() {
   const modal = document.getElementById('towerModal');
   const iframe = document.getElementById('towerIframe');
   modal.classList.add('show');
-  // 首次加载 iframe，后续只显示（不重载，保留状态）
+
+  // 🆕 换号时强制重载iframe
+  if (window._towerIframeStudentId && window._towerIframeStudentId !== gameState.studentId) {
+    window._towerIframeLoaded = false;
+    iframe.src = 'about:blank';
+  }
+
   if (!window._towerIframeLoaded) {
     iframe.src = '../../tower.html?' + Date.now();
     iframe.onload = function() {
       window._towerIframeLoaded = true;
+      window._towerIframeStudentId = gameState.studentId;
       iframe.contentWindow.postMessage({
         type: 'init_tower',
         studentId: gameState.studentId,
@@ -5373,6 +5379,20 @@ function showTowerModal() {
         }
       }, '*');
     };
+  } else {
+    // 已加载，重新同步当前学号
+    try {
+      iframe.contentWindow.postMessage({
+        type: 'init_tower',
+        studentId: gameState.studentId,
+        saveData: {
+          totalPoints: gameState.totalPoints || 0,
+          equipment: gameState.equipment || [],
+          unlockedAchievements: gameState.unlockedAchievements || [],
+          lessonProgress: gameState.lessonProgress || {}
+        }
+      }, '*');
+    } catch(e) {}
   }
 }
 function closeTowerModal() {
