@@ -44,9 +44,29 @@ function fetchWithTimeout(url, options) {
   return fetch(url, opts).finally(function() { clearTimeout(timer); });
 }
 
+/** 🆕 带超时+重试的 fetch 封装（3次递增退避） */
+async function fetchWithRetry(url, options, maxRetries, label) {
+  maxRetries = maxRetries || 2;
+  label = label || url;
+  var lastErr = null;
+  for (var i = 0; i <= maxRetries; i++) {
+    try {
+      return await fetchWithTimeout(url, options);
+    } catch (e) {
+      lastErr = e;
+      if (i < maxRetries) {
+        var delay = 1500 * (i + 1);
+        console.warn('[fetchRetry]', label, '第' + (i+1) + '次失败，' + delay + 'ms后重试...');
+        await new Promise(function(r) { setTimeout(r, delay); });
+      }
+    }
+  }
+  throw lastErr;
+}
+
 async function getRanking(gradeKey) {
   try {
-    const res = await fetchWithTimeout(`${API_BASE}/ranking/${gradeKey}`);
+    const res = await fetchWithRetry(`${API_BASE}/ranking/${gradeKey}`, {}, 2, 'getRanking:'+gradeKey);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();
   } catch (e) { console.error('获取排行榜失败:', e); return {}; }
@@ -54,10 +74,10 @@ async function getRanking(gradeKey) {
 
 async function updateRanking(gradeKey, studentId, data) {
   try {
-    const res = await fetchWithTimeout(`${API_BASE}/ranking/${gradeKey}`, {
+    const res = await fetchWithRetry(`${API_BASE}/ranking/${gradeKey}`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
-    });
+    }, 2, 'updateRanking:'+gradeKey);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return true;
   } catch (e) { console.error('更新排行榜失败:', e); return false; }
@@ -65,10 +85,10 @@ async function updateRanking(gradeKey, studentId, data) {
 
 async function saveStudent(gradeKey, studentId, data) {
   try {
-    const res = await fetchWithTimeout(`${API_BASE}/student/${gradeKey}/${studentId}`, {
+    const res = await fetchWithRetry(`${API_BASE}/student/${gradeKey}/${studentId}`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
-    });
+    }, 2, 'saveStudent:'+studentId);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return true;
   } catch (e) { console.error('云同步保存失败:', e); return false; }
@@ -76,7 +96,7 @@ async function saveStudent(gradeKey, studentId, data) {
 
 async function loadStudent(gradeKey, studentId) {
   try {
-    const res = await fetchWithTimeout(`${API_BASE}/student/${gradeKey}/${studentId}`);
+    const res = await fetchWithRetry(`${API_BASE}/student/${gradeKey}/${studentId}`, {}, 2, 'loadStudent:'+studentId);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     return data && Object.keys(data).length > 0 ? data : null;
