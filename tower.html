@@ -2091,6 +2091,7 @@ function startTower() {
   });
   streakCount = 0;
   questionLocked = false;
+  _pendingReward = null;  // 🆕 v705: 重置待展示奖励防止串层
   if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
 
   document.getElementById('btnHomeHeader').style.display = 'inline-block';
@@ -2338,7 +2339,13 @@ function answerPlayerTurn(idx) {
 
     // 检查怪物死亡
     if (run.monster.hp <= 0) {
-      onMonsterDefeated();
+      try {
+        onMonsterDefeated();
+      } catch(e) {
+        console.error('怪物死亡处理出错:', e);
+        setBattleLog('⚠️ 处理卡住了，自动跳过...');
+        setTimeout(function() { showRewardScreen(); }, 800);
+      }
       return;
     }
 
@@ -2769,12 +2776,17 @@ function onMonsterDefeated() {
     }
   } catch(e) { console.error('装备掉落出错:', e); }
 
-  if (droppedEquip) {
-    // 有掉落：先显示装备详情弹窗，再进入奖励选择
-    showEquipRewardPopup({ type: 'equip', equip: droppedEquip.equip, equipIdx: droppedEquip.equipIdx, source: 'drop' });
-  } else {
-    // 无掉落：延迟显示奖励
-    setTimeout(() => showRewardScreen(), 1200);
+  try {
+    if (droppedEquip) {
+      // 有掉落：先显示装备详情弹窗，再进入奖励选择
+      showEquipRewardPopup({ type: 'equip', equip: droppedEquip.equip, equipIdx: droppedEquip.equipIdx, source: 'drop' });
+    } else {
+      // 无掉落：延迟显示奖励
+      setTimeout(function() { showRewardScreen(); }, 1200);
+    }
+  } catch(e) {
+    console.error('弹窗出错，跳过:', e);
+    setTimeout(function() { showRewardScreen(); }, 500);
   }
 }
 
@@ -2830,19 +2842,25 @@ function selectCard(idx) {
   if (hpChange !== 0 || maxHPChange !== 0) updatePlayerHPBar();
 
   // 检查是否有待展示的奖励（装备/宠物碎片）
-  if (_pendingReward) {
-    if (_pendingReward.type === 'equip') {
-      showEquipRewardPopup(_pendingReward);
-    } else if (_pendingReward.type === 'petPiece') {
-      showPetPieceRewardPopup(_pendingReward);
+  try {
+    if (_pendingReward) {
+      if (_pendingReward.type === 'equip') {
+        showEquipRewardPopup(_pendingReward);
+      } else if (_pendingReward.type === 'petPiece') {
+        showPetPieceRewardPopup(_pendingReward);
+      }
+      _pendingReward = null; // 已处理
+    } else {
+      // 无特殊奖励，延迟进入下一层
+      setTimeout(function() {
+        var nextFloor = run.floor + 1;
+        enterFloor(nextFloor);
+      }, 1500);
     }
-    _pendingReward = null; // 已处理
-  } else {
-    // 无特殊奖励，延迟进入下一层
-    setTimeout(() => {
-      const nextFloor = run.floor + 1;
-      enterFloor(nextFloor);
-    }, 1500);
+  } catch(e) {
+    console.error('卡牌选择后处理出错:', e);
+    _pendingReward = null;
+    setTimeout(function() { showRewardScreen(); }, 500);
   }
 }
 
