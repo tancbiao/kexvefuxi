@@ -20,7 +20,8 @@ async function initAPIConfig() {
     const res = await fetch('/tunnel-config.json?_=' + Date.now(), { cache: 'no-store' });
     if (res.ok) {
       const config = await res.json();
-      if (config.apiBase) {
+      // 🆕 过滤未备案域名（xixitime.cn），只用备案过的
+      if (config.apiBase && config.apiBase.indexOf('xixitime.cn') === -1) {
         API_BASE = config.apiBase;
         console.log('[CloudConfig] 使用 tunnel API:', API_BASE);
         return;
