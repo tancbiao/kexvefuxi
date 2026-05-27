@@ -1338,7 +1338,7 @@ async function saveTowerToCloud(sid) {
       lastUpdated: Date.now()
     };
     // 上传到云端 API
-    var res = await fetch('https://api.xixitime.cn/api/student/grade_all/' + sid, {
+    var res = await fetch('https://api.kexvefuxi.cn/api/student/grade_all/' + sid, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(cloudData)

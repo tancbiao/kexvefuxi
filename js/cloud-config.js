@@ -3,13 +3,13 @@
  * 
  * API 连接策略（按优先级）：
  * 1. tunnel-config.json: 服务器 cron 自动更新的 Cloudflare Tunnel URL（实时自动发现）
- * 2. DIRECT_API_BASE: https://api.xixitime.cn（直连 SSL，2026-05-19 证书已扩展）
+ * 2. DIRECT_API_BASE: https://api.kexvefuxi.cn（直连 SSL，2026-05-19 证书已扩展）
  * 
- * SSL 证书覆盖: api.kexvefuxi.cn + api.xixitime.cn (Let's Encrypt, 过期 2026-08-17)
+ * SSL 证书覆盖: api.kexvefuxi.cn + api.kexvefuxi.cn (Let's Encrypt, 过期 2026-08-17)
  */
 
 // 直连域名（主域名，SSL 证书已配置）
-const DIRECT_API_BASE = 'https://api.xixitime.cn/api';
+const DIRECT_API_BASE = 'https://api.kexvefuxi.cn/api';
 // 当前生效的 API 地址（默认直连，会被 initAPIConfig 更新为 tunnel）
 var API_BASE = DIRECT_API_BASE;
 const FETCH_TIMEOUT = 8000; // 8 秒超时

@@ -3064,7 +3064,7 @@ const App = {
       let syncErrors = [];
       if (students.length > 0) {
         try {
-          const res = await fetch('https://api.xixitime.cn/api/students/batch', {
+          const res = await fetch('https://api.kexvefuxi.cn/api/students/batch', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ students })
           });
@@ -3087,7 +3087,7 @@ const App = {
         if (questions.length > 0) {
           var grade = this.syncTargetGrade || (students.length > 0 ? String(students[0].studentId).substring(0, 4) : '6');
           try {
-            const res = await fetch('https://api.xixitime.cn/api/questionbank/' + grade, {
+            const res = await fetch('https://api.kexvefuxi.cn/api/questionbank/' + grade, {
               method: 'POST', headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ questions })
             });
@@ -6380,7 +6380,7 @@ if (!this.data || !this.data.students) return;
     }
     
     try {
-      var res = await fetch('https://api.xixitime.cn/api/questionbank/' + grade, {
+      var res = await fetch('https://api.kexvefuxi.cn/api/questionbank/' + grade, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ questions: questions })
       });
@@ -6428,7 +6428,7 @@ if (!this.data || !this.data.students) return;
       return;
     }
     try {
-      var res = await fetch('https://api.xixitime.cn/api/students/batch', {
+      var res = await fetch('https://api.kexvefuxi.cn/api/students/batch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ students: students })
