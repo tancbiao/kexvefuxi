@@ -7,7 +7,7 @@
 (function() {
   'use strict';
 
-  var API_BASE = (typeof window.API_BASE_URL !== 'undefined') ? window.API_BASE_URL : 'https://api.xixitime.cn';
+  var API_BASE = (typeof window.API_BASE_URL !== 'undefined') ? window.API_BASE_URL : 'https://api.kexvefuxi.cn';
 
   // ==================== CSS 样式 ====================
   function injectStyles() {

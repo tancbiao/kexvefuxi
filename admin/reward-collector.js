@@ -35,7 +35,7 @@ const REWARD_DEFINITIONS = {
 
 // 已领取记录（防止重复发放）
 const CLAIMED_KEY = 'scienceGameClaimedRewards';
-const REWARDS_API = 'https://api.xixitime.cn/api/rewards';
+const REWARDS_API = 'https://api.kexvefuxi.cn/api/rewards';
 
 /**
  * 领取待发放奖励（支持服务器API + localStorage 双模式）
