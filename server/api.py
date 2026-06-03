@@ -181,17 +181,15 @@ def student(grade, studentId):
         # totalPoints: 信任客户端值（零分守卫已在上面处理）
         merged['totalPoints'] = body.get('totalPoints', 0)
         
-        # 装备：按 id 去重合并
-        existing_equip = existing.get('equipment', []) or []
-        body_equip = body.get('equipment', []) or []
-        equip_map = {}
-        for e in existing_equip:
-            if e and isinstance(e, dict) and e.get('id'):
-                equip_map[e['id']] = e
-        for e in body_equip:
-            if e and isinstance(e, dict) and e.get('id'):
-                equip_map[e['id']] = e  # body 优先（更新的数据）
-        merged['equipment'] = list(equip_map.values())
+        # 装备：以body为准（信任用户操作：赠送/合成/丢弃）
+        body_equip = [e for e in (body.get('equipment', []) or []) if e and isinstance(e, dict)]
+        existing_equip = [e for e in (existing.get('equipment', []) or []) if e and isinstance(e, dict)]
+        if len(body_equip) == 0 and len(existing_equip) > 0:
+            # body为空(新设备/数据丢失) → 用云端数据恢复
+            merged['equipment'] = existing_equip
+        else:
+            # body有数据 → 以body为准(赠送/合成后的真实状态)
+            merged['equipment'] = body_equip
         
         # 装备掉落标记：合并
         merged['equipDropped'] = {}

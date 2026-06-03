@@ -88,6 +88,24 @@
 | `/api/ladder/ranking` | POST | 天梯提交排行 | v705_ladder |
 | `/api/ladder/profile/<studentId>` | GET | 天梯云存档读取 | v705_profile |
 | `/api/ladder/profile` | POST | 天梯云存档保存 | v705_profile |
+| `/api/xuanba/save` | POST | 校队选拔保存结果 | v710 |
+| `/api/xuanba/load/<sid>` | GET | 校队选拔加载历史 | v710 |
+| `/api/xuanba/ranking` | GET | 校队选拔排行 | v710 |
+| `/api/gift/send` | POST | 发起装备赠送 | v711 |
+| `/api/gift/accept` | POST | 接受装备赠送 | v711 |
+| `/api/gift/revoke` | POST | 撤回装备赠送 | v711 |
+| `/api/gift/pending/<sid>` | GET | 查询待领取礼物 | v711 |
+| `/api/gift/sent/<sid>` | GET | 查询已发送礼物 | v711 |
+| `/api/intimacy/<sid>` | GET | 查询亲密关系 | v711 |
+| `/api/intimacy/claim` | POST | 领取亲密等级奖励 | v711 |
+
+## 装备赠送系统 (v711, 2026-06-03)
+- **提出者**: 01200112
+- **安全**: 接收方确认 + 24h撤回 + 每日限额(3件/天,同对1件) + 消耗50积分
+- **亲密值**: 双向共享, 5等级(Lv1-Lv5), 带奖励
+- **合成**: 3件同稀有度 → 1件高1级(最高史诗5级)
+- **数据文件**: gifts_pending.json, gifts_history.json, intimacy.json
+- **客户端**: 1/1/index.html 新增礼物中心弹窗+合成台弹窗
 
 ## _write_json 原子写入竞态修复（v705_ladder）
 - **问题**: `.tmp` 统一命名 → 并发请求共享同一tmp → 第一个rename移走后第二个报 `FileNotFoundError: students.json.tmp`
@@ -145,3 +163,21 @@
 4. **过渡期注意**: 已缓存旧版 index_v705 的浏览器需 Ctrl+F5 一次，之后永久自动
 - tower/ladder iframe 已有 `Date.now()` 动态刷新
 - 关键资源加版本号: `<script src="cloud-config.js?v=20260521">`
+
+## 新项目：校对选拔（瑞文智商测试）（2026-06-03 已完成 v710）
+- **名称**: "校队选拔"
+- **页面**: `xuanba.html`（iframe弹窗模式，与tower/ladder一致）
+- **题库**: `data/xuanba-questions.js`（60题，6等级×10题，固定种子）
+- **生成脚本**: `generate_xuanba.js`（移植MIT开源rpm-iq-exam puzzleGenerator）
+- **题目形式**: 3×3矩阵图形推理，6选项，纯SVG渲染（圆/方/三角/菱/十字/星）
+- **测试限制**: 每人2次，保留最高分
+- **API**: `/api/xuanba/save`, `/api/xuanba/load/<sid>`, `/api/xuanba/ranking`
+- **入口**: index_v705.html status-bar → 🧠「校队选拔」按钮
+- **服务端**: api.py v710 已部署，数据存 `/data/kexvefuxi/xuanba_results.json`
+
+## 2026科技节专属装备（2026-06-03）
+- 141件神话装备已生成，138名学生已匹配学号
+- 装备数据: `data/keji2026-equips.js`
+- 奖励批次: `admin/keji2026_rewards.json`
+- 3名未匹配学生: 莫梓轩、黄梓玲、龚芷琪
+- 发放机制: 登录时 + 打开背包时双重触发，localStorage防重复
