@@ -4332,14 +4332,13 @@ function practiceWrongQuestions() {
 function mergeUserData(localData, cloudData) {
   if (!cloudData) return localData;
   if (!localData) return cloudData;
-  // v703: 始终合并全部字段，不因时间戳提前返回
-  // （修复跨设备登录时 loadUserData 先调 applyUserData→saveUserData 刷新了本地 lastUpdated，导致云端数据被丢弃的bug）
   const localTs = localData.lastUpdated || 0;
   const cloudTs = cloudData.lastUpdated || 0;
-  // 以云端为基底（云端的标量字段优先）
   const merged = { ...cloudData };
-  // 积分取最大值（不因云端版本旧而降低）
-  merged.totalPoints = Math.max(localData.totalPoints || 0, cloudData.totalPoints || 0);
+  // 积分：按时间戳判断，信任较新的值（消费积分后本地时间戳更新，不应被云的旧值覆盖）
+  merged.totalPoints = (localTs >= cloudTs) 
+    ? (localData.totalPoints || 0) 
+    : (cloudData.totalPoints || 0);
   merged.totalQuestionsAnswered = Math.max(localData.totalQuestionsAnswered || 0, cloudData.totalQuestionsAnswered || 0);
   merged.totalCorrectAnswers = Math.max(localData.totalCorrectAnswers || 0, cloudData.totalCorrectAnswers || 0);
   merged.dailyStamina = Math.max(localData.dailyStamina || 0, cloudData.dailyStamina || 0);

@@ -166,9 +166,9 @@ def student(grade, studentId):
         # === 智能合并 ===
         merged = {}
         
-        # 数值字段：取最大值
+        # 数值字段：取最大值（totalPoints 除外——信任客户端值，仅零分守卫保护）
         numeric_max_keys = [
-            'totalPoints', 'totalQuestionsAnswered', 'totalCorrectAnswers',
+            'totalQuestionsAnswered', 'totalCorrectAnswers',
             'towerHighestFloor', 'towerCoins', 'ladderBestScore',
             'dailyStamina', 'xuanbaBestScore', 'xuanbaBestPct'
         ]
@@ -177,6 +177,9 @@ def student(grade, studentId):
                 existing.get(k, 0) if existing.get(k) is not None else 0,
                 body.get(k, 0) if body.get(k) is not None else 0
             )
+        
+        # totalPoints: 信任客户端值（零分守卫已在上面处理）
+        merged['totalPoints'] = body.get('totalPoints', 0)
         
         # 装备：按 id 去重合并
         existing_equip = existing.get('equipment', []) or []
