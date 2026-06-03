@@ -1245,6 +1245,147 @@
   margin-top: 10px;
   line-height: 1.5;
 }
+/* ========== 礼物中心弹窗 ========== */
+.gift-overlay,.synthesis-overlay,.intimacy-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center;
+  z-index: 2100;
+}
+.gift-overlay.show,.synthesis-overlay.show,.intimacy-overlay.show { display: flex; }
+.gift-card,.synthesis-card,.intimacy-card {
+  background: linear-gradient(135deg,#2a2a4a,#1a1a2e);
+  border-radius: 16px; padding: 20px 24px; max-width: 620px; width: 95%;
+  max-height: 85vh; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1);
+}
+.gift-header,.synthesis-header,.intimacy-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.gift-title,.synthesis-title,.intimacy-title { font-size: 1.2em; font-weight: 900; color: #ffd700; }
+.gift-close,.synthesis-close,.intimacy-close {
+  width: 32px; height: 32px; border-radius: 50%; border: none;
+  background: rgba(255,255,255,0.1); color: #aaa; cursor: pointer; font-size: 1.1em;
+}
+.gift-close:hover,.synthesis-close:hover,.intimacy-close:hover { background: rgba(255,100,100,0.2); color: #ff6b6b; }
+.gift-tabs,.intimacy-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+.gift-tab,.intimacy-tab {
+  padding: 6px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15);
+  background: transparent; color: #aaa; cursor: pointer; font-size: 0.85em;
+}
+.gift-tab.active,.intimacy-tab.active { background: rgba(255,215,0,0.15); border-color: #ffd700; color: #ffd700; }
+.gift-item {
+  display: flex; align-items: center; gap: 12px; padding: 10px 12px;
+  background: rgba(255,255,255,0.04); border-radius: 10px; margin-bottom: 8px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.gift-item-icon { font-size: 1.5em; min-width: 36px; text-align: center; }
+.gift-item-info { flex: 1; min-width: 0; }
+.gift-item-name { font-size: 0.9em; font-weight: 600; margin-bottom: 2px; }
+.gift-item-from { font-size: 0.75em; color: #888; }
+.gift-item-status { font-size: 0.75em; }
+.gift-item-status.pending { color: #ff9800; }
+.gift-item-status.accepted { color: #4caf50; }
+.gift-item-status.revoked { color: #f44336; }
+.gift-item-status.expired { color: #666; }
+.gift-item-btns { display: flex; gap: 6px; flex-shrink: 0; }
+.gift-btn {
+  padding: 5px 12px; border-radius: 6px; border: none; cursor: pointer; font-size: 0.75em;
+  color: #fff; white-space: nowrap;
+}
+.gift-btn-accept { background: rgba(76,175,80,0.5); }
+.gift-btn-revoke { background: rgba(255,100,100,0.4); }
+.gift-btn-accept:hover { background: rgba(76,175,80,0.7); }
+.gift-btn-revoke:hover { background: rgba(255,100,100,0.6); }
+.gift-empty { text-align: center; color: #666; padding: 30px; }
+/* 亲密值 */
+.intimacy-friend {
+  display: flex; align-items: center; gap: 12px; padding: 12px;
+  background: rgba(255,255,255,0.04); border-radius: 10px; margin-bottom: 8px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.intimacy-friend-avatar { font-size: 1.8em; min-width: 40px; text-align: center; }
+.intimacy-friend-info { flex: 1; min-width: 0; }
+.intimacy-friend-name { font-size: 0.9em; font-weight: 600; }
+.intimacy-friend-level { font-size: 0.75em; color: #ffd700; margin-bottom: 4px; }
+.intimacy-friend-bar {
+  height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;
+}
+.intimacy-friend-bar-fill { height: 100%; background: linear-gradient(90deg,#ff9800,#ffd700); border-radius: 3px; transition: width 0.5s; }
+.intimacy-friend-value { font-size: 0.7em; color: #888; margin-top: 2px; }
+.intimacy-reward-btn {
+  padding: 4px 10px; border-radius: 6px; border: 1px solid #ffd700;
+  background: rgba(255,215,0,0.15); color: #ffd700; cursor: pointer; font-size: 0.7em; white-space: nowrap;
+}
+.intimacy-reward-btn:hover { background: rgba(255,215,0,0.3); }
+.intimacy-reward-btn.claimed { opacity: 0.4; cursor: not-allowed; }
+/* 赠送弹窗 */
+.gift-send-modal {
+  background: linear-gradient(135deg,#2a2a4a,#1a1a2e);
+  border-radius: 16px; padding: 24px; max-width: 400px; width: 90%;
+  border: 1px solid rgba(255,255,255,0.1); text-align: center;
+}
+.gift-send-preview { padding: 12px; background: rgba(255,255,255,0.04); border-radius: 8px; margin: 12px 0; }
+.gift-send-preview-name { font-size: 1em; font-weight: 600; margin-bottom: 4px; }
+.gift-send-input {
+  width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(0,0,0,0.3); color: #fff; font-size: 0.95em; text-align: center;
+  box-sizing: border-box; margin-bottom: 8px;
+}
+.gift-send-input::placeholder { color: #666; }
+.gift-send-cost { font-size: 0.8em; color: #ff9800; margin-bottom: 12px; }
+.gift-send-btns { display: flex; gap: 8px; justify-content: center; }
+.gift-send-btn {
+  padding: 8px 24px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.9em;
+}
+.gift-send-btn.confirm { background: rgba(255,215,0,0.3); color: #ffd700; }
+.gift-send-btn.cancel { background: rgba(255,255,255,0.1); color: #aaa; }
+/* 红点 */
+.gift-badge {
+  display: none; position: absolute; top: -4px; right: -4px;
+  width: 8px; height: 8px; background: #f44336; border-radius: 50%;
+}
+.gift-badge.show { display: block; }
+/* 合成系统 */
+.synthesis-slots { display: flex; gap: 12px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
+.synthesis-slot {
+  width: 80px; height: 80px; border-radius: 12px; border: 2px dashed rgba(255,255,255,0.2);
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  background: rgba(255,255,255,0.04); transition: all 0.2s; flex-direction: column;
+}
+.synthesis-slot:hover { border-color: rgba(255,215,0,0.4); }
+.synthesis-slot.filled { border-style: solid; }
+.synthesis-slot-icon { font-size: 1.8em; }
+.synthesis-slot-name { font-size: 0.6em; color: #888; margin-top: 4px; max-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.synthesis-arrow { display: flex; align-items: center; font-size: 1.5em; color: #ffd700; }
+.synthesis-result {
+  text-align: center; padding: 12px; background: rgba(255,215,0,0.05); border-radius: 8px;
+  margin-bottom: 12px; border: 1px solid rgba(255,215,0,0.2);
+}
+.synthesis-result-title { font-size: 0.8em; color: #888; margin-bottom: 6px; }
+.synthesis-result-icon { font-size: 2em; margin-bottom: 4px; }
+.synthesis-result-name { font-size: 0.9em; font-weight: 600; }
+.synthesis-rarity-filter { display: flex; gap: 4px; justify-content: center; margin-bottom: 12px; flex-wrap: wrap; }
+.synthesis-rarity-opt {
+  padding: 3px 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15);
+  background: transparent; color: #aaa; cursor: pointer; font-size: 0.7em;
+}
+.synthesis-rarity-opt.active { border-color: #ffd700; color: #ffd700; background: rgba(255,215,0,0.1); }
+.synthesis-pick-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; max-height: 200px; overflow-y: auto; margin-bottom: 12px; }
+.synthesis-pick-item {
+  padding: 6px; border-radius: 6px; cursor: pointer; text-align: center;
+  border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03);
+  font-size: 0.7em; transition: all 0.15s;
+}
+.synthesis-pick-item:hover { border-color: rgba(255,215,0,0.4); }
+.synthesis-pick-item.selected { border-color: #ffd700; background: rgba(255,215,0,0.1); }
+.synthesis-pick-item.in-slot { opacity: 0.4; pointer-events: none; }
+.synthesis-btn {
+  width: 100%; padding: 10px; border-radius: 10px; border: none; cursor: pointer;
+  font-size: 0.95em; font-weight: 600; color: #000; margin-top: 8px;
+}
+.synthesis-btn.ready { background: linear-gradient(135deg,#ffd700,#ff9800); }
+.synthesis-btn.disabled { background: rgba(255,255,255,0.1); color: #666; cursor: not-allowed; }
+.synthesis-cost { font-size: 0.7em; color: #888; text-align: center; margin-top: 6px; }
+.equip-detail-extras { display: flex; gap: 6px; margin-top: 8px; justify-content: center; }
+.equip-detail-extras .bp-detail-btn { font-size: 0.75em; padding: 4px 10px; }
+.gift-entry { position: relative; display: inline-flex; }
 </style>
   <meta http-equiv="refresh" content="0;url=latest.html">
 </head>
@@ -1278,6 +1419,11 @@
     <div class="status-item" id="backpackBtn" style="cursor:pointer;" onclick="showBackpack()">
       <span class="status-icon">🎒</span>
       <span>背包</span>
+    </div>
+    <div class="status-item gift-entry" id="giftBtn" style="cursor:pointer;display:none;" onclick="showGiftCenter()">
+      <span class="status-icon">💝</span>
+      <span>礼物</span>
+      <span class="gift-badge" id="giftBadge"></span>
     </div>
     <div class="status-item" id="towerBtn" style="cursor:pointer;" onclick="showTowerModal()">
       <span class="status-icon">🏰</span>
@@ -1746,6 +1892,12 @@ function loginWithId() {
   showScreen('courseScreen');
   // 六年级专属活动通知（登录奖励 + 爬塔奖励）
   checkActivityNotice(id);
+  // 加载礼物数据
+  loadGiftData();
+  // 定时检查新礼物（每2分钟）
+  if (!window._giftCheckTimer) {
+    window._giftCheckTimer = setInterval(function() { if (!gameState.isGuest && gameState.studentId) loadGiftData(); }, 120000);
+  }
 }
 
 function loginAsGuest() {
@@ -1791,6 +1943,11 @@ function logout() {
   if (rankList) rankList.innerHTML = '<div class="ranking-loading">请登录后查看</div>';
   document.getElementById('uploadCloudBtn').style.display = 'none';
   document.getElementById('downloadCloudBtn').style.display = 'none';
+  // 清理礼物缓存
+  _giftPendingCache = null;
+  _giftSentCache = null;
+  _intimacyCache = null;
+  updateGiftBadge();
   showScreen('courseScreen');
   // 显示登录弹窗以便重新登录
   var overlay = document.getElementById('loginOverlay');
@@ -1914,6 +2071,9 @@ function updateStatusBar() {
   document.getElementById('streakIcon').style.display = gameState.currentStreak >= 2 ? 'inline' : 'none';
   var displayName = gameState.isGuest ? '游客' : (gameState.studentName || gameState.studentId);
   document.getElementById('userBadge').textContent = gameState.isGuest ? '🚶 游客' : '👤 ' + displayName;
+  // 礼物按钮：登录后显示
+  var giftBtn = document.getElementById('giftBtn');
+  if (giftBtn) { giftBtn.style.display = (!gameState.isGuest && gameState.studentId) ? 'inline-flex' : 'none'; }
   // 装备计数
   initInventory62();
   const equipCount = (gameState.equipment || []).filter(Boolean).length;
@@ -4544,6 +4704,10 @@ function showEquipDetail62(slotIdx) {
       <div class="bp-detail-btns">
         ${buttonsHtml}
       </div>
+      ${!isEquipped ? `<div class="equip-detail-extras">
+        <button class="bp-detail-btn" style="background:rgba(255,152,0,0.2);color:#ff9800;" onclick="showGiftSend(${slotIdx})">🎁 赠送</button>
+        <button class="bp-detail-btn" style="background:rgba(156,39,176,0.2);color:#ce93d8;" onclick="synthesisAddFromDetail(${slotIdx})">♻️ 合成材料</button>
+      </div>` : ''}
       <button class="bp-detail-close-btn" onclick="closeBpDetail62()">关闭</button>
     </div>
   </div>`;
@@ -5455,6 +5619,559 @@ function checkTowerRewards() {
   }
 }
 
+// ========== 装备赠送系统 ==========
+const GIFT_API = function(path) {
+  return API_BASE.replace('/api','') + '/api' + path;
+};
+
+var _giftPendingCache = null;
+var _giftSentCache = null;
+var _intimacyCache = null;
+
+// ====== 礼物中心 ======
+async function showGiftCenter() {
+  document.getElementById('giftCenterOverlay').classList.add('show');
+  await loadGiftData();
+  switchGiftTab('received', document.querySelector('.gift-tab'));
+}
+
+function closeGiftCenter() {
+  document.getElementById('giftCenterOverlay').classList.remove('show');
+}
+
+async function loadGiftData() {
+  if (gameState.isGuest || !gameState.studentId) return;
+  try {
+    const sid = gameState.studentId;
+    const [pendingRes, sentRes, intimacyRes] = await Promise.all([
+      fetchWithRetry(GIFT_API('/gift/pending/' + sid), {}, 1, 'giftPending'),
+      fetchWithRetry(GIFT_API('/gift/sent/' + sid), {}, 1, 'giftSent'),
+      fetchWithRetry(GIFT_API('/intimacy/' + sid), {}, 1, 'intimacy')
+    ]);
+    _giftPendingCache = pendingRes.ok ? await pendingRes.json() : [];
+    _giftSentCache = sentRes.ok ? await sentRes.json() : [];
+    _intimacyCache = intimacyRes.ok ? await intimacyRes.json() : {};
+    updateGiftBadge();
+  } catch(e) { console.error('加载礼物数据失败:', e); }
+}
+
+function updateGiftBadge() {
+  const pending = (_giftPendingCache || []).filter(function(g) { return g.status === 'pending'; });
+  const badge = document.getElementById('giftBadge');
+  if (badge) {
+    badge.style.display = pending.length > 0 ? 'block' : 'none';
+  }
+}
+
+async function switchGiftTab(tab, el) {
+  document.querySelectorAll('.gift-tab').forEach(function(t) { t.classList.remove('active'); });
+  el.classList.add('active');
+  const content = document.getElementById('giftTabContent');
+  if (!gameState.studentId || gameState.isGuest) {
+    content.innerHTML = '<div class="gift-empty">请先登录学号</div>';
+    return;
+  }
+  if (!_giftPendingCache) await loadGiftData();
+  if (tab === 'received') renderGiftReceived(content);
+  else if (tab === 'sent') renderGiftSent(content);
+  else if (tab === 'intimacy') renderIntimacyList(content);
+}
+
+function renderGiftReceived(container) {
+  const list = _giftPendingCache || [];
+  if (list.length === 0) {
+    container.innerHTML = '<div class="gift-empty">📭 还没有收到礼物</div>';
+    return;
+  }
+  var html = '';
+  list.forEach(function(g) {
+    const eq = g.equipData || {};
+    const color = RARITY_COLORS62[(eq.rarity || 1) - 1] || '#9e9e9e';
+    const statusText = {pending:'待领取',accepted:'已领取',revoked:'已撤回',expired:'已过期'}[g.status] || g.status;
+    const statusClass = g.status;
+    var btns = '';
+    if (g.status === 'pending') {
+      btns = '<button class="gift-btn gift-btn-accept" onclick="acceptGift(\'' + g.id + '\')">✅ 领取</button>';
+    }
+    html += '<div class="gift-item">' +
+      '<div class="gift-item-icon">' + (eq.icon || '📦') + '</div>' +
+      '<div class="gift-item-info">' +
+        '<div class="gift-item-name" style="color:' + color + '">' + (eq.name || '装备') + '</div>' +
+        '<div class="gift-item-from">来自：' + (g.fromId || '') + '</div>' +
+      '</div>' +
+      '<div class="gift-item-btns">' +
+        '<span class="gift-item-status ' + statusClass + '">' + statusText + '</span>' +
+        btns +
+      '</div>' +
+    '</div>';
+  });
+  container.innerHTML = html;
+}
+
+function renderGiftSent(container) {
+  const list = _giftSentCache || [];
+  if (list.length === 0) {
+    container.innerHTML = '<div class="gift-empty">📭 还没有送出礼物</div>';
+    return;
+  }
+  var html = '';
+  list.forEach(function(g) {
+    const eq = g.equipData || {};
+    const color = RARITY_COLORS62[(eq.rarity || 1) - 1] || '#9e9e9e';
+    const statusText = {pending:'待领取',accepted:'已领取',revoked:'已撤回',expired:'已过期'}[g.status] || g.status;
+    const statusClass = g.status;
+    var btns = '';
+    if (g.status === 'pending') {
+      btns = '<button class="gift-btn gift-btn-revoke" onclick="revokeGift(\'' + g.id + '\')">↩ 撤回</button>';
+    }
+    html += '<div class="gift-item">' +
+      '<div class="gift-item-icon">' + (eq.icon || '📦') + '</div>' +
+      '<div class="gift-item-info">' +
+        '<div class="gift-item-name" style="color:' + color + '">' + (eq.name || '装备') + '</div>' +
+        '<div class="gift-item-from">赠给：' + (g.toId || '') + '</div>' +
+      '</div>' +
+      '<div class="gift-item-btns">' +
+        '<span class="gift-item-status ' + statusClass + '">' + statusText + '</span>' +
+        btns +
+      '</div>' +
+    '</div>';
+  });
+  container.innerHTML = html;
+}
+
+// ====== 赠送流程 ======
+var _giftSlotIdx = -1;
+function showGiftSend(slotIdx) {
+  _giftSlotIdx = slotIdx;
+  const e = gameState.equipment[slotIdx];
+  if (!e) return;
+  const color = getRarityColor62(e);
+  document.getElementById('giftSendPreview').innerHTML =
+    '<div class="gift-item-icon" style="font-size:2em;">' + (e.icon || '📦') + '</div>' +
+    '<div class="gift-send-preview-name" style="color:' + color + '">' + (e.name || '装备') + '</div>' +
+    '<div style="font-size:0.8em;color:#888;">' + (getRarityName62(e)) + ' · ' + (e.slot || e.type || '') + '</div>';
+  document.getElementById('giftSendTarget').value = '';
+  document.getElementById('giftSendOverlay').classList.add('show');
+  closeBpDetail62();
+}
+function closeGiftSend() {
+  document.getElementById('giftSendOverlay').classList.remove('show');
+  _giftSlotIdx = -1;
+}
+
+async function confirmSendGift() {
+  if (_giftSlotIdx < 0) return;
+  const targetId = document.getElementById('giftSendTarget').value.trim();
+  if (targetId.length !== 8 || !/^\d+$/.test(targetId)) { showToast('请输入正确的8位学号', 'error'); return; }
+  if (targetId === gameState.studentId) { showToast('不能赠送给自己', 'error'); return; }
+  if (gameState.totalPoints < 50) { showToast('积分不足50，无法赠送', 'error'); return; }
+  const e = gameState.equipment[_giftSlotIdx];
+  if (!e) return;
+  // 检查是否已装备
+  if (isEquippedIdx62(_giftSlotIdx)) { showToast('已装备的装备不能赠送', 'error'); return; }
+  // 检查是否在合成槽位
+  if (_synthesisSlots.indexOf(_giftSlotIdx) >= 0) { showToast('已在合成槽位的装备不能赠送', 'error'); return; }
+  try {
+    const res = await fetchWithRetry(GIFT_API('/gift/send'), {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({fromId: gameState.studentId, toId: targetId, equipData: e})
+    }, 2, 'giftSend');
+    if (res.ok) {
+      // 扣积分 + 删装备
+      gameState.totalPoints = Math.max(0, gameState.totalPoints - 50);
+      gameState.equipment[_giftSlotIdx] = null;
+      // 清理装备槽位引用
+      for (var slot in bpEquippedSlots62) {
+        if (slot === 'treasure') {
+          var tArr = bpEquippedSlots62.treasure || [];
+          for (var ti = 0; ti < tArr.length; ti++) {
+            if (tArr[ti] === _giftSlotIdx) tArr[ti] = null;
+          }
+        } else if (bpEquippedSlots62[slot] === _giftSlotIdx) {
+          bpEquippedSlots62[slot] = null;
+        }
+      }
+      saveEquippedState62();
+      saveUserData();
+      updateStatusBar();
+      renderInventoryGrid62();
+      updateCharPanel62();
+      closeGiftSend();
+      showToast('🎁 赠送成功！等待对方领取', 'success');
+      await loadGiftData();
+    } else {
+      var errData = {};
+      try { errData = await res.json(); } catch(ex) {}
+      showToast(errData.error || '赠送失败', 'error');
+    }
+  } catch(e) { showToast('网络错误，请重试', 'error'); }
+}
+
+async function acceptGift(giftId) {
+  try {
+    const res = await fetchWithRetry(GIFT_API('/gift/accept'), {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({giftId: giftId, studentId: gameState.studentId})
+    }, 2, 'giftAccept');
+    if (res.ok) {
+      // 装备加入背包
+      var foundEquip = null;
+      for (var i = 0; i < (_giftPendingCache || []).length; i++) {
+        if (_giftPendingCache[i].id === giftId) { foundEquip = _giftPendingCache[i].equipData; break; }
+      }
+      if (foundEquip) {
+        if (!gameState.equipment || !Array.isArray(gameState.equipment)) gameState.equipment = new Array(100).fill(null);
+        var nullIdx = gameState.equipment.indexOf(null);
+        if (nullIdx >= 0) gameState.equipment[nullIdx] = foundEquip;
+        else gameState.equipment.push(foundEquip);
+      }
+      saveUserData();
+      await loadGiftData();
+      switchGiftTab('received', document.querySelectorAll('.gift-tab')[0]);
+      showToast('🎁 礼物已收入背包！亲密值+10', 'success', 4000);
+    } else {
+      var errData = {};
+      try { errData = await res.json(); } catch(ex) {}
+      showToast(errData.error || '领取失败', 'error');
+    }
+  } catch(e) { showToast('网络错误，请重试', 'error'); }
+}
+
+async function revokeGift(giftId) {
+  if (!confirm('确定撤回这件礼物吗？')) return;
+  try {
+    const res = await fetchWithRetry(GIFT_API('/gift/revoke'), {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({giftId: giftId, studentId: gameState.studentId})
+    }, 2, 'giftRevoke');
+    if (res.ok) {
+      // 装备退回背包
+      var foundEquip = null;
+      for (var i = 0; i < (_giftSentCache || []).length; i++) {
+        if (_giftSentCache[i].id === giftId) { foundEquip = _giftSentCache[i].equipData; break; }
+      }
+      if (foundEquip) {
+        if (!gameState.equipment || !Array.isArray(gameState.equipment)) gameState.equipment = new Array(100).fill(null);
+        var nullIdx = gameState.equipment.indexOf(null);
+        if (nullIdx >= 0) gameState.equipment[nullIdx] = foundEquip;
+        else gameState.equipment.push(foundEquip);
+      }
+      saveUserData();
+      await loadGiftData();
+      switchGiftTab('sent', document.querySelectorAll('.gift-tab')[1]);
+      showToast('↩ 礼物已撤回，装备已回到背包', 'success');
+    }
+  } catch(e) { showToast('网络错误，请重试', 'error'); }
+}
+
+// ====== 亲密关系 ======
+const INTIMACY_LEVELS = [
+  { level: 1, threshold: 10, name: '初识', bonus: '积分×1.05' },
+  { level: 2, threshold: 50, name: '好友', bonus: '掉落率+3%' },
+  { level: 3, threshold: 100, name: '密友', bonus: '每日1次免费提示' },
+  { level: 4, threshold: 200, name: '挚友', bonus: '积分×1.10' },
+  { level: 5, threshold: 500, name: '灵魂伴侣', bonus: '史诗掉落率翻倍' }
+];
+
+function getNextThreshold(currentValue) {
+  for (var i = 0; i < INTIMACY_LEVELS.length; i++) {
+    if (currentValue < INTIMACY_LEVELS[i].threshold) return INTIMACY_LEVELS[i];
+  }
+  return null;
+}
+
+function renderIntimacyList(container) {
+  const data = _intimacyCache || {};
+  const friends = Object.entries(data);
+  if (friends.length === 0) {
+    container.innerHTML = '<div class="gift-empty">💕 还没有亲密好友<br><span style="font-size:0.8em;">赠送装备给同学即可建立亲密关系</span></div>';
+    return;
+  }
+  var html = '';
+  friends.forEach(function(e) {
+    var friendId = e[0];
+    var info = e[1];
+    var value = info.value || 0;
+    var level = info.level || 0;
+    var claimed = info.claimedRewards || [];
+    var next = getNextThreshold(value);
+    var progress = 0;
+    if (next) {
+      var prevThreshold = level > 0 ? INTIMACY_LEVELS[level - 1].threshold : 0;
+      progress = Math.min(100, Math.floor((value - prevThreshold) / (next.threshold - prevThreshold) * 100));
+    } else {
+      progress = 100; // 满级
+    }
+    var levelName = level > 0 ? INTIMACY_LEVELS[level - 1].name : '陌生人';
+    var rewardBtns = '';
+    INTIMACY_LEVELS.forEach(function(lv) {
+      if (value >= lv.threshold && claimed.indexOf(lv.level) < 0) {
+        rewardBtns += '<button class="intimacy-reward-btn" onclick="claimIntimacyReward(\'' + friendId + '\',' + lv.level + ')">🎁 领Lv' + lv.level + '</button>';
+      } else if (claimed.indexOf(lv.level) >= 0) {
+        rewardBtns += '<button class="intimacy-reward-btn claimed">✅ Lv' + lv.level + '</button>';
+      }
+    });
+    html += '<div class="intimacy-friend">' +
+      '<div class="intimacy-friend-avatar">👤</div>' +
+      '<div class="intimacy-friend-info">' +
+        '<div class="intimacy-friend-name">' + friendId + '</div>' +
+        '<div class="intimacy-friend-level">' + levelName + ' · Lv.' + level + '</div>' +
+        '<div class="intimacy-friend-bar"><div class="intimacy-friend-bar-fill" style="width:' + progress + '%"></div></div>' +
+        '<div class="intimacy-friend-value">💕 ' + value + (next ? ' / ' + next.threshold : ' (满级)') + '</div>' +
+      '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:4px;">' + rewardBtns + '</div>' +
+    '</div>';
+  });
+  container.innerHTML = html;
+}
+
+async function claimIntimacyReward(friendId, level) {
+  try {
+    const res = await fetchWithRetry(GIFT_API('/intimacy/claim'), {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({studentId: gameState.studentId, pairId: friendId, level: level})
+    }, 2, 'intimacyClaim');
+    if (res.ok) {
+      var lv = INTIMACY_LEVELS[level - 1];
+      var bonusDesc = lv ? lv.bonus : '';
+      showToast('🎉 领取Lv' + level + ' ' + (lv ? lv.name : '') + '奖励！' + bonusDesc, 'success', 4000);
+      // 发放奖励效果
+      if (level === 1) {
+        // Lv1 积分加成1.05 存localStorage
+        localStorage.setItem('intimacy_bonus_' + gameState.studentId + '_' + friendId, JSON.stringify({level:level,bonus:'pointsMul',value:0.05}));
+      } else if (level === 3) {
+        // 每日免费提示 - 通过localStorage标记
+        var today = new Date().toISOString().slice(0,10);
+        localStorage.setItem('intimacy_free_hint_' + gameState.studentId + '_' + today, '1');
+      }
+      await loadGiftData();
+      switchGiftTab('intimacy', document.querySelectorAll('.gift-tab')[2]);
+    }
+  } catch(e) { showToast('网络错误，请重试', 'error'); }
+}
+
+// ====== 装备合成系统 ======
+var _synthesisSlots = [-1, -1, -1];
+var _synthesisFilterRarity = 0;
+var _currentSynSlot = 0;
+
+function showSynthesis() {
+  document.getElementById('synthesisOverlay').classList.add('show');
+  _synthesisSlots = [-1, -1, -1];
+  _synthesisFilterRarity = 0;
+  _currentSynSlot = 0;
+  renderSynSlots();
+  renderSynRarityFilter();
+  renderSynPickGrid();
+  updateSynResult();
+  document.getElementById('synthesisBtn').className = 'synthesis-btn disabled';
+  document.getElementById('synthesisBtn').textContent = '放入3件装备开始合成';
+}
+
+function closeSynthesis() {
+  document.getElementById('synthesisOverlay').classList.remove('show');
+}
+
+function renderSynSlots() {
+  const container = document.getElementById('synthesisSlots');
+  var html = '';
+  for (var i = 0; i < 3; i++) {
+    var idx = _synthesisSlots[i];
+    if (idx >= 0 && gameState.equipment[idx]) {
+      var e = gameState.equipment[idx];
+      var color = getRarityColor62(e);
+      html += '<div class="synthesis-slot filled" style="border-color:' + color + ';" onclick="synthesisPickSlot(' + i + ')">' +
+        '<div class="synthesis-slot-icon">' + (e.icon || '📦') + '</div>' +
+        '<div class="synthesis-slot-name" style="color:' + color + '">' + (e.name || '') + '</div>' +
+      '</div>';
+    } else {
+      html += '<div class="synthesis-slot" onclick="synthesisPickSlot(' + i + ')"><span style="color:#666;">槽位' + (i+1) + '</span></div>';
+    }
+    if (i < 2) html += '<div class="synthesis-arrow">→</div>';
+  }
+  html += '<div class="synthesis-arrow">=</div><div id="synthesisResult" class="synthesis-result"><div class="synthesis-result-title">合成预览</div><div style="color:#666;">放入3件同稀有度装备</div></div>';
+  container.innerHTML = html;
+}
+
+function updateSynResult() {
+  var filled = _synthesisSlots.filter(function(s) { return s >= 0 && gameState.equipment[s]; });
+  var resultDiv = document.getElementById('synthesisResult');
+  var btn = document.getElementById('synthesisBtn');
+  if (filled.length !== 3) {
+    resultDiv.innerHTML = '<div class="synthesis-result-title">合成预览</div><div style="color:#666;">放入3件同稀有度装备</div>';
+    btn.className = 'synthesis-btn disabled';
+    btn.textContent = '放入3件装备开始合成';
+    return;
+  }
+  var e0 = gameState.equipment[filled[0]];
+  var e1 = gameState.equipment[filled[1]];
+  var e2 = gameState.equipment[filled[2]];
+  var rarity = e0.rarity || 1;
+  if (rarity !== (e1.rarity || 1) || rarity !== (e2.rarity || 1)) {
+    resultDiv.innerHTML = '<div class="synthesis-result-title">❌ 稀有度不统一</div><div style="color:#f44336;">3件装备必须同稀有度</div>';
+    btn.className = 'synthesis-btn disabled';
+    btn.textContent = '稀有度必须一致';
+    return;
+  }
+  if (rarity >= 5) {
+    resultDiv.innerHTML = '<div class="synthesis-result-title">❌ 已达上限</div><div style="color:#f44336;">最高合成至史诗(5级)</div>';
+    btn.className = 'synthesis-btn disabled';
+    btn.textContent = '传说和神话只能掉落获得';
+    return;
+  }
+  // 预览
+  var newRarity = rarity + 1;
+  var types = [e0.slot || e0.type, e1.slot || e1.type, e2.slot || e2.type];
+  var pickType = types[Math.floor(Math.random() * 3)];
+  var avgStr = Math.floor(((e0.str||0)+(e1.str||0)+(e2.str||0))/3);
+  var avgDex = Math.floor(((e0.dex||0)+(e1.dex||0)+(e2.dex||0))/3);
+  var avgInt = Math.floor(((e0.int||0)+(e1.int||0)+(e2.int||0))/3);
+  var avgHp = Math.floor(((e0.hp||0)+(e1.hp||0)+(e2.hp||0))/3);
+  var avgMp = Math.floor(((e0.mp||0)+(e1.mp||0)+(e2.mp||0))/3);
+  var multMap = [0, 1.0, 1.15, 1.3, 1.5, 1.7];
+  var mult = multMap[newRarity] || 1.0;
+  var color = RARITY_COLORS62[newRarity - 1] || '#9e9e9e';
+  var nameStr = RARITY_NAMES62[newRarity - 1] || '未知';
+  resultDiv.innerHTML = '<div class="synthesis-result-title">合成预览</div>' +
+    '<div class="synthesis-result-icon">📦</div>' +
+    '<div class="synthesis-result-name" style="color:' + color + '">' + nameStr + ' · ' + pickType + '</div>' +
+    '<div style="font-size:0.7em;color:#888;">💪' + Math.floor(avgStr*mult) + ' 🏃' + Math.floor(avgDex*mult) + ' 🧠' + Math.floor(avgInt*mult) + ' ❤️' + Math.floor(avgHp*mult) + ' 💧' + Math.floor(avgMp*mult) + '</div>';
+  btn.className = 'synthesis-btn ready';
+  btn.textContent = '⚗️ 开始合成';
+}
+
+function renderSynRarityFilter() {
+  var container = document.getElementById('synthesisRarityFilter');
+  var html = '<div class="synthesis-rarity-opt' + (_synthesisFilterRarity === 0 ? ' active' : '') + '" onclick="setSynRarityFilter(0)">全部</div>';
+  for (var i = 1; i <= 5; i++) {
+    html += '<div class="synthesis-rarity-opt' + (_synthesisFilterRarity === i ? ' active' : '') + '" style="color:' + RARITY_COLORS62[i-1] + '" onclick="setSynRarityFilter(' + i + ')">' + RARITY_NAMES62[i-1] + '</div>';
+  }
+  container.innerHTML = html;
+}
+
+function setSynRarityFilter(r) {
+  _synthesisFilterRarity = r;
+  renderSynRarityFilter();
+  renderSynPickGrid();
+}
+
+function renderSynPickGrid() {
+  var grid = document.getElementById('synthesisPickGrid');
+  if (!gameState.equipment) return;
+  var html = '';
+  gameState.equipment.forEach(function(e, i) {
+    if (!e) return;
+    var r = e.rarity || 1;
+    if (_synthesisFilterRarity > 0 && r !== _synthesisFilterRarity) return;
+    if (r >= 5) return; // 不能合成史诗以上
+    if (isEquippedIdx62(i)) return;
+    if (_synthesisSlots.indexOf(i) >= 0) {
+      html += '<div class="synthesis-pick-item in-slot" style="border-color:' + getRarityColor62(e) + '">' + (e.icon||'📦') + '<br>' + (e.name||'') + '</div>';
+      return;
+    }
+    var selClass = '';
+    html += '<div class="synthesis-pick-item ' + selClass + '" style="border-color:' + getRarityColor62(e) + '40" onclick="synthesisAddToSlot(' + i + ')">' + (e.icon||'📦') + '<br><span style="font-size:0.65em;">' + (e.name||'').substring(0,4) + '</span></div>';
+  });
+  if (!html) html = '<div style="text-align:center;color:#666;grid-column:1/-1;padding:20px;">没有可合成的装备</div>';
+  grid.innerHTML = html;
+}
+
+function synthesisPickSlot(slot) {
+  _currentSynSlot = slot;
+  renderSynPickGrid();
+}
+
+function synthesisAddToSlot(idx) {
+  var e = gameState.equipment[idx];
+  if (!e) return;
+  if (isEquippedIdx62(idx)) { showToast('已装备的装备不能合成', 'error'); return; }
+  if (_synthesisSlots.indexOf(idx) >= 0) { showToast('已在槽位中', 'error'); return; }
+  // 检查稀有度是否与已有槽位一致
+  for (var i = 0; i < 3; i++) {
+    if (_synthesisSlots[i] >= 0 && gameState.equipment[_synthesisSlots[i]]) {
+      if (gameState.equipment[_synthesisSlots[i]].rarity !== e.rarity) {
+        showToast('稀有度必须一致', 'error'); return;
+      }
+    }
+  }
+  _synthesisSlots[_currentSynSlot] = idx;
+  renderSynSlots();
+  renderSynPickGrid();
+  updateSynResult();
+}
+
+function synthesisAddFromDetail(idx) {
+  showSynthesis();
+  synthesisAddToSlot(idx);
+}
+
+function executeSynthesis() {
+  var filled = _synthesisSlots.filter(function(s) { return s >= 0 && gameState.equipment[s]; });
+  if (filled.length !== 3) { showToast('请放入3件装备', 'error'); return; }
+  var e0 = gameState.equipment[filled[0]];
+  var e1 = gameState.equipment[filled[1]];
+  var e2 = gameState.equipment[filled[2]];
+  var rarity = e0.rarity || 1;
+  if (rarity !== (e1.rarity || 1) || rarity !== (e2.rarity || 1)) { showToast('稀有度必须一致', 'error'); return; }
+  if (rarity >= 5) { showToast('最高合成至史诗', 'error'); return; }
+  // 生成新装备
+  var avgStr = Math.floor(((e0.str||0)+(e1.str||0)+(e2.str||0))/3);
+  var avgDex = Math.floor(((e0.dex||0)+(e1.dex||0)+(e2.dex||0))/3);
+  var avgInt = Math.floor(((e0.int||0)+(e1.int||0)+(e2.int||0))/3);
+  var avgHp = Math.floor(((e0.hp||0)+(e1.hp||0)+(e2.hp||0))/3);
+  var avgMp = Math.floor(((e0.mp||0)+(e1.mp||0)+(e2.mp||0))/3);
+  var multMap = [0, 1.0, 1.15, 1.3, 1.5, 1.7];
+  var mult = multMap[rarity + 1] || 1.0;
+  var types = [e0.slot || e0.type, e1.slot || e1.type, e2.slot || e2.type];
+  var pickType = types[Math.floor(Math.random() * 3)];
+  var newEquip = {
+    id: 'syn_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+    name: RARITY_NAMES62[rarity] + '·' + pickType,
+    icon: '⚗️',
+    rarity: rarity + 1,
+    rarityName: RARITY_NAMES62[rarity] || '史诗',
+    rarityColor: RARITY_COLORS62[rarity] || '#e91e63',
+    slot: pickType,
+    str: Math.floor(avgStr * mult * (0.9 + Math.random() * 0.2)),
+    dex: Math.floor(avgDex * mult * (0.9 + Math.random() * 0.2)),
+    int: Math.floor(avgInt * mult * (0.9 + Math.random() * 0.2)),
+    hp: Math.floor(avgHp * mult * (0.9 + Math.random() * 0.2)),
+    mp: Math.floor(avgMp * mult * (0.9 + Math.random() * 0.2)),
+    effect: '合成装备',
+    affixes: []
+  };
+  // 删除3件材料
+  for (var i = 0; i < 3; i++) {
+    var slot = _synthesisSlots[i];
+    gameState.equipment[slot] = null;
+    // 清理装备槽
+    for (var s in bpEquippedSlots62) {
+      if (s === 'treasure') {
+        var tArr = bpEquippedSlots62.treasure || [];
+        for (var ti = 0; ti < tArr.length; ti++) {
+          if (tArr[ti] === slot) tArr[ti] = null;
+        }
+      } else if (bpEquippedSlots62[s] === slot) {
+        bpEquippedSlots62[s] = null;
+      }
+    }
+  }
+  saveEquippedState62();
+  // 加入新装备
+  var nullIdx = gameState.equipment.indexOf(null);
+  if (nullIdx >= 0) gameState.equipment[nullIdx] = newEquip;
+  else gameState.equipment.push(newEquip);
+  saveUserData();
+  // 重置
+  _synthesisSlots = [-1, -1, -1];
+  renderSynSlots();
+  renderSynPickGrid();
+  updateSynResult();
+  renderInventoryGrid62();
+  updateCharPanel62();
+  showToast('⚗️ 合成成功！获得 ' + newEquip.rarityName + ' 装备', 'success', 4000);
+}
+
 </script>
 
 
@@ -5554,6 +6271,8 @@ function checkTowerRewards() {
         <div class="bp-actions">
           <div class="bp-action-btn" onclick="bpSort62()">🔄 排序</div>
           <div class="bp-action-btn" onclick="bpExport62()">📤 导出</div>
+          <div class="bp-action-btn" onclick="showSynthesis()">⚗️ 合成</div>
+          <div class="bp-action-btn" onclick="showGiftCenter()">💝 礼物</div>
           <div class="bp-action-btn" onclick="bpClear62()">🗑️ 清空</div>
         </div>
       </div>
@@ -5716,6 +6435,62 @@ function checkTowerRewards() {
     <div class="nd-header" id="ndHeader">标题</div>
     <div class="nd-date" id="ndDate"></div>
     <div class="nd-body" id="ndBody"></div>
+  </div>
+</div>
+
+<!-- 礼物中心弹窗 -->
+<div class="gift-overlay" id="giftCenterOverlay">
+  <div class="gift-card">
+    <div class="gift-header">
+      <div class="gift-title">💝 礼物中心 <span style="font-size:0.65em;color:#888;font-weight:normal;">该功能由 01200112 提出</span></div>
+      <button class="gift-close" onclick="closeGiftCenter()">✕</button>
+    </div>
+    <div class="gift-tabs">
+      <button class="gift-tab active" onclick="switchGiftTab('received',this)">📥 收到的礼物</button>
+      <button class="gift-tab" onclick="switchGiftTab('sent',this)">📤 送出的礼物</button>
+      <button class="gift-tab" onclick="switchGiftTab('intimacy',this)">💕 亲密好友</button>
+    </div>
+    <div id="giftTabContent"></div>
+  </div>
+</div>
+
+<!-- 合成台弹窗 -->
+<div class="synthesis-overlay" id="synthesisOverlay">
+  <div class="synthesis-card">
+    <div class="synthesis-header">
+      <div class="synthesis-title">⚗️ 装备合成台</div>
+      <button class="synthesis-close" onclick="closeSynthesis()">✕</button>
+    </div>
+    <div class="synthesis-slots" id="synthesisSlots">
+      <div class="synthesis-slot" onclick="synthesisPickSlot(0)"><span style="color:#666;">槽位1</span></div>
+      <div class="synthesis-arrow">→</div>
+      <div class="synthesis-slot" onclick="synthesisPickSlot(1)"><span style="color:#666;">槽位2</span></div>
+      <div class="synthesis-arrow">→</div>
+      <div class="synthesis-slot" onclick="synthesisPickSlot(2)"><span style="color:#666;">槽位3</span></div>
+      <div class="synthesis-arrow">=</div>
+      <div class="synthesis-result" id="synthesisResult">
+        <div class="synthesis-result-title">合成预览</div>
+        <div style="color:#666;">放入3件同稀有度装备</div>
+      </div>
+    </div>
+    <div class="synthesis-rarity-filter" id="synthesisRarityFilter"></div>
+    <div id="synthesisPickGrid"></div>
+    <button class="synthesis-btn disabled" id="synthesisBtn" onclick="executeSynthesis()">放入3件装备开始合成</button>
+    <div class="synthesis-cost">💡 3件同稀有度装备 → 1件更高级装备（最高史诗）</div>
+  </div>
+</div>
+
+<!-- 赠送确认弹窗 -->
+<div class="gift-overlay" id="giftSendOverlay">
+  <div class="gift-send-modal">
+    <h3 style="color:#ffd700;margin-top:0;">🎁 赠送装备</h3>
+    <div class="gift-send-preview" id="giftSendPreview"></div>
+    <input type="text" class="gift-send-input" id="giftSendTarget" placeholder="输入接收方8位学号" maxlength="8">
+    <div class="gift-send-cost">⚠️ 赠送消耗 <strong>50</strong> 积分</div>
+    <div class="gift-send-btns">
+      <button class="gift-send-btn confirm" onclick="confirmSendGift()">确认赠送</button>
+      <button class="gift-send-btn cancel" onclick="closeGiftSend()">取消</button>
+    </div>
   </div>
 </div>
 
