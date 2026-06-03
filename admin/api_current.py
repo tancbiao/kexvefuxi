@@ -441,7 +441,7 @@ def xuanba_save():
                 'grade': body.get('grade', ''),
                 'attempts': [],
                 'bestScore': 0,
-                'bestIQ': 0,
+                'bestRA': 0,
                 'bestPercentile': 0,
                 'attemptCount': 0
             }
@@ -450,7 +450,7 @@ def xuanba_save():
         attempt = {
             'date': body.get('date', time.strftime('%Y-%m-%dT%H:%M:%S')),
             'score': body.get('score', 0),
-            'iq': body.get('iq', 0),
+            'ra': body.get('ra', 0),
             'percentile': body.get('percentile', 0),
             'timeSeconds': body.get('timeSeconds', 0),
             'levelStats': body.get('levelStats', {}),
@@ -467,6 +467,10 @@ def xuanba_save():
         # 保留最高分
         if attempt['score'] > entry['bestScore']:
             entry['bestScore'] = attempt['score']
+        if attempt['ra'] > entry.get('bestRA', 0):
+            entry['bestRA'] = attempt['ra']
+        if attempt['percentile'] > entry.get('bestPercentile', 0):
+            entry['bestPercentile'] = attempt['percentile']
         if attempt['iq'] > entry['bestIQ']:
             entry['bestIQ'] = attempt['iq']
         if attempt['percentile'] > entry['bestPercentile']:
@@ -488,7 +492,7 @@ def xuanba_load(studentId):
 
 @app.route('/api/xuanba/ranking', methods=['GET'])
 def xuanba_ranking():
-    """校队选拔排行（按IQ排序，取最高分）"""
+    """校队选拔排行（按RA推理指数排序）"""
     data = _read_json('xuanba_results')
     rankings = []
     for sid, entry in data.items():
@@ -498,12 +502,12 @@ def xuanba_ranking():
                 'studentName': entry.get('studentName', ''),
                 'grade': entry.get('grade', ''),
                 'bestScore': entry.get('bestScore', 0),
-                'bestIQ': entry.get('bestIQ', 0),
+                'bestRA': entry.get('bestRA', 0),
                 'bestPercentile': entry.get('bestPercentile', 0),
                 'attemptCount': entry.get('attemptCount', 0)
             })
-    # 按IQ降序
-    rankings.sort(key=lambda x: x['bestIQ'], reverse=True)
+    # 按RA降序
+    rankings.sort(key=lambda x: x['bestRA'], reverse=True)
     return jsonify(rankings[:200])
 
 

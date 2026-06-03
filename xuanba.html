@@ -16,12 +16,9 @@ body {
 .screen.active { display: block; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 
-/* Card style */
 .card {
-  background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 16px; padding: 24px; margin-bottom: 16px;
+  background: rgba(255,255,255,0.06); backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 24px; margin-bottom: 16px;
 }
 
 /* Top bar */
@@ -53,9 +50,7 @@ body {
 }
 
 /* Options */
-.options-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;
-}
+.options-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
 .option-card {
   background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.1);
   border-radius: 12px; padding: 8px; cursor: pointer; transition: all 0.2s;
@@ -68,12 +63,9 @@ body {
   font-weight: 700; z-index: 1;
 }
 .option-card.selected .opt-label { color: #ffd700; }
-.option-card img {
-  max-width: 100%; max-height: 80px; border-radius: 4px;
-  background: rgba(255,255,255,0.95); padding: 4px;
-}
+.option-card img { max-width: 100%; max-height: 80px; border-radius: 4px; background: rgba(255,255,255,0.95); padding: 4px; }
 
-/* Nav buttons */
+/* Nav */
 .nav-row { display: flex; gap: 12px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
 .btn {
   padding: 10px 24px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2);
@@ -87,7 +79,7 @@ body {
 .btn-submit { background: linear-gradient(135deg, #4ecdc4, #2ecc71); color: #1a1a2e; font-weight: 700; border: none; padding: 14px 36px; font-size: 1.1em; }
 .btn-submit:hover { box-shadow: 0 0 20px rgba(78,205,196,0.3); }
 
-/* Intro screen */
+/* Intro */
 .hero-title {
   font-size: 2.2em; font-weight: 900; text-align: center;
   background: linear-gradient(135deg, #ffd700, #ff6b6b, #4ecdc4);
@@ -104,12 +96,28 @@ body {
   color: #ff6b6b; font-size: 0.9em; display: flex; align-items: center; gap: 8px;
 }
 
-/* Result screen */
+/* Result */
 .result-header { text-align: center; padding: 28px 16px; }
-.result-score { font-size: 4.5em; font-weight: 900; color: #ffd700; line-height: 1; }
-.result-label { font-size: 1em; color: rgba(255,255,255,0.5); margin-top: 4px; }
+.result-score { font-size: 5em; font-weight: 900; color: #ffd700; line-height: 1; }
+.result-unit { font-size: 0.25em; color: rgba(255,255,255,0.4); font-weight: 400; }
+.result-label { font-size: 1.1em; color: rgba(255,255,255,0.5); margin-top: 8px; }
 .result-level { font-size: 1.3em; font-weight: 700; margin-top: 12px; }
-.result-detail { margin-top: 8px; color: rgba(255,255,255,0.5); }
+.result-detail { margin-top: 12px; color: rgba(255,255,255,0.5); font-size: 0.95em; }
+.result-detail span { margin: 0 12px; }
+
+/* Score scale bar */
+.score-scale {
+  display: flex; align-items: center; gap: 0; margin: 16px 0; height: 24px;
+  border-radius: 12px; overflow: hidden; position: relative;
+}
+.score-scale .seg { flex: 1; height: 100%; transition: all 0.3s; }
+.score-scale-marker {
+  position: absolute; top: -6px; width: 3px; height: 36px; background: #fff;
+  border-radius: 2px; box-shadow: 0 0 8px rgba(255,255,255,0.5); transition: left 0.8s ease;
+}
+.score-labels { display: flex; justify-content: space-between; font-size: 0.7em; color: rgba(255,255,255,0.35); margin-top: 4px; }
+
+/* Group */
 .level-breakdown { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 16px; }
 .level-stat {
   background: rgba(255,255,255,0.06); border-radius: 10px; padding: 12px;
@@ -119,24 +127,19 @@ body {
 .level-stat .lvl-score { font-size: 1.4em; font-weight: 700; color: #ffd700; }
 .level-stat .lvl-pct { font-size: 0.75em; color: rgba(255,255,255,0.4); }
 .simple-chart { width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; margin-top: 6px; overflow: hidden; }
-.simple-chart-fill { height: 100%; background: linear-gradient(90deg, #4ecdc4, #ffd700); border-radius: 3px; transition: width 0.5s; }
+.simple-chart-fill { height: 100%; background: linear-gradient(90deg, #4ecdc4, #ffd700); border-radius: 3px; }
 
-/* Review grid */
-.review-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 5px; margin: 16px 0; }
-.review-dot {
-  aspect-ratio: 1; border-radius: 6px; display: flex;
-  align-items: center; justify-content: center; font-size: 0.65em; font-weight: 700;
-  cursor: pointer; transition: all 0.15s;
-}
-.review-dot.correct { background: rgba(46,204,113,0.25); border: 1px solid rgba(46,204,113,0.5); color: #2ecc71; }
-.review-dot.wrong { background: rgba(255,107,107,0.25); border: 1px solid rgba(255,107,107,0.5); color: #ff6b6b; }
-.review-dot.unanswered { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.3); }
-.review-dot:hover { transform: scale(1.2); }
+/* Ranking table */
+.rank-table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+.rank-table th { padding: 8px 12px; text-align: left; color: rgba(255,255,255,0.4); font-weight: 400; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.rank-table td { padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.rank-table .rank-num { color: #ffd700; font-weight: 700; width: 40px; }
+.rank-table .rank-me { background: rgba(255,215,0,0.08); }
+.rank-table .rank-me td { color: #ffd700; font-weight: 700; }
+.rank-loading { text-align: center; padding: 20px; color: rgba(255,255,255,0.4); }
 
 /* Loading */
-.loading-spinner {
-  text-align: center; padding: 40px; font-size: 1.1em; color: rgba(255,255,255,0.5);
-}
+.loading-spinner { text-align: center; padding: 40px; font-size: 1.1em; color: rgba(255,255,255,0.5); }
 .loading-img { width: 48px; height: 48px; border: 3px solid rgba(255,255,255,0.1); border-top-color: #ffd700; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -145,21 +148,21 @@ body {
   .level-breakdown { grid-template-columns: repeat(3, 1fr); }
   .hero-title { font-size: 1.5em; }
   .matrix-container img { max-height: 260px; }
-  .review-grid { grid-template-columns: repeat(6, 1fr); }
+  .result-score { font-size: 3.5em; }
 }
 </style>
 </head>
 <body>
 <div class="container">
 
-<!-- ====== Loading Screen ====== -->
+<!-- ====== Loading ====== -->
 <div class="screen active" id="screenLoading">
   <div class="card" style="text-align:center;padding:60px 20px;">
     <div class="loading-spinner"><div class="loading-img"></div>正在加载题库...</div>
   </div>
 </div>
 
-<!-- ====== Intro Screen ====== -->
+<!-- ====== Intro ====== -->
 <div class="screen" id="screenIntro">
   <div class="hero-title">校队选拔</div>
   <div class="hero-subtitle">图形推理能力评估</div>
@@ -170,7 +173,7 @@ body {
       <li><span class="icon">🖱</span> 每题从下方的选项中选出缺失的图形</li>
       <li><span class="icon">🔙</span> 可自由回看和修改答案</li>
       <li><span class="icon">💾</span> 答题进度自动保存</li>
-      <li><span class="icon">📊</span> 完成后生成推理能力评估报告</li>
+      <li><span class="icon">📊</span> 结合年级常模生成推理能力评估</li>
     </ul>
     <div id="attemptWarning" style="display:none;"></div>
     <div style="text-align:center;margin-top:24px;">
@@ -181,7 +184,7 @@ body {
   </div>
 </div>
 
-<!-- ====== Test Screen ====== -->
+<!-- ====== Test ====== -->
 <div class="screen" id="screenTest">
   <div class="progress-bar"><div class="progress-bar-fill" id="progressBar" style="width:0%"></div></div>
   <div class="topbar">
@@ -205,27 +208,43 @@ body {
   <div style="text-align:center;margin-top:8px;" id="reviewDots"></div>
 </div>
 
-<!-- ====== Result Screen ====== -->
+<!-- ====== Result ====== -->
 <div class="screen" id="screenResult">
   <div class="result-header">
-    <div class="result-score" id="resultScore">0</div>
-    <div class="result-label">正确数 / 60 题</div>
+    <div class="result-score" id="resultScore">-</div>
+    <div class="result-label">推理指数 <span style="color:rgba(255,255,255,0.3);">（范围 60–160）</span></div>
     <div class="result-level" id="resultLevel" style="color:#ffd700;">-</div>
     <div class="result-detail">
-      正确率: <span id="resultPct" style="color:#4ecdc4;font-weight:700;">-</span>
-      &nbsp;|&nbsp; ⏱ 用时: <span id="resultTime">-</span>
+      <span>正确: <strong style="color:#4ecdc4;" id="resultRaw">-</strong>/60</span>
+      <span>⏱ <strong id="resultTime">-</strong></span>
+    </div>
+    <div class="score-scale" id="scoreScale">
+      <div class="seg" style="background:rgba(255,68,68,0.4)"></div>
+      <div class="seg" style="background:rgba(255,107,107,0.4)"></div>
+      <div class="seg" style="background:rgba(251,191,36,0.4)"></div>
+      <div class="seg" style="background:rgba(74,222,128,0.4)"></div>
+      <div class="seg" style="background:rgba(78,205,196,0.4)"></div>
+      <div class="seg" style="background:rgba(255,215,0,0.4)"></div>
+      <div class="score-scale-marker" id="scaleMarker" style="left:50%"></div>
+    </div>
+    <div class="score-labels">
+      <span>60</span><span>76</span><span>92</span><span>108</span><span>124</span><span>140</span><span>160</span>
     </div>
   </div>
+
   <div class="card">
-    <div style="font-weight:700;margin-bottom:12px;">各组正确率</div>
+    <div style="font-weight:700;margin-bottom:12px;">各组得分</div>
     <div class="level-breakdown" id="levelBreakdown"></div>
   </div>
-  <div class="card" id="reviewCard">
-    <div style="font-weight:700;margin-bottom:12px;">逐题回顾（点击可查看详情）</div>
-    <div class="review-grid" id="reviewGrid"></div>
+
+  <div class="card">
+    <div style="font-weight:700;margin-bottom:12px;">🏆 选拔排行榜</div>
+    <div id="rankingContainer"><div class="rank-loading">加载中...</div></div>
   </div>
-  <div style="text-align:center;margin-top:16px;">
+
+  <div style="text-align:center;margin-top:16px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
     <button class="btn btn-primary" onclick="closeTest()">完成</button>
+    <button class="btn" onclick="retryTest()" id="btnRetry" style="display:none;">再次测试</button>
   </div>
 </div>
 
@@ -244,17 +263,99 @@ var testSubmitted = false;
 
 var studentId = '';
 var studentName = '';
-var grade = '';
+var gradeCode = '';  // 20=六, 21=五, 22=四, 23=三
 
 var STORAGE_KEY = 'xuanba2_state_';
 var ATTEMPT_KEY = 'xuanba2_attempts_';
+var API_BASE = 'https://api.kexvefuxi.cn/api';
+
+// ============== Grade → Age Norm Table ==============
+// Raven's SPM raw score → percentile per grade level (simplified)
+// Based on published SPM age norms for 8-12 year olds
+var GRADE_NORMS = {
+  // Grade 6 (20) → age 11-12
+  '20': [0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 2,3,4,5,6,7,9,11,13,16, 21,25,30,35,41,47,53,58,64,69, 74,78,82,86,89,91,93,95,96,97, 97,98,98,99,99,99,99,99,99,99],
+  // Grade 5 (21) → age 10-11
+  '21': [0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,1,2, 3,5,7,9,12,16,21,26,31,37, 43,50,56,63,69,74,79,83,87,89, 92,94,95,96,97,98,98,99,99,99, 99,99,99,99,99,99,99,99,99,99],
+  // Grade 4 (22) → age 9-10
+  '22': [0,0,0,0,0,0,0,0,0,1, 2,3,4,6,9,12,16,21,26,32, 39,45,52,59,65,71,77,82,86,89, 92,94,96,97,98,98,99,99,99,99, 99,99,99,99,99,99,99,99,99,99, 99,99,99,99,99,99,99,99,99,99],
+  // Grade 3 (23) → age 8-9
+  '23': [0,0,0,0,0,0,0,1,2,3, 5,7,10,14,19,24,30,36,43,50, 57,63,69,75,80,84,88,91,93,95, 96,97,98,99,99,99,99,99,99,99, 99,99,99,99,99,99,99,99,99,99, 99,99,99,99,99,99,99,99,99,99]
+};
+
+// Convert raw score to percentile based on grade
+function rawScoreToPercentile(rawScore, grade) {
+  var norms = GRADE_NORMS[grade] || GRADE_NORMS['20'];
+  var idx = Math.max(0, Math.min(59, rawScore));
+  return norms[idx] || 0;
+}
+
+// Convert percentile to RA score (60-160, same distribution as standard IQ)
+function percentileToRA(percentile) {
+  // Using normal distribution: mean=100, sd=15
+  if (percentile <= 0) return 60;
+  if (percentile >= 100) return 160;
+  
+  var p = percentile / 100;
+  var z = 0;
+  // Approximation of inverse normal
+  if (p < 0.5) {
+    z = -inverseNormalApprox(1 - p);
+  } else {
+    z = inverseNormalApprox(p);
+  }
+  var ra = Math.round(100 + z * 15);
+  return Math.max(60, Math.min(160, ra));
+}
+
+function inverseNormalApprox(p) {
+  // Rational approximation for inverse normal (Peter J. Acklam)
+  var a1 = -39.6968302866538, a2 = 220.9460984245205, a3 = -275.9285104469687;
+  var a4 = 138.3577518672690, a5 = -30.66479806614716, a6 = 2.506628277459239;
+  var b1 = -54.47609879822406, b2 = 161.5858368580409, b3 = -155.6989798598866;
+  var b4 = 66.80131188771972, b5 = -13.28068155288572;
+  var c1 = -7.784894002430293E-03, c2 = -0.3223964580411365;
+  var c3 = -2.400758277161838, c4 = -2.549732539343734;
+  var c5 = 4.374664141464968, c6 = 2.938163982698783;
+  var d1 = 7.784695709041462E-03, d2 = 0.3224671290700398;
+  var d3 = 2.445134137142996, d4 = 3.754408661907416;
+  var plow = 0.02425, phigh = 1 - plow;
+
+  var q, r;
+  if (p < plow) {
+    q = Math.sqrt(-2 * Math.log(p));
+    return (((((c1 * q + c2) * q + c3) * q + c4) * q + c5) * q + c6) /
+           ((((d1 * q + d2) * q + d3) * q + d4) * q + 1);
+  } else if (p <= phigh) {
+    q = p - 0.5;
+    r = q * q;
+    return (((((a1 * r + a2) * r + a3) * r + a4) * r + a5) * r + a6) * q /
+           (((((b1 * r + b2) * r + b3) * r + b4) * r + b5) * r + 1);
+  } else {
+    q = Math.sqrt(-2 * Math.log(1 - p));
+    return -(((((c1 * q + c2) * q + c3) * q + c4) * q + c5) * q + c6) /
+            ((((d1 * q + d2) * q + d3) * q + d4) * q + 1);
+  }
+}
+
+// RA classification
+function getRAClass(ra) {
+  if (ra >= 140) return { label: '推理能力：卓越 ★★★★★', color: '#ff5722' };
+  if (ra >= 125) return { label: '推理能力：非常优秀 ★★★★☆', color: '#ffd700' };
+  if (ra >= 110) return { label: '推理能力：优秀 ★★★★', color: '#4ecdc4' };
+  if (ra >= 95)  return { label: '推理能力：良好 ★★★', color: '#4ade80' };
+  if (ra >= 85)  return { label: '推理能力：中等 ★★☆', color: '#fbbf24' };
+  if (ra >= 75)  return { label: '推理能力：偏低 ★★', color: '#ff8c00' };
+  if (ra >= 65)  return { label: '推理能力：较弱 ★', color: '#ff6b6b' };
+  return { label: '推理能力：需加强 ☆', color: '#ff4444' };
+}
 
 // ============== Init ==============
 window.addEventListener('message', function(e) {
   if (e.data && e.data.type === 'init_xuanba') {
     studentId = e.data.studentId || '';
     studentName = e.data.studentName || '';
-    grade = e.data.grade || '';
+    gradeCode = e.data.grade || '';
     STORAGE_KEY += studentId;
     ATTEMPT_KEY += studentId;
     initApp();
@@ -266,7 +367,7 @@ function initApp() {
     questions = XUANBA_QUESTIONS;
   } else {
     document.getElementById('screenLoading').innerHTML = 
-      '<div class="card" style="text-align:center;padding:60px 20px;"><div style="font-size:3em;">⚠️</div><div style="color:#ff6b6b;">题库加载失败，请刷新页面</div></div>';
+      '<div class="card" style="text-align:center;padding:60px;"><div style="font-size:3em;">⚠️</div><div style="color:#ff6b6b;">题库加载失败，请刷新</div></div>';
     return;
   }
 
@@ -278,33 +379,29 @@ function initApp() {
     currentQ = saved.currentQ || 0;
     timerSeconds = saved.timerSeconds || 0;
     if (saved.answers.some(function(a) { return a !== null; })) {
-      if (confirm('检测到未完成的测试（已答 ' + saved.answers.filter(function(a){return a!==null;}).length + ' / ' + questions.length + ' 题）。是否继续？')) {
-        showScreen('test');
-        renderQuestion();
-        if (!testStarted) startTimer();
-        updateProgress();
+      if (confirm('检测到未完成的测试（已答 ' + saved.answers.filter(function(a){return a!==null;}).length + '/60 题）。是否继续？')) {
+        showScreen('test'); renderQuestion();
+        if (!testStarted) startTimer(); updateProgress();
         document.getElementById('screenLoading').classList.remove('active');
         return;
-      } else {
-        answers = []; currentQ = 0; timerSeconds = 0; clearProgress();
-      }
+      } else { answers = []; currentQ = 0; timerSeconds = 0; clearProgress(); }
     }
   }
 
   var attempts = getAttempts();
   if (attempts.length >= 2) {
+    var best = getBestAttempt();
     document.getElementById('attemptWarning').innerHTML = 
-      '<div class="attempt-warning">⚠️ 您已完成 ' + attempts.length + ' 次测试（最多2次）。<br>最佳成绩: ' + getBestScore() + ' 分</div>';
+      '<div class="attempt-warning">⚠️ 您已完成 ' + attempts.length + ' 次测试（最多2次）。<br>最佳推理指数: ' + (best ? best.ra : '—') + '</div>';
     document.getElementById('attemptWarning').style.display = 'block';
-    var startBtn = document.querySelector('#screenIntro .btn-primary');
-    if (startBtn) { startBtn.disabled = true; startBtn.textContent = '已达测试次数上限'; startBtn.style.opacity = '0.5'; }
+    var btn = document.querySelector('#screenIntro .btn-primary');
+    if (btn) { btn.disabled = true; btn.textContent = '已达测试次数上限'; btn.style.opacity = '0.5'; }
   }
 
   showScreen('intro');
   document.getElementById('screenLoading').classList.remove('active');
 }
 
-// ============== Screen Navigation ==============
 function showScreen(name) {
   ['loading','intro','test','result'].forEach(function(s) {
     var el = document.getElementById('screen' + s.charAt(0).toUpperCase() + s.slice(1));
@@ -317,222 +414,215 @@ function showScreen(name) {
 // ============== Timer ==============
 function startTimer() {
   testStarted = true;
-  timerInterval = setInterval(function() {
-    timerSeconds++;
-    updateTimerDisplay();
-  }, 1000);
+  timerInterval = setInterval(function() { timerSeconds++; updateTimerDisplay(); }, 1000);
 }
-
 function updateTimerDisplay() {
-  var m = Math.floor(timerSeconds / 60);
-  var s = timerSeconds % 60;
-  document.getElementById('timerDisplay').textContent = 
-    (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+  var m = Math.floor(timerSeconds / 60), s = timerSeconds % 60;
+  document.getElementById('timerDisplay').textContent = (m<10?'0':'')+m+':'+(s<10?'0':'')+s;
 }
 
 // ============== Test Flow ==============
 function startTest() {
   var attempts = getAttempts();
-  if (attempts.length >= 2) {
-    alert('您已完成2次测试。如需再次测试请联系老师。');
-    return;
-  }
-  currentQ = 0;
-  answers = new Array(questions.length).fill(null);
-  timerSeconds = 0;
-  testSubmitted = false;
-  showScreen('test');
-  renderQuestion();
-  startTimer();
-  saveProgress();
-  updateProgress();
+  if (attempts.length >= 2) { alert('您已完成2次测试。'); return; }
+  currentQ = 0; answers = new Array(questions.length).fill(null);
+  timerSeconds = 0; testSubmitted = false;
+  showScreen('test'); renderQuestion(); startTimer(); saveProgress(); updateProgress();
 }
 
 function renderQuestion() {
   var q = questions[currentQ];
   if (!q) return;
-
   document.getElementById('qCurrent').textContent = currentQ + 1;
   var g = document.getElementById('qGroup');
-  g.textContent = '组 ' + q.group;
-  var groupColors = { A: '#4ecdc4', B: '#4ade80', C: '#fbbf24', D: '#ff8c00', E: '#ff6b6b' };
-  g.style.color = groupColors[q.group] || '#fff';
-  g.style.borderColor = (groupColors[q.group] || '#fff') + '44';
+  var groupNames = { A: 'A组·辨别', B: 'B组·类比', C: 'C组·推理', D: 'D组·系列', E: 'E组·综合' };
+  g.textContent = groupNames[q.group] || q.group;
+  var gc = { A: '#4ecdc4', B: '#4ade80', C: '#fbbf24', D: '#ff8c00', E: '#ff6b6b' };
+  g.style.color = gc[q.group] || '#fff'; g.style.borderColor = (gc[q.group]||'#fff')+'44';
 
-  // Render main question image
-  var imgSrc = q.matrix || '';
-  document.getElementById('matrixContainer').innerHTML = imgSrc 
-    ? '<img src="' + imgSrc + '" alt="题目" crossorigin="anonymous">'
+  document.getElementById('matrixContainer').innerHTML = q.matrix 
+    ? '<img src="' + q.matrix + '" alt="题目" crossorigin="anonymous">'
     : '<div style="color:#ff6b6b;padding:40px;">图片加载失败</div>';
 
-  // Render options
-  var html = '';
-  var opts = q.options || [];
+  var html = '', opts = q.options || [];
   for (var i = 0; i < opts.length; i++) {
-    var selected = (answers[currentQ] === i) ? ' selected' : '';
-    var optImg = opts[i] || '';
-    html += '<div class="option-card' + selected + '" onclick="selectOption(' + i + ')" title="选项 ' + (i+1) + '">';
-    html += '<span class="opt-label">' + (i + 1) + '</span>';
-    html += optImg ? '<img src="' + optImg + '" alt="选项' + (i+1) + '" crossorigin="anonymous">' : '<div style="padding:30px;color:#666;">?</div>';
+    var sel = (answers[currentQ] === i) ? ' selected' : '';
+    html += '<div class="option-card' + sel + '" onclick="selectOption(' + i + ')">';
+    html += '<span class="opt-label">' + (i+1) + '</span>';
+    html += opts[i] ? '<img src="' + opts[i] + '" alt="选项'+(i+1)+'" crossorigin="anonymous">' : '<div style="padding:30px;color:#666;">?</div>';
     html += '</div>';
   }
   document.getElementById('optionsGrid').innerHTML = html;
-
   document.getElementById('btnPrev').disabled = (currentQ === 0);
   document.getElementById('btnNext').style.display = (currentQ < questions.length - 1) ? '' : 'none';
   document.getElementById('btnSubmit').style.display = (currentQ === questions.length - 1) ? '' : 'none';
-
-  renderReviewDots();
-  updateProgress();
+  renderReviewDots(); updateProgress();
 }
 
 function selectOption(index) {
   answers[currentQ] = index;
-  document.querySelectorAll('.option-card').forEach(function(card, i) {
-    card.classList.toggle('selected', i === index);
-  });
-  saveProgress();
-  updateProgress();
-  renderReviewDots();
-  setTimeout(function() {
-    if (currentQ < questions.length - 1) nextQuestion();
-  }, 250);
+  document.querySelectorAll('.option-card').forEach(function(card, i) { card.classList.toggle('selected', i===index); });
+  saveProgress(); updateProgress(); renderReviewDots();
+  if (currentQ < questions.length - 1) setTimeout(function(){ nextQuestion(); }, 250);
 }
 
-function prevQuestion() {
-  if (currentQ > 0) { currentQ--; renderQuestion(); saveProgress(); }
-}
-
-function nextQuestion() {
-  if (currentQ < questions.length - 1) { currentQ++; renderQuestion(); saveProgress(); }
-}
+function prevQuestion() { if (currentQ > 0) { currentQ--; renderQuestion(); saveProgress(); } }
+function nextQuestion() { if (currentQ < questions.length - 1) { currentQ++; renderQuestion(); saveProgress(); } }
 
 function showSubmitConfirm() {
-  var unanswered = answers.filter(function(a) { return a === null; }).length;
+  var u = answers.filter(function(a){ return a===null; }).length;
   var msg = '确认提交答卷？';
-  if (unanswered > 0) msg += '\n\n⚠️ 还有 ' + unanswered + ' 题未作答，将计为错误。';
+  if (u > 0) msg += '\n\n⚠️ 还有 '+u+' 题未作答，将计为错误。';
   if (confirm(msg)) submitTest();
 }
 
 function submitTest() {
   if (testSubmitted) return;
-  testSubmitted = true;
-  clearInterval(timerInterval);
+  testSubmitted = true; clearInterval(timerInterval);
 
   var correct = 0;
-  var groupStats = { A: { total: 0, correct: 0 }, B: { total: 0, correct: 0 }, C: { total: 0, correct: 0 }, D: { total: 0, correct: 0 }, E: { total: 0, correct: 0 } };
+  var gs = { A:{t:0,c:0}, B:{t:0,c:0}, C:{t:0,c:0}, D:{t:0,c:0}, E:{t:0,c:0} };
   for (var i = 0; i < questions.length; i++) {
-    var q = questions[i];
-    groupStats[q.group].total++;
-    if (answers[i] !== null && answers[i] === q.correct) {
-      correct++;
-      groupStats[q.group].correct++;
-    }
+    var q = questions[i]; gs[q.group].t++;
+    if (answers[i] !== null && answers[i] === q.correct) { correct++; gs[q.group].c++; }
   }
 
-  var pct = Math.round(correct / 60 * 100);
-  
-  // Level classification (no IQ terminology)
-  var level = '', levelColor = '#ffd700';
-  if (pct >= 95) { level = '推理能力 ★★★★★  卓越'; levelColor = '#ff5722'; }
-  else if (pct >= 85) { level = '推理能力 ★★★★☆  优秀'; levelColor = '#ffd700'; }
-  else if (pct >= 70) { level = '推理能力 ★★★☆☆  良好'; levelColor = '#4ecdc4'; }
-  else if (pct >= 55) { level = '推理能力 ★★☆☆☆  中等'; levelColor = '#4ade80'; }
-  else if (pct >= 40) { level = '推理能力 ★☆☆☆☆  偏低'; levelColor = '#fbbf24'; }
-  else if (pct >= 25) { level = '推理能力 ☆☆☆☆☆  较弱'; levelColor = '#ff6b6b'; }
-  else { level = '推理能力 ☆☆☆☆☆  需加强'; levelColor = '#ff4444'; }
+  // Calculate RA score from raw score + grade norms
+  var percentile = rawScoreToPercentile(correct, gradeCode || '20');
+  var ra = percentileToRA(percentile);
+  var cls = getRAClass(ra);
 
-  // Display results
-  document.getElementById('resultScore').textContent = correct;
-  document.getElementById('resultPct').textContent = pct + '%';
-  document.getElementById('resultLevel').textContent = level;
-  document.getElementById('resultLevel').style.color = levelColor;
-  var m = Math.floor(timerSeconds / 60);
-  var s = timerSeconds % 60;
-  document.getElementById('resultTime').textContent = m + '分' + s + '秒';
+  // Display
+  document.getElementById('resultScore').innerHTML = ra + '<span class="result-unit">  RA</span>';
+  document.getElementById('resultRaw').textContent = correct;
+  document.getElementById('resultLevel').textContent = cls.label;
+  document.getElementById('resultLevel').style.color = cls.color;
+  var m = Math.floor(timerSeconds / 60), s = timerSeconds % 60;
+  document.getElementById('resultTime').textContent = m+'分'+s+'秒';
+
+  // Scale marker
+  var markerPct = ((ra - 60) / 100 * 100);
+  document.getElementById('scaleMarker').style.left = Math.max(0, Math.min(98, markerPct)) + '%';
 
   // Group breakdown
-  var groups = ['A', 'B', 'C', 'D', 'E'];
-  var groupNames = { A: 'A组·辨别', B: 'B组·类比', C: 'C组·推理', D: 'D组·系列', E: 'E组·综合' };
-  var breakHtml = '';
+  var gn = { A:'A组·辨别', B:'B组·类比', C:'C组·推理', D:'D组·系列', E:'E组·综合' };
+  var groups = ['A','B','C','D','E'];
+  var bh = '';
   for (var g = 0; g < groups.length; g++) {
-    var gs = groupStats[groups[g]];
-    var gpct = gs.total > 0 ? Math.round(gs.correct / gs.total * 100) : 0;
-    breakHtml += '<div class="level-stat">';
-    breakHtml += '<div class="lvl-name">' + groupNames[groups[g]] + '</div>';
-    breakHtml += '<div class="lvl-score">' + gs.correct + '/' + gs.total + '</div>';
-    breakHtml += '<div class="lvl-pct">' + gpct + '%</div>';
-    breakHtml += '<div class="simple-chart"><div class="simple-chart-fill" style="width:' + gpct + '%"></div></div>';
-    breakHtml += '</div>';
+    var gg = gs[groups[g]], pct = gg.t>0 ? Math.round(gg.c/gg.t*100) : 0;
+    bh += '<div class="level-stat"><div class="lvl-name">'+gn[groups[g]]+'</div>';
+    bh += '<div class="lvl-score">'+gg.c+'/'+gg.t+'</div>';
+    bh += '<div class="lvl-pct">'+pct+'%</div>';
+    bh += '<div class="simple-chart"><div class="simple-chart-fill" style="width:'+pct+'%"></div></div></div>';
   }
-  document.getElementById('levelBreakdown').innerHTML = breakHtml;
+  document.getElementById('levelBreakdown').innerHTML = bh;
 
-  // Review dots
-  var reviewHtml = '';
-  for (var i = 0; i < questions.length; i++) {
-    var cls = 'unanswered';
-    if (answers[i] !== null) {
-      cls = (answers[i] === questions[i].correct) ? 'correct' : 'wrong';
-    }
-    reviewHtml += '<div class="review-dot ' + cls + '" onclick="reviewQuestion(' + i + ')" title="' + questions[i].group + (questions[i].num) + '">' + (i+1) + '</div>';
-  }
-  document.getElementById('reviewGrid').innerHTML = reviewHtml;
+  // Retry button
+  var attempts = getAttempts();
+  if (attempts.length < 2) document.getElementById('btnRetry').style.display = '';
 
   showScreen('result');
-  saveAttempt(correct, pct, groupStats, timerSeconds);
+  saveAttempt(correct, ra, percentile);
   clearProgress();
-  notifyParent(correct, pct);
+  notifyParent(correct, ra);
+  loadRanking();
 }
 
-function reviewQuestion(idx) {
-  var q = questions[idx];
-  var msg = '题目 ' + (idx + 1) + ' (组 ' + q.group + '-' + q.num + ')\n';
-  msg += '你的答案: ' + (answers[idx] !== null ? (answers[idx] + 1) + '号选项' : '未作答') + '\n';
-  msg += '正确答案: ' + (q.correct + 1) + '号选项\n';
-  msg += '结果: ' + (answers[idx] === q.correct ? '✓ 正确' : '✗ 错误');
-  alert(msg);
+function retryTest() {
+  if (getAttempts().length >= 2) { alert('已达最大测试次数。'); return; }
+  currentQ = 0; answers = new Array(questions.length).fill(null);
+  timerSeconds = 0; testSubmitted = false;
+  showScreen('test'); renderQuestion(); startTimer(); saveProgress(); updateProgress();
 }
 
-// ============== Progress Save/Load ==============
+// ============== Ranking ==============
+function loadRanking() {
+  var url = API_BASE + '/xuanba/ranking';
+  fetch(url).then(function(r) { return r.json(); }).then(function(data) {
+    if (!data || !data.length) {
+      document.getElementById('rankingContainer').innerHTML = '<div class="rank-loading">暂无排行数据</div>';
+      return;
+    }
+    // Show top 20
+    var top20 = data.slice(0, 20);
+    var html = '<table class="rank-table"><thead><tr><th>排名</th><th>姓名</th><th>年级</th><th>RA指数</th><th>正确数</th></tr></thead><tbody>';
+    var foundMe = false;
+    for (var i = 0; i < top20.length; i++) {
+      var r = top20[i];
+      var isMe = (r.studentId === studentId);
+      if (isMe) foundMe = true;
+      html += '<tr class="' + (isMe ? 'rank-me' : '') + '">';
+      html += '<td class="rank-num">' + (i+1) + '</td>';
+      html += '<td>' + (r.studentName || r.studentId) + (isMe ? ' 👈' : '') + '</td>';
+      html += '<td>' + (r.grade || '—') + '</td>';
+      html += '<td style="color:#ffd700;font-weight:700;">' + (r.bestRA || r.bestIQ || '—') + '</td>';
+      html += '<td>' + (r.bestScore || '—') + '</td>';
+      html += '</tr>';
+    }
+    // If I'm not in top 20, find my rank
+    if (!foundMe) {
+      for (var j = 20; j < data.length; j++) {
+        if (data[j].studentId === studentId) {
+          html += '<tr><td colspan="5" style="color:rgba(255,255,255,0.2);text-align:center;">···</td></tr>';
+          html += '<tr class="rank-me"><td class="rank-num">' + (j+1) + '</td>';
+          html += '<td>' + (data[j].studentName || data[j].studentId) + ' 👈</td>';
+          html += '<td>' + (data[j].grade || '—') + '</td>';
+          html += '<td style="color:#ffd700;font-weight:700;">' + (data[j].bestRA || data[j].bestIQ || '—') + '</td>';
+          html += '<td>' + (data[j].bestScore || '—') + '</td></tr>';
+          break;
+        }
+      }
+    }
+    html += '</tbody></table>';
+    document.getElementById('rankingContainer').innerHTML = html;
+  }).catch(function() {
+    document.getElementById('rankingContainer').innerHTML = '<div class="rank-loading">排行榜暂不可用</div>';
+  });
+}
+
+// ============== Progress ==============
 function saveProgress() {
   if (!studentId) return;
-  try { 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      answers: answers, currentQ: currentQ, timerSeconds: timerSeconds,
-      submitted: testSubmitted, timestamp: Date.now()
-    }));
-  } catch(e) {}
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({answers:answers,currentQ:currentQ,timerSeconds:timerSeconds,submitted:testSubmitted,timestamp:Date.now()})); } catch(e) {}
 }
-
 function loadProgress() {
   if (!studentId) return null;
-  try { var raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : null; }
-  catch(e) { return null; }
+  try { var r = localStorage.getItem(STORAGE_KEY); return r ? JSON.parse(r) : null; } catch(e) { return null; }
 }
+function clearProgress() { if (!studentId) return; try { localStorage.removeItem(STORAGE_KEY); } catch(e) {} }
 
-function clearProgress() {
-  if (!studentId) return;
-  try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
-}
-
-// ============== Attempt Tracking ==============
+// ============== Attempts ==============
 function getAttempts() {
   if (!studentId) return [];
   try { return JSON.parse(localStorage.getItem(ATTEMPT_KEY) || '[]'); } catch(e) { return []; }
 }
-
-function saveAttempt(score, pct, groupStats, timeSeconds) {
+function saveAttempt(score, ra, percentile) {
   if (!studentId) return;
-  var attempts = getAttempts();
-  attempts.push({ date: new Date().toISOString(), score: score, pct: pct, groupStats: groupStats, timeSeconds: timeSeconds });
-  if (attempts.length > 2) attempts = attempts.slice(-2);
-  try { localStorage.setItem(ATTEMPT_KEY, JSON.stringify(attempts)); } catch(e) {}
+  var a = getAttempts();
+  a.push({ date: new Date().toISOString(), score: score, ra: ra, percentile: percentile, time: timerSeconds });
+  if (a.length > 2) a = a.slice(-2);
+  try { localStorage.setItem(ATTEMPT_KEY, JSON.stringify(a)); } catch(e) {}
+  
+  // Upload to cloud
+  uploadToCloud(score, ra, percentile);
+}
+function getBestAttempt() {
+  var a = getAttempts();
+  if (!a.length) return null;
+  return a.reduce(function(best, cur) { return (cur.ra||0) > (best.ra||0) ? cur : best; }, a[0]);
 }
 
-function getBestScore() {
-  var attempts = getAttempts();
-  if (attempts.length === 0) return 0;
-  return Math.max.apply(null, attempts.map(function(a) { return a.score; }));
+function uploadToCloud(score, ra, percentile) {
+  try {
+    fetch(API_BASE + '/xuanba/save', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        studentId: studentId, studentName: studentName,
+        grade: gradeCode, score: score, ra: ra, percentile: percentile,
+        timeSeconds: timerSeconds, completed: true
+      })
+    });
+  } catch(e) {}
 }
 
 // ============== Review Dots ==============
@@ -543,27 +633,21 @@ function renderReviewDots() {
     if (i === currentQ) style = 'background:rgba(255,215,0,0.3);border:1px solid #ffd700;';
     else if (answers[i] !== null) style = 'background:rgba(78,205,196,0.2);border:1px solid rgba(78,205,196,0.4);';
     else style = 'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);';
-    html += '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;margin:1px;cursor:pointer;' + style + '" onclick="currentQ=' + i + ';renderQuestion();saveProgress();" title="' + questions[i].group + questions[i].num + '"></span>';
+    html += '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;margin:1px;cursor:pointer;'+style+'" onclick="currentQ='+i+';renderQuestion();saveProgress();" title="'+questions[i].group+questions[i].num+'"></span>';
   }
   document.getElementById('reviewDots').innerHTML = html;
 }
-
 function updateProgress() {
-  var answered = answers.filter(function(a) { return a !== null; }).length;
-  document.getElementById('progressBar').style.width = Math.round(answered / questions.length * 100) + '%';
+  var a = answers.filter(function(x){ return x!==null; }).length;
+  document.getElementById('progressBar').style.width = Math.round(a/questions.length*100)+'%';
 }
 
-// ============== Parent Communication ==============
-function notifyParent(score, pct) {
-  try {
-    window.parent.postMessage({
-      type: 'xuanba_result', studentId: studentId, score: score, pct: pct, timeSeconds: timerSeconds
-    }, '*');
-  } catch(e) {}
+// ============== Parent ==============
+function notifyParent(score, ra) {
+  try { window.parent.postMessage({ type:'xuanba_result', studentId:studentId, score:score, ra:ra }, '*'); } catch(e) {}
 }
-
 function closeTest() {
-  try { window.parent.postMessage({ type: 'xuanba_close' }, '*'); } catch(e) {}
+  try { window.parent.postMessage({ type:'xuanba_close' }, '*'); } catch(e) {}
 }
 
 // ============== Standalone fallback ==============
@@ -571,8 +655,7 @@ window.addEventListener('DOMContentLoaded', function() {
   setTimeout(function() {
     if (typeof XUANBA_QUESTIONS !== 'undefined' && questions.length === 0) {
       questions = XUANBA_QUESTIONS;
-      studentId = 'demo';
-      STORAGE_KEY += studentId; ATTEMPT_KEY += studentId;
+      studentId = 'demo'; STORAGE_KEY += studentId; ATTEMPT_KEY += studentId;
       showScreen('intro');
       document.getElementById('screenLoading').classList.remove('active');
     }
