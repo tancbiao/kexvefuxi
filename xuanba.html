@@ -555,7 +555,7 @@ function loadRanking() {
       html += '<td class="rank-num">' + (i+1) + '</td>';
       html += '<td>' + (r.studentName || r.studentId) + (isMe ? ' 👈' : '') + '</td>';
       html += '<td>' + (r.grade || '—') + '</td>';
-      html += '<td style="color:#ffd700;font-weight:700;">' + (r.bestRA || r.bestIQ || '—') + '</td>';
+      html += '<td style="color:#ffd700;font-weight:700;">' + (r.bestRA || '—') + '</td>';
       html += '<td>' + (r.bestScore || '—') + '</td>';
       html += '</tr>';
     }
@@ -567,7 +567,7 @@ function loadRanking() {
           html += '<tr class="rank-me"><td class="rank-num">' + (j+1) + '</td>';
           html += '<td>' + (data[j].studentName || data[j].studentId) + ' 👈</td>';
           html += '<td>' + (data[j].grade || '—') + '</td>';
-          html += '<td style="color:#ffd700;font-weight:700;">' + (data[j].bestRA || data[j].bestIQ || '—') + '</td>';
+          html += '<td style="color:#ffd700;font-weight:700;">' + (data[j].bestRA || '—') + '</td>';
           html += '<td>' + (data[j].bestScore || '—') + '</td></tr>';
           break;
         }
