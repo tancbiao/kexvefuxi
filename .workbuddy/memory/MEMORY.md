@@ -1,10 +1,34 @@
 # 科学复习系统 - 长期记忆
 
+## 环境限制（2026-05-27）
+- **禁用 Microsoft Store**：谭谭的 Windows 打不开 Store，不要尝试用 `start ms-windows-store:` 或 winget 等会触发 Store 的操作
+- 安装软件用 Chocolatey 或直接下载 exe/msi
+
 ## 项目位置（2026-05-23 更新）
 - **主目录**: `D:\kexvefuxi\`（已从 WPS 云盘迁移）
 - **旧路径（废弃）**: `C:\Users\tanc\Documents\WPSDrive\362543761\WPS云盘\谭政\科学复习系统\_kexvefuxi\`
 - GitHub: `https://github.com/tancbiao/kexvefuxi` (branch: `main`)
 - 服务端: 159.75.134.151, `/data/api.py` v706
+
+## 域名备案（2026-05-24）
+- 备案进行中，通过后云同步稳定性大幅提升
+
+## 小程序备案（2026-05-24 建议）
+- **域名备案 ≠ 小程序备案**，小程序需要单独备案
+- 备案周期 1-3 周，现在就该开始
+- 流程：小程序后台 → 设置 → 备案 → 填写信息 → 提交审核
+- 需准备：营业执照（眼镜店）+ 身份证 + 小程序名称和简介
+- 小程序名称建议和网站一致："西西时光" 或 "科学探险家"
+
+## 防跨设备重复领取（2026-05-23 修复）
+- 补偿/S0/连续登录等一次性标记已同步到云端（saveUserData/applyUserData）
+- 连续登录追踪(loginStreakG6/G45)也同步云端
+- 标记在云端/本地双重检查，换设备不会重复领取
+
+## 云端同步容错（2026-05-23 新增）
+- `saveToCloudWithRetry`: 3次重试 + 2s/4s递增退避
+- `pendingCloudSync`: localStorage暂存失败数据，最多5条
+- `flushPendingSync`: 登录5秒后+每次saveUserData自动刷新pending队列
 
 ## 账号隔离安全清单（2026-05-21 新增）
 **受影响函数**: `loginWithId()`, `logout()`, `loginAsGuest()` — 修改时需同步更新三个函数
@@ -112,12 +136,12 @@
 | rankings_global_ranking.json | 190 | 排行榜摘要 |
 | students.json | 52 | 完整游戏存档（曾丢失大量） |
 
-## CDN/浏览器缓存刷新策略（2026-05-21 确认有效）
-**问题**: GitHub Pages 部署后旧 JS/HTML 被浏览器长期缓存，学生用旧代码导致同步失败
-**方案**（三层防护）:
-1. **入口重定向加版本号**: `index.html` → `index_v705.html?v=20260521`（URL不同强制CDN回源）
-2. **页面级 meta 标签**: `<meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">`
-3. **关键资源加版本号**: `<script src="cloud-config.js?v=20260521">`（每次改版更新日期）
-4. **已有保护**: tower/ladder iframe 使用 `src = 'tower.html?' + Date.now()` 动态刷新
-
-**关键认知**: GitHub Pages 不支持自定义 HTTP Cache-Control 头，只能靠 URL 差异化破缓存。每次重要部署后更新版本号日期即可。
+## CDN/浏览器缓存刷新策略（2026-05-23 升级为自动跳转）
+**之前（手动）**: 根 index.html 静态写死版本号 → 每次部署需手动更新 → 容易遗忘
+**现在（自动双层跳转）**:
+1. **根 index.html**: JS 动态获取当天日期作为版本号。`xixitime.cn` → 自动跳转 `?v=YYYYMMDD`，**不再需要手动改**
+2. **index_v705.html**: 顶部 `PAGE_VERSION` 常量 + URL 自检脚本。学生旧书签 `?v=旧版本` → 自动重定向到新版本
+3. **以后每次部署**: 只需更新 index_v705.html 顶部的 `PAGE_VERSION = 'YYYYMMDD'` 一个地方
+4. **过渡期注意**: 已缓存旧版 index_v705 的浏览器需 Ctrl+F5 一次，之后永久自动
+- tower/ladder iframe 已有 `Date.now()` 动态刷新
+- 关键资源加版本号: `<script src="cloud-config.js?v=20260521">`

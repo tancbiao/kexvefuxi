@@ -5302,6 +5302,10 @@ function bpClear62() {
 
 function showBackpack() {
   bpCurrentPage = 1;
+  // 科技节装备多推保障：每次打开背包都尝试发放（内置防重复）
+  if (typeof grantKeji2026Equip === 'function') {
+    grantKeji2026Equip();
+  }
   initInventory62();
   loadEquippedState62();
   renderInventoryGrid62();
