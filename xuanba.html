@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>校队选拔 · 推理能力测试</title>
+<title>校队选拔 · 推理能力评估</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -11,7 +11,7 @@ body {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
   min-height: 100vh; color: #fff; overflow-x: hidden;
 }
-.container { max-width: 800px; margin: 0 auto; padding: 16px; }
+.container { max-width: 860px; margin: 0 auto; padding: 16px; }
 .screen { display: none; animation: fadeIn 0.4s ease; }
 .screen.active { display: block; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
@@ -32,21 +32,25 @@ body {
 }
 .topbar .progress-text { font-size: 0.95em; color: rgba(255,255,255,0.7); }
 .topbar .progress-text strong { color: #ffd700; }
-.topbar .timer { font-size: 1.1em; color: #4ecdc4; font-weight: 700; font-variant-numeric: tabular-nums; }
+.topbar .timer { font-size: 1.1em; color: #4ecdc4; font-weight: 700; }
 .progress-bar {
   width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-bottom: 16px;
 }
 .progress-bar-fill {
-  height: 100%; background: linear-gradient(90deg, #ffd700, #ff6b6b);
+  height: 100%; background: linear-gradient(90deg, #ffd700, #4ecdc4);
   border-radius: 2px; transition: width 0.3s;
 }
+.group-tag {
+  display: inline-block; padding: 2px 10px; border-radius: 8px;
+  font-size: 0.8em; font-weight: 700; background: rgba(255,255,255,0.1);
+}
 
-/* Matrix */
-.matrix-container { text-align: center; margin-bottom: 20px; }
-.matrix-svg { max-width: 360px; width: 100%; }
-.matrix-cell { stroke: rgba(255,255,255,0.15); stroke-width: 1; fill: none; }
-.matrix-missing { fill: rgba(255,215,0,0.08); stroke: rgba(255,215,0,0.4); stroke-width: 2; stroke-dasharray: 4 3; }
-.missing-text { fill: #ffd700; font-size: 24px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
+/* Matrix image */
+.matrix-container { text-align: center; margin-bottom: 16px; }
+.matrix-container img {
+  max-width: 100%; max-height: 360px; border-radius: 8px;
+  background: rgba(255,255,255,0.95); padding: 12px;
+}
 
 /* Options */
 .options-grid {
@@ -61,10 +65,13 @@ body {
 .option-card.selected { border-color: #ffd700; background: rgba(255,215,0,0.12); box-shadow: 0 0 16px rgba(255,215,0,0.15); }
 .option-card .opt-label {
   position: absolute; top: 4px; left: 8px; font-size: 0.75em; color: rgba(255,255,255,0.4);
-  font-weight: 700;
+  font-weight: 700; z-index: 1;
 }
 .option-card.selected .opt-label { color: #ffd700; }
-.option-svg { width: 100%; max-width: 100px; }
+.option-card img {
+  max-width: 100%; max-height: 80px; border-radius: 4px;
+  background: rgba(255,255,255,0.95); padding: 4px;
+}
 
 /* Nav buttons */
 .nav-row { display: flex; gap: 12px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
@@ -79,7 +86,6 @@ body {
 .btn-primary:hover { box-shadow: 0 0 20px rgba(255,215,0,0.3); }
 .btn-submit { background: linear-gradient(135deg, #4ecdc4, #2ecc71); color: #1a1a2e; font-weight: 700; border: none; padding: 14px 36px; font-size: 1.1em; }
 .btn-submit:hover { box-shadow: 0 0 20px rgba(78,205,196,0.3); }
-.btn-danger { background: rgba(255,107,107,0.2); border-color: rgba(255,107,107,0.4); }
 
 /* Intro screen */
 .hero-title {
@@ -99,40 +105,47 @@ body {
 }
 
 /* Result screen */
-.result-header { text-align: center; padding: 32px 16px; }
-.result-score { font-size: 4em; font-weight: 900; color: #ffd700; line-height: 1; }
+.result-header { text-align: center; padding: 28px 16px; }
+.result-score { font-size: 4.5em; font-weight: 900; color: #ffd700; line-height: 1; }
 .result-label { font-size: 1em; color: rgba(255,255,255,0.5); margin-top: 4px; }
-.result-iq { font-size: 2.5em; font-weight: 700; color: #4ecdc4; margin-top: 8px; }
-.result-class { font-size: 1.1em; font-weight: 700; margin-top: 4px; }
-.level-breakdown { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px; }
+.result-level { font-size: 1.3em; font-weight: 700; margin-top: 12px; }
+.result-detail { margin-top: 8px; color: rgba(255,255,255,0.5); }
+.level-breakdown { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 16px; }
 .level-stat {
   background: rgba(255,255,255,0.06); border-radius: 10px; padding: 12px;
   text-align: center; border: 1px solid rgba(255,255,255,0.08);
 }
 .level-stat .lvl-name { font-size: 0.8em; color: rgba(255,255,255,0.5); }
-.level-stat .lvl-score { font-size: 1.5em; font-weight: 700; color: #ffd700; }
-.level-stat .lvl-pct { font-size: 0.8em; color: rgba(255,255,255,0.4); }
-.simple-chart { width: 100%; height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px; margin-top: 6px; overflow: hidden; }
-.simple-chart-fill { height: 100%; background: linear-gradient(90deg, #4ecdc4, #ffd700); border-radius: 4px; transition: width 0.5s; }
+.level-stat .lvl-score { font-size: 1.4em; font-weight: 700; color: #ffd700; }
+.level-stat .lvl-pct { font-size: 0.75em; color: rgba(255,255,255,0.4); }
+.simple-chart { width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; margin-top: 6px; overflow: hidden; }
+.simple-chart-fill { height: 100%; background: linear-gradient(90deg, #4ecdc4, #ffd700); border-radius: 3px; transition: width 0.5s; }
 
-/* Review screen */
-.review-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; margin: 16px 0; }
+/* Review grid */
+.review-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 5px; margin: 16px 0; }
 .review-dot {
-  width: 100%; aspect-ratio: 1; border-radius: 6px; display: flex;
-  align-items: center; justify-content: center; font-size: 0.7em; font-weight: 700;
+  aspect-ratio: 1; border-radius: 6px; display: flex;
+  align-items: center; justify-content: center; font-size: 0.65em; font-weight: 700;
   cursor: pointer; transition: all 0.15s;
 }
 .review-dot.correct { background: rgba(46,204,113,0.25); border: 1px solid rgba(46,204,113,0.5); color: #2ecc71; }
 .review-dot.wrong { background: rgba(255,107,107,0.25); border: 1px solid rgba(255,107,107,0.5); color: #ff6b6b; }
 .review-dot.unanswered { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.3); }
-.review-dot:hover { transform: scale(1.15); }
+.review-dot:hover { transform: scale(1.2); }
 
-/* Responsive */
+/* Loading */
+.loading-spinner {
+  text-align: center; padding: 40px; font-size: 1.1em; color: rgba(255,255,255,0.5);
+}
+.loading-img { width: 48px; height: 48px; border: 3px solid rgba(255,255,255,0.1); border-top-color: #ffd700; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
 @media (max-width: 600px) {
   .options-grid { grid-template-columns: repeat(2, 1fr); }
-  .level-breakdown { grid-template-columns: repeat(2, 1fr); }
-  .hero-title { font-size: 1.6em; }
-  .matrix-svg { max-width: 280px; }
+  .level-breakdown { grid-template-columns: repeat(3, 1fr); }
+  .hero-title { font-size: 1.5em; }
+  .matrix-container img { max-height: 260px; }
+  .review-grid { grid-template-columns: repeat(6, 1fr); }
 }
 </style>
 </head>
@@ -142,23 +155,22 @@ body {
 <!-- ====== Loading Screen ====== -->
 <div class="screen active" id="screenLoading">
   <div class="card" style="text-align:center;padding:60px 20px;">
-    <div style="font-size:3em;margin-bottom:16px;">🧠</div>
-    <div style="font-size:1.2em;color:rgba(255,255,255,0.6);">正在加载题库...</div>
+    <div class="loading-spinner"><div class="loading-img"></div>正在加载题库...</div>
   </div>
 </div>
 
 <!-- ====== Intro Screen ====== -->
 <div class="screen" id="screenIntro">
   <div class="hero-title">校队选拔</div>
-  <div class="hero-subtitle">推理能力评估测试</div>
+  <div class="hero-subtitle">图形推理能力评估</div>
   <div class="card">
     <ul class="info-list">
-      <li><span class="icon">📝</span> 共 <strong>60</strong> 道图形推理题，6个难度等级</li>
+      <li><span class="icon">📝</span> 共 <strong>60</strong> 道图形推理题，A~E 五组难度递增</li>
       <li><span class="icon">⏱</span> 不限时，建议 25-35 分钟完成</li>
-      <li><span class="icon">🖱</span> 每题从6个选项中选出缺失的图形</li>
+      <li><span class="icon">🖱</span> 每题从下方的选项中选出缺失的图形</li>
       <li><span class="icon">🔙</span> 可自由回看和修改答案</li>
-      <li><span class="icon">💾</span> 答题进度自动保存，断点可续</li>
-      <li><span class="icon">📊</span> 完成后显示推理能力评分</li>
+      <li><span class="icon">💾</span> 答题进度自动保存</li>
+      <li><span class="icon">📊</span> 完成后生成推理能力评估报告</li>
     </ul>
     <div id="attemptWarning" style="display:none;"></div>
     <div style="text-align:center;margin-top:24px;">
@@ -173,13 +185,13 @@ body {
 <div class="screen" id="screenTest">
   <div class="progress-bar"><div class="progress-bar-fill" id="progressBar" style="width:0%"></div></div>
   <div class="topbar">
-    <span class="progress-text">第 <strong id="qCurrent">1</strong> / 60 题 · L<strong id="qLevel">1</strong></span>
+    <span class="progress-text">第 <strong id="qCurrent">1</strong>/60 题 · <span class="group-tag" id="qGroup" style="color:#ffd700;border-color:rgba(255,215,0,0.3);">A</span></span>
     <span class="timer">⏱ <span id="timerDisplay">00:00</span></span>
   </div>
   <div class="card">
     <div class="matrix-container" id="matrixContainer"></div>
-    <div style="text-align:center;color:rgba(255,255,255,0.3);font-size:0.85em;margin-bottom:12px;">
-      请从下方选项中选出缺失的图形
+    <div style="text-align:center;color:rgba(255,255,255,0.35);font-size:0.85em;margin-bottom:12px;">
+      请从下方选项中选出最适合填入空缺位置的图形
     </div>
     <div class="options-grid" id="optionsGrid"></div>
   </div>
@@ -197,17 +209,19 @@ body {
 <div class="screen" id="screenResult">
   <div class="result-header">
     <div class="result-score" id="resultScore">0</div>
-    <div class="result-label">原始分 / 60</div>
-    <div class="result-iq" id="resultIQ">-</div>
-    <div class="result-class" id="resultClass" style="color:#ffd700;">-</div>
-    <div style="margin-top:8px;color:rgba(255,255,255,0.5);">⏱ 用时: <span id="resultTime">-</span></div>
+    <div class="result-label">正确数 / 60 题</div>
+    <div class="result-level" id="resultLevel" style="color:#ffd700;">-</div>
+    <div class="result-detail">
+      正确率: <span id="resultPct" style="color:#4ecdc4;font-weight:700;">-</span>
+      &nbsp;|&nbsp; ⏱ 用时: <span id="resultTime">-</span>
+    </div>
   </div>
   <div class="card">
-    <div style="font-weight:700;margin-bottom:12px;">各等级正确率</div>
+    <div style="font-weight:700;margin-bottom:12px;">各组正确率</div>
     <div class="level-breakdown" id="levelBreakdown"></div>
   </div>
   <div class="card" id="reviewCard">
-    <div style="font-weight:700;margin-bottom:12px;">逐题回顾（点击跳转）</div>
+    <div style="font-weight:700;margin-bottom:12px;">逐题回顾（点击可查看详情）</div>
     <div class="review-grid" id="reviewGrid"></div>
   </div>
   <div style="text-align:center;margin-top:16px;">
@@ -215,14 +229,14 @@ body {
   </div>
 </div>
 
-</div><!-- .container -->
+</div>
 
-<script src="data/xuanba-questions.js?v=20260603"></script>
+<script src="data/xuanba-questions-v2.js?v=20260603"></script>
 <script>
 // ============== State ==============
-var questions = [];       // loaded from XUANBA_QUESTIONS
-var answers = [];        // user answers (null = unanswered, 0-5 = option index)
-var currentQ = 0;        // 0-indexed
+var questions = [];
+var answers = [];
+var currentQ = 0;
 var timerSeconds = 0;
 var timerInterval = null;
 var testStarted = false;
@@ -232,8 +246,8 @@ var studentId = '';
 var studentName = '';
 var grade = '';
 
-var STORAGE_KEY = 'xuanba_state_';
-var ATTEMPT_KEY = 'xuanba_attempts_';
+var STORAGE_KEY = 'xuanba2_state_';
+var ATTEMPT_KEY = 'xuanba2_attempts_';
 
 // ============== Init ==============
 window.addEventListener('message', function(e) {
@@ -247,41 +261,41 @@ window.addEventListener('message', function(e) {
   }
 });
 
-// Fallback: also try to get params from URL (for standalone testing)
 function initApp() {
-  if (!questions || questions.length === 0) {
-    if (typeof XUANBA_QUESTIONS !== 'undefined') {
-      questions = XUANBA_QUESTIONS;
-    } else {
-      document.getElementById('screenLoading').innerHTML = 
-        '<div class="card" style="text-align:center;padding:60px 20px;"><div style="font-size:3em;">⚠️</div><div style="color:#ff6b6b;">题库加载失败，请刷新页面</div></div>';
-      return;
-    }
+  if (typeof XUANBA_QUESTIONS !== 'undefined') {
+    questions = XUANBA_QUESTIONS;
+  } else {
+    document.getElementById('screenLoading').innerHTML = 
+      '<div class="card" style="text-align:center;padding:60px 20px;"><div style="font-size:3em;">⚠️</div><div style="color:#ff6b6b;">题库加载失败，请刷新页面</div></div>';
+    return;
   }
 
-  // Check for saved progress
   var saved = loadProgress();
   if (saved && saved.answers && !saved.submitted) {
-    var qCount = Math.min(saved.answers.length, questions.length);
-    for (var i = 0; i < qCount; i++) {
+    for (var i = 0; i < Math.min(saved.answers.length, questions.length); i++) {
       answers[i] = saved.answers[i];
     }
     currentQ = saved.currentQ || 0;
     timerSeconds = saved.timerSeconds || 0;
     if (saved.answers.some(function(a) { return a !== null; })) {
-      // Has progress, ask to resume
-      showResumePrompt();
-      return;
+      if (confirm('检测到未完成的测试（已答 ' + saved.answers.filter(function(a){return a!==null;}).length + ' / ' + questions.length + ' 题）。是否继续？')) {
+        showScreen('test');
+        renderQuestion();
+        if (!testStarted) startTimer();
+        updateProgress();
+        document.getElementById('screenLoading').classList.remove('active');
+        return;
+      } else {
+        answers = []; currentQ = 0; timerSeconds = 0; clearProgress();
+      }
     }
   }
 
-  // Check attempt count
   var attempts = getAttempts();
   if (attempts.length >= 2) {
     document.getElementById('attemptWarning').innerHTML = 
       '<div class="attempt-warning">⚠️ 您已完成 ' + attempts.length + ' 次测试（最多2次）。<br>最佳成绩: ' + getBestScore() + ' 分</div>';
     document.getElementById('attemptWarning').style.display = 'block';
-    // Disable start button
     var startBtn = document.querySelector('#screenIntro .btn-primary');
     if (startBtn) { startBtn.disabled = true; startBtn.textContent = '已达测试次数上限'; startBtn.style.opacity = '0.5'; }
   }
@@ -290,30 +304,11 @@ function initApp() {
   document.getElementById('screenLoading').classList.remove('active');
 }
 
-function showResumePrompt() {
-  var saved = loadProgress();
-  var answered = saved.answers.filter(function(a) { return a !== null; }).length;
-  var msg = '检测到未完成的测试（已答 ' + answered + ' / ' + questions.length + ' 题）。是否继续？';
-  if (confirm(msg)) {
-    showScreen('test');
-    renderQuestion();
-    if (!testStarted) startTimer();
-    updateProgress();
-  } else {
-    // Reset
-    answers = [];
-    currentQ = 0;
-    timerSeconds = 0;
-    clearProgress();
-    showScreen('intro');
-  }
-  document.getElementById('screenLoading').classList.remove('active');
-}
-
 // ============== Screen Navigation ==============
 function showScreen(name) {
   ['loading','intro','test','result'].forEach(function(s) {
-    document.getElementById('screen' + s.charAt(0).toUpperCase() + s.slice(1)).classList.remove('active');
+    var el = document.getElementById('screen' + s.charAt(0).toUpperCase() + s.slice(1));
+    if (el) el.classList.remove('active');
   });
   var el = document.getElementById('screen' + name.charAt(0).toUpperCase() + name.slice(1));
   if (el) el.classList.add('active');
@@ -339,7 +334,7 @@ function updateTimerDisplay() {
 function startTest() {
   var attempts = getAttempts();
   if (attempts.length >= 2) {
-    alert('您已完成2次测试，无法再次参加。');
+    alert('您已完成2次测试。如需再次测试请联系老师。');
     return;
   }
   currentQ = 0;
@@ -358,121 +353,37 @@ function renderQuestion() {
   if (!q) return;
 
   document.getElementById('qCurrent').textContent = currentQ + 1;
-  document.getElementById('qLevel').textContent = q.level;
+  var g = document.getElementById('qGroup');
+  g.textContent = '组 ' + q.group;
+  var groupColors = { A: '#4ecdc4', B: '#4ade80', C: '#fbbf24', D: '#ff8c00', E: '#ff6b6b' };
+  g.style.color = groupColors[q.group] || '#fff';
+  g.style.borderColor = (groupColors[q.group] || '#fff') + '44';
 
-  // Render matrix
-  renderMatrix(q);
+  // Render main question image
+  var imgSrc = q.matrix || '';
+  document.getElementById('matrixContainer').innerHTML = imgSrc 
+    ? '<img src="' + imgSrc + '" alt="题目" crossorigin="anonymous">'
+    : '<div style="color:#ff6b6b;padding:40px;">图片加载失败</div>';
 
   // Render options
-  renderOptions(q);
+  var html = '';
+  var opts = q.options || [];
+  for (var i = 0; i < opts.length; i++) {
+    var selected = (answers[currentQ] === i) ? ' selected' : '';
+    var optImg = opts[i] || '';
+    html += '<div class="option-card' + selected + '" onclick="selectOption(' + i + ')" title="选项 ' + (i+1) + '">';
+    html += '<span class="opt-label">' + (i + 1) + '</span>';
+    html += optImg ? '<img src="' + optImg + '" alt="选项' + (i+1) + '" crossorigin="anonymous">' : '<div style="padding:30px;color:#666;">?</div>';
+    html += '</div>';
+  }
+  document.getElementById('optionsGrid').innerHTML = html;
 
-  // Update nav buttons
   document.getElementById('btnPrev').disabled = (currentQ === 0);
   document.getElementById('btnNext').style.display = (currentQ < questions.length - 1) ? '' : 'none';
   document.getElementById('btnSubmit').style.display = (currentQ === questions.length - 1) ? '' : 'none';
 
-  // Update review dots
   renderReviewDots();
-
   updateProgress();
-}
-
-function renderMatrix(q) {
-  var cellSize = 110;
-  var padding = 10;
-  var totalSize = cellSize * 3 + padding * 2;
-  var svg = '<svg class="matrix-svg" viewBox="0 0 ' + totalSize + ' ' + totalSize + '" xmlns="http://www.w3.org/2000/svg">';
-
-  // Grid lines
-  for (var i = 1; i < 3; i++) {
-    svg += '<line x1="' + (padding + i * cellSize) + '" y1="' + padding + '" x2="' + (padding + i * cellSize) + '" y2="' + (padding + 3 * cellSize) + '" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>';
-    svg += '<line x1="' + padding + '" y1="' + (padding + i * cellSize) + '" x2="' + (padding + 3 * cellSize) + '" y2="' + (padding + i * cellSize) + '" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>';
-  }
-
-  // Cells
-  for (var r = 0; r < 3; r++) {
-    for (var c = 0; c < 3; c++) {
-      var cx = padding + c * cellSize;
-      var cy = padding + r * cellSize;
-      if (r === 2 && c === 2) {
-        // Missing cell
-        svg += '<rect x="' + cx + '" y="' + cy + '" width="' + cellSize + '" height="' + cellSize + '" class="matrix-missing"/>';
-        svg += '<text x="' + (cx + cellSize/2) + '" y="' + (cy + cellSize/2) + '" class="missing-text">?</text>';
-        continue;
-      }
-      var cell = q.matrix[r][c];
-      if (cell && cell.shapes) {
-        svg += renderShapes(cell.shapes, cx, cy, cellSize);
-      }
-    }
-  }
-
-  svg += '</svg>';
-  document.getElementById('matrixContainer').innerHTML = svg;
-}
-
-function renderOptions(q) {
-  var html = '';
-  for (var i = 0; i < q.options.length; i++) {
-    var selected = (answers[currentQ] === i) ? ' selected' : '';
-    var cellSize = 90;
-    html += '<div class="option-card' + selected + '" onclick="selectOption(' + i + ')">';
-    html += '<span class="opt-label">' + (i + 1) + '</span>';
-    html += '<svg class="option-svg" viewBox="0 0 ' + cellSize + ' ' + cellSize + '" xmlns="http://www.w3.org/2000/svg">';
-    if (q.options[i] && q.options[i].shapes) {
-      html += renderShapes(q.options[i].shapes, 0, 0, cellSize);
-    }
-    html += '</svg></div>';
-  }
-  document.getElementById('optionsGrid').innerHTML = html;
-}
-
-function renderShapes(shapes, offsetX, offsetY, cellSize) {
-  var svg = '';
-  var colorMap = { black: '#1a1a1a', gray: '#888888', white: '#e8e8e8' };
-  var sizeMap = { small: 0.35, medium: 0.55, large: 0.75 };
-  // Stroke for white shapes
-  var strokeMap = { black: 'none', gray: 'none', white: '#666' };
-
-  for (var i = 0; i < shapes.length; i++) {
-    var s = shapes[i];
-    var fill = colorMap[s.color] || '#888';
-    var stroke = strokeMap[s.color] || 'none';
-    var baseR = cellSize * (sizeMap[s.size] || 0.5) / 2;
-    var px = offsetX + s.position.x * cellSize;
-    var py = offsetY + s.position.y * cellSize;
-    var rot = s.rotation || 0;
-
-    var gOpen = rot ? '<g transform="rotate(' + rot + ' ' + px + ' ' + py + ')">' : '';
-    var gClose = rot ? '</g>' : '';
-
-    if (s.type === 'circle') {
-      svg += gOpen + '<circle cx="' + px + '" cy="' + py + '" r="' + baseR + '" fill="' + fill + '" stroke="' + stroke + '" stroke-width="1"/>' + gClose;
-    } else if (s.type === 'square') {
-      svg += gOpen + '<rect x="' + (px - baseR) + '" y="' + (py - baseR) + '" width="' + (baseR * 2) + '" height="' + (baseR * 2) + '" fill="' + fill + '" stroke="' + stroke + '" stroke-width="1"/>' + gClose;
-    } else if (s.type === 'triangle') {
-      var pts = (px - baseR) + ',' + (py + baseR * 0.7) + ' ' + px + ',' + (py - baseR) + ' ' + (px + baseR) + ',' + (py + baseR * 0.7);
-      svg += gOpen + '<polygon points="' + pts + '" fill="' + fill + '" stroke="' + stroke + '" stroke-width="1"/>' + gClose;
-    } else if (s.type === 'diamond') {
-      var pts = px + ',' + (py - baseR) + ' ' + (px + baseR) + ',' + py + ' ' + px + ',' + (py + baseR) + ' ' + (px - baseR) + ',' + py;
-      svg += gOpen + '<polygon points="' + pts + '" fill="' + fill + '" stroke="' + stroke + '" stroke-width="1"/>' + gClose;
-    } else if (s.type === 'cross') {
-      var w = baseR * 0.35;
-      svg += gOpen;
-      svg += '<rect x="' + (px - baseR) + '" y="' + (py - w) + '" width="' + (baseR * 2) + '" height="' + (w * 2) + '" fill="' + fill + '" stroke="' + stroke + '" stroke-width="0.5"/>';
-      svg += '<rect x="' + (px - w) + '" y="' + (py - baseR) + '" width="' + (w * 2) + '" height="' + (baseR * 2) + '" fill="' + fill + '" stroke="' + stroke + '" stroke-width="0.5"/>';
-      svg += gClose;
-    } else if (s.type === 'star') {
-      var pts = [];
-      for (var j = 0; j < 10; j++) {
-        var angle = (j * 36 - 90) * Math.PI / 180;
-        var r2 = (j % 2 === 0) ? baseR : baseR * 0.4;
-        pts.push((px + r2 * Math.cos(angle)).toFixed(1) + ',' + (py + r2 * Math.sin(angle)).toFixed(1));
-      }
-      svg += gOpen + '<polygon points="' + pts.join(' ') + '" fill="' + fill + '" stroke="' + stroke + '" stroke-width="1"/>' + gClose;
-    }
-  }
-  return svg;
 }
 
 function selectOption(index) {
@@ -483,40 +394,24 @@ function selectOption(index) {
   saveProgress();
   updateProgress();
   renderReviewDots();
-
-  // Auto-advance after selection (smooth UX)
   setTimeout(function() {
-    if (currentQ < questions.length - 1) {
-      nextQuestion();
-    }
-  }, 300);
+    if (currentQ < questions.length - 1) nextQuestion();
+  }, 250);
 }
 
 function prevQuestion() {
-  if (currentQ > 0) {
-    currentQ--;
-    renderQuestion();
-    saveProgress();
-  }
+  if (currentQ > 0) { currentQ--; renderQuestion(); saveProgress(); }
 }
 
 function nextQuestion() {
-  if (currentQ < questions.length - 1) {
-    currentQ++;
-    renderQuestion();
-    saveProgress();
-  }
+  if (currentQ < questions.length - 1) { currentQ++; renderQuestion(); saveProgress(); }
 }
 
 function showSubmitConfirm() {
   var unanswered = answers.filter(function(a) { return a === null; }).length;
   var msg = '确认提交答卷？';
-  if (unanswered > 0) {
-    msg += '\n\n⚠️ 还有 ' + unanswered + ' 题未作答，将计为错误。';
-  }
-  if (confirm(msg)) {
-    submitTest();
-  }
+  if (unanswered > 0) msg += '\n\n⚠️ 还有 ' + unanswered + ' 题未作答，将计为错误。';
+  if (confirm(msg)) submitTest();
 }
 
 function submitTest() {
@@ -524,65 +419,53 @@ function submitTest() {
   testSubmitted = true;
   clearInterval(timerInterval);
 
-  // Calculate score
   var correct = 0;
-  var levelStats = { 1: { total: 0, correct: 0 }, 2: { total: 0, correct: 0 }, 3: { total: 0, correct: 0 }, 4: { total: 0, correct: 0 }, 5: { total: 0, correct: 0 }, 6: { total: 0, correct: 0 } };
+  var groupStats = { A: { total: 0, correct: 0 }, B: { total: 0, correct: 0 }, C: { total: 0, correct: 0 }, D: { total: 0, correct: 0 }, E: { total: 0, correct: 0 } };
   for (var i = 0; i < questions.length; i++) {
     var q = questions[i];
-    levelStats[q.level].total++;
+    groupStats[q.group].total++;
     if (answers[i] !== null && answers[i] === q.correct) {
       correct++;
-      levelStats[q.level].correct++;
+      groupStats[q.group].correct++;
     }
   }
 
-  // IQ calculation (ported from rpm-iq-exam)
-  var levelBaseIQ = { 1: 85, 2: 95, 3: 105, 4: 115, 5: 125, 6: 135 };
-  var accuracy = correct / questions.length;
-  var weightedSum = 0, totalWeight = 0;
-  for (var lv = 1; lv <= 6; lv++) {
-    weightedSum += (levelBaseIQ[lv] || 100) * levelStats[lv].total;
-    totalWeight += levelStats[lv].total;
-  }
-  var avgBaseIQ = totalWeight > 0 ? weightedSum / totalWeight : 100;
-  var iqAdjust = 0;
-  if (accuracy >= 0.9) iqAdjust = 15;
-  else if (accuracy >= 0.8) iqAdjust = 10;
-  else if (accuracy >= 0.7) iqAdjust = 5;
-  else if (accuracy >= 0.6) iqAdjust = 0;
-  else if (accuracy >= 0.5) iqAdjust = -5;
-  else if (accuracy >= 0.4) iqAdjust = -10;
-  else iqAdjust = -15;
-  var iq = Math.max(60, Math.min(160, Math.round(avgBaseIQ + iqAdjust)));
+  var pct = Math.round(correct / 60 * 100);
+  
+  // Level classification (no IQ terminology)
+  var level = '', levelColor = '#ffd700';
+  if (pct >= 95) { level = '推理能力 ★★★★★  卓越'; levelColor = '#ff5722'; }
+  else if (pct >= 85) { level = '推理能力 ★★★★☆  优秀'; levelColor = '#ffd700'; }
+  else if (pct >= 70) { level = '推理能力 ★★★☆☆  良好'; levelColor = '#4ecdc4'; }
+  else if (pct >= 55) { level = '推理能力 ★★☆☆☆  中等'; levelColor = '#4ade80'; }
+  else if (pct >= 40) { level = '推理能力 ★☆☆☆☆  偏低'; levelColor = '#fbbf24'; }
+  else if (pct >= 25) { level = '推理能力 ☆☆☆☆☆  较弱'; levelColor = '#ff6b6b'; }
+  else { level = '推理能力 ☆☆☆☆☆  需加强'; levelColor = '#ff4444'; }
 
-  // Percentile
-  var percentile = calcPercentile(iq);
-
-  // Classification
-  var classification = getIQClass(iq);
-
-  // Show results
+  // Display results
   document.getElementById('resultScore').textContent = correct;
-  document.getElementById('resultIQ').textContent = 'IQ ' + iq;
-  document.getElementById('resultClass').textContent = classification.label + ' (前 ' + percentile + '%)';
-  document.getElementById('resultClass').style.color = classification.color;
+  document.getElementById('resultPct').textContent = pct + '%';
+  document.getElementById('resultLevel').textContent = level;
+  document.getElementById('resultLevel').style.color = levelColor;
   var m = Math.floor(timerSeconds / 60);
   var s = timerSeconds % 60;
   document.getElementById('resultTime').textContent = m + '分' + s + '秒';
 
-  // Level breakdown
-  var breakdownHtml = '';
-  for (var lv = 1; lv <= 6; lv++) {
-    var ls = levelStats[lv];
-    var pct = ls.total > 0 ? Math.round(ls.correct / ls.total * 100) : 0;
-    breakdownHtml += '<div class="level-stat">';
-    breakdownHtml += '<div class="lvl-name">Lv' + lv + '</div>';
-    breakdownHtml += '<div class="lvl-score">' + ls.correct + '/' + ls.total + '</div>';
-    breakdownHtml += '<div class="lvl-pct">' + pct + '%</div>';
-    breakdownHtml += '<div class="simple-chart"><div class="simple-chart-fill" style="width:' + pct + '%"></div></div>';
-    breakdownHtml += '</div>';
+  // Group breakdown
+  var groups = ['A', 'B', 'C', 'D', 'E'];
+  var groupNames = { A: 'A组·辨别', B: 'B组·类比', C: 'C组·推理', D: 'D组·系列', E: 'E组·综合' };
+  var breakHtml = '';
+  for (var g = 0; g < groups.length; g++) {
+    var gs = groupStats[groups[g]];
+    var gpct = gs.total > 0 ? Math.round(gs.correct / gs.total * 100) : 0;
+    breakHtml += '<div class="level-stat">';
+    breakHtml += '<div class="lvl-name">' + groupNames[groups[g]] + '</div>';
+    breakHtml += '<div class="lvl-score">' + gs.correct + '/' + gs.total + '</div>';
+    breakHtml += '<div class="lvl-pct">' + gpct + '%</div>';
+    breakHtml += '<div class="simple-chart"><div class="simple-chart-fill" style="width:' + gpct + '%"></div></div>';
+    breakHtml += '</div>';
   }
-  document.getElementById('levelBreakdown').innerHTML = breakdownHtml;
+  document.getElementById('levelBreakdown').innerHTML = breakHtml;
 
   // Review dots
   var reviewHtml = '';
@@ -591,86 +474,40 @@ function submitTest() {
     if (answers[i] !== null) {
       cls = (answers[i] === questions[i].correct) ? 'correct' : 'wrong';
     }
-    reviewHtml += '<div class="review-dot ' + cls + '" onclick="reviewQuestion(' + i + ')" title="第' + (i+1) + '题">' + (i+1) + '</div>';
+    reviewHtml += '<div class="review-dot ' + cls + '" onclick="reviewQuestion(' + i + ')" title="' + questions[i].group + (questions[i].num) + '">' + (i+1) + '</div>';
   }
   document.getElementById('reviewGrid').innerHTML = reviewHtml;
 
   showScreen('result');
-
-  // Save attempt
-  saveAttempt(correct, iq, percentile, levelStats, timerSeconds);
-
-  // Clear progress
+  saveAttempt(correct, pct, groupStats, timerSeconds);
   clearProgress();
-
-  // Notify parent
-  notifyParent(correct, iq, percentile);
+  notifyParent(correct, pct);
 }
 
 function reviewQuestion(idx) {
-  if (testSubmitted) {
-    // Show result screen info about that question
-    var q = questions[idx];
-    var correctOpt = q.options[q.correct];
-    var userAns = answers[idx];
-    var msg = '第 ' + (idx + 1) + ' 题 (Lv' + q.level + ')\n';
-    msg += '你的答案: ' + (userAns !== null ? (userAns + 1) + '号选项' : '未作答') + '\n';
-    msg += '正确答案: ' + (q.correct + 1) + '号选项\n';
-    msg += '结果: ' + (userAns === q.correct ? '✓ 正确' : '✗ 错误');
-    alert(msg);
-  } else {
-    currentQ = idx;
-    renderQuestion();
-    saveProgress();
-  }
-}
-
-// ============== IQ Helpers ==============
-function calcPercentile(iq) {
-  var z = (iq - 100) / 15;
-  var p = 0.5 * (1 + erf(z / Math.sqrt(2)));
-  return Math.round(p * 100);
-}
-
-function erf(x) {
-  var a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741, a4 = -1.453152027, a5 = 1.061405429, p = 0.3275911;
-  var sign = x >= 0 ? 1 : -1;
-  x = Math.abs(x);
-  var t = 1.0 / (1.0 + p * x);
-  var y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
-  return sign * y;
-}
-
-function getIQClass(iq) {
-  if (iq >= 145) return { label: '天赋异禀', color: '#ff5722' };
-  if (iq >= 130) return { label: '非常优秀', color: '#ffd700' };
-  if (iq >= 120) return { label: '优秀', color: '#4ecdc4' };
-  if (iq >= 110) return { label: '中上', color: '#4ade80' };
-  if (iq >= 90) return { label: '中等', color: '#a78bfa' };
-  if (iq >= 80) return { label: '中下', color: '#fbbf24' };
-  if (iq >= 70) return { label: '临界', color: '#ff6b6b' };
-  return { label: '需关注', color: '#ff4444' };
+  var q = questions[idx];
+  var msg = '题目 ' + (idx + 1) + ' (组 ' + q.group + '-' + q.num + ')\n';
+  msg += '你的答案: ' + (answers[idx] !== null ? (answers[idx] + 1) + '号选项' : '未作答') + '\n';
+  msg += '正确答案: ' + (q.correct + 1) + '号选项\n';
+  msg += '结果: ' + (answers[idx] === q.correct ? '✓ 正确' : '✗ 错误');
+  alert(msg);
 }
 
 // ============== Progress Save/Load ==============
 function saveProgress() {
   if (!studentId) return;
-  var data = {
-    answers: answers,
-    currentQ: currentQ,
-    timerSeconds: timerSeconds,
-    submitted: testSubmitted,
-    timestamp: Date.now()
-  };
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
+  try { 
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      answers: answers, currentQ: currentQ, timerSeconds: timerSeconds,
+      submitted: testSubmitted, timestamp: Date.now()
+    }));
+  } catch(e) {}
 }
 
 function loadProgress() {
   if (!studentId) return null;
-  try {
-    var raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch(e) { return null; }
+  try { var raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : null; }
+  catch(e) { return null; }
 }
 
 function clearProgress() {
@@ -684,18 +521,10 @@ function getAttempts() {
   try { return JSON.parse(localStorage.getItem(ATTEMPT_KEY) || '[]'); } catch(e) { return []; }
 }
 
-function saveAttempt(score, iq, percentile, levelStats, timeSeconds) {
+function saveAttempt(score, pct, groupStats, timeSeconds) {
   if (!studentId) return;
   var attempts = getAttempts();
-  attempts.push({
-    date: new Date().toISOString(),
-    score: score,
-    iq: iq,
-    percentile: percentile,
-    levelStats: levelStats,
-    timeSeconds: timeSeconds
-  });
-  // Keep only 2
+  attempts.push({ date: new Date().toISOString(), score: score, pct: pct, groupStats: groupStats, timeSeconds: timeSeconds });
   if (attempts.length > 2) attempts = attempts.slice(-2);
   try { localStorage.setItem(ATTEMPT_KEY, JSON.stringify(attempts)); } catch(e) {}
 }
@@ -706,69 +535,48 @@ function getBestScore() {
   return Math.max.apply(null, attempts.map(function(a) { return a.score; }));
 }
 
-// ============== Progress / Dots ==============
+// ============== Review Dots ==============
 function renderReviewDots() {
   var html = '';
   for (var i = 0; i < questions.length; i++) {
-    var cls = (i === currentQ) ? 'current' : (answers[i] !== null ? 'answered' : '');
     var style = '';
     if (i === currentQ) style = 'background:rgba(255,215,0,0.3);border:1px solid #ffd700;';
-    else if (answers[i] !== null) style = 'background:rgba(78,205,196,0.25);border:1px solid rgba(78,205,196,0.5);';
-    else style = 'background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);';
-    html += '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;margin:1px;cursor:pointer;' + style + '" onclick="currentQ=' + i + ';renderQuestion();saveProgress();" title="第' + (i+1) + '题"></span>';
+    else if (answers[i] !== null) style = 'background:rgba(78,205,196,0.2);border:1px solid rgba(78,205,196,0.4);';
+    else style = 'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);';
+    html += '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;margin:1px;cursor:pointer;' + style + '" onclick="currentQ=' + i + ';renderQuestion();saveProgress();" title="' + questions[i].group + questions[i].num + '"></span>';
   }
   document.getElementById('reviewDots').innerHTML = html;
 }
 
 function updateProgress() {
   var answered = answers.filter(function(a) { return a !== null; }).length;
-  var pct = Math.round(answered / questions.length * 100);
-  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressBar').style.width = Math.round(answered / questions.length * 100) + '%';
 }
 
 // ============== Parent Communication ==============
-function notifyParent(score, iq, percentile) {
+function notifyParent(score, pct) {
   try {
     window.parent.postMessage({
-      type: 'xuanba_result',
-      studentId: studentId,
-      score: score,
-      iq: iq,
-      percentile: percentile,
-      timeSeconds: timerSeconds
+      type: 'xuanba_result', studentId: studentId, score: score, pct: pct, timeSeconds: timerSeconds
     }, '*');
   } catch(e) {}
 }
 
 function closeTest() {
-  notifyParent(0, 0, 0); // Signal done
   try { window.parent.postMessage({ type: 'xuanba_close' }, '*'); } catch(e) {}
 }
 
-// ============== Init on load ==============
-// Try loading immediately if data is available (standalone mode)
+// ============== Standalone fallback ==============
 window.addEventListener('DOMContentLoaded', function() {
-  if (typeof XUANBA_QUESTIONS !== 'undefined') {
-    questions = XUANBA_QUESTIONS;
-    // For standalone testing, create a demo student
-    studentId = 'demo_standalone';
-    STORAGE_KEY += studentId;
-    ATTEMPT_KEY += studentId;
-    showScreen('intro');
-    document.getElementById('screenLoading').classList.remove('active');
-  } else {
-    // Wait for postMessage
-    setTimeout(function() {
-      if (typeof XUANBA_QUESTIONS !== 'undefined') {
-        questions = XUANBA_QUESTIONS;
-        studentId = 'demo_timeout';
-        STORAGE_KEY += studentId;
-        ATTEMPT_KEY += studentId;
-        showScreen('intro');
-        document.getElementById('screenLoading').classList.remove('active');
-      }
-    }, 3000);
-  }
+  setTimeout(function() {
+    if (typeof XUANBA_QUESTIONS !== 'undefined' && questions.length === 0) {
+      questions = XUANBA_QUESTIONS;
+      studentId = 'demo';
+      STORAGE_KEY += studentId; ATTEMPT_KEY += studentId;
+      showScreen('intro');
+      document.getElementById('screenLoading').classList.remove('active');
+    }
+  }, 2000);
 });
 </script>
 </body>

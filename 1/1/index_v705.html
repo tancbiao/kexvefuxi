@@ -1937,7 +1937,7 @@ const gameState = {
   ladderBestScore: 0,    // 🆕 v705: 天梯最高分
   ladderTier: null,      // 🆕 v705: 天梯段位 {name, icon, color, sub}
   xuanbaBestScore: 0,    // 🆕 v710: 校队选拔最高分
-  xuanbaBestIQ: 0,       // 🆕 v710: 校队选拔最高IQ
+  xuanbaBestPct: 0,      // 🆕 v710: 校队选拔最高正确率
   totalQuestionsAnswered: 0,
   totalCorrectAnswers: 0, // 累计答对题数
   retrySuccessCount: 0,
@@ -2046,7 +2046,7 @@ function loginWithId() {
   gameState.ladderPoints = 0;
   gameState.ladderTier = null;
   gameState.xuanbaBestScore = 0;
-  gameState.xuanbaBestIQ = 0;
+  gameState.xuanbaBestPct = 0;
   // 重置错题本渲染缓存，让新账号重新渲染
   window._wrongQuestionsLoaded = false;
   gameState.studentId = id;
@@ -2113,7 +2113,7 @@ function loginAsGuest() {
   gameState.ladderPoints = 0;
   gameState.ladderTier = null;
   gameState.xuanbaBestScore = 0;
-  gameState.xuanbaBestIQ = 0;
+  gameState.xuanbaBestPct = 0;
   window._wrongQuestionsLoaded = false;
   gameState.studentId = null;
   gameState.isGuest = true;
@@ -2161,7 +2161,7 @@ function logout() {
   gameState.ladderPoints = 0;
   gameState.ladderTier = null;
   gameState.xuanbaBestScore = 0;
-  gameState.xuanbaBestIQ = 0;
+  gameState.xuanbaBestPct = 0;
   window._wrongQuestionsLoaded = false;
   localStorage.removeItem('rememberedStudentId');
   document.getElementById('uploadCloudBtn').style.display = 'none';
@@ -5643,7 +5643,7 @@ window.addEventListener('message', function(e) {
   if (e.data && e.data.type === 'xuanba_result') {
     if (gameState && e.data.score !== undefined) {
       gameState.xuanbaBestScore = Math.max(gameState.xuanbaBestScore || 0, e.data.score || 0);
-      gameState.xuanbaBestIQ = Math.max(gameState.xuanbaBestIQ || 0, e.data.iq || 0);
+      gameState.xuanbaBestPct = Math.max(gameState.xuanbaBestPct || 0, e.data.pct || 0);
       saveUserData();
     }
   }

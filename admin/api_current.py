@@ -170,7 +170,7 @@ def student(grade, studentId):
         numeric_max_keys = [
             'totalPoints', 'totalQuestionsAnswered', 'totalCorrectAnswers',
             'towerHighestFloor', 'towerCoins', 'ladderBestScore',
-            'dailyStamina', 'xuanbaBestScore', 'xuanbaBestIQ'
+            'dailyStamina', 'xuanbaBestScore', 'xuanbaBestPct'
         ]
         for k in numeric_max_keys:
             merged[k] = max(
