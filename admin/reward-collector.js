@@ -109,15 +109,19 @@ async function collectPendingRewards(studentId, showNotification) {
         }
       } else if (reward.type === 'equip') {
         if (typeof gameState !== 'undefined' && Array.isArray(gameState.equipment)) {
-          const emptySlot = gameState.equipment.findIndex(e => e === null);
-          if (emptySlot >= 0) {
-            gameState.equipment[emptySlot] = {
-              id: reward.id,
-              obtainedAt: Date.now(),
-              from: 'reward'
-            };
-            granted.push({ type: 'equip', id: reward.id });
-          }
+          // 优先使用完整的装备数据，否则用最小格式
+          var equipObj = reward.equipData || {
+            id: reward.id,
+            obtainedAt: Date.now(),
+            from: 'reward'
+          };
+          if (!equipObj.obtainedAt) equipObj.obtainedAt = Date.now();
+          if (!equipObj.source && !equipObj.from) equipObj.source = 'reward';
+          
+          // 确保装备数组无null
+          gameState.equipment = gameState.equipment.filter(function(e) { return e !== null; });
+          gameState.equipment.push(equipObj);
+          granted.push({ type: 'equip', id: reward.id });
         }
       } else if (reward.type === 'pet') {
         if (typeof gameState !== 'undefined' && gameState.petSystem) {
