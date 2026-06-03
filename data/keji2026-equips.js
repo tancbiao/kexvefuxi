@@ -5954,7 +5954,7 @@ function grantKeji2026Equip() {
         var grantKey = 'keji2026_granted_' + (studentId || studentName);
         if (localStorage.getItem(grantKey)) return;
         
-        // 检查背包是否已有此装备
+        // 检查背包是否已有此装备（兼容null填充数组和普通数组）
         if (gameState.equipment && Array.isArray(gameState.equipment)) {
             var hasEquip = gameState.equipment.some(function(e) {
                 return e && e.id === equip.id;
@@ -5965,7 +5965,7 @@ function grantKeji2026Equip() {
             }
         }
         
-        // 初始化装备数组
+        // 初始化装备数组（适配500格上限）
         if (!gameState.equipment) gameState.equipment = [];
         if (!Array.isArray(gameState.equipment)) gameState.equipment = [];
         
@@ -5976,6 +5976,14 @@ function grantKeji2026Equip() {
         var equipCopy = JSON.parse(JSON.stringify(equip));
         equipCopy.obtainedAt = Date.now();
         equipCopy.source = '2026科技节专属';
+        // 兼容游戏背包字段名（背包渲染用 pointBonus/effect/affixDetails）
+        equipCopy.pointBonus = equipCopy.multiplier || 3.0;
+        equipCopy.effect = equipCopy.desc || '';
+        if (equipCopy.affixes && Array.isArray(equipCopy.affixes)) {
+            equipCopy.affixDetails = equipCopy.affixes.map(function(a) {
+                return { name: a.name, value: a.effect, unit: '' };
+            });
+        }
         gameState.equipment.push(equipCopy);
         
         // 标记已发放

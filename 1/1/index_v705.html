@@ -10,7 +10,7 @@
 <!-- PAGE_VERSION 用于版本自检：url?v= 不匹配时自动跳转最新 -->
 <script>
 (function(){
-  var PAGE_VERSION = '20260523';
+  var PAGE_VERSION = '20260603';
   var m = location.search.match(/[?&]v=(\d+)/);
   if (m && m[1] !== PAGE_VERSION) {
     location.replace(location.pathname + '?v=' + PAGE_VERSION);
@@ -2819,7 +2819,7 @@ function dropEquip(levelKey) {
   const rarityNum = LEVEL_TO_RARITY[levelKey] || (typeof levelKey === 'number' ? levelKey : 1);
   const equip = generateEquip(rarityNum, typeInfo.id);
 
-  if (!gameState.equipment) gameState.equipment = new Array(100).fill(null);
+  if (!gameState.equipment) gameState.equipment = new Array(500).fill(null);
   const items = gameState.equipment.filter(Boolean);
   const exists = items.find(e => e.id === equip.id);
   if (!exists) {
@@ -4568,15 +4568,15 @@ function applyUserData(data) {
   gameState.lessonProgress = data.lessonProgress || {};
   gameState.unlockedAchievements = data.unlockedAchievements || [];
   gameState.equipment = data.equipment || [];
-  // 兼容旧存档：转换为100格数组
-  if (gameState.equipment.length > 0 && gameState.equipment.length !== 100) {
+  // 兼容旧存档：转换为500格数组
+  if (gameState.equipment.length > 0 && gameState.equipment.length !== 500) {
     const items = gameState.equipment.filter(Boolean);
-    const inv = new Array(100).fill(null);
-    items.forEach((item, i) => { if (i < 100) inv[i] = item; });
+    const inv = new Array(500).fill(null);
+    items.forEach((item, i) => { if (i < 500) inv[i] = item; });
     gameState.equipment = inv;
   }
   if (gameState.equipment.length === 0) {
-    gameState.equipment = new Array(100).fill(null);
+    gameState.equipment = new Array(500).fill(null);
   }
   gameState.equipDropped = data.equipDropped || {};
   gameState.wrongQuestions = data.wrongQuestions || [];
@@ -4669,6 +4669,8 @@ const bpEquippedSlots62 = {
   face: null, eyes: null,
   treasure: [null, null]
 };
+var bpCurrentPage = 1;
+var BP_PAGE_SIZE = 50;
 
 const SLOT_MAP_62 = {
   weapon:   ['weapon','武器','剑','弓','杖','魔杖','短剑','长矛','矛','刀'],
@@ -5041,11 +5043,11 @@ function bpUnequipByIdx62(idx) {
 }
 
 function initInventory62() {
-  if (!gameState.equipment) { gameState.equipment = new Array(100).fill(null); return; }
-  if (gameState.equipment.length !== 100 || gameState.equipment.length === undefined) {
+  if (!gameState.equipment) { gameState.equipment = new Array(500).fill(null); return; }
+  if (gameState.equipment.length !== 500 || gameState.equipment.length === undefined) {
     const items = gameState.equipment.filter(Boolean);
-    const inv = new Array(100).fill(null);
-    items.forEach((item, i) => { if (i < 100) inv[i] = item; });
+    const inv = new Array(500).fill(null);
+    items.forEach((item, i) => { if (i < 500) inv[i] = item; });
     gameState.equipment = inv;
   }
 }
@@ -5123,32 +5125,51 @@ function updateCharPanel62() {
     `<div class="bp-rarity-row"><span><span class="bp-rarity-dot" style="background:${RARITY_COLORS62[i]}"></span>${n}</span><span style="color:${RARITY_COLORS62[i]}">${counts[i]}</span></div>`
   ).join('');
   document.getElementById('bpEquipCount').textContent = items.length;
-  document.getElementById('bpSlotCount').textContent = items.length + '/100';
+  document.getElementById('bpSlotCount').textContent = items.length + '/500';
 }
 
 function renderInventoryGrid62() {
   const grid = document.getElementById('backpackGrid');
-  if (!gameState.equipment) gameState.equipment = new Array(100).fill(null);
-  grid.innerHTML = gameState.equipment.map((e, i) => {
-    if (!e) return `<div class="inventory-slot empty" data-slot="${i}"></div>`;
+  if (!gameState.equipment) gameState.equipment = new Array(500).fill(null);
+  const totalItems = gameState.equipment.filter(Boolean).length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / BP_PAGE_SIZE));
+  if (bpCurrentPage > totalPages) bpCurrentPage = totalPages;
+  const start = (bpCurrentPage - 1) * BP_PAGE_SIZE;
+  const end = Math.min(start + BP_PAGE_SIZE, gameState.equipment.length);
+  // 仅渲染当前页的格子
+  var pageSlots = gameState.equipment.slice(start, end);
+  grid.innerHTML = pageSlots.map(function(e, pi) {
+    var i = start + pi;
+    if (!e) return '<div class="inventory-slot empty" data-slot="' + i + '"></div>';
     const r = e.rarity || 1;
     const color = RARITY_COLORS62[r - 1] || '#9e9e9e';
     const mult = e.pointBonus >= 2 ? e.pointBonus : 1 + (e.pointBonus || 0);
-    const affixText = e.affixDetails ? e.affixDetails.map(a => a.name).join('、') : '';
+    const affixText = e.affixDetails ? e.affixDetails.map(function(a) { return a.name; }).join('、') : '';
     const isEquipped = isEquippedIdx62(i);
     const equippedStyle = isEquipped ? 'background:rgba(255,215,0,0.15);border-color:rgba(255,215,0,0.6) !important;' : '';
     const equipTag = isEquipped ? '<div style="position:absolute;top:2px;right:2px;font-size:0.5em;background:#ffd700;color:#000;padding:1px 3px;border-radius:3px;z-index:1;">装</div>' : '';
-    return `<div class="inventory-slot" data-slot="${i}" data-rarity="${r}" style="border-color:${color}40;${equippedStyle}" onclick="showEquipDetail62(${i})">
-      ${equipTag}
-      ${e.icon}
-      <div class="bp-tooltip">
-        <div class="bp-tooltip-name" style="color:${color}">${e.name}</div>
-        <div class="bp-tooltip-stats">×${mult.toFixed(2)} ${e.effect || ''}</div>
-        ${isEquipped ? '<div style="color:#ffd700;">【已穿戴】</div>' : ''}
-        ${affixText ? `<div class="bp-tooltip-affix">${affixText}</div>` : ''}
-      </div>
-    </div>`;
+    return '<div class="inventory-slot" data-slot="' + i + '" data-rarity="' + r + '" style="border-color:' + color + '40;' + equippedStyle + '" onclick="showEquipDetail62(' + i + ')">' +
+      equipTag + e.icon +
+      '<div class="bp-tooltip">' +
+        '<div class="bp-tooltip-name" style="color:' + color + '">' + e.name + '</div>' +
+        '<div class="bp-tooltip-stats">×' + mult.toFixed(2) + ' ' + (e.effect || '') + '</div>' +
+        (isEquipped ? '<div style="color:#ffd700;">【已穿戴】</div>' : '') +
+        (affixText ? '<div class="bp-tooltip-affix">' + affixText + '</div>' : '') +
+      '</div>' +
+    '</div>';
   }).join('');
+  // 更新页码显示
+  var pageEl = document.getElementById('bpPageIndicator');
+  if (pageEl) pageEl.textContent = '第 ' + bpCurrentPage + '/' + totalPages + ' 页';
+}
+
+function bpPrevPage() {
+  if (bpCurrentPage > 1) { bpCurrentPage--; renderInventoryGrid62(); }
+}
+function bpNextPage() {
+  var totalItems = gameState.equipment.filter(Boolean).length;
+  var totalPages = Math.max(1, Math.ceil(totalItems / BP_PAGE_SIZE));
+  if (bpCurrentPage < totalPages) { bpCurrentPage++; renderInventoryGrid62(); }
 }
 
 function showEquipDetail62(slotIdx) {
@@ -5214,7 +5235,7 @@ function bpUnequipItem(equipId) {
 function bpSort62() {
   if (!gameState.equipment) return;
   const items = gameState.equipment.filter(Boolean).sort((a, b) => (b.rarity || 1) - (a.rarity || 1));
-  gameState.equipment = new Array(100).fill(null);
+  gameState.equipment = new Array(500).fill(null);
   items.forEach((e, i) => { gameState.equipment[i] = e; });
   renderInventoryGrid62();
   updateCharPanel62();
@@ -5280,6 +5301,7 @@ function bpClear62() {
 }
 
 function showBackpack() {
+  bpCurrentPage = 1;
   initInventory62();
   loadEquippedState62();
   renderInventoryGrid62();
@@ -6855,11 +6877,16 @@ function checkTowerRewards() {
   </div>
 </div>
 
-<!-- 背包弹窗（暗黑100格网格版） -->
+<!-- 背包弹窗（暗黑500格网格版，50格/页翻页） -->
 <div class="backpack-overlay" id="backpackOverlay">
   <div class="backpack-card">
     <div class="backpack-header">
       <div class="backpack-title">🎒 我的背包 <span id="bpSlotCount" style="font-size:0.8em;color:#666;font-weight:normal;"></span></div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <button onclick="bpPrevPage()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#aaa;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:0.8em;">◀</button>
+        <span id="bpPageIndicator" style="font-size:0.8em;color:#888;min-width:80px;text-align:center;">第 1/1 页</span>
+        <button onclick="bpNextPage()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#aaa;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:0.8em;">▶</button>
+      </div>
       <button class="backpack-close" onclick="closeBackpack()">✕</button>
     </div>
     <div class="bp-layout">
@@ -6910,7 +6937,7 @@ function checkTowerRewards() {
       <div class="bp-inventory-area">
         <div class="bp-inventory-header">
           <span class="bp-inventory-title">已获得装备</span>
-          <span class="bp-inventory-count"><span id="bpEquipCount">0</span>/100</span>
+          <span class="bp-inventory-count"><span id="bpEquipCount">0</span>/500</span>
         </div>
         <div class="backpack-grid" id="backpackGrid"></div>
       </div>
