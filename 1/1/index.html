@@ -3927,49 +3927,74 @@ async function migrateAndSyncCloud(studentId, localData) {
 function loadUserData() {
   if (gameState.isGuest) return;
   const saveKey = 'scienceGame_user_' + gameState.studentId;
-  const saved = localStorage.getItem(saveKey);
-  const localData = saved ? JSON.parse(saved) : null;
 
-  // v712: 迁移后不再写 localStorage，检测到旧数据先上传云端再清除
-  var hasLocal = !!localData;
+  // v712: 迁移窗口 — 前10次登录检查本地存档
+  var _migrateCount = parseInt(localStorage.getItem('_v712_migrate_count') || '0');
+  var inWindow = _migrateCount < 10;
 
-  // 旧年级数据迁移 → 云端（仅执行一次）
-  migrateOldGradesToLocal(gameState.studentId);
+  if (inWindow) {
+    // 旧年级迁移
+    migrateOldGradesToLocal(gameState.studentId);
+    // 拿到最终本地存档
+    var finalSaved = localStorage.getItem(saveKey);
+    var finalLocal = finalSaved ? JSON.parse(finalSaved) : null;
 
-  // 最终迁移后的本地数据
-  var finalSaved = localStorage.getItem(saveKey);
-  var finalLocal = finalSaved ? JSON.parse(finalSaved) : null;
-
-  // 如果有本地数据，先上传到云端
-  if (finalLocal) {
-    saveToCloud(gameState.studentId, finalLocal);
-    localStorage.removeItem(saveKey);
-    // 也清除旧的 per-grade key
-    ['3','4','5','6'].forEach(function(g) {
-      localStorage.removeItem('scienceGame' + g + '_user_' + gameState.studentId);
-    });
+    if (finalLocal) {
+      // 对比云端时间戳，谁新留谁
+      loadFromCloud(gameState.studentId).then(function(cloudData) {
+        var localTs = finalLocal.lastUpdated || 0;
+        var cloudTs = cloudData ? (cloudData.lastUpdated || 0) : 0;
+        if (localTs > cloudTs) {
+          // 本地更新 → 上传云端覆盖
+          saveToCloud(gameState.studentId, finalLocal);
+          console.log('v712 migrate: local newer, uploaded (' + localTs + ' > ' + cloudTs + ')');
+        }
+        // 清除本地存档 + 旧年级 key
+        localStorage.removeItem(saveKey);
+        ['3','4','5','6'].forEach(function(g) {
+          localStorage.removeItem('scienceGame' + g + '_user_' + gameState.studentId);
+        });
+        // 用云端数据（或刚上传的本地数据）
+        applyUserData(cloudData && cloudTs >= localTs ? cloudData : finalLocal);
+        afterLoad();
+        _incrementMigrateCount();
+      }).catch(function() {
+        // 云端不可用：先用本地，保留本地不清除
+        applyUserData(finalLocal);
+        afterLoad();
+        _incrementMigrateCount();
+      });
+      return;
+    }
+    // 无本地存档，也计数
+    _incrementMigrateCount();
   }
 
-  // 从云端加载
+  // 纯云端加载
   loadFromCloud(gameState.studentId).then(function(cloudData) {
     if (cloudData) {
       applyUserData(cloudData);
-      console.log('v712: 从云端加载存档成功');
-    } else if (finalLocal) {
-      // 云端无数据但刚上传了 → 用刚上传的数据
-      applyUserData(finalLocal);
+      console.log('v712: cloud load OK');
     }
-    // 领取奖励
-    if (typeof collectPendingRewards === 'function') {
-      collectPendingRewards(gameState.studentId, showAchievementUnlock);
-    }
+    afterLoad();
   }).catch(function(e) {
-    console.error('云端加载失败:', e);
-    if (finalLocal) {
-      applyUserData(finalLocal);
-      showToast('⚠️ 云端暂时不可用，已加载本地缓存', 'warn');
-    }
+    console.error('v712: cloud load failed', e);
+    showToast('⚠️ 云端暂时不可用，请稍后重试', 'warn');
   });
+}
+
+function _incrementMigrateCount() {
+  var n = parseInt(localStorage.getItem('_v712_migrate_count') || '0') + 1;
+  localStorage.setItem('_v712_migrate_count', n);
+  if (n >= 10) {
+    console.log('v712: migrate window closed after ' + n + ' logins');
+  }
+}
+
+function afterLoad() {
+  if (typeof collectPendingRewards === 'function') {
+    collectPendingRewards(gameState.studentId, showAchievementUnlock);
+  }
 }
 
 function migrateOldGradesToLocal(studentId) {
