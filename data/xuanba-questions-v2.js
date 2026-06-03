@@ -1,6 +1,5 @@
-// xuanba-questions-v2.js — 瑞文标准推理测验题库（60题）
-// 图片: data/xuanba-images/ (492 PNG files)
-// 题量: 60题，A-E各12题
+// xuanba-questions-v2.js — 推理测验题库
+// 修正: A8→1, E7→1
 var XUANBA_QUESTIONS = [
   {
     "id": 1,
@@ -127,7 +126,7 @@ var XUANBA_QUESTIONS = [
       "data/xuanba-images/A8_05.png",
       "data/xuanba-images/A8_06.png"
     ],
-    "correct": 1,
+    "correct": 0,
     "optionCount": 6
   },
   {
@@ -941,7 +940,7 @@ var XUANBA_QUESTIONS = [
       "data/xuanba-images/E7_07.png",
       "data/xuanba-images/E7_08.png"
     ],
-    "correct": 3,
+    "correct": 0,
     "optionCount": 8
   },
   {
