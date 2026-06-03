@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="expires" content="0">
-<title>🔮 科学探险家 · 统一闯关系统 v709</title>
-<!-- v709: 天梯队位彩色徽章+爬塔换号隔离+共享月考题库+错题本AI讲解 -->
+<title>🔮 科学探险家 · 统一闯关系统 v710</title>
+<!-- v710: 校队选拔推理测试 + v709: 天梯队位彩色徽章+爬塔换号隔离+共享月考题库+错题本AI讲解 -->
 <!-- PAGE_VERSION 用于版本自检：url?v= 不匹配时自动跳转最新 -->
 <script>
 (function(){
@@ -1111,6 +1111,46 @@
   border-radius: 12px;
 }
 
+/* ====== 校队选拔弹窗 ====== */
+.xuanba-modal {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.88);
+  display: none; justify-content: center; align-items: center;
+  z-index: 2200;
+  animation: fadeIn 0.3s;
+}
+.xuanba-modal.show { display: flex; }
+.xuanba-modal-content {
+  background: rgba(15,15,25,0.98);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255,215,0,0.15);
+  border-radius: 20px;
+  padding: 0;
+  max-width: 860px;
+  width: 96%;
+  max-height: 95vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.xuanba-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.xuanba-modal-title { font-size: 1.2em; font-weight: 700; }
+.xuanba-modal-close {
+  background: none; border: none; color: rgba(255,255,255,0.5);
+  font-size: 1.5em; cursor: pointer; padding: 4px 10px; border-radius: 8px;
+}
+.xuanba-modal-close:hover { background: rgba(255,255,255,0.2); }
+.xuanba-modal iframe {
+  width: 100%; flex: 1; min-height: 620px;
+  border: none; display: block;
+}
+
 
 /* ====== 选课界面 ====== */
 .course-grid {
@@ -1529,6 +1569,10 @@
       <span class="status-icon">📊</span>
       <span style="color:#4ade80" id="syncBtnLabel">成绩分析</span>
     </div>
+    <div class="status-item" id="xuanbaBtn" style="cursor:pointer;" onclick="showXuanbaModal()" title="推理能力评估测试">
+      <span class="status-icon">🧠</span>
+      <span style="color:#c084fc">校队选拔</span>
+    </div>
     <div class="status-item" id="uploadCloudBtn" style="cursor:pointer;display:none;" onclick="manualCloudUpload()" title="上传进度到云端（在家做完后点一下）">
       <span class="status-icon">☁️</span>
       <span style="color:#60a5fa" id="uploadCloudLabel">上传</span>
@@ -1752,6 +1796,17 @@ var CLASS012102_IDS = ["01210236", "01210206", "01210222", "01210223", "01210231
   </div>
 </div>
 
+<!-- ====== 校队选拔弹窗 ====== -->
+<div class="xuanba-modal" id="xuanbaModal">
+  <div class="xuanba-modal-content">
+    <div class="xuanba-modal-header">
+      <div class="xuanba-modal-title">🧠 校队选拔 · 推理能力测试</div>
+      <button class="xuanba-modal-close" onclick="closeXuanbaModal()">✕</button>
+    </div>
+    <iframe id="xuanbaIframe" src="../../xuanba.html"></iframe>
+  </div>
+</div>
+
 <script>
 const equipmentSystem = {
   levels: typeof EQUIP_RARITY !== 'undefined' ? EQUIP_RARITY : {},
@@ -1881,6 +1936,8 @@ const gameState = {
   ladderPoints: 0,       // 🆕 v705: 天梯积分
   ladderBestScore: 0,    // 🆕 v705: 天梯最高分
   ladderTier: null,      // 🆕 v705: 天梯段位 {name, icon, color, sub}
+  xuanbaBestScore: 0,    // 🆕 v710: 校队选拔最高分
+  xuanbaBestIQ: 0,       // 🆕 v710: 校队选拔最高IQ
   totalQuestionsAnswered: 0,
   totalCorrectAnswers: 0, // 累计答对题数
   retrySuccessCount: 0,
@@ -1988,6 +2045,8 @@ function loginWithId() {
   gameState.ladderBestScore = 0;
   gameState.ladderPoints = 0;
   gameState.ladderTier = null;
+  gameState.xuanbaBestScore = 0;
+  gameState.xuanbaBestIQ = 0;
   // 重置错题本渲染缓存，让新账号重新渲染
   window._wrongQuestionsLoaded = false;
   gameState.studentId = id;
@@ -2053,6 +2112,8 @@ function loginAsGuest() {
   gameState.ladderBestScore = 0;
   gameState.ladderPoints = 0;
   gameState.ladderTier = null;
+  gameState.xuanbaBestScore = 0;
+  gameState.xuanbaBestIQ = 0;
   window._wrongQuestionsLoaded = false;
   gameState.studentId = null;
   gameState.isGuest = true;
@@ -2099,6 +2160,8 @@ function logout() {
   gameState.ladderBestScore = 0;
   gameState.ladderPoints = 0;
   gameState.ladderTier = null;
+  gameState.xuanbaBestScore = 0;
+  gameState.xuanbaBestIQ = 0;
   window._wrongQuestionsLoaded = false;
   localStorage.removeItem('rememberedStudentId');
   document.getElementById('uploadCloudBtn').style.display = 'none';
@@ -5459,7 +5522,31 @@ function closeLadderModal() {
   document.getElementById('ladderModal').classList.remove('show');
 }
 
-// 监听爬塔/天梯发来的积分变动
+// ====== 校队选拔弹窗 ======
+function showXuanbaModal() {
+  if (!gameState.studentId || gameState.isGuest) {
+    showLoginScreen();
+    return;
+  }
+  var modal = document.getElementById('xuanbaModal');
+  var iframe = document.getElementById('xuanbaIframe');
+  modal.classList.add('show');
+  // 每次打开都重新加载 iframe，杜绝换号残留
+  iframe.src = '../../xuanba.html?' + Date.now();
+  iframe.onload = function() {
+    iframe.contentWindow.postMessage({
+      type: 'init_xuanba',
+      studentId: gameState.studentId,
+      studentName: gameState.studentName || '',
+      grade: gameState.studentId ? gameState.studentId.substring(2, 4) : ''
+    }, '*');
+  };
+}
+function closeXuanbaModal() {
+  document.getElementById('xuanbaModal').classList.remove('show');
+}
+
+// 监听爬塔/天梯/选拔发来的积分变动
 window.addEventListener('message', function(e) {
   if (e.data && e.data.type === 'tower_change') {
     if (gameState) {
@@ -5551,6 +5638,18 @@ window.addEventListener('message', function(e) {
         renderWrongQuestionList();
       }
     }
+  }
+  // 🆕 接收校队选拔结果
+  if (e.data && e.data.type === 'xuanba_result') {
+    if (gameState && e.data.score !== undefined) {
+      gameState.xuanbaBestScore = Math.max(gameState.xuanbaBestScore || 0, e.data.score || 0);
+      gameState.xuanbaBestIQ = Math.max(gameState.xuanbaBestIQ || 0, e.data.iq || 0);
+      saveUserData();
+    }
+  }
+  // 🆕 校队选拔关闭
+  if (e.data && e.data.type === 'xuanba_close') {
+    closeXuanbaModal();
   }
 });
 
