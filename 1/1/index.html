@@ -2833,15 +2833,14 @@ function saveUserData() {
     petPieces: petPieces,
     dailyStamina: gameState.dailyStamina,
     lastStaminaDate: gameState.lastStaminaDate,
-    towerHighestFloor: gameState.towerHighestFloor || 0,  // 🆕 v610
-    towerCoins: gameState.towerCoins || 0,               // 🆕 v610
-    gradeDataMerged: true, // 跨年级迁移标记（防止每次登录重复合并）
-    // 🆕 v611: 防刷分 - 活动奖励领取标记同步到云端
+    towerHighestFloor: gameState.towerHighestFloor || 0,
+    towerCoins: gameState.towerCoins || 0,
+    gradeDataMerged: true,
     dailyLoginDate: gameState.dailyLoginDate || '',
     towerRewardsClaimed: gameState.towerRewardsClaimed || {},
     lastUpdated: Date.now()
   };
-  localStorage.setItem('scienceGame_user_' + gameState.studentId, JSON.stringify(data));
+  // v712: 纯云端存储，不再写 localStorage
   saveToCloud(gameState.studentId, data);
   pushRankingData();
 }
@@ -3000,12 +2999,9 @@ async function manualCloudUpload() {
     return;
   }
   var label = document.getElementById('uploadCloudLabel');
-  var oldText = label ? label.textContent : '上传';
   if (label) { label.textContent = '上传中...'; label.style.color = '#60a5fa'; }
-
   try {
-    // 先确保本地已保存
-    var data = {
+    await saveToCloud(gameState.studentId, {
       totalPoints: gameState.totalPoints || 0,
       lessonProgress: gameState.lessonProgress || {},
       unlockedAchievements: gameState.unlockedAchievements || [],
@@ -3023,23 +3019,16 @@ async function manualCloudUpload() {
       towerCoins: gameState.towerCoins || 0,
       gradeDataMerged: true,
       lastUpdated: Date.now()
-    };
-    // 保存到本地
-    localStorage.setItem('scienceGame_user_' + gameState.studentId, JSON.stringify(data));
-    // 等待云端保存完成
-    await saveToCloud(gameState.studentId, data);
-    
-    var progressCount = Object.values(data.lessonProgress || {}).filter(function(v) { return v >= 1; }).length;
-    showToast('☁️ 上传成功！已保存 ' + progressCount + ' 课进度，到学校点"下载"即可恢复', 'success', 5000);
-    if (label) { label.textContent = '✅ 已上传'; label.style.color = '#4ade80'; }
+    });
+    showToast('☁️ 已保存到云端', 'success', 3000);
+    if (label) { label.textContent = '✅'; label.style.color = '#4ade80'; }
     setTimeout(function() {
       var lbl = document.getElementById('uploadCloudLabel');
       if (lbl) { lbl.textContent = '上传'; lbl.style.color = '#60a5fa'; }
     }, 3000);
   } catch(e) {
-    console.error('手动上传失败:', e);
-    showToast('❌ 上传失败，请检查网络后重试', 'error');
-    if (label) { label.textContent = oldText; }
+    showToast('❌ 上传失败，请检查网络', 'error');
+    if (label) { label.textContent = '上传'; }
   }
 }
 
@@ -3049,59 +3038,24 @@ async function manualCloudDownload() {
     return;
   }
   var label = document.getElementById('downloadCloudLabel');
-  var oldText = label ? label.textContent : '下载';
   if (label) { label.textContent = '下载中...'; label.style.color = '#fbbf24'; }
-
   try {
     var cloudData = await loadFromCloud(gameState.studentId);
     if (!cloudData) {
-      showToast('☁️ 云端暂无数据，请先在家做完练习后点"上传"', 'warn');
-      if (label) { label.textContent = oldText; }
+      showToast('☁️ 云端暂无数据', 'warn');
+      if (label) { label.textContent = '下载'; }
       return;
     }
-    // 构建当前本地数据
-    var localData = {
-      totalPoints: gameState.totalPoints || 0,
-      lessonProgress: gameState.lessonProgress || {},
-      unlockedAchievements: gameState.unlockedAchievements || [],
-      equipment: gameState.equipment || [],
-      equipDropped: gameState.equipDropped || {},
-      wrongQuestions: gameState.wrongQuestions || [],
-      syncedWrongQuestions: gameState.syncedWrongQuestions || [],
-      cloudQBank: gameState.cloudQBank || {},
-      lastSyncTime: gameState.lastSyncTime || null,
-      totalQuestionsAnswered: gameState.totalQuestionsAnswered || 0,
-      totalCorrectAnswers: gameState.totalCorrectAnswers || 0,
-      dailyStamina: gameState.dailyStamina,
-      lastStaminaDate: gameState.lastStaminaDate,
-      towerHighestFloor: gameState.towerHighestFloor || 0,
-      towerCoins: gameState.towerCoins || 0,
-      lastUpdated: Date.now()
-    };
-    // 合并云端数据
-    var merged = mergeUserData(localData, cloudData);
-    if (merged !== localData) {
-      applyUserData(merged);
-      var saveKey = 'scienceGame_user_' + gameState.studentId;
-      localStorage.setItem(saveKey, JSON.stringify(merged));
-      merged.lastUpdated = Date.now();
-      // 同步回云端（让云端也保持最新）
-      await saveToCloud(gameState.studentId, merged);
-      var progressCount = Object.values(merged.lessonProgress || {}).filter(function(v) { return v >= 1; }).length;
-      showToast('📥 下载成功！已恢复 ' + progressCount + ' 课进度', 'success', 4000);
-      if (label) { label.textContent = '✅ 已下载'; label.style.color = '#4ade80'; }
-    } else {
-      showToast('📥 云端数据与本地一致，无需更新', 'info');
-      if (label) { label.textContent = '已是最新'; label.style.color = '#fbbf24'; }
-    }
+    applyUserData(cloudData);
+    showToast('📥 已从云端恢复', 'success', 3000);
+    if (label) { label.textContent = '✅'; label.style.color = '#4ade80'; }
     setTimeout(function() {
       var lbl = document.getElementById('downloadCloudLabel');
       if (lbl) { lbl.textContent = '下载'; lbl.style.color = '#fbbf24'; }
     }, 3000);
   } catch(e) {
-    console.error('手动下载失败:', e);
-    showToast('❌ 下载失败，请检查网络后重试', 'error');
-    if (label) { label.textContent = oldText; }
+    showToast('❌ 下载失败，请检查网络', 'error');
+    if (label) { label.textContent = '下载'; }
   }
 }
 
@@ -3975,24 +3929,65 @@ function loadUserData() {
   const saveKey = 'scienceGame_user_' + gameState.studentId;
   const saved = localStorage.getItem(saveKey);
   const localData = saved ? JSON.parse(saved) : null;
-  if (localData) { applyUserData(localData); console.log('使用本地存档'); }
 
-  // 【迁移】从旧版本 per-grade key 迁移所有存档数据
-  var migrated = false;
+  // v712: 迁移后不再写 localStorage，检测到旧数据先上传云端再清除
+  var hasLocal = !!localData;
+
+  // 旧年级数据迁移 → 云端（仅执行一次）
+  migrateOldGradesToLocal(gameState.studentId);
+
+  // 最终迁移后的本地数据
+  var finalSaved = localStorage.getItem(saveKey);
+  var finalLocal = finalSaved ? JSON.parse(finalSaved) : null;
+
+  // 如果有本地数据，先上传到云端
+  if (finalLocal) {
+    saveToCloud(gameState.studentId, finalLocal);
+    localStorage.removeItem(saveKey);
+    // 也清除旧的 per-grade key
+    ['3','4','5','6'].forEach(function(g) {
+      localStorage.removeItem('scienceGame' + g + '_user_' + gameState.studentId);
+    });
+  }
+
+  // 从云端加载
+  loadFromCloud(gameState.studentId).then(function(cloudData) {
+    if (cloudData) {
+      applyUserData(cloudData);
+      console.log('v712: 从云端加载存档成功');
+    } else if (finalLocal) {
+      // 云端无数据但刚上传了 → 用刚上传的数据
+      applyUserData(finalLocal);
+    }
+    // 领取奖励
+    if (typeof collectPendingRewards === 'function') {
+      collectPendingRewards(gameState.studentId, showAchievementUnlock);
+    }
+  }).catch(function(e) {
+    console.error('云端加载失败:', e);
+    if (finalLocal) {
+      applyUserData(finalLocal);
+      showToast('⚠️ 云端暂时不可用，已加载本地缓存', 'warn');
+    }
+  });
+}
+
+function migrateOldGradesToLocal(studentId) {
+  // 从旧 per-grade key 迁移到统一存档
   var oldGrades = ['3', '4', '5', '6'];
   var mergedEquip = [];
   var mergedPoints = gameState.totalPoints || 0;
   var mergedAchievements = gameState.unlockedAchievements || [];
   var mergedSlots = {};
+  var migrated = false;
 
   for (var gi = 0; gi < oldGrades.length; gi++) {
     try {
-      var oldKey = 'scienceGame' + oldGrades[gi] + '_user_' + gameState.studentId;
+      var oldKey = 'scienceGame' + oldGrades[gi] + '_user_' + studentId;
       var oldRaw = localStorage.getItem(oldKey);
       if (oldRaw) {
         var oldData = JSON.parse(oldRaw);
         if (oldData) {
-          // 合并装备（取装备最多的那个年级）
           if (oldData.equipment) {
             var equipCount = oldData.equipment.filter(Boolean).length;
             if (equipCount > mergedEquip.filter(Boolean).length) {
@@ -4000,37 +3995,31 @@ function loadUserData() {
               mergedSlots = oldData.equippedSlots || {};
             }
           }
-          // 合并积分（取最大值，防止累加bug）
           mergedPoints = Math.max(mergedPoints, oldData.totalPoints || 0);
-          // 合并成就
           if (oldData.unlockedAchievements) {
             oldData.unlockedAchievements.forEach(function(a) {
               if (mergedAchievements.indexOf(a) === -1) mergedAchievements.push(a);
             });
           }
-          // 迁移课时进度到 per-course key
           if (oldData.lessonProgress && Object.keys(oldData.lessonProgress).length > 0) {
-            var progressKey = 'progress_grade' + oldGrades[gi] + '2_' + gameState.studentId;
+            var progressKey = 'progress_grade' + oldGrades[gi] + '2_' + studentId;
             var existingProgress = {};
             try {
               var existingRaw = localStorage.getItem(progressKey);
               if (existingRaw) existingProgress = JSON.parse(existingRaw);
             } catch(e) {}
-            // 合并进度（取最大值）
             for (var lid in oldData.lessonProgress) {
               if (oldData.lessonProgress[lid] > (existingProgress[lid] || 0)) {
                 existingProgress[lid] = oldData.lessonProgress[lid];
               }
             }
             localStorage.setItem(progressKey, JSON.stringify(existingProgress));
-            console.log('✅ 已迁移' + oldGrades[gi] + '年级课时进度');
           }
-          // 删除旧 key
           localStorage.removeItem(oldKey);
           migrated = true;
         }
       }
-    } catch(e) { /* ignore one grade error */ }
+    } catch(e) {}
   }
 
   if (migrated) {
@@ -4038,6 +4027,8 @@ function loadUserData() {
     gameState.equippedSlots = mergedSlots;
     gameState.totalPoints = mergedPoints;
     gameState.unlockedAchievements = mergedAchievements;
+    // 写一次临时本地存档（上传云端后会清除）
+    var saveKey = 'scienceGame_user_' + studentId;
     localStorage.setItem(saveKey, JSON.stringify({
       totalPoints: gameState.totalPoints,
       equipment: gameState.equipment,
@@ -4046,47 +4037,8 @@ function loadUserData() {
       petPieces: gameState.petPieces || {},
       unlockedAchievements: gameState.unlockedAchievements
     }));
-    console.log('✅ 已迁移旧版本数据 (3/4/5/6年级合并)');
+    console.log('已迁移旧版本数据');
   }
-
-  // 【安全修复】从宠物系统的 localStorage 同步积分
-  // petSystemStateV2 是全局键，必须校验 studentId 防串号
-  try {
-    const petRaw = localStorage.getItem('petSystemStateV2_' + gameState.studentId);
-    if (petRaw) {
-      const petState = JSON.parse(petRaw);
-      // 必须 studentId 匹配，否则会串到别人的积分
-      if (petState && petState.studentId === gameState.studentId &&
-          petState.points > 0 && petState.points > (gameState.totalPoints || 0)) {
-        gameState.totalPoints = petState.points;
-        localStorage.setItem(saveKey, JSON.stringify(Object.assign({}, localData || {}, { totalPoints: gameState.totalPoints })));
-        console.log('已从宠物系统同步积分:', gameState.totalPoints);
-      }
-    }
-  } catch (e) { /* ignore */ }
-
-  // 【跨年级云端迁移】首次登录时合并旧年级数据（仅执行一次）
-  migrateAndSyncCloud(gameState.studentId, localData).then(function() {
-    // 迁移完成后重新读取本地存档（可能已被迁移更新）
-    var updatedSaved = localStorage.getItem(saveKey);
-    var updatedLocal = updatedSaved ? JSON.parse(updatedSaved) : localData;
-    // 正常云端同步
-    return loadFromCloud(gameState.studentId).then(function(cloudData) {
-      if (!cloudData) return;
-      var merged = mergeUserData(updatedLocal, cloudData);
-      if (merged !== updatedLocal) {
-        applyUserData(merged);
-        localStorage.setItem(saveKey, JSON.stringify(merged));
-        saveToCloud(gameState.studentId, merged);
-        console.log('已同步云端最新存档');
-      }
-    });
-  }).finally(function() {
-    // 领取待发放奖励（称号/装备/宠物）
-    if (typeof collectPendingRewards === 'function') {
-      collectPendingRewards(gameState.studentId, showAchievementUnlock);
-    }
-  });
 }
 
 function applyUserData(data) {
@@ -4155,7 +4107,7 @@ function applyUserData(data) {
   renderAchievementPreview();
   // 恢复装备槽（防止云端存档覆盖内存状态）
   loadEquippedState62();
-  saveUserData();
+  // v712: 纯云端存储，applyUserData 不触发 save（避免循环）
 }
 document.getElementById('loginBtn').addEventListener('click', loginWithId);
 document.getElementById('guestBtn').addEventListener('click', loginAsGuest);
