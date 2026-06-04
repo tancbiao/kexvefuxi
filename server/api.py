@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """
-科学复习系统 API v710 — 新增校队选拔
+科学复习系统 API v713 — 新增装备合成原子端点
 改动：
 1. _write_json_internal: os.replace() + PID 隔离 (修复竞态)
 2. student 端点: 智能合并 (Math.max/去重/并集/零分守卫)
 3. ranking 端点: 零分守卫 (保留原有)
 4. 新增 /api/xuanba/* 校队选拔 API
+5. v713: 新增 /api/synthesis/compose 装备合成原子端点（删除原料+生成新装备）
 """
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -423,6 +424,61 @@ def ladder_profile_save():
     return jsonify({'ok': True})
 
 
+# ==================== 装备合成 API (v713) ====================
+
+@app.route('/api/synthesis/compose', methods=['POST'])
+def synthesis_compose():
+    """装备合成：原子删除3件原料 + 添加1件新装备"""
+    body = request.json
+    if not body:
+        return jsonify({'error': '数据为空'}), 400
+
+    required = ['studentId', 'grade', 'ingredientIds', 'resultEquip']
+    for field in required:
+        if field not in body:
+            return jsonify({'error': f'缺少 {field}'}), 400
+
+    student_id = body['studentId']
+    grade = body['grade']  # e.g., 'grade_all'
+    ingredient_ids = body['ingredientIds']  # list of 3 equipment IDs
+    result_equip = body['resultEquip']  # new equipment object
+
+    if not isinstance(ingredient_ids, list) or len(ingredient_ids) != 3:
+        return jsonify({'error': '需要3件装备ID作为原料'}), 400
+    if not isinstance(result_equip, dict) or 'id' not in result_equip:
+        return jsonify({'error': 'resultEquip 格式不正确'}), 400
+
+    key = f'{grade}_{student_id}'
+
+    def updater(data):
+        existing = data.get(key, {})
+        equip_list = [e for e in (existing.get('equipment', []) or []) if e and isinstance(e, dict)]
+
+        # 操作1：删除对应的原始装备（按 ID 匹配）
+        found_count = 0
+        new_equip_list = []
+        for eq in equip_list:
+            if eq.get('id') in ingredient_ids:
+                found_count += 1
+            else:
+                new_equip_list.append(eq)
+
+        print(f'[SYNTHESIS] {key}: 找到 {found_count}/3 件原料, 生成新装备 {result_equip.get("id","?")[:16]}')
+
+        # 操作2：生成对应的新装备
+        new_equip_list.append(result_equip)
+
+        # 更新装备数据
+        updated = dict(existing)
+        updated['equipment'] = new_equip_list
+        updated['lastUpdated'] = int(time.time() * 1000)
+        data[key] = updated
+        return data
+
+    _atomic_read_write('students', updater)
+    return jsonify({'ok': True})
+
+
 # ==================== 校队选拔 API (v710) ====================
 
 @app.route('/api/xuanba/save', methods=['POST'])
@@ -516,7 +572,7 @@ def xuanba_ranking():
 
 @app.route('/api/health')
 def health():
-    return jsonify({'status': 'ok', 'time': time.time(), 'version': 'v710'})
+    return jsonify({'status': 'ok', 'time': time.time(), 'version': 'v713'})
 
 
 if __name__ == '__main__':

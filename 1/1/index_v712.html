@@ -6,11 +6,11 @@
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="expires" content="0">
 <title>🔮 科学探险家 · 统一闯关系统 v712</title>
-<!-- v712: 装备赠送+亲密值+合成系统+纯云端存档; v710: 校队选拔推理测试 -->
+<!-- v713: 装备合成改用原子API端点（删除原料+生成新装备）; v712: 装备赠送+亲密值+合成系统+纯云端存档; v710: 校队选拔推理测试 -->
 <!-- PAGE_VERSION 用于版本自检：url?v= 不匹配时自动跳转最新 -->
 <script>
 (function(){
-  var PAGE_VERSION = '20260603';
+  var PAGE_VERSION = '20260604';
   var m = location.search.match(/[?&]v=(\d+)/);
   if (m && m[1] !== PAGE_VERSION) {
     location.replace(location.pathname + '?v=' + PAGE_VERSION);
@@ -7466,7 +7466,7 @@ function synthesisAddToSlot(idx) {
 
 function synthesisAddFromDetail(idx) { showSynthesis(); synthesisAddToSlot(idx); }
 
-function executeSynthesis() {
+async function executeSynthesis() {
   var filled = _synthesisSlots.filter(function(s) { return s >= 0 && gameState.equipment[s]; });
   if (filled.length !== 3) { showToast('请放入3件装备', 'error'); return; }
   var e0 = gameState.equipment[filled[0]], e1 = gameState.equipment[filled[1]], e2 = gameState.equipment[filled[2]];
@@ -7496,6 +7496,35 @@ function executeSynthesis() {
     mp: Math.floor(avgMp * mult * (0.9 + Math.random() * 0.2)),
     effect: '合成装备', affixes: []
   };
+  // v713: 收集原料ID
+  var ingredientIds = [e0.id, e1.id, e2.id];
+  // 步骤1: 云端原子操作 — 删除原料 + 生成新装备
+  var btn = document.getElementById('synthesisBtn');
+  if (btn) { btn.className = 'synthesis-btn disabled'; btn.textContent = '合成中...'; }
+  try {
+    var apiUrl = API_BASE.replace('/api','') + '/api/synthesis/compose';
+    var apiRes = await fetchWithRetry(apiUrl, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        studentId: gameState.studentId,
+        grade: CLOUD_GRADE_KEY,
+        ingredientIds: ingredientIds,
+        resultEquip: newEquip
+      })
+    }, 2, 'synthesisCompose');
+    if (!apiRes.ok) {
+      var errData = null;
+      try { errData = await apiRes.json(); } catch(ex) {}
+      throw new Error((errData && errData.error) || ('HTTP ' + apiRes.status));
+    }
+  } catch (apiErr) {
+    console.error('🔴 合成API失败:', apiErr);
+    showToast('合成失败: ' + (apiErr.message || '云端未响应'), 'error', 5000);
+    if (btn) { btn.className = 'synthesis-btn ready'; btn.textContent = '⚗️ 开始合成'; }
+    return;
+  }
+  // 步骤2: 云端成功后，更新本地状态
   for (var i = 0; i < 3; i++) {
     var slot = _synthesisSlots[i];
     gameState.equipment[slot] = null;
@@ -7510,7 +7539,8 @@ function executeSynthesis() {
   var nullIdx = gameState.equipment.indexOf(null);
   if (nullIdx >= 0) gameState.equipment[nullIdx] = newEquip;
   else gameState.equipment.push(newEquip);
-  saveUserData();
+  // 保存课时进度到localStorage
+  if (currentCourse) { var pgKey = 'progress_grade' + currentCourse.grade + currentCourse.sem + '_' + gameState.studentId; localStorage.setItem(pgKey, JSON.stringify(gameState.lessonProgress)); }
   _synthesisSlots = [-1, -1, -1];
   renderSynSlots(); renderSynPickGrid(); updateSynResult();
   if (typeof renderInventoryGrid62 === 'function') { renderInventoryGrid62(); updateCharPanel62(); }
