@@ -524,7 +524,7 @@ function submitTest() {
   showScreen('result');
   saveAttempt(correct, ra, percentile);
   clearProgress();
-  notifyParent(correct, ra);
+  notifyParent(correct, ra, percentile);
   loadRanking();
 }
 
@@ -643,8 +643,8 @@ function updateProgress() {
 }
 
 // ============== Parent ==============
-function notifyParent(score, ra) {
-  try { window.parent.postMessage({ type:'xuanba_result', studentId:studentId, score:score, ra:ra }, '*'); } catch(e) {}
+function notifyParent(score, ra, pct) {
+  try { window.parent.postMessage({ type:'xuanba_result', studentId:studentId, score:score, ra:ra, pct:pct }, '*'); } catch(e) {}
 }
 function closeTest() {
   try { window.parent.postMessage({ type:'xuanba_close' }, '*'); } catch(e) {}

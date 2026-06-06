@@ -1087,6 +1087,7 @@ img.emoji { height: 1em; width: 1em; margin: 0 0.05em; vertical-align: -0.1em; }
     <h2>🎉 击败怪物！</h2>
     <div class="reward-sub">选择一张卡牌，获得本局战斗加成</div>
     <div class="card-grid" id="cardGrid"></div>
+    <button id="btnRerollCards" onclick="rerollCards()" style="display:none;margin:8px auto;background:rgba(255,255,255,0.1);border:1px solid rgba(255,215,0,0.4);color:#ffd700;padding:6px 16px;border-radius:6px;cursor:pointer;font-size:0.85em;">🔄 换一批（剩 3 次）</button>
     <div style="margin-top:16px;color:rgba(255,255,255,0.4);font-size:0.8em;" id="rewardHint">点击选择一张卡牌</div>
   </div>
 </div>
@@ -2159,7 +2160,8 @@ function saveTowerProgress() {
       earnedPoints: run.earnedPoints,
       defeatedMonsters: run.defeatedMonsters,
       skillLevels: run.skillLevels,
-      playerClass: run.playerClass
+      playerClass: run.playerClass,
+      rerollLeft: run.rerollLeft
     },
     streakCount: streakCount,
     monster: run.monster ? { name: run.monster.name, hp: run.monster.hp, maxHP: run.monster.maxHP, atk: run.monster.atk, type: run.monster.type, buffs: run.monster.buffs } : null,
@@ -2208,7 +2210,8 @@ function continueTower() {
     earnedPoints: progress.run.earnedPoints,
     defeatedMonsters: progress.run.defeatedMonsters,
     skillLevels: progress.run.skillLevels || {},
-    playerClass: progress.run.playerClass || null
+    playerClass: progress.run.playerClass || null,
+    rerollLeft: (progress.run.rerollLeft !== undefined) ? progress.run.rerollLeft : 3
   });
   streakCount = progress.streakCount || 0;
   if (progress.monster) {
@@ -2284,6 +2287,8 @@ function calcPlayerStats(sid) {
 
   const finalATK = Math.max(equipATK + petATK, 20);
   var finalHP = Math.max(100 + equipHP + petDEF + (run.buffs ? run.buffs.maxHPBoost || 0 : 0), 50);
+  // v713: HP加成详细日志便于排查
+  console.log('[calcPlayerStats] HP加成明细 | 基础100 | 装备HP=' + equipHP + ' | 宠物防御=' + petDEF + ' | buffHP=' + (run.buffs ? run.buffs.maxHPBoost || 0 : 0) + ' | → finalHP=' + finalHP);
   // 🆕 职业被动HP修正
   var cp = getClassPassive();
   if (cp.hpIncrease) finalHP = Math.floor(finalHP * (1 + cp.hpIncrease / 100));
@@ -2366,8 +2371,8 @@ function goHome() {
   }
 
   try {
-    // 🆕 如果战斗中退出，保存当前进度
-    if (run.floor > 1) {
+    // 🆕 如果战斗中退出且存活，保存当前进度
+    if (run.floor > 1 && run.playerHP > 0) {
       saveTowerProgress();
       // 更新最高楼层和积分
       const td = getTowerData(studentId);
@@ -2376,6 +2381,9 @@ function goHome() {
       saveTowerData(studentId, td);
       // 同步回主页面
       try { syncToParent('exit'); } catch(e) {}
+    } else if (run.playerHP <= 0) {
+      // v713修复: 阵亡时清除进度，防止死亡后返回再继续爬塔复活
+      clearTowerProgress();
     }
 
     const stats = calcPlayerStats(studentId);
@@ -2480,6 +2488,7 @@ function startTower() {
     playerHP: calcPlayerStats(studentId).maxHP,
     playerDodge: calcPlayerStats(studentId).dodge,
     buffs: { atkBoost: 0, skillReduce: 0, critRate: 0, dodgeBoost: 0, maxHPBoost: 0, healPerCorrect: 0, armor: 0, shieldHP: 0, doubleStrike: false, armorBreak: 0, combo: false, floorBonusPoints: 0 },
+    rerollLeft: 3, // v713: 每局免费换牌3次
     earnedPoints: 0,
     defeatedMonsters: 0,
     monster: null,
@@ -3502,8 +3511,25 @@ function showRewardScreen() {
     </div>
   `).join('');
 
+  // v713: 刷新换牌按钮
+  var rerollBtn = document.getElementById('btnRerollCards');
+  if (rerollBtn && (run.rerollLeft || 0) > 0) {
+    rerollBtn.style.display = 'block';
+    rerollBtn.textContent = '🔄 换一批（剩 ' + run.rerollLeft + ' 次）';
+  } else if (rerollBtn) {
+    rerollBtn.style.display = 'none';
+  }
+
   document.getElementById('rewardHint').textContent = '点击选择一张卡牌';
   showScreen('Reward');
+}
+
+// v713: 换牌——重新生成卡牌（消耗1次换牌机会）
+function rerollCards() {
+  if ((run.rerollLeft || 0) <= 0) return;
+  run.rerollLeft--;
+  // 关闭已选中的卡牌状态，重新生成
+  showRewardScreen();
 }
 
 function selectCard(idx) {

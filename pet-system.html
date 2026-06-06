@@ -1319,6 +1319,7 @@
                     }
                 }
                 updateUI();
+                renderFragments(); // v713修复: init_pet加载数据后刷新碎片显示
                 showToast('已同步答题积分！', 'success');
             } else if (e.data.type === 'sync_pet_points') {
                 // 答题系统通知积分变动（如管理员调整）

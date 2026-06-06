@@ -1907,6 +1907,7 @@ var CLASS012102_IDS = ["01210236", "01210206", "01210222", "01210223", "01210231
       <div class="ranking-tab" onclick="switchRankingTab('ach', this)">🏅 成就</div>
       <div class="ranking-tab" onclick="switchRankingTab('questions', this)">📝 总答题</div>
       <div class="ranking-tab" onclick="switchRankingTab('accuracy', this)">🎯 正确率</div>
+      <div class="ranking-tab" onclick="switchRankingTab('xuanba', this)">🧠 校队选拔</div>
     </div>
     <div class="ranking-list" id="rankingList">
       <div class="ranking-loading">加载中...</div>
@@ -2078,6 +2079,7 @@ const gameState = {
   ladderTier: null,      // 🆕 v705: 天梯段位 {name, icon, color, sub}
   xuanbaBestScore: 0,    // 🆕 v710: 校队选拔最高分
   xuanbaBestPct: 0,      // 🆕 v710: 校队选拔最高正确率
+  xuanbaBestRA: 0,       // 🆕 v713: 校队选拔最高RA推理指数
   totalQuestionsAnswered: 0,
   totalCorrectAnswers: 0, // 累计答对题数
   retrySuccessCount: 0,
@@ -2187,6 +2189,7 @@ function loginWithId() {
   gameState.ladderTier = null;
   gameState.xuanbaBestScore = 0;
   gameState.xuanbaBestPct = 0;
+  gameState.xuanbaBestRA = 0;
   // 重置错题本渲染缓存，让新账号重新渲染
   window._wrongQuestionsLoaded = false;
   gameState.studentId = id;
@@ -2258,6 +2261,7 @@ function loginAsGuest() {
   gameState.ladderTier = null;
   gameState.xuanbaBestScore = 0;
   gameState.xuanbaBestPct = 0;
+  gameState.xuanbaBestRA = 0;
   window._wrongQuestionsLoaded = false;
   gameState.studentId = null;
   gameState.isGuest = true;
@@ -2308,6 +2312,7 @@ function logout() {
   gameState.ladderTier = null;
   gameState.xuanbaBestScore = 0;
   gameState.xuanbaBestPct = 0;
+  gameState.xuanbaBestRA = 0;
   window._wrongQuestionsLoaded = false;
   localStorage.removeItem('rememberedStudentId');
   document.getElementById('uploadCloudBtn').style.display = 'none';
@@ -5625,6 +5630,8 @@ async function pushRankingData() {
       towerFloor: gameState.towerHighestFloor || 0,    // 🆕 v610
       ladderScore: gameState.ladderBestScore || 0,       // 🆕 天梯段位
       mythicCount: mythicCount,                         // 🆕 v610
+      xuanbaScore: gameState.xuanbaBestScore || 0,      // 🆕 v713: 校队选拔分数
+      xuanbaRA: gameState.xuanbaBestRA || 0,            // 🆕 v713: 校队选拔RA指数
       lastUpdated: Date.now()
     };
 
@@ -5858,7 +5865,9 @@ window.addEventListener('message', function(e) {
     if (gameState && e.data.score !== undefined) {
       gameState.xuanbaBestScore = Math.max(gameState.xuanbaBestScore || 0, e.data.score || 0);
       gameState.xuanbaBestPct = Math.max(gameState.xuanbaBestPct || 0, e.data.pct || 0);
+      gameState.xuanbaBestRA = Math.max(gameState.xuanbaBestRA || 0, e.data.ra || 0);
       saveUserData();
+      pushRankingData(); // v713: 校队选拔完成后立即推送排行榜
     }
   }
   // 🆕 校队选拔关闭
@@ -5936,6 +5945,12 @@ async function loadAndRenderRanking(type) {
       arr.sort((a, b) => (b.accuracyRate || 0) - (a.accuracyRate || 0));
       renderAccuracyRankList(listEl, arr, myId);
       return;
+    } else if (type === 'xuanba') {
+      // v713: 校队选拔排行——按RA推理指数排序
+      arr = arr.filter(item => item.xuanbaRA !== undefined && item.xuanbaRA > 0);
+      arr.sort((a, b) => (b.xuanbaRA || 0) - (a.xuanbaRA || 0));
+      renderXuanbaRankList(listEl, arr, myId);
+      return;
     }
 
     arr.sort((a, b) => (b[sortField] || 0) - (a[sortField] || 0));
@@ -5969,6 +5984,33 @@ function renderAccuracyRankList(listEl, arr, myId) {
       '<div class="ranking-name">' + displayName + (isMe ? '（我）' : '') + '</div>' +
       '<div class="ranking-value" style="color:' + accColor + '">' + accuracy + '%</div>' +
       '<div style="font-size:0.75em;color:rgba(255,255,255,0.4);">' + totalC + '/' + totalQ + '题</div>' +
+      '</div>';
+  });
+  listEl.innerHTML = html;
+}
+
+// v713: 校队选拔排行榜渲染
+function renderXuanbaRankList(listEl, arr, myId) {
+  if (!arr || arr.length === 0) {
+    listEl.innerHTML = '<div class="ranking-empty">暂无选拔排行数据，完成校队选拔测试后自动同步</div>';
+    return;
+  }
+  let html = '<div style="text-align:center;font-size:0.85em;color:rgba(255,255,255,0.5);margin-bottom:12px;">🧠 校队选拔榜 · 按RA推理指数排序</div>';
+  arr.forEach((item, idx) => {
+    const rank = idx + 1;
+    const posClass = rank <= 3 ? 'ranking-pos-' + rank : 'ranking-pos-n';
+    const sid = item.studentId || '';
+    let displayName = sid;
+    if (sid.length >= 5) displayName = sid.substring(0, 2) + '**' + sid.substring(sid.length - 2);
+    const isMe = (item.studentId === myId);
+    const ra = item.xuanbaRA || 0;
+    const score = item.xuanbaScore || 0;
+    const raColor = ra >= 130 ? '#4ade80' : ra >= 110 ? '#ffd700' : ra >= 90 ? '#ff9800' : '#ff6b6b';
+    html += '<div class="ranking-item' + (isMe ? ' me' : '') + '">' +
+      '<div class="ranking-pos ' + posClass + '">' + rank + '</div>' +
+      '<div class="ranking-name">' + displayName + (isMe ? '（我）' : '') + '</div>' +
+      '<div class="ranking-value" style="color:' + raColor + '">' + ra + ' RA</div>' +
+      '<div style="font-size:0.75em;color:rgba(255,255,255,0.4);">' + score + '分</div>' +
       '</div>';
   });
   listEl.innerHTML = html;
@@ -6061,7 +6103,16 @@ window.addEventListener('message', function(e) {
     gameState.totalPoints = Math.max(0, e.data.points);
     document.getElementById('petModalPoints').textContent = gameState.totalPoints.toLocaleString();
     updateStatusBar();
-    saveUserData(); // 云同步
+    // v713修复: 立即写localStorage镜像（不等云端），防止云端保存失败后重登积分恢复
+    try {
+      var petSaveKey = 'scienceGame_user_' + gameState.studentId;
+      var petLocalRaw = localStorage.getItem(petSaveKey);
+      var petLocalData = petLocalRaw ? JSON.parse(petLocalRaw) : {};
+      petLocalData.totalPoints = gameState.totalPoints;
+      petLocalData.lastUpdated = Date.now();
+      localStorage.setItem(petSaveKey, JSON.stringify(petLocalData));
+    } catch(ex) {}
+    saveUserData(); // 云同步（异步，可能失败但不影响本地）
   }
 });
 
