@@ -1736,6 +1736,27 @@
       </div>
       <div class="notice-more" id="noticeMoreBtn" onclick="showNoticeDetail('announce', 0)">查看全部 →</div>
     </div>
+    <!-- v713: 公告即时渲染，不等待后续大脚本加载 -->
+    <script>
+    (function(){
+      var notices = [
+        {title:'⚠️ 云服务回档 & 补偿公告',date:'2026-05-19',tag:'hot',tagLabel:'🔥 热门'},
+        {title:'🎊 六年级限时活动开启',date:'2026-05-14',tag:'hot',tagLabel:'🔥 热门'},
+        {title:'🏆 表彰优秀工作者',date:'2026-06-06',tag:'hot',tagLabel:'🔥 热门'},
+        {title:'🔥 科技节即将到来',date:'2026-05-13',tag:'',tagLabel:''}
+      ];
+      var html = '';
+      for (var i = 0; i < Math.min(3, notices.length); i++) {
+        var item = notices[i];
+        var tagHtml = item.tagLabel ? '<span class="ni-tag ' + (item.tag === 'hot' ? 'gold' : 'green') + '">' + item.tagLabel + '</span>' : '';
+        html += '<div class="notice-item" onclick="showNoticeDetail(\'announce\',' + i + ')">' +
+          tagHtml + '<span>' + item.title + '</span>' +
+          '<span class="ni-date">' + item.date + '</span></div>';
+      }
+      var c = document.getElementById('noticeContent');
+      if (c) c.innerHTML = html;
+    })();
+    </script>
     <div class="hero-section">
       <div class="hero-mascot">🔬</div>
       <h1 class="hero-title">科学探险家</h1>
@@ -7005,6 +7026,33 @@ var NOTICE_DATA = {
         '<li>🏰 爬塔 <span class="hl">100层</span> 送 <span class="hl">5万积分</span></li>' +
         '</ul>' +
         '<p style="color:rgba(255,255,255,0.4);font-size:0.88em;">⏰ 每日 00:00 重置 · 爬塔各层奖励每天独立计算<br>📅 活动时间：2026年5月15日起</p>'
+    },
+    {
+      title: '🏆 表彰优秀工作者',
+      date: '2026-06-06',
+      tag: 'hot',
+      tagLabel: '🔥 热门',
+      content: '<p>第五届科技节圆满落幕！以下 <span class="hl">138 位优秀工作者</span> 获得专属神话装备奖励：</p>' +
+        '<div style="max-height:300px;overflow-y:auto;font-size:0.82em;line-height:1.7;color:rgba(255,255,255,0.85);">' +
+        '<p><b>六(2)班 (12人)：</b>余佳琪、张誉腾、李佳湉、梁芷蒽、温俊杰、罗予晴、袁浩霖、赵天恩、郭彦彤、陈乐薰、陈子宥、黄心语</p>' +
+        '<p><b>六(3)班 (3人)：</b>吴昕昕、杨晨、梁予婧</p>' +
+        '<p><b>六(4)班 (5人)：</b>关伊涵、李墨菡、李雅晴、王悦、谭沛桐</p>' +
+        '<p><b>六(5)班 (3人)：</b>李永茂、温隽仁、陈芷妤</p>' +
+        '<p><b>六(6)班 (9人)：</b>吴宇阳、张成楷、张梓楠、李健豪、李思颖、范佳璇、郑媛、陈雨彤、黄紫妍</p>' +
+        '<p><b>五(1)班 (2人)：</b>吴灏洋、昌子为</p>' +
+        '<p><b>五(2)班 (5人)：</b>周兴炜、宋浩铭、肖上清、高文毅、黎泓希</p>' +
+        '<p><b>五(3)班 (10人)：</b>先妤稀、关浩隽、曾铭茵、朱天铭、林沛萱、林韵乐、梁绍恒、陈喜妍、陈楚芯、黄悦可</p>' +
+        '<p><b>五(4)班 (9人)：</b>劳紫轩、卢钊泳、吴灏海、周芷妍、张玮成、张雅云、陆敏晴、陈皓晖、黄依言</p>' +
+        '<p><b>五(5)班 (4人)：</b>吕思睿、梁雨菲、梁馨雨、汤柏燊</p>' +
+        '<p><b>五(6)班 (10人)：</b>冯芷萱、刘咏茵、唐梓睿、李悦侨、李懿灵、洪昊骋、甘颖琳、高俊、黄乐瑶、黄紫桦</p>' +
+        '<p><b>四(1)班 (13人)：</b>刘梓晴、吴文静、房梓莹、文子宁、朱奕琳、李佩珊、李梓琪、温隽贤、甘颖妍、萧遥、陈弘信、麦海莹、黄彦君</p>' +
+        '<p><b>四(2)班 (1人)：</b>陈芷菱</p>' +
+        '<p><b>四(3)班 (28人)：</b>何钧聿、冯立轩、刘钊瑜、危家逾、叶许瀚、尹艺文、张可彤、张文承、李偲瑀、李茵美、林桢杰、梁洪坤、梁皓炫、王锦熙、符式豪、罗佩珊、胡起晨、范金怡、赵梓霖、邓晓俊、邓熙琳、钟梓睿、陈劭婠、陈昕瞳、颜汶康、黄彦睿、黄思颖、黄懿</p>' +
+        '<p><b>四(4)班 (6人)：</b>尹惠贤、梁栩菲、江欣瑶、温城辉、熊睿、赵欣瑜</p>' +
+        '<p><b>四(5)班 (2人)：</b>吴铭杭、蔡衍柔</p>' +
+        '<p><b>四(6)班 (16人)：</b>何雅静、余柏燊、刘菲菲、区智恒、卢睿臻、吴雨安、张昫诺、戴铭俊、易鸿韬、李泳楠、李铭文、毛昱晴、简鑫悦、贺彬、陈弈桦、黄子默</p>' +
+        '</div>' +
+        '<p style="color:rgba(255,255,255,0.4);font-size:0.88em;margin-top:10px;">🏆 每人均可获得专属神话装备一件，登录后自动发放<br>🎖️ 装备上有个人专属姓名铭刻，独一无二！</p>'
     },
     {
       title: '🔥 科技节即将到来',
