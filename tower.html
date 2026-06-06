@@ -4268,7 +4268,7 @@ if (isIframeMode) {
   document.getElementById('statBestFloor').textContent = '-';
   document.getElementById('statTowerPoints').textContent = '等待同步...';
 
-  // 🆕 2秒超时兜底：如果收不到 postMessage，退回登录屏
+  // v713: 5秒超时兜底（从2s延长，适配慢网络）
   setTimeout(function() {
     if (!studentId) {
       console.warn('[Tower] iframe 模式超时，退回登录屏');
@@ -4276,7 +4276,7 @@ if (isIframeMode) {
       document.getElementById('screenLogin').classList.add('active');
       document.getElementById('statTowerPoints').textContent = '同步超时，请刷新';
     }
-  }, 2000);
+  }, 5000);
 }
 
 // 键盘回车登录

@@ -48,20 +48,21 @@ async function collectPendingRewards(studentId, showNotification) {
   try {
     let serverRewards = [];
     
-    // 先从服务器API获取奖励
-    try {
-      const resp = await fetch(`${REWARDS_API}?studentId=${encodeURIComponent(studentId)}`, {
-        cache: 'no-cache'
-      });
-      if (resp.ok) {
-        const data = await resp.json();
-        if (data.rewards && data.rewards.length > 0) {
-          serverRewards = data.rewards;
-        }
-      }
-    } catch (e) {
-      console.log('[奖励领取] 服务器API不可用，仅使用本地奖励');
-    }
+    // v713: 服务器API端点(/api/rewards)未部署，跳过避免404噪音
+    // 仅使用本地 localStorage 奖励模式
+    // try {
+    //   const resp = await fetch(`${REWARDS_API}?studentId=${encodeURIComponent(studentId)}`, {
+    //     cache: 'no-cache'
+    //   });
+    //   if (resp.ok) {
+    //     const data = await resp.json();
+    //     if (data.rewards && data.rewards.length > 0) {
+    //       serverRewards = data.rewards;
+    //     }
+    //   }
+    // } catch (e) {
+    //   console.log('[奖励领取] 服务器API不可用，仅使用本地奖励');
+    // }
     
     // 再读取本地待发放批次（兼容旧方式）
     const pendingRaw = localStorage.getItem('scienceGamePendingRewards');

@@ -3278,7 +3278,13 @@ async function flushPendingSync() {
   if (!pq || pq.length === 0) return;
   console.log('[flushPendingSync] 尝试提交 ' + pq.length + ' 条pending数据...');
   var remaining = [];
+  var now = Date.now();
   for (var i = 0; i < pq.length; i++) {
+    // v713: 超过1小时的pending数据自动丢弃（避免无限重试刷屏）
+    if (pq[i].time && (now - pq[i].time) > 3600000) {
+      console.warn('[flushPendingSync] 丢弃过期pending数据: ' + pq[i].sid);
+      continue;
+    }
     var ok = await saveToCloud(pq[i].sid, pq[i].data);
     if (!ok) remaining.push(pq[i]);
   }
