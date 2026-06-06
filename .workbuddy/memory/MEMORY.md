@@ -8,7 +8,7 @@
 - **主目录**: `D:\kexvefuxi\`（已从 WPS 云盘迁移）
 - **旧路径（废弃）**: `C:\Users\tanc\Documents\WPSDrive\362543761\WPS云盘\谭政\科学复习系统\_kexvefuxi\`
 - GitHub: `https://github.com/tancbiao/kexvefuxi` (branch: `main`)
-- 服务端: 159.75.134.151, `/data/api.py` v706
+- 服务端: 159.75.134.151, `/data/api.py` v713
 
 ## 域名备案（2026-05-24）
 - 备案进行中，通过后云同步稳定性大幅提升
@@ -26,9 +26,17 @@
 - 标记在云端/本地双重检查，换设备不会重复领取
 
 ## 云端同步容错（2026-05-23 新增）
-- `saveToCloudWithRetry`: 3次重试 + 2s/4s递增退避
+- `saveToCloudWithRetry`: 3次重试 + 1.5s/3s递增退避（v713 从2s/4s调整为1.5s/3s）
 - `pendingCloudSync`: localStorage暂存失败数据，最多5条
 - `flushPendingSync`: 登录5秒后+每次saveUserData自动刷新pending队列
+
+## v713 云优先存档架构改造（2026-06-06）
+- **saveUserData() 云优先**: 先 await saveToCloudWithRetry(3次,1.5s→3s)，成功后写 localStorage 镜像；全部失败弹红色 Toast「存档上传失败，请检查网络后手动同步」
+- **loadUserData() 三重反馈**: 登录时弹「正在同步云端存档...」→ loadFromCloud(throwOnError=true) → 有数据→「云端存档同步完成」；空→「使用本地数据」；网络异常→「网络异常，使用本地存档」
+- **loadFromCloud() throwOnError 参数**: true 时网络异常会抛出，让调用方区分「云端空」和「网络故障」
+- **60s 心跳自检**: 登录后启动定时器，对比本地/云端积分，任一端更高则自动同步另一端；退出/游客登录时清除
+- **PAGE_VERSION**: 20260606
+- Commit: `65ea360`
 
 ## 账号隔离安全清单（2026-05-21 新增）
 **受影响函数**: `loginWithId()`, `logout()`, `loginAsGuest()` — 修改时需同步更新三个函数
@@ -98,6 +106,15 @@
 | `/api/gift/sent/<sid>` | GET | 查询已发送礼物 | v711 |
 | `/api/intimacy/<sid>` | GET | 查询亲密关系 | v711 |
 | `/api/intimacy/claim` | POST | 领取亲密等级奖励 | v711 |
+| `/api/synthesis/compose` | POST | 装备合成（删除原料+生成新装备，原子） | v713 |
+
+## 装备合成系统 (v713 修复, 2026-06-04)
+- **问题**: 合成后装备消失——旧代码用 `saveUserData()` 全量覆盖装备数组，非原子操作
+- **v713 修复**: 
+  - 新增 `POST /api/synthesis/compose` 原子端点（按 ID 删除3件原料 + 添加1件新装备）
+  - 客户端 `executeSynthesis()` 改为 async — 先调 API 再更新本地状态
+  - API 失败时恢复按钮状态，不更新 UI
+  - Commit: `bf29830`
 
 ## 装备赠送系统 (v711, 2026-06-03)
 - **提出者**: 01200112
