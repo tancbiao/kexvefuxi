@@ -4871,10 +4871,9 @@ function loadUserData() {
     if (typeof collectPendingRewards === 'function') {
       collectPendingRewards(gameState.studentId, showAchievementUnlock);
     }
-    // v713: 本地存档先迁移到云端再清除，然后才发放装备（避免竞态导致装备丢失）
+    // v713: 确保本地存档已上传到云端，然后发放装备（不删除本地副本，作为离线备份）
     var migrationDone = Promise.resolve();
     if (localData && !gameState.isGuest) {
-      var localKey = 'scienceGame_user_' + gameState.studentId;
       migrationDone = saveToCloud(gameState.studentId, {
         totalPoints: gameState.totalPoints,
         lessonProgress: gameState.lessonProgress,
@@ -4882,13 +4881,12 @@ function loadUserData() {
         unlockedAchievements: gameState.unlockedAchievements,
         lastUpdated: Date.now()
       }).then(function() {
-        localStorage.removeItem(localKey);
-        console.log('[v713] 本地存档已迁移至云端，本地已清理');
+        console.log('[v713] 本地存档已同步至云端（保留本地副本作为离线备份）');
       }).catch(function() {
-        console.warn('[v713] 云端最终保存失败，保留本地存档');
+        console.warn('[v713] 云端保存失败，保留本地存档');
       });
     }
-    // 迁移完成后再发放装备（确保装备数据写入最新状态）
+    // 迁移完成后再发放装备
     migrationDone.then(function() {
       if (typeof grantKeji2026Equip === 'function') {
         grantKeji2026Equip();

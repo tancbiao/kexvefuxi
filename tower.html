@@ -1194,35 +1194,9 @@ img.emoji { height: 1em; width: 1em; margin: 0 0.05em; vertical-align: -0.1em; }
 <script src="equipment-gen.js"></script>
 <script src="data/shared-exam-bank.js"></script>
 <script>
-// ====== v612: Twemoji Win7 兼容层（异步加载，不阻塞页面） ======
-(function(){
-  var twOpts = { folder: 'svg', ext: '.svg' };
-
-  function initTwemoji() {
-    function parseRoot() { twemoji.parse(document.body, twOpts); }
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', parseRoot);
-    } else { parseRoot(); }
-    var observer = new MutationObserver(function(muts){
-      muts.forEach(function(m){
-        m.addedNodes.forEach(function(n){
-          if (n.nodeType === 1) twemoji.parse(n, twOpts);
-        });
-      });
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-  }
-
-  var s = document.createElement('script');
-  s.src = 'https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js';
-  var timeout = setTimeout(function(){
-    s.onerror = s.onload = null;
-    console.warn('Twemoji CDN 超时');
-  }, 5000);
-  s.onload = function(){ clearTimeout(timeout); initTwemoji(); };
-  s.onerror = function(){ clearTimeout(timeout); console.warn('Twemoji CDN 失败'); };
-  document.head.appendChild(s);
-})();
+// v713: Twemoji CDN 已移除（Safari追踪防护拦截 + Win7兼容需求已过时）
+// 现代浏览器原生支持emoji渲染
+</script>
 
 // ============================================================
 // 1. 数据模型
