@@ -3,8 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🔮 科学探险家 · 统一闯关系统 v704</title>
-<!-- v704 更新：修复爬塔空白页 - showTowerModal 增加登录检查，未登录先弹登录窗
+<title>🔮 科学探险家 · 统一闯关系统 v705</title>
+<!-- v705 更新：云优先存档架构 — saveUserData 先推云端(带重试)，localStorage降级为镜像
+  - loadUserData 云端优先加载，本地兜底 + Toast反馈
+  - 新增心跳自检(60s)：自动比对云端/本地积分，双向自动同步
+  - manualCloudUpload 加重试机制（与 saveUserData 一致）
+  - v704 更新：修复爬塔空白页
+  - v703: 宠物碎片同步/跨设备修复/Toast完善；v702: saveToCloud返回检查
   - v703+ 更新：
   - 修复云端上传漏掉宠物碎片（manualCloudUpload 补齐 petPieces）
   - 修复跨设备同步时云端数据被丢弃（mergeUserData 不再因时间戳提前返回）
@@ -1867,6 +1872,54 @@ function showScreen(screenId) {
   document.getElementById(screenId).classList.add('active');
 }
 
+// v704: 云存档心跳自检 — 每60秒校验云端积分，本地低则自动拉取合并
+var _cloudHeartbeatTimer = null;
+var _cloudHeartbeatRunning = false;
+function startCloudHeartbeat() {
+  if (_cloudHeartbeatTimer) return;
+  _cloudHeartbeatRunning = true;
+  _cloudHeartbeatTimer = setInterval(function() {
+    if (!_cloudHeartbeatRunning) return;
+    if (gameState.isGuest || !gameState.studentId) return;
+    // 异步自检：拉云端积分，对比本地
+    loadFromCloud(gameState.studentId).then(function(cloudData) {
+      if (!cloudData) return;
+      var localPoints = gameState.totalPoints || 0;
+      var cloudPoints = cloudData.totalPoints || 0;
+      if (cloudPoints > localPoints) {
+        // 云端更高 — 合并到本地
+        var saveKey = 'scienceGame_user_' + gameState.studentId;
+        var localSaved = localStorage.getItem(saveKey);
+        var localData = localSaved ? JSON.parse(localSaved) : {};
+        var merged = mergeUserData(localData, cloudData);
+        applyUserData(merged);
+        localStorage.setItem(saveKey, JSON.stringify(merged));
+        console.log('💓 心跳检测：云端积分(' + cloudPoints + ') > 本地(' + localPoints + ')，已自动合并');
+      } else if (cloudPoints < localPoints && localPoints > 0) {
+        // 本地更高 — 推送到云端
+        var saveKey2 = 'scienceGame_user_' + gameState.studentId;
+        var localSaved2 = localStorage.getItem(saveKey2);
+        if (localSaved2) {
+          saveToCloud(gameState.studentId, JSON.parse(localSaved2));
+          console.log('💓 心跳检测：本地积分(' + localPoints + ') > 云端(' + cloudPoints + ')，已自动推送');
+        }
+      }
+    }).catch(function(e) {
+      // 网络问题，静默忽略
+      console.warn('💓 心跳检测网络异常:', e.message);
+    });
+  }, 60000);
+  console.log('💓 云存档心跳已启动（每60秒自检）');
+}
+function stopCloudHeartbeat() {
+  _cloudHeartbeatRunning = false;
+  if (_cloudHeartbeatTimer) {
+    clearInterval(_cloudHeartbeatTimer);
+    _cloudHeartbeatTimer = null;
+    console.log('💓 云存档心跳已停止');
+  }
+}
+
 function showLoginScreen() { document.getElementById('loginOverlay').classList.add('show'); }
 function hideLoginScreen() { document.getElementById('loginOverlay').classList.remove('show'); }
 
@@ -1908,6 +1961,8 @@ function loginWithId() {
   checkActivityNotice(id);
   // 云服务回档补偿通知（所有实名认证学生均可领取一次）
   checkCompensationNotice(id);
+  // v704: 启动云存档心跳（每60秒自动比对云端/本地，自动同步）
+  startCloudHeartbeat();
   // 活动通知之后再弹出问候弹窗
   showGreetingWithNoticeCheck();
   // 欧皇祝福/成绩奖励弹窗（延迟1.5秒，等问候弹窗先显示）
@@ -1940,6 +1995,8 @@ function showSemesters(grade) {
 
 // 退出到选课
 function logout() {
+  // v704: 停止云存档心跳
+  stopCloudHeartbeat();
   // v606: 退出前清除宠物 localStorage（防止下一个人串号）
   if (gameState.studentId) {
     clearOtherPetLocalStorage(gameState.studentId);
@@ -2862,8 +2919,28 @@ async function saveUserData() {
     lastUpdated: Date.now(),
     equippedSlots: bpEquippedSlots62
   };
-  localStorage.setItem('scienceGame_user_' + gameState.studentId, JSON.stringify(data));
-  await saveToCloud(gameState.studentId, data);
+  // v704: 云端优先 — 先推到服务端（带重试），成功后再写浏览器缓存作为镜像
+  var cloudOk = false;
+  var maxRetries = 2;
+  var retryDelay = 1500;
+  for (var retry = 0; retry <= maxRetries; retry++) {
+    cloudOk = await saveToCloud(gameState.studentId, data);
+    if (cloudOk) break;
+    if (retry < maxRetries) {
+      console.warn('云端存档第' + (retry + 1) + '次失败，' + (retryDelay/1000) + '秒后重试...');
+      await new Promise(function(r) { setTimeout(r, retryDelay); });
+      retryDelay = retryDelay * 2; // 递增退避：1.5s → 3s
+    }
+  }
+  if (cloudOk) {
+    localStorage.setItem('scienceGame_user_' + gameState.studentId, JSON.stringify(data));
+    console.log('✅ 云端存档成功，浏览器缓存已更新为镜像');
+  } else {
+    // 云端全部失败 — 仍然写浏览器缓存兜底，但弹出警告
+    localStorage.setItem('scienceGame_user_' + gameState.studentId, JSON.stringify(data));
+    showToast('☁️ 存档上传失败，请检查网络后手动点「上传」按钮', 'error', 5000);
+    console.error('❌ 云端存档失败：已重试' + maxRetries + '次');
+  }
   pushRankingData();
 }
 // ====== Toast 提示 ======
@@ -3062,8 +3139,18 @@ async function manualCloudUpload() {
     // v703: 上传本地实际值，不合并云端（下载时再合并，避免消费被回滚）
     data.lastUpdated = Date.now();
     
-    // 等待云端保存完成
-    var saveOk = await saveToCloud(gameState.studentId, data);
+    // v704: 等待云端保存完成（带2次重试，递增退避）
+    var saveOk = false;
+    var retryDelay = 1500;
+    for (var retry = 0; retry <= 2; retry++) {
+      saveOk = await saveToCloud(gameState.studentId, data);
+      if (saveOk) break;
+      if (retry < 2) {
+        console.warn('手动上传第' + (retry + 1) + '次失败，' + (retryDelay/1000) + '秒后重试...');
+        await new Promise(function(r) { setTimeout(r, retryDelay); });
+        retryDelay = retryDelay * 2;
+      }
+    }
     if (saveOk) {
       var progressCount = Object.values(data.lessonProgress || {}).filter(function(v) { return v >= 1; }).length;
       var eqCount = (data.equipment || []).filter(function(e) { return e !== null; }).length;
@@ -4183,21 +4270,28 @@ function loadUserData() {
   } catch (e) { /* ignore */ }
 
   // 【跨年级云端迁移】首次登录时合并旧年级数据（仅执行一次）
+  // v704: 云端优先加载 — 显示加载提示，失败时弹警告
+  showToast('☁️ 正在同步云端存档...', 'info', 2000);
   migrateAndSyncCloud(gameState.studentId, localData).then(function() {
     // 迁移完成后重新读取本地存档（可能已被迁移更新）
     var updatedSaved = localStorage.getItem(saveKey);
     var updatedLocal = updatedSaved ? JSON.parse(updatedSaved) : localData;
-    // 正常云端同步
+    // 正常云端同步（loadFromCloud 自带 1 次重试）
     return loadFromCloud(gameState.studentId).then(function(cloudData) {
-      if (!cloudData) return;
-      var merged = mergeUserData(updatedLocal, cloudData);
-      if (merged !== updatedLocal) {
-        applyUserData(merged);
-        localStorage.setItem(saveKey, JSON.stringify(merged));
-        saveToCloud(gameState.studentId, merged);
-        console.log('已同步云端最新存档');
+      if (!cloudData) {
+        showToast('⚠️ 云端暂无存档，使用本地数据', 'warning', 4000);
+        return;
       }
+      var merged = mergeUserData(updatedLocal, cloudData);
+      applyUserData(merged);
+      localStorage.setItem(saveKey, JSON.stringify(merged));
+      // v704: 合并后始终回写云端，确保双端一致
+      saveToCloud(gameState.studentId, merged);
+      console.log('✅ 云端存档同步成功 (v704云优先)');
     });
+  }).catch(function(e) {
+    console.error('云端同步异常:', e);
+    showToast('⚠️ 网络异常，使用本地存档', 'error', 4000);
   }).finally(function() {
     // v704: 云端数据加载完成后才推送排行，避免 0 分覆盖云端
     pushRankingData();
