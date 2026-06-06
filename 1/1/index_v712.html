@@ -1713,14 +1713,6 @@
       <span class="status-icon">🧠</span>
       <span style="color:#c084fc">校队选拔</span>
     </div>
-    <div class="status-item" id="uploadCloudBtn" style="cursor:pointer;display:none;" onclick="manualCloudUpload()" title="上传进度到云端（在家做完后点一下）">
-      <span class="status-icon">☁️</span>
-      <span style="color:#60a5fa" id="uploadCloudLabel">上传</span>
-    </div>
-    <div class="status-item" id="downloadCloudBtn" style="cursor:pointer;display:none;" onclick="manualCloudDownload()" title="从云端下载进度（到学校后点一下）">
-      <span class="status-icon">📥</span>
-      <span style="color:#fbbf24" id="downloadCloudLabel">下载</span>
-    </div>
   </div>
 
   <div class="screen active" id="startScreen">
@@ -2257,16 +2249,12 @@ function loginWithId() {
   checkAndResetStamina();
   updateStaminaDisplay();
   updateStatusBar();
-  // 登录后显示云端同步按钮
-  document.getElementById('uploadCloudBtn').style.display = 'flex';
-  document.getElementById('downloadCloudBtn').style.display = 'flex';
-  // 显示选课界面
   document.getElementById('studentDisplay').textContent = (gameState.studentName || id) + ' 同学';
   showScreen('courseScreen');
   // 六年级专属活动通知（登录奖励 + 爬塔奖励）
   checkActivityNotice(id);
-  // v712: 加载礼物数据
-  loadGiftData();
+  // v713: 赠礼/亲密API端点未部署，禁用登录时加载避免404噪音
+  // loadGiftData();
   // 🆕 四五年级登录活动
   checkGrade45Activity(id);
   // 云服务回档补偿通知（所有实名认证学生均可领取一次）
@@ -2321,9 +2309,6 @@ function loginAsGuest() {
   checkAndResetStamina();
   updateStaminaDisplay();
   document.getElementById('studentDisplay').textContent = '游客';
-  // 游客隐藏同步按钮
-  document.getElementById('uploadCloudBtn').style.display = 'none';
-  document.getElementById('downloadCloudBtn').style.display = 'none';
   showScreen('courseScreen');
 }
 
@@ -2367,13 +2352,11 @@ function logout() {
   gameState.xuanbaBestRA = 0;
   window._wrongQuestionsLoaded = false;
   localStorage.removeItem('rememberedStudentId');
-  document.getElementById('uploadCloudBtn').style.display = 'none';
-  document.getElementById('downloadCloudBtn').style.display = 'none';
-  // v712: 清理礼物缓存
-  _giftPendingCache = null;
-  _giftSentCache = null;
-  _intimacyCache = null;
-  if (typeof updateGiftBadge === 'function') updateGiftBadge();
+  // v713: 赠礼API未部署，跳过缓存清理
+  // _giftPendingCache = null;
+  // _giftSentCache = null;
+  // _intimacyCache = null;
+  // if (typeof updateGiftBadge === 'function') updateGiftBadge();
   showScreen('courseScreen');
   // 显示登录弹窗以便重新登录
   var overlay = document.getElementById('loginOverlay');
@@ -4894,6 +4877,24 @@ function loadUserData() {
     if (typeof grantKeji2026Equip === 'function') {
       grantKeji2026Equip();
     }
+    // v713: 本地存档迁移到云端后清除（纯云端架构，像冒险岛一样）
+    if (localData && !gameState.isGuest) {
+      var localKey = 'scienceGame_user_' + gameState.studentId;
+      // 最后确认一次云端保存
+      saveToCloud(gameState.studentId, {
+        totalPoints: gameState.totalPoints,
+        lessonProgress: gameState.lessonProgress,
+        equipment: gameState.equipment,
+        unlockedAchievements: gameState.unlockedAchievements,
+        lastUpdated: Date.now()
+      }).then(function() {
+        localStorage.removeItem(localKey);
+        console.log('[v713] 本地存档已迁移至云端，本地已清理');
+      }).catch(function() {
+        // 云端保存失败则保留本地存档作为救命稻草
+        console.warn('[v713] 云端最终保存失败，保留本地存档');
+      });
+    }
     // v713: 登录完成后启动心跳自检
     startHeartbeat();
   });
@@ -5628,7 +5629,7 @@ function bpClear62() {
       updateEquippedSlots62();
       // v703: 清理后同步到云端
       showToast('已清理 ' + count + ' 件' + name + '装备，正在同步到云端...', 'success');
-      await manualCloudUpload();
+      saveUserData();
     } else {
       showToast('没有' + name + '装备可清理', 'info');
     }
