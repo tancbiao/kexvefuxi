@@ -2253,8 +2253,7 @@ function loginWithId() {
   showScreen('courseScreen');
   // 六年级专属活动通知（登录奖励 + 爬塔奖励）
   checkActivityNotice(id);
-  // v713: 赠礼/亲密API端点未部署，禁用登录时加载避免404噪音
-  // loadGiftData();
+  loadGiftData();
   // 🆕 四五年级登录活动
   checkGrade45Activity(id);
   // 云服务回档补偿通知（所有实名认证学生均可领取一次）
@@ -2352,11 +2351,10 @@ function logout() {
   gameState.xuanbaBestRA = 0;
   window._wrongQuestionsLoaded = false;
   localStorage.removeItem('rememberedStudentId');
-  // v713: 赠礼API未部署，跳过缓存清理
-  // _giftPendingCache = null;
-  // _giftSentCache = null;
-  // _intimacyCache = null;
-  // if (typeof updateGiftBadge === 'function') updateGiftBadge();
+  _giftPendingCache = null;
+  _giftSentCache = null;
+  _intimacyCache = null;
+  if (typeof updateGiftBadge === 'function') updateGiftBadge();
   showScreen('courseScreen');
   // 显示登录弹窗以便重新登录
   var overlay = document.getElementById('loginOverlay');
@@ -4873,15 +4871,11 @@ function loadUserData() {
     if (typeof collectPendingRewards === 'function') {
       collectPendingRewards(gameState.studentId, showAchievementUnlock);
     }
-    // 2026科技节专属神话装备自动发放
-    if (typeof grantKeji2026Equip === 'function') {
-      grantKeji2026Equip();
-    }
-    // v713: 本地存档迁移到云端后清除（纯云端架构，像冒险岛一样）
+    // v713: 本地存档先迁移到云端再清除，然后才发放装备（避免竞态导致装备丢失）
+    var migrationDone = Promise.resolve();
     if (localData && !gameState.isGuest) {
       var localKey = 'scienceGame_user_' + gameState.studentId;
-      // 最后确认一次云端保存
-      saveToCloud(gameState.studentId, {
+      migrationDone = saveToCloud(gameState.studentId, {
         totalPoints: gameState.totalPoints,
         lessonProgress: gameState.lessonProgress,
         equipment: gameState.equipment,
@@ -4891,10 +4885,15 @@ function loadUserData() {
         localStorage.removeItem(localKey);
         console.log('[v713] 本地存档已迁移至云端，本地已清理');
       }).catch(function() {
-        // 云端保存失败则保留本地存档作为救命稻草
         console.warn('[v713] 云端最终保存失败，保留本地存档');
       });
     }
+    // 迁移完成后再发放装备（确保装备数据写入最新状态）
+    migrationDone.then(function() {
+      if (typeof grantKeji2026Equip === 'function') {
+        grantKeji2026Equip();
+      }
+    });
     // v713: 登录完成后启动心跳自检
     startHeartbeat();
   });
@@ -7700,7 +7699,7 @@ async function executeSynthesis() {
   var btn = document.getElementById('synthesisBtn');
   if (btn) { btn.className = 'synthesis-btn disabled'; btn.textContent = '合成中...'; }
   try {
-    var apiUrl = API_BASE.replace('/api','') + '/api/synthesis/compose';
+    var apiUrl = API_BASE + '/synthesis/compose';
     var apiRes = await fetchWithRetry(apiUrl, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
