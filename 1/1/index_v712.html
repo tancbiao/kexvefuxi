@@ -10,7 +10,7 @@
 <!-- PAGE_VERSION 用于版本自检：url?v= 不匹配时自动跳转最新 -->
 <script>
 (function(){
-  var PAGE_VERSION = '20260606';
+  var PAGE_VERSION = '20260607';
   var m = location.search.match(/[?&]v=(\d+)/);
   if (m && m[1] !== PAGE_VERSION) {
     location.replace(location.pathname + '?v=' + PAGE_VERSION);
@@ -1780,7 +1780,8 @@
       <p style="color: rgba(255,255,255,0.6); margin: 15px 0; font-size: 0.95em;">
         粤教粤科版 · 四单元23课 · 趣味答题 · 成就解锁
       </p>
-      <button class="start-btn" onclick="showLoginScreen()">🚀 开始挑战</button>
+      <button class="start-btn" id="startChallengeBtn" disabled style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.3);cursor:not-allowed;transform:none;box-shadow:none;">⏳ 加载中...</button>
+      <p id="startHint" style="color:rgba(255,255,255,0.4);font-size:0.85em;margin-top:8px;">正在加载资源，请先浏览上方热门公告 👆</p>
       <button class="start-btn secondary" onclick="showWrongQuestions()" style="margin-top:12px;background:linear-gradient(135deg,#667eea,#764ba2);"><img src="../../icons/wrong-book.png" class="icon-24"> 错题本</button>
       <button class="start-btn secondary" id="uploadQBtn62" onclick="showUploadPasswordPrompt()" style="margin-top:8px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);font-size:0.85em;padding:8px 18px;border:1px solid rgba(255,255,255,0.1);">📤 上传题库</button>
     </div>
@@ -1927,6 +1928,20 @@ var CLASS012102_IDS = ["01210236", "01210206", "01210222", "01210223", "01210231
 <script src="../../admin/reward-collector.js" defer></script>
 <script src="../../data/keji2026-equips.js"></script>
 <script src="../../js/ai-tutor.js" defer></script>
+<!-- v713: 关键脚本加载完成后启用"开始挑战"按钮 -->
+<script>
+(function(){
+  var btn = document.getElementById('startChallengeBtn');
+  var hint = document.getElementById('startHint');
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = '🚀 开始挑战';
+    btn.style.cssText = '';
+    btn.setAttribute('onclick', 'showLoginScreen()');
+  }
+  if (hint) hint.textContent = '已就绪，点击开始你的科学探险之旅！';
+})();
+</script>
 
 <!-- ====== 排行榜弹窗 ====== -->
 <div class="ranking-overlay" id="rankingOverlay">
@@ -7266,7 +7281,7 @@ function checkTowerRewards() {
 
 // ========== v712: 装备赠送系统 + 亲密值 + 合成 ==========
 const GIFT_API = function(path) {
-  return API_BASE.replace('/api','') + '/api' + path;
+  return API_BASE + path;
 };
 
 var _giftPendingCache = null;
