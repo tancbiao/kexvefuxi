@@ -5950,9 +5950,13 @@ function grantKeji2026Equip() {
         var equip = getKeji2026Equip(studentName) || getKeji2026EquipById(studentId);
         if (!equip) return;
         
-        // 检查是否已经发放过（防止重复）
-        var grantKey = 'keji2026_granted_' + (studentId || studentName);
-        if (localStorage.getItem(grantKey)) return;
+        // v713修复: 改用尝试次数计数器（最多50次），解决"领了没保存到就没了"的问题
+        // 清理旧版一次性标记，迁移到新计数器机制
+        var oldGrantKey = 'keji2026_granted_' + (studentId || studentName);
+        if (localStorage.getItem(oldGrantKey)) { localStorage.removeItem(oldGrantKey); }
+        
+        var attemptKey = 'keji2026_attempt_' + (studentId || studentName);
+        var attempts = parseInt(localStorage.getItem(attemptKey) || '0');
         
         // 检查背包是否已有此装备（兼容null填充数组和普通数组）
         if (gameState.equipment && Array.isArray(gameState.equipment)) {
@@ -5960,10 +5964,17 @@ function grantKeji2026Equip() {
                 return e && e.id === equip.id;
             });
             if (hasEquip) {
-                localStorage.setItem(grantKey, '1');
+                // 装备已在背包中，标记完成
+                localStorage.setItem(attemptKey, '50');
                 return;
             }
         }
+        
+        // 超过50次尝试仍未成功，不再发放
+        if (attempts >= 50) return;
+        
+        // 递增尝试次数
+        localStorage.setItem(attemptKey, String(attempts + 1));
         
         // 初始化装备数组（适配500格上限）
         if (!gameState.equipment) gameState.equipment = [];
@@ -5986,10 +5997,7 @@ function grantKeji2026Equip() {
         }
         gameState.equipment.push(equipCopy);
         
-        // 标记已发放
-        localStorage.setItem(grantKey, '1');
-        
-        // 保存数据
+        // 保存数据（v713: 不再设置一次性标记，改用计数器机制，失败可重试）
         if (typeof saveUserData === 'function') {
             saveUserData();
         }
