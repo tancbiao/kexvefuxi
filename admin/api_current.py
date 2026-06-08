@@ -163,6 +163,17 @@ def student(grade, studentId):
             # 仍然合并其他字段，但积分保留云端值
             body['totalPoints'] = cloud_points
         
+        # === v715 悬崖守卫：防止低分值覆盖高分值 ===
+        # 场景：新设备登录时本地低分（如补偿的5万）在云同步完成前上传，
+        #       覆盖了云端的高分值（如千万分）
+        # 规则：如果新值不足云端值的50%且差距超过5万，视为异常覆盖，保留云端值
+        if local_points > 0 and cloud_points > 0:
+            ratio = local_points / cloud_points if cloud_points > 0 else 1
+            diff = cloud_points - local_points
+            if ratio < 0.5 and diff > 50000:
+                print(f'[GUARD] student 悬崖守卫: {key} local={local_points} cloud={cloud_points} ratio={ratio:.2f} → 保留云端值')
+                body['totalPoints'] = cloud_points
+        
         # === 智能合并 ===
         merged = {}
         

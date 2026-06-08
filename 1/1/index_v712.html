@@ -2413,6 +2413,7 @@ function loginWithId() {
   gameState.ladderTier = null;
   gameState.honoraryTitles = [];
   gameState.weeklyKingTitles = {};
+  delete gameState._cloudSynced;  // 🆕 v715: 清除云同步锁
   gameState.xuanbaBestScore = 0;
   gameState.xuanbaBestPct = 0;
   gameState.xuanbaBestRA = 0;
@@ -2428,6 +2429,7 @@ function loginWithId() {
   gameState.studentId = id;
   gameState.isGuest = false;
   gameState.studentName = getStudentName(id);
+  gameState._cloudSynced = false;  // 🆕 v715: 标记云同步未完成
   
   // v715: 登录立即进入主界面，云端同步后台进行
   hideLoginScreen();
@@ -2453,8 +2455,10 @@ function loginWithId() {
   // v715: 云端同步在后台运行，状态栏显示进度
   updateCloudSyncStatus('syncing');
   loadUserData().then(function() {
+    gameState._cloudSynced = true;  // 🆕 v715: 云同步完成，解除上传锁
     updateCloudSyncStatus('done');
   }).catch(function() {
+    gameState._cloudSynced = true;  // 🆕 v715: 即使失败也解锁（用本地数据）
     updateCloudSyncStatus('local');
   });
   
@@ -2501,6 +2505,7 @@ function loginAsGuest() {
   gameState.ladderTier = null;
   gameState.honoraryTitles = [];
   gameState.weeklyKingTitles = {};
+  delete gameState._cloudSynced;  // 🆕 v715: 清除云同步锁
   gameState.xuanbaBestScore = 0;
   gameState.xuanbaBestPct = 0;
   gameState.xuanbaBestRA = 0;
@@ -2562,6 +2567,7 @@ function logout() {
   gameState.ladderTier = null;
   gameState.honoraryTitles = [];
   gameState.weeklyKingTitles = {};
+  delete gameState._cloudSynced;  // 🆕 v715: 清除云同步锁
   gameState.xuanbaBestScore = 0;
   gameState.xuanbaBestPct = 0;
   gameState.xuanbaBestRA = 0;
@@ -3601,6 +3607,15 @@ async function loadFromCloud(studentId, throwOnError) {
 // v706: skipCloud 参数——applyUserData 等内部调用跳过云端上传
 async function saveUserData(skipCloud) {
   if (gameState.isGuest) return;
+  
+  // 🆕 v715 云同步锁：登录后 _cloudSynced 初始为 false，
+  // 在 loadUserData() 完成前禁止任何云端上传，防止低分值覆盖云端高分值
+  if (gameState._cloudSynced === false) {
+    if (!skipCloud) {
+      console.log('[saveUserData] 云同步未完成，仅保存本地，跳过云端上传');
+    }
+    skipCloud = true;
+  }
   // 读取宠物系统的碎片数据（用于云端同步）
   var petPieces = {};
   try {
