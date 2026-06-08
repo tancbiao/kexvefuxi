@@ -10,7 +10,7 @@
 <!-- PAGE_VERSION 用于版本自检：url?v= 不匹配时自动跳转最新 -->
 <script>
 (function(){
-  var PAGE_VERSION = '20260607';
+  var PAGE_VERSION = '20260608';
   var m = location.search.match(/[?&]v=(\d+)/);
   if (m && m[1] !== PAGE_VERSION) {
     location.replace(location.pathname + '?v=' + PAGE_VERSION);
@@ -837,6 +837,17 @@
     .equip-detail-actions { flex-wrap: wrap; }
     .equip-detail-btn { font-size: 0.8em; padding: 8px 12px; }
   }
+
+  /* 云同步加载动画 */
+  .cloud-loading-spinner {
+    width: 40px; height: 40px;
+    border: 4px solid rgba(255,255,255,0.2);
+    border-top-color: #4fc3f7;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 16px auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
   .overlay {
     display: none;
@@ -2239,38 +2250,67 @@ function loginWithId() {
   gameState.studentId = id;
   gameState.isGuest = false;
   gameState.studentName = getStudentName(id);
-  hideLoginScreen();
-  // 记住学号，下次自动登录
+  
+  // v714: 登录时先等待云端存档同步，再进入主界面
+  // 显示加载状态，替换登录表单内容
+  var loginBox = document.querySelector('#loginOverlay .login-box');
+  var originalHTML = loginBox.innerHTML;
+  loginBox.innerHTML = '<h2 class=\"login-title\">⏳ 正在同步云端存档</h2>' +
+    '<div style=\"text-align:center;padding:20px;color:rgba(255,255,255,0.85);\">' +
+    '<div style=\"font-size:2.5em;margin-bottom:8px;\">☁️</div>' +
+    '<p style=\"font-size:1.1em;margin:8px 0;\">正在从云端拉取你的存档数据...</p>' +
+    '<p style=\"font-size:0.8em;color:rgba(255,255,255,0.45);\">请稍候，马上就好</p>' +
+    '<div class=\"cloud-loading-spinner\"></div>' +
+    '</div>';
+  // 禁用输入框和按钮的交互（保留遮罩但不让操作）
+  document.getElementById('studentIdInput').disabled = true;
+  document.getElementById('loginBtn').disabled = true;
+  document.getElementById('guestBtn').disabled = true;
+  
+  // v714: 不立即隐藏登录遮罩和跳转，等云端同步完成后才执行
   localStorage.setItem('rememberedStudentId', id);
-  // v606: 清除宠物系统的旧 localStorage 防止串号（保留当前学号的 key）
   clearOtherPetLocalStorage(id);
-  // v704: pushRankingData 移到 loadUserData 内异步执行，等云端数据加载后再推送
-  loadUserData();
+  
+  // 先更新本地状态（体力等，不依赖云端数据）
   checkAndResetStamina();
   updateStaminaDisplay();
   updateStatusBar();
-  document.getElementById('studentDisplay').textContent = (gameState.studentName || id) + ' 同学';
-  showScreen('courseScreen');
-  // 六年级专属活动通知（登录奖励 + 爬塔奖励）
-  checkActivityNotice(id);
-  loadGiftData();
-  // 🆕 四五年级登录活动
-  checkGrade45Activity(id);
-  // 云服务回档补偿通知（所有实名认证学生均可领取一次）
-  checkCompensationNotice(id);
-  // 🆕 S0赛季爬塔结算奖励
-  checkS0SeasonReward(id);
-  // 活动通知之后再弹出问候弹窗
-  showGreetingWithNoticeCheck();
-  // 欧皇祝福/成绩奖励弹窗（延迟1.5秒，等问候弹窗先显示）
-  setTimeout(function() {
-    var reward = getOrCreateReward(id);
-    if (reward) {
-      showSpecialRewardPopup(reward);
+  
+  // v714: 启动云端同步 + 8秒超时保护
+  var cloudDone = loadUserData();  // 返回 Promise
+  var timeout = new Promise(function(resolve) {
+    setTimeout(function() { resolve('timeout'); }, 8000);
+  });
+  
+  Promise.race([cloudDone, timeout]).then(function(result) {
+    // 恢复登录表单（下次打开登录弹窗时可用）
+    loginBox.innerHTML = originalHTML;
+    document.getElementById('studentIdInput').disabled = false;
+    document.getElementById('loginBtn').disabled = false;
+    document.getElementById('guestBtn').disabled = false;
+    
+    if (result === 'timeout') {
+      showToast('云端同步超时，使用本地数据', 'warn', 3000);
     }
-  }, 1500);
-  // 🆕 延迟5秒自动刷新pending队列
-  setTimeout(function() { flushPendingSync(); }, 5000);
+    
+    // 现在才切换到主界面
+    hideLoginScreen();
+    document.getElementById('studentDisplay').textContent = (gameState.studentName || id) + ' 同学';
+    showScreen('courseScreen');
+    
+    // 以下为登录后的各种检查和弹窗
+    checkActivityNotice(id);
+    loadGiftData();
+    checkGrade45Activity(id);
+    checkCompensationNotice(id);
+    checkS0SeasonReward(id);
+    showGreetingWithNoticeCheck();
+    setTimeout(function() {
+      var reward = getOrCreateReward(id);
+      if (reward) { showSpecialRewardPopup(reward); }
+    }, 1500);
+    setTimeout(function() { flushPendingSync(); }, 5000);
+  });
 }
 
 function loginAsGuest() {
@@ -4739,7 +4779,7 @@ async function migrateAndSyncCloud(studentId, localData) {
 }
 
 function loadUserData() {
-  if (gameState.isGuest) return;
+  if (gameState.isGuest) return Promise.resolve();
   const saveKey = 'scienceGame_user_' + gameState.studentId;
   const saved = localStorage.getItem(saveKey);
   const localData = saved ? JSON.parse(saved) : null;
@@ -4837,7 +4877,8 @@ function loadUserData() {
   showToast('正在同步云端存档...', 'info', 6000);
   
   // 【跨年级云端迁移】首次登录时合并旧年级数据（仅执行一次）
-  migrateAndSyncCloud(gameState.studentId, localData).then(function() {
+  // v714: 返回 Promise 让 loginWithId 可以等待同步完成
+  return migrateAndSyncCloud(gameState.studentId, localData).then(function() {
     // 迁移完成后重新读取本地存档（可能已被迁移更新）
     var updatedSaved = localStorage.getItem(saveKey);
     var updatedLocal = updatedSaved ? JSON.parse(updatedSaved) : localData;
