@@ -1740,6 +1740,11 @@
   }
   .danmaku-toggle:hover { border-color: rgba(255,255,255,0.4); }
   .danmaku-toggle.off { color: #888; text-decoration: line-through; }
+  /* 🆕 v714: 探索浮动文字 */
+  @keyframes floatUp {
+    0% { opacity: 1; transform: translate(-50%, 0); }
+    100% { opacity: 0; transform: translate(-50%, -80px); }
+  }
 </style>
 </head>
 <body>
@@ -1774,6 +1779,10 @@
     <div class="status-item" id="staminaStatusItem" style="display:none;">
       <span class="status-icon">⚡</span>
       <span>体力: <span class="status-value" id="dailyStaminaDisplay">20</span>/20</span>
+    </div>
+    <div class="status-item" id="exploreStatusItem" style="cursor:pointer;" onclick="showToast('🔍 探索积分：通过点击、访问、发现隐藏内容获得。只增不减！', 'info', 4000)" title="探索积分（只增不减）">
+      <span class="status-icon">🔍</span>
+      <span>探索: <span class="status-value" id="explorePointsDisplay">0</span></span>
     </div>
     <div class="status-item" id="ladderStatusItem" style="display:none;cursor:pointer;" onclick="document.getElementById('ladderOverlay') && document.getElementById('ladderOverlay').classList.add('show')">
       <span class="status-icon" id="ladderTierIcon">⚡</span>
@@ -2383,6 +2392,8 @@ function loginWithId() {
   updateStatusBar();
   document.getElementById('studentDisplay').textContent = (gameState.studentName || id) + ' 同学';
   showScreen('courseScreen');
+  // 🆕 v714: 追踪首页访问
+  setTimeout(function() { trackPageVisit('首页'); }, 2000);
   
   // v715: 云端同步在后台运行，状态栏显示进度
   updateCloudSyncStatus('syncing');
@@ -2674,6 +2685,9 @@ function updateCloudSyncStatus(state) {
 
 function updateStatusBar() {
   document.getElementById('totalPoints').textContent = gameState.totalPoints;
+  // 🆕 v714: 探索积分显示
+  var epDisp = document.getElementById('explorePointsDisplay');
+  if (epDisp) epDisp.textContent = (gameState.explorePoints || 0);
   // 天梯队位徽章显示
   var ladderItem = document.getElementById('ladderStatusItem');
   var badge = document.getElementById('ladderTierBadge');
@@ -2964,6 +2978,8 @@ function selectOption(idx) {
       gameState.retrySuccessCount = (gameState.retrySuccessCount || 0) + 1;
       if (!gameState.unlockedAchievements.includes('perfect_retry')) unlockAchievement('perfect_retry');
       if (gameState.retrySuccessCount >= 3 && !gameState.unlockedAchievements.includes('retry_3')) unlockAchievement('retry_3');
+      // 🆕 v714: 柳暗花明——答错后自己找到正确答案，+20探索积分
+      awardExplorePoints(20, '柳暗花明');
     }
 
     // ====== 防沉迷：体力耗尽则不得积分 ======
@@ -3884,6 +3900,60 @@ function loadDanmakuSetting() {
 /** 在线详情切换 */
 function toggleOnlineDetail() {
   showToast('当前 ' + (document.getElementById('onlineCount')?.textContent || '?') + '，弹幕飘过的是同学们的实时动态', 'info', 3000);
+}
+
+// ====== 🆕 v714: 探索积分系统（零惩罚） ======
+
+/** 授予探索积分（只增不减） */
+function awardExplorePoints(amount, reason) {
+  if (!amount || amount <= 0) return;
+  gameState.explorePoints = (gameState.explorePoints || 0) + amount;
+  updateStatusBar();
+  // 显示浮动提示
+  showFloatText('+🔍' + amount, 'explore');
+  console.log('[Explore] +' + amount + ' ' + (reason || '探索'));
+}
+
+/** 浮动文字提示 */
+function showFloatText(text, type) {
+  var el = document.createElement('div');
+  el.textContent = text;
+  el.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:200;font-size:1.5em;font-weight:bold;color:' + 
+    (type === 'explore' ? '#7ec8ff' : '#ffd700') + ';text-shadow:0 0 10px rgba(126,200,255,0.8);animation:floatUp 1.5s ease-out forwards;pointer-events:none;';
+  document.body.appendChild(el);
+  setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 1500);
+}
+
+/** 记录页面访问（探索积分+地图探索者进度） */
+function trackPageVisit(pageName) {
+  gameState.visitedPages = gameState.visitedPages || [];
+  if (gameState.visitedPages.indexOf(pageName) >= 0) return; // 已访问
+  gameState.visitedPages.push(pageName);
+  awardExplorePoints(10, '首次访问「' + pageName + '」');
+}
+
+/** 记录交互点击（探索积分+乱点达人进度） */
+function trackClick(elementId) {
+  if (!elementId) return;
+  gameState.clickedElements = gameState.clickedElements || [];
+  if (gameState.clickedElements.indexOf(elementId) >= 0) return; // 已点过
+  gameState.clickedElements.push(elementId);
+  awardExplorePoints(2, '发现可交互元素');
+}
+
+/** 全局点击委托：自动追踪带 data-interactive 属性的元素 */
+function initExploreTracking() {
+  // 给关键交互元素自动打标记
+  document.querySelectorAll('button, .btn, .tile, .card, [onclick], .grade-option, .semester-option, .lesson-tile, .status-item').forEach(function(el) {
+    if (!el.hasAttribute('data-interactive')) {
+      el.setAttribute('data-interactive', 'auto_' + Math.random().toString(36).substr(2, 8));
+    }
+  });
+  // 全局监听
+  document.addEventListener('click', function(e) {
+    var el = e.target.closest('[data-interactive]');
+    if (el) trackClick(el.getAttribute('data-interactive'));
+  });
 }
 
 // ====== 从成绩分析系统同步数据 ======
@@ -6114,6 +6184,8 @@ function bpClear62() {
 var _keji2026Loaded = false;
 
 function showBackpack() {
+  // 🆕 v714: 追踪页面访问
+  trackPageVisit('背包');
   bpCurrentPage = 1;
   // v715: 首次打开背包时懒加载科技节装备数据（155KB）
   if (!_keji2026Loaded) {
@@ -6220,6 +6292,8 @@ function closeRanking() {
 
 // ====== 爬塔弹窗 ======
 function showTowerModal() {
+  // 🆕 v714: 追踪页面访问
+  trackPageVisit('爬塔');
   if (!gameState.studentId || gameState.isGuest) {
     showLoginScreen();
     return;
@@ -6295,6 +6369,8 @@ function closeLadderModal() {
 
 // ====== 校队选拔弹窗 ======
 function showXuanbaModal() {
+  // 🆕 v714: 追踪页面访问
+  trackPageVisit('校队选拔');
   if (!gameState.studentId || gameState.isGuest) {
     showLoginScreen();
     return;
@@ -6629,6 +6705,8 @@ async function migrateLadderRankingData() {
 }
 
 function showPetBattle() {
+  // 🆕 v714: 追踪页面访问
+  trackPageVisit('宠物');
   const modal = document.getElementById('petModal');
   const iframe = document.getElementById('petIframe');
   document.getElementById('petModalPoints').textContent = (gameState.totalPoints || 0).toLocaleString();
@@ -6855,6 +6933,8 @@ if (document.readyState === 'loading') {
     const btn = document.getElementById('uploadQBtn62');
     if (btn) btn.onclick = showUploadPasswordPrompt;
     initNoticeSection(); // 🆕 初始化通知公告
+    // 🆕 v714: 初始化探索追踪
+    setTimeout(function() { initExploreTracking(); }, 500);
   });
 } else {
   const btn = document.getElementById('uploadQBtn62');
