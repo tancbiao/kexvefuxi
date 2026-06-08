@@ -1366,63 +1366,685 @@ const run = {
 };
 
 // ============================================================
-// 2. 内置测试题库后续由外部Skill填充
-// ============================================================
-// 2. 六年级科学题库门口易测导出
-// ============================================================
-// 六年级5月月考卷题库（含图片题目）
+// 2. 历年真题题库（2021-2025六年级科学）
+// 从 V4 Excel 自动生成 2026-06-08
 // 判断题 options=['√','×']  选择题 options=选项内容
+// ============================================================
+// 2. 历年真题题库（2021-2025六年级科学）— 含图片引用
+// ============================================================
+// 从 V4 Excel 自动生成 2026-06-08
+// ============================================================
+// 2. 历年真题题库（2021-2025六年级科学）— 含图片引用
+// ============================================================
+// 从 V4 Excel 自动生成 2026-06-08
+// ============================================================
+// 2. 历年真题题库（2021-2025）— 完整图片版
+// ============================================================
+// V4 Excel + 用户提供的2025实验图 2026-06-08
 const TOWER_QUESTIONS = [
-  { id: "x1", question: "爱好运动的人在选择饮水瓶时应选择容量大的、便于携带的。", options: ["√", "×"], answer: 0 },
-  { id: "x2", question: "拉链头的边角设计成圆弧形是为了美观。", options: ["√", "×"], answer: 1 },
-  { id: "x3", question: "在涂有蜡烛的金属圆片的中间加热，会发现金属圆片边缘的蜡烛先融化。", options: ["√", "×"], answer: 1 },
-  { id: "x4", question: "木制品和玻璃相比，木制品的导热性能更好。", options: ["√", "×"], answer: 1 },
-  { id: "x5", question: "不同的材料具有不一样的保温效果。", options: ["√", "×"], answer: 0 },
-  { id: "x6", question: "饮料瓶、鞋盒、啤酒瓶等废弃物都可以通过巧妙的设计改造成新的物品。", options: ["√", "×"], answer: 0 },
-  { id: "x7", question: "末端带有橡皮的铅笔既可以用来写字，又方便修改。", options: ["√", "×"], answer: 0 },
-  { id: "x8", question: "回形针是用金属丝来回折弯做成的辅助你在工作生活中夹文件或是纸张的小工具。", options: ["√", "×"], answer: 0 },
-  { id: "x9", question: "动能属于机械能，它是能量的一种表现形式。", options: ["√", "×"], answer: 0 },
-  { id: "x10", question: "风能是一种不可再生能资源。", options: ["√", "×"], answer: 1 },
-  { id: "x11", question: "【材料：小鸟天堂】小鸟天堂原名「鸟墩」，婆娑的榕叶笼罩着20多亩的河面，树高约15米，榕树枝干上着地后木质化，抽枝发叶，长成新枝干。大榕树独木成林，林中栖息着成千上万只鸟雀，鸟树相依。广东新会小鸟天堂国家湿地公园毗邻新会银洲湖，占地面积63万平方米，总面积274.62公顷，湿地率84.80%。\n\n下列属于小鸟天堂的环境特点的是", options: ["炎热干燥", "多雨潮湿", "雨季和旱季分明"], answer: 1 },
-  { id: "x12", question: "【材料：小鸟天堂】小鸟天堂原名「鸟墩」，婆娑的榕叶笼罩着20多亩的河面，树高约15米，榕树枝干上着地后木质化，抽枝发叶，长成新枝干。大榕树独木成林，林中栖息着成千上万只鸟雀，鸟树相依。广东新会小鸟天堂国家湿地公园毗邻新会银洲湖，占地面积63万平方米，总面积274.62公顷，湿地率84.80%。\n\n<br><img src='data:image/png;base64,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' style='max-width:100%;max-height:200px;display:block;margin:8px auto;border-radius:4px;' alt='鸟的足插图'><br><br>如右图所示的是某些鸟的足，具有这种足的鸟类分别适合生活在", options: ["草原生态系统和森林生态系统", "森林生态系统和湿地生态系统", "河流生态系统和湖泊生态系统"], answer: 1 },
-  { id: "x13", question: "【材料：小鸟天堂】小鸟天堂原名「鸟墩」，婆娑的榕叶笼罩着20多亩的河面，树高约15米，榕树枝干上着地后木质化，抽枝发叶，长成新枝干。大榕树独木成林，林中栖息着成千上万只鸟雀，鸟树相依。广东新会小鸟天堂国家湿地公园毗邻新会银洲湖，占地面积63万平方米，总面积274.62公顷，湿地率84.80%。\n\n下列动物适应生活在阴暗、潮湿地方的是", options: ["鼠妇", "蜘蛛", "丹顶鹤"], answer: 0 },
-  { id: "x14", question: "【材料：小鸟天堂】小鸟天堂原名「鸟墩」，婆娑的榕叶笼罩着20多亩的河面，树高约15米，榕树枝干上着地后木质化，抽枝发叶，长成新枝干。大榕树独木成林，林中栖息着成千上万只鸟雀，鸟树相依。广东新会小鸟天堂国家湿地公园毗邻新会银洲湖，占地面积63万平方米，总面积274.62公顷，湿地率84.80%。\n\n下列行为会影响「小鸟天堂」生态系统平衡的是", options: ["爱护鸟类", "彻底消灭田鼠", "建立自然保护区"], answer: 1 },
-  { id: "x15", question: "【材料：能源与发电】大亚湾核电站位于广东省深圳市大鹏新区大鹏半岛，是中国大陆第一座大型商用核电站，拥有两台百万千瓦级压水堆机组，所生产电力80%供应香港，20%供应广东。\n\n大亚湾核电站的发电方式是", options: ["火力发电", "风力发电", "核能发电"], answer: 2 },
-  { id: "x16", question: "【材料：能源与发电】大亚湾核电站位于广东省深圳市大鹏新区大鹏半岛，是中国大陆第一座大型商用核电站，拥有两台百万千瓦级压水堆机组，所生产电力80%供应香港，20%供应广东。\n\n电是科技发展、人民经济飞跃的主要动力，以下不属于新能源发电的是", options: ["煤炭发电", "核能发电", "沼气发电"], answer: 0 },
-  { id: "x17", question: "【材料：能源与发电】大亚湾核电站位于广东省深圳市大鹏新区大鹏半岛，是中国大陆第一座大型商用核电站，拥有两台百万千瓦级压水堆机组，所生产电力80%供应香港，20%供应广东。\n\n手压式手电筒的工作原理是", options: ["机械能转换成光能，再转换成热能", "机械能转换成电能，再转换成热能", "机械能转换成电能，再转换成光能和热能"], answer: 2 },
-  { id: "x18", question: "【材料：能源与发电】大亚湾核电站位于广东省深圳市大鹏新区大鹏半岛，是中国大陆第一座大型商用核电站，拥有两台百万千瓦级压水堆机组，所生产电力80%供应香港，20%供应广东。\n\n电动机的转动，是因为______在起作用", options: ["绝缘体", "电磁铁", "电动机"], answer: 1 },
-  { id: "x19", question: "【材料：能源与发电】大亚湾核电站位于广东省深圳市大鹏新区大鹏半岛，是中国大陆第一座大型商用核电站，拥有两台百万千瓦级压水堆机组，所生产电力80%供应香港，20%供应广东。\n\n发电机是把______转化成了______", options: ["机械能 化学能", "电能 机械能", "机械能 电能"], answer: 2 },
-  { id: "x20", question: "【材料：航天科技】我国航天事业飞速发展，2024年嫦娥六号圆满完成人类首次月球背面采样返回任务；天宫空间站由天和核心舱、问天实验舱、梦天实验舱三舱组成稳定构型，长期在轨运行。\n\n2024年完成人类首次月球背面采样返回任务的航天器是", options: ["嫦娥五号", "嫦娥六号", "嫦娥七号"], answer: 1 },
-  { id: "x21", question: "【材料：航天科技】我国航天事业飞速发展，2024年嫦娥六号圆满完成人类首次月球背面采样返回任务；天宫空间站由天和核心舱、问天实验舱、梦天实验舱三舱组成稳定构型，长期在轨运行。\n\n下列不属于天宫空间站舱段组成的是", options: ["天和核心舱", "问天实验舱", "神舟十七号"], answer: 2 },
-  { id: "x22", question: "【材料：航天科技】我国航天事业飞速发展，2024年嫦娥六号圆满完成人类首次月球背面采样返回任务；天宫空间站由天和核心舱、问天实验舱、梦天实验舱三舱组成稳定构型，长期在轨运行。\n\n好的产品离不开巧妙的设计，圆珠笔的笔头内有钢珠是为了", options: ["增大摩擦", "减少摩擦，写字时更顺滑", "好看"], answer: 1 },
-  { id: "x23", question: "【材料：航天科技】我国航天事业飞速发展，2024年嫦娥六号圆满完成人类首次月球背面采样返回任务；天宫空间站由天和核心舱、问天实验舱、梦天实验舱三舱组成稳定构型，长期在轨运行。\n\n以下说法错误的是", options: ["指甲钳利用了杠杆原理使剪指甲更省力", "饮水瓶的瓶身有凹槽是为了增大摩擦力", "做保温实验时，把材料塞得越紧保温效果越好"], answer: 1 },
-  { id: "x24", question: "【材料：航天科技】我国航天事业飞速发展，2024年嫦娥六号圆满完成人类首次月球背面采样返回任务；天宫空间站由天和核心舱、问天实验舱、梦天实验舱三舱组成稳定构型，长期在轨运行。\n\n我国现在流行扫码支付，如果你想设计一款可以模拟扫码识别不同物品的作品，你需要用到", options: ["红外线传感器", "超声波传感器", "图像识别传感器"], answer: 2 },
-  { id: "x25", question: "【材料：红树林生态系统】红树林是重要的湿地生态系统。全球红树林树种约40多种，我国分布有24种。红树林是贝类、虾、鱼、蟹等水生生物集居繁衍和候鸟飞禽栖息越冬的好地方。\n\n红树林是由红树植物为主体的常绿乔木或灌木组成。红树林是", options: ["森林生态系统", "湿地生态系统", "海洋生态系统"], answer: 2 },
-  { id: "x26", question: "【材料：红树林生态系统】红树林是重要的湿地生态系统。全球红树林树种约40多种，我国分布有24种。红树林是贝类、虾、鱼、蟹等水生生物集居繁衍和候鸟飞禽栖息越冬的好地方。\n\n鹭鸟与鱼之间的关系中，鹭鸟以鱼为食，它们是", options: ["合作关系", "竞争关系", "捕食关系"], answer: 1 },
-  { id: "x27", question: "【材料：红树林生态系统】红树林是重要的湿地生态系统。全球红树林树种约40多种，我国分布有24种。红树林是贝类、虾、鱼、蟹等水生生物集居繁衍和候鸟飞禽栖息越冬的好地方。\n\n划线部分写出鹭鸟获取能量最多的一条食物链", options: ["植物→贝壳→鱼→鹭鸟", "植物→鱼→鹭鸟", "植物→虾→蟹→鹭鸟"], answer: 1 },
-  { id: "x28", question: "【材料：红树林生态系统】红树林是重要的湿地生态系统。全球红树林树种约40多种，我国分布有24种。红树林是贝类、虾、鱼、蟹等水生生物集居繁衍和候鸟飞禽栖息越冬的好地方。\n\n人类的活动必须注意保护生态系统，因为生态系统的______是有一定限度的", options: ["抵抗性能力", "自我调节能力", "物质循环能力"], answer: 1 },
-  { id: "x29", question: "【材料：红树林生态系统】红树林是重要的湿地生态系统。全球红树林树种约40多种，我国分布有24种。红树林是贝类、虾、鱼、蟹等水生生物集居繁衍和候鸟飞禽栖息越冬的好地方。\n\n下列有关食物网的说法中，正确的是", options: ["在食物网中，有些生物的存在仅是为了给别的生物提供食物", "在食物网中，任何两种生物之间都有着直接或间接的关系", "在食物网中，任何一种生物的灭绝都会导致另外一种生物的灭绝"], answer: 2 },
-  { id: "x30", question: "【保温效果实验】实验条件：四个杯子的材料和大小以及水量都相同。\n<img src='icons/tower_table_baowen.jpeg' style='max-width:100%;max-height:280px;border-radius:8px;margin:8px 0;' alt='保温效果实验温度记录表'>\n保温效果最好的是______号杯", options: ["2", "3", "4"], answer: 2 },
-  { id: "x31", question: "【保温效果实验】实验条件：四个杯子的材料和大小以及水量都相同。\n<img src='icons/tower_table_baowen.jpeg' style='max-width:100%;max-height:280px;border-radius:8px;margin:8px 0;' alt='保温效果实验温度记录表'>\n保温效果最差的是______号杯", options: ["1", "2", "3"], answer: 0 },
-  { id: "x32", question: "【保温效果实验】实验条件：四个杯子的材料和大小以及水量都相同。\n<img src='icons/tower_table_baowen.jpeg' style='max-width:100%;max-height:280px;border-radius:8px;margin:8px 0;' alt='保温效果实验温度记录表'>\n如果要研究杯子有无盖对保温效果的影响，你选择____号杯和_____号杯", options: ["1和2", "1和4", "2和3"], answer: 2 },
-  { id: "x33", question: "【保温效果实验】实验条件：四个杯子的材料和大小以及水量都相同。\n<img src='icons/tower_table_baowen.jpeg' style='max-width:100%;max-height:280px;border-radius:8px;margin:8px 0;' alt='保温效果实验温度记录表'>\n如果要研究杯子有无外包材料对保温效果的影响，你选择____号杯和_____号杯", options: ["1和2", "1和4", "2和3"], answer: 0 },
-  { id: "x34", question: "【保温效果实验】实验条件：四个杯子的材料和大小以及水量都相同。\n<img src='icons/tower_table_baowen.jpeg' style='max-width:100%;max-height:280px;border-radius:8px;margin:8px 0;' alt='保温效果实验温度记录表'>\n如果要研究不同外包材料对保温效果的影响，你选择____号杯和_____号杯", options: ["1和2", "1和4", "3和4"], answer: 2 },
-  { id: "x35", question: "【探究电磁铁磁力大小与线圈匝数的关系】实验数据：\n<img src='icons/tower_table_diancitie.jpeg' style='max-width:100%;max-height:220px;border-radius:8px;margin:8px 0;' alt='电磁铁实验数据表'>\n\n这个实验能得出的结论是", options: ["在电流都相同时，线圈匝数越多，电磁铁的磁越弱", "在电流都相同时，线圈匝数越多，电磁铁的磁越强", "在电流都相同时，线圈匝数越多，电磁铁的磁没有变化"], answer: 1 },
-  { id: "x36", question: "【探究电磁铁磁力大小与线圈匝数的关系】实验数据：\n<img src='icons/tower_table_diancitie.jpeg' style='max-width:100%;max-height:220px;border-radius:8px;margin:8px 0;' alt='电磁铁实验数据表'>\n\n这次实验应改变的条件是", options: ["电池数量", "线圈匝数", "有无铁芯"], answer: 1 },
-  { id: "x37", question: "【探究电磁铁磁力大小与线圈匝数的关系】实验数据：\n<img src='icons/tower_table_diancitie.jpeg' style='max-width:100%;max-height:220px;border-radius:8px;margin:8px 0;' alt='电磁铁实验数据表'>\n\n不能改变电磁铁磁力大小的是", options: ["增加电池节数", "改变线圈缠绕方向", "增加线圈缠绕匝数"], answer: 1 },
-  { id: "x38", question: "【探究电磁铁磁力大小与线圈匝数的关系】实验数据：\n<img src='icons/tower_table_diancitie.jpeg' style='max-width:100%;max-height:220px;border-radius:8px;margin:8px 0;' alt='电磁铁实验数据表'>\n\n只改变电磁铁线圈的缠绕方向，电磁铁", options: ["南北极改变", "南北极不变", "磁力强弱发生变化"], answer: 0 },
-  { id: "x39", question: "【探究电磁铁磁力大小与线圈匝数的关系】实验数据：\n<img src='icons/tower_table_diancitie.jpeg' style='max-width:100%;max-height:220px;border-radius:8px;margin:8px 0;' alt='电磁铁实验数据表'>\n\n搬运杂乱的废钢铁是件麻烦的事，用电磁铁就省事多了。通电时电磁铁能吸引废旧钢铁，搬到别处时断开电流，废旧钢铁自动落下，这是因为", options: ["电磁铁的磁极由电流的方向来决定", "电磁铁的磁性强弱由电流的大小来决定", "电磁铁的磁性有无由电流的通断来控制"], answer: 2 },
-  { id: "x40", question: "【探究电磁铁磁力大小与线圈匝数的关系】实验数据：\n<img src='icons/tower_table_diancitie.jpeg' style='max-width:100%;max-height:220px;border-radius:8px;margin:8px 0;' alt='电磁铁实验数据表'>\n\n要检验电磁铁南北极最简单的方法是", options: ["改变电池方向", "用电磁铁去吸引大头针", "用电磁铁靠近指南针"], answer: 2 },
-  { id: "x41", question: "【风能小吊车实验】实验数据：\n<img src='icons/tower_table_fengneng.jpeg' style='max-width:100%;max-height:200px;border-radius:8px;margin:8px 0;' alt='风能小吊车实验数据表'>\n\n下列关于风能小吊车制作步骤错误的是", options: ["在塑料瓶的上部钻一个小孔", "将一根小棒穿过小孔，使小棒自由转动", "在小棒的一端固定风轮，另一端系上吊篮"], answer: 1 },
-  { id: "x42", question: "【风能小吊车实验】实验数据：\n<img src='icons/tower_table_fengneng.jpeg' style='max-width:100%;max-height:200px;border-radius:8px;margin:8px 0;' alt='风能小吊车实验数据表'>\n\n风能小吊车的能量转换方式是", options: ["风能转换成机械能", "风能转换成热能", "机械能转换成风能"], answer: 0 },
-  { id: "x43", question: "【风能小吊车实验】实验数据：\n<img src='icons/tower_table_fengneng.jpeg' style='max-width:100%;max-height:200px;border-radius:8px;margin:8px 0;' alt='风能小吊车实验数据表'>\n\n实验结论是", options: ["风越大，风能就越大，提起的重物就越多", "风越小，风能就越小，提起的重物就越多", "风速大小与提起重物无任何关系"], answer: 0 },
-  { id: "x44", question: "【风能小吊车实验】实验数据：\n<img src='icons/tower_table_fengneng.jpeg' style='max-width:100%;max-height:200px;border-radius:8px;margin:8px 0;' alt='风能小吊车实验数据表'>\n\n下列现象与风能无关的是", options: ["杨帆远航", "热气球升空", "彩旗飘飘"], answer: 1 },
-  { id: "x45", question: "【某生态系统食物网】右图为一个复杂的食物网示意图，包含以下生物：\n\n从总体上看，植物的数量总是比食草动物<br><img src='icons/tower_q_img_46.jpeg' style='max-width:100%;max-height:300px;border-radius:8px;margin-top:8px;'>", options: ["多", "少", "不多不少"], answer: 0 },
-  { id: "x46", question: "【某生态系统食物网】右图为一个复杂的食物网示意图，包含以下生物：\n右图中一共有几条食物链<br><img src='icons/tower_q_img_47.jpeg' style='max-width:100%;max-height:300px;border-radius:8px;margin-top:8px;'>", options: ["10", "11", "12"], answer: 2 },
-  { id: "x47", question: "【某生态系统食物网】右图为一个复杂的食物网示意图，包含以下生物：\n以下食物链正确的是<br><img src='icons/tower_q_img_48.jpeg' style='max-width:100%;max-height:300px;border-radius:8px;margin-top:8px;'>", options: ["草→鼠→蛇", "鼠兔→蛇→鹰", "草→羚羊→狐狸→鹰"], answer: 0 },
-  { id: "x48", question: "【某生态系统食物网】右图为一个复杂的食物网示意图，包含以下生物：\n右图中生产者是<br><img src='icons/tower_q_img_49.jpeg' style='max-width:100%;max-height:300px;border-radius:8px;margin-top:8px;'>", options: ["草", "兔子", "鼠"], answer: 0 },
-  { id: "x49", question: "【某生态系统食物网】右图为一个复杂的食物网示意图，包含以下生物：\n食物链中存在多条相互交织的食物链。\n右图中，如果鹰大量灭绝，食虫鸟的数量会<br><img src='icons/tower_q_img_50.jpeg' style='max-width:100%;max-height:300px;border-radius:8px;margin-top:8px;'>", options: ["增多", "减少", "先增多再减少"], answer: 2 },
-  { id: "x50", question: "【某生态系统食物网】右图为一个复杂的食物网示意图，包含以下生物：\n图中数量最少的是<br><img src='icons/tower_q_img_51.jpeg' style='max-width:100%;max-height:300px;border-radius:8px;margin-top:8px;'>", options: ["鹰", "草", "蛇", "蝗虫"], answer: 0 },
+  { id: "t1", question: "【2021真题·判断】\\n1. 随风飞行的蒲公英、潺潺流淌的河水和沉睡着的石头都具有动能。", options: ["√", "×"], answer: 1 },
+  { id: "t2", question: "【2021真题·判断】\\n2. 当环境变化时许多生物的身体特征或行为也会相应变化，海参就有冬眠的特征。", options: ["√", "×"], answer: 1 },
+  { id: "t3", question: "【2021真题·判断】\\n3. 用木材制成的筷子、铁锻成的铁锅、塑料制成的杯子、棉花纺成的衣服，导热性能都一样。", options: ["√", "×"], answer: 1 },
+  { id: "t4", question: "【2021真题·判断】\\n4. 正在播放节目的电视机把电能转换成光能和声能。", options: ["√", "×"], answer: 0 },
+  { id: "t5", question: "【2021真题·判断】\\n5. 海洋的面积约占地球表面积的30%。", options: ["√", "×"], answer: 1 },
+  { id: "t6", question: "【2021真题·判断】\\n6. 瑞士工程师乔治·德·梅斯特拉受牛蒡果实启发发明了尼龙搭扣。", options: ["√", "×"], answer: 0 },
+  { id: "t7", question: "【2021真题·判断】\\n7. 通电后的电磁铁和普通磁铁的磁极都是不变的。", options: ["√", "×"], answer: 1 },
+  { id: "t8", question: "【2021真题·判断】\\n8. 节日期间燃放烟花爆竹不会造成空气污染。", options: ["√", "×"], answer: 1 },
+  { id: "t9", question: "【2021真题·判断】\\n9. 科学小组做生态瓶，水草能为小动物提供氧气。", options: ["√", "×"], answer: 0 },
+  { id: "t10", question: "【2021真题·判断】\\n10. 太阳能、风能和水能都是可再生资源。", options: ["√", "×"], answer: 0 },
+  { id: "t11", question: "【2021真题·选择】\\n【材料一·绿色发展】2015年10月，党的十八届五中全会首次提出「创新、协调、绿色、开放、共享」的五大发展理念。近年来中国绿色发展走在前列：①截至2019年底碳强度较2005年降低约48.1%；②1990年至今全球4.2亿公顷森林遭毁，中国森林草地却增长3300万公顷；③自2000年以来中国可再生能源装机容量增长800%以上。
+
+11. 以下哪种不是防止空气污染的有效措施？", options: ["减少污染物排放量", "提高空气自净能力", "合理进行工厂选址规划", "增加家用小车购置刺激经济发展"], answer: 3 },
+  { id: "t12", question: "【2021真题·选择】\\n【材料一·绿色发展】2015年10月，党的十八届五中全会首次提出「创新、协调、绿色、开放、共享」的五大发展理念。近年来中国绿色发展走在前列：①截至2019年底碳强度较2005年降低约48.1%；②1990年至今全球4.2亿公顷森林遭毁，中国森林草地却增长3300万公顷；③自2000年以来中国可再生能源装机容量增长800%以上。
+
+12. 以下哪个不是设置休渔期的主要原因？", options: ["减少过度捕捞", "给幼鱼提供生长时间", "防止渔民过度劳累", "休渔期刚好是鱼类繁殖季节"], answer: 2 },
+  { id: "t13", question: "【2021真题·选择】\\n【材料一·绿色发展】2015年10月，党的十八届五中全会首次提出「创新、协调、绿色、开放、共享」的五大发展理念。近年来中国绿色发展走在前列：①截至2019年底碳强度较2005年降低约48.1%；②1990年至今全球4.2亿公顷森林遭毁，中国森林草地却增长3300万公顷；③自2000年以来中国可再生能源装机容量增长800%以上。
+
+13. 为落实垃圾分类，江江设计了人一靠近便自动打开的「懒人垃圾桶」，最可能选用什么传感器？", options: ["红外线传感器", "湿度传感器", "温度传感器", "声控传感器"], answer: 0 },
+  { id: "t14", question: "【2021真题·选择】\\n【材料一·绿色发展】2015年10月，党的十八届五中全会首次提出「创新、协调、绿色、开放、共享」的五大发展理念。近年来中国绿色发展走在前列：①截至2019年底碳强度较2005年降低约48.1%；②1990年至今全球4.2亿公顷森林遭毁，中国森林草地却增长3300万公顷；③自2000年以来中国可再生能源装机容量增长800%以上。
+
+14. 「江门蓝」爆红网络，以下哪项不属于江门推动环境治理的有效举措？", options: ["加速推进口袋公园建设", "关停搬迁主城区高污染企业188家", "全市公交电动化率提升至85%", "大力推进交通建设大会战"], answer: 3 },
+  { id: "t15", question: "【2021真题·选择】\\n【材料一·绿色发展】2015年10月，党的十八届五中全会首次提出「创新、协调、绿色、开放、共享」的五大发展理念。近年来中国绿色发展走在前列：①截至2019年底碳强度较2005年降低约48.1%；②1990年至今全球4.2亿公顷森林遭毁，中国森林草地却增长3300万公顷；③自2000年以来中国可再生能源装机容量增长800%以上。
+
+15. 要建立强大全国水质检测体系哪项技术最不可或缺？", options: ["5G网络", "大数据", "物联网", "图形化编程"], answer: 2 },
+  { id: "t16", question: "【2021真题·选择】\\n【材料二·私人定制】快毕业了，大家都想拍好毕业照。随着时代发展，私人定制、个性化消费逐渐成为新潮流。定制的样式如：软陶人偶、签名水杯、场馆纪念品、叶雕照片等，上面或印制或绣上个人专属标识，既彰显风格又充满乐趣。
+
+16. 作为私人定制的设计师你首要关注的是什么？", options: ["自己的个人审美", "产品利润", "当前流行", "顾客的实际需求"], answer: 3 },
+  { id: "t17", question: "【2021真题·选择】\\n【材料二·私人定制】快毕业了，大家都想拍好毕业照。随着时代发展，私人定制、个性化消费逐渐成为新潮流。定制的样式如：软陶人偶、签名水杯、场馆纪念品、叶雕照片等，上面或印制或绣上个人专属标识，既彰显风格又充满乐趣。
+
+17. 在设计鸡蛋包装盒时最该考虑的因素是什么？", options: ["外形美观", "缓冲防撞", "装置容量", "设备重量"], answer: 1 },
+  { id: "t18", question: "【2021真题·选择】\\n【材料二·私人定制】快毕业了，大家都想拍好毕业照。随着时代发展，私人定制、个性化消费逐渐成为新潮流。定制的样式如：软陶人偶、签名水杯、场馆纪念品、叶雕照片等，上面或印制或绣上个人专属标识，既彰显风格又充满乐趣。
+
+18. 客户想给久坐少动的亲人送礼最合适的是？", options: ["跑步机", "定时运动提醒手表", "钢笔", "防辐射服"], answer: 1 },
+  { id: "t19", question: "【2021真题·选择】\\n【材料二·私人定制】快毕业了，大家都想拍好毕业照。随着时代发展，私人定制、个性化消费逐渐成为新潮流。定制的样式如：软陶人偶、签名水杯、场馆纪念品、叶雕照片等，上面或印制或绣上个人专属标识，既彰显风格又充满乐趣。
+
+19. 以下哪个物品的发明最不可能是来自自然界的启示？", options: ["尼龙搭扣", "雷达", "手机", "直升机"], answer: 2 },
+  { id: "t20", question: "【2021真题·选择】\\n【材料二·私人定制】快毕业了，大家都想拍好毕业照。随着时代发展，私人定制、个性化消费逐渐成为新潮流。定制的样式如：软陶人偶、签名水杯、场馆纪念品、叶雕照片等，上面或印制或绣上个人专属标识，既彰显风格又充满乐趣。
+
+20. 如果你在异国成就一番事业作为「中国侨乡·江门」的一员哪件事该尽快列上议程？", options: ["公司上市", "扩大规模", "为五邑家乡做贡献", "服务当地"], answer: 2 },
+  { id: "t21", question: "【2021真题·选择】\\n【材料三·中国科技】最近两年是中国科技的「丰收季」：2020年11月「奋斗者」号载人潜水器成功坐底10909米马里亚纳海沟；2020年12月「嫦娥五号」带着月球土壤成功返航；2021年5月「天问一号」成功着陆火星。真正实现了「可上九天揽月，可下五洋捉鳖」！
+
+21. 「天问一号」携「祝融号」成功着陆，祝融是中国上古神话中的什么神？", options: ["水神", "火神", "雷神", "风神"], answer: 1 },
+  { id: "t22", question: "【2021真题·选择】\\n【材料三·中国科技】最近两年是中国科技的「丰收季」：2020年11月「奋斗者」号载人潜水器成功坐底10909米马里亚纳海沟；2020年12月「嫦娥五号」带着月球土壤成功返航；2021年5月「天问一号」成功着陆火星。真正实现了「可上九天揽月，可下五洋捉鳖」！
+
+22. 国际空间站有可能在2024~2028年退役，届时哪个国家的空间站可能成唯一人类空间站？", options: ["美国", "联合国", "中国", "俄罗斯"], answer: 2 },
+  { id: "t23", question: "【2021真题·选择】\\n【材料三·中国科技】最近两年是中国科技的「丰收季」：2020年11月「奋斗者」号载人潜水器成功坐底10909米马里亚纳海沟；2020年12月「嫦娥五号」带着月球土壤成功返航；2021年5月「天问一号」成功着陆火星。真正实现了「可上九天揽月，可下五洋捉鳖」！
+
+23. 第一个在太空中行走的中国人是？", options: ["翟志刚", "杨利伟", "刘洋", "聂海胜"], answer: 0 },
+  { id: "t24", question: "【2021真题·选择】\\n【材料三·中国科技】最近两年是中国科技的「丰收季」：2020年11月「奋斗者」号载人潜水器成功坐底10909米马里亚纳海沟；2020年12月「嫦娥五号」带着月球土壤成功返航；2021年5月「天问一号」成功着陆火星。真正实现了「可上九天揽月，可下五洋捉鳖」！
+
+24. 「天问一号」奔赴火星途中发动机多数关闭，其能量转换方式最可能是什么？", options: ["核能转换为电能", "太阳能转换为电能", "动能转换为电能", "风能转换为电能"], answer: 1 },
+  { id: "t25", question: "【2021真题·选择】\\n【材料四·乡村振兴】2021年2月25日我国脱贫攻坚战取得全面胜利。其中「乡村旅游」是「乡村振兴」的有力手段。鹤山市古劳水乡凭借「桑基鱼塘」特色生产吸引来客——在池埂上种桑树，以桑叶养蚕，以蚕沙蚕蛹作鱼饵料，以塘泥作桑树肥料，形成「池埂种桑→桑叶养蚕→蚕蛹喂鱼→塘泥肥桑」的闭合生态系统。
+
+25. 我国在怎样的特殊历史时期取得脱贫攻坚全面胜利？", options: ["建军百年", "建党百年", "建国百年", "建队百年"], answer: 1 },
+  { id: "t26", question: "【2021真题·选择】\\n【材料四·乡村振兴】2021年2月25日我国脱贫攻坚战取得全面胜利。其中「乡村旅游」是「乡村振兴」的有力手段。鹤山市古劳水乡凭借「桑基鱼塘」特色生产吸引来客——在池埂上种桑树，以桑叶养蚕，以蚕沙蚕蛹作鱼饵料，以塘泥作桑树肥料，形成「池埂种桑→桑叶养蚕→蚕蛹喂鱼→塘泥肥桑」的闭合生态系统。
+
+26. 在「桑基鱼塘」中什么属于生产者？", options: ["桑叶", "蚕", "鱼", "人类"], answer: 0 },
+  { id: "t27", question: "【2021真题·选择】\\n【材料四·乡村振兴】2021年2月25日我国脱贫攻坚战取得全面胜利。其中「乡村旅游」是「乡村振兴」的有力手段。鹤山市古劳水乡凭借「桑基鱼塘」特色生产吸引来客——在池埂上种桑树，以桑叶养蚕，以蚕沙蚕蛹作鱼饵料，以塘泥作桑树肥料，形成「池埂种桑→桑叶养蚕→蚕蛹喂鱼→塘泥肥桑」的闭合生态系统。
+
+27. 以下哪种行为不属于利用现代技术助力「乡村振兴」？", options: ["直播带货", "传感技术监控作物环境", "抖音传播乡村特色", "积极打造乡村民宿农家乐项目"], answer: 3 },
+  { id: "t28", question: "【2021真题·选择】\\n【材料四·乡村振兴】2021年2月25日我国脱贫攻坚战取得全面胜利。其中「乡村旅游」是「乡村振兴」的有力手段。鹤山市古劳水乡凭借「桑基鱼塘」特色生产吸引来客——在池埂上种桑树，以桑叶养蚕，以蚕沙蚕蛹作鱼饵料，以塘泥作桑树肥料，形成「池埂种桑→桑叶养蚕→蚕蛹喂鱼→塘泥肥桑」的闭合生态系统。
+
+28. 在包含人类的「桑基鱼塘」生态圈中至少含有几条食物链？", options: ["1", "2", "3", "4"], answer: 2 },
+  { id: "t29", question: "【2021真题·选择】\\n【材料五·湖北推介】2021年4月外交部向全球特别推介湖北：神农尝百草；三国群雄竞秀；湿地白鹤鸣，麋鹿踏蹄；金丝猴嬉戏林间……九省通衢迎故旧，黄鹤楼前观古今。毕业将至，是时候出去感受祖国大好河山了。
+
+29. 白鹤适合在什么环境生长？", options: ["林间", "湿地", "高山", "沙地"], answer: 1 },
+  { id: "t30", question: "【2021真题·选择】\\n【材料五·湖北推介】2021年4月外交部向全球特别推介湖北：神农尝百草；三国群雄竞秀；湿地白鹤鸣，麋鹿踏蹄；金丝猴嬉戏林间……九省通衢迎故旧，黄鹤楼前观古今。毕业将至，是时候出去感受祖国大好河山了。
+
+30. 磁悬浮列车车速是高铁1.7倍以上，磁悬浮技术主要作用是什么？", options: ["减少摩擦力", "降低成本", "减轻重量", "降低能源损耗"], answer: 0 },
+  { id: "t31", question: "【2021真题·选择】\\n【材料五·湖北推介】2021年4月外交部向全球特别推介湖北：神农尝百草；三国群雄竞秀；湿地白鹤鸣，麋鹿踏蹄；金丝猴嬉戏林间……九省通衢迎故旧，黄鹤楼前观古今。毕业将至，是时候出去感受祖国大好河山了。
+
+31. 丹顶鹤等保护动物常被戴电子设备，以下一定不是其主要作用的是什么？", options: ["定位追踪", "编号区分", "恫吓天敌", "离群警报"], answer: 2 },
+  { id: "t32", question: "【2021真题·选择】\\n【材料五·湖北推介】2021年4月外交部向全球特别推介湖北：神农尝百草；三国群雄竞秀；湿地白鹤鸣，麋鹿踏蹄；金丝猴嬉戏林间……九省通衢迎故旧，黄鹤楼前观古今。毕业将至，是时候出去感受祖国大好河山了。
+
+32. 以下哪个场景不是发生在湖北境内？", options: ["赤壁之战", "飞夺泸定桥", "李白送孟浩然去广陵", "神农尝百草"], answer: 1 },
+  { id: "t33", question: "【2021真题·选择】\\n【材料六·发电模式】
+2018年广东发电量占比：水力3.35% | 火力74.61% | 风力1.29% | 核能20.42% | 光伏0.32%
+
+33. 以下哪种发电方式所需能源不属于可再生能源？", options: ["水力发电", "火力发电", "风力发电", "太阳能发电"], answer: 1 },
+  { id: "t34", question: "【2021真题·选择】\\n【材料六·发电模式】
+2018年广东发电量占比：水力3.35% | 火力74.61% | 风力1.29% | 核能20.42% | 光伏0.32%
+
+34. 为解决东部沿海用电需求国家大力推进什么项目？", options: ["南水北调", "西电东送", "西气东输", "北煤南运"], answer: 1 },
+  { id: "t35", question: "【2021真题·选择】\\n【材料六·发电模式】
+2018年广东发电量占比：水力3.35% | 火力74.61% | 风力1.29% | 核能20.42% | 光伏0.32%
+
+35. 「中国一点也不能少！」中国大小岛屿5400多个，最不适合的驻军发电方式是？", options: ["潮汐发电", "柴油发电", "风力发电", "核能发电"], answer: 3 },
+  { id: "t36", question: "【2021真题·选择】\\n【实验一·电磁铁磁力探究】科学小组用控制变量法探究「电磁铁磁力的大小与什么因素有关」，实验数据记录见下方SVG表格。
+（注：除自变量外其他条件不变）
+
+36. 比较第1、第2次实验（线圈20匝→40匝），自变量是什么？\\n<br><img src=\'icons/tower_t21_exp1.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["电池个数", "线圈匝数", "铁钉", "导线粗细"], answer: 1 },
+  { id: "t37", question: "【2021真题·选择】\\n【实验一·电磁铁磁力探究】科学小组用控制变量法探究「电磁铁磁力的大小与什么因素有关」，实验数据记录见下方SVG表格。
+（注：除自变量外其他条件不变）
+
+37. 比较第1、第3次实验（电池2节→4节），探究的问题是？\\n<br><img src=\'icons/tower_t21_exp1.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["铁钉对磁力影响", "电池个数对磁力影响", "线圈匝数对磁力影响", "导线对磁力影响"], answer: 1 },
+  { id: "t38", question: "【2021真题·选择】\\n【实验一·电磁铁磁力探究】科学小组用控制变量法探究「电磁铁磁力的大小与什么因素有关」，实验数据记录见下方SVG表格。
+（注：除自变量外其他条件不变）
+
+38. 下列不能改变电磁铁磁力大小的是？\\n<br><img src=\'icons/tower_t21_exp1.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["改变线圈缠绕方向", "增加电池个数", "增加线圈匝数", "更换铁芯"], answer: 0 },
+  { id: "t39", question: "【2021真题·选择】\\n【实验一·电磁铁磁力探究】科学小组用控制变量法探究「电磁铁磁力的大小与什么因素有关」，实验数据记录见下方SVG表格。
+（注：除自变量外其他条件不变）
+
+39. 根据实验数据实验结论正确的是？\\n<br><img src=\'icons/tower_t21_exp1.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["电磁铁磁力与电池个数、线圈匝数有关", "磁力与电池个数、线圈匝数无关", "吸起回形针数与磁力无关", "电磁铁只能吸引铁钉"], answer: 0 },
+  { id: "t40", question: "【2021真题·选择】\\n【实验一·电磁铁磁力探究】科学小组用控制变量法探究「电磁铁磁力的大小与什么因素有关」，实验数据记录见下方SVG表格。
+（注：除自变量外其他条件不变）
+
+40. 我国第一辆磁悬浮列车于2003年在哪个城市开通？\\n<br><img src=\'icons/tower_t21_exp1.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["北京", "上海", "广州", "深圳"], answer: 1 },
+  { id: "t41", question: "【2021真题·选择】\\n【实验二·食物网】下图是某生态系统中的食物网（见附图），结合图片回答问题。
+
+41. 该食物网中共有多少条食物链？\\n<br><img src=\'icons/tower_t21_exp2.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["7条", "9条", "10条", "12条"], answer: 1 },
+  { id: "t42", question: "【2021真题·选择】\\n【实验二·食物网】下图是某生态系统中的食物网（见附图），结合图片回答问题。
+
+42. 该食物网中最长的一条食物链有多少种生物构成？\\n<br><img src=\'icons/tower_t21_exp2.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["4", "5", "7", "8"], answer: 1 },
+  { id: "t43", question: "【2021真题·选择】\\n【实验二·食物网】下图是某生态系统中的食物网（见附图），结合图片回答问题。
+
+43. 该食物网中正确的食物链是？\\n<br><img src=\'icons/tower_t21_exp2.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["草→蝗虫→食虫鸟→蛇", "羚羊→狐狸→鹰", "草→鼠→蛇→鹰", "草→鹰→蛇"], answer: 0 },
+  { id: "t44", question: "【2021真题·选择】\\n【实验二·食物网】下图是某生态系统中的食物网（见附图），结合图片回答问题。
+
+44. 食物链通常从绿色植物开始到什么动物结束？\\n<br><img src=\'icons/tower_t21_exp2.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["肉食性动物", "植食性动物", "杂食性动物", "分解者"], answer: 0 },
+  { id: "t45", question: "【2021真题·选择】\\n【实验二·食物网】下图是某生态系统中的食物网（见附图），结合图片回答问题。
+
+45. 「螳螂捕蝉黄雀在后」用食物链表述正确的是？\\n<br><img src=\'icons/tower_t21_exp2.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["植物→螳螂→蝉→黄雀", "植物→蝉→螳螂→黄雀", "黄雀→蝉→螳螂", "蝉→螳螂→黄雀→植物"], answer: 1 },
+  { id: "t46", question: "【2021真题·选择】\\n【实验三·保温材料对比】科学小组往三个锥形瓶倒入等量热水，分别用棉布、报纸、钢丝球填满锥形瓶和大烧杯间的空隙，记录水温变化见下方SVG表格。
+（注：锥形瓶、烧杯的材料和大小以及所盛水量都相同）
+
+46. 保温效果最好的是哪个？\\n<br><img src=\'icons/tower_t21_exp3.png\' style=\'max-width:420px;border-radius:8px;margin:8px 0;\'>", options: ["填满钢丝球的③号", "填满报纸的②号", "填满棉布的①号", "三个一样"], answer: 2 },
+  { id: "t47", question: "【2021真题·选择】\\n【实验三·保温材料对比】科学小组往三个锥形瓶倒入等量热水，分别用棉布、报纸、钢丝球填满锥形瓶和大烧杯间的空隙，记录水温变化见下方SVG表格。
+（注：锥形瓶、烧杯的材料和大小以及所盛水量都相同）
+
+47. 导热性能最好的是哪个？\\n<br><img src=\'icons/tower_t21_exp3.png\' style=\'max-width:420px;border-radius:8px;margin:8px 0;\'>", options: ["填满钢丝球的③号", "填满报纸的②号", "填满棉布的①号", "三个一样"], answer: 0 },
+  { id: "t48", question: "【2021真题·选择】\\n【实验三·保温材料对比】科学小组往三个锥形瓶倒入等量热水，分别用棉布、报纸、钢丝球填满锥形瓶和大烧杯间的空隙，记录水温变化见下方SVG表格。
+（注：锥形瓶、烧杯的材料和大小以及所盛水量都相同）
+
+48. ★处的温度最有可能是？\\n<br><img src=\'icons/tower_t21_exp3.png\' style=\'max-width:420px;border-radius:8px;margin:8px 0;\'>", options: ["70℃", "90℃", "50℃", "85℃"], answer: 0 },
+  { id: "t49", question: "【2021真题·选择】\\n【实验三·保温材料对比】科学小组往三个锥形瓶倒入等量热水，分别用棉布、报纸、钢丝球填满锥形瓶和大烧杯间的空隙，记录水温变化见下方SVG表格。
+（注：锥形瓶、烧杯的材料和大小以及所盛水量都相同）
+
+49. 三种材料导热由弱到强排序正确的是？\\n<br><img src=\'icons/tower_t21_exp3.png\' style=\'max-width:420px;border-radius:8px;margin:8px 0;\'>", options: ["玻璃→木块→铁片", "木块→玻璃→铁片", "铁片→玻璃→木块", "木块→铁片→玻璃"], answer: 1 },
+  { id: "t50", question: "【2021真题·选择】\\n【实验三·保温材料对比】科学小组往三个锥形瓶倒入等量热水，分别用棉布、报纸、钢丝球填满锥形瓶和大烧杯间的空隙，记录水温变化见下方SVG表格。
+（注：锥形瓶、烧杯的材料和大小以及所盛水量都相同）
+
+50. 分析实验数据下列说法正确的是？\\n<br><img src=\'icons/tower_t21_exp3.png\' style=\'max-width:420px;border-radius:8px;margin:8px 0;\'>", options: ["导热好的材料保温好", "热不会在不同物体间传递", "导热好的材料保温效果差", "保温效果与导热无关"], answer: 2 },
+  { id: "t51", question: "【2022真题·判断】\\n1. 羊角锤既可以钉钉子又可以拔钉子。", options: ["√", "×"], answer: 0 },
+  { id: "t52", question: "【2022真题·判断】\\n2. 冬天搓手取暖是把电能转换成动能。", options: ["√", "×"], answer: 1 },
+  { id: "t53", question: "【2022真题·判断】\\n3. 用沉淀、过滤、吸附等净化方法可以使浑浊的水变澄清。", options: ["√", "×"], answer: 0 },
+  { id: "t54", question: "【2022真题·判断】\\n4. 大马哈鱼生活在海洋中，在海洋里产卵孵化。", options: ["√", "×"], answer: 1 },
+  { id: "t55", question: "【2022真题·判断】\\n5. 在「庄稼→蝗虫→食虫鸟→鹰」食物链中应该把蝗虫全部消灭。", options: ["√", "×"], answer: 1 },
+  { id: "t56", question: "【2022真题·判断】\\n6. 回形针相比铁夹具有结构简单、节省材料、小巧灵活等优点。", options: ["√", "×"], answer: 0 },
+  { id: "t57", question: "【2022真题·判断】\\n7. 生物资源是不可再生的。", options: ["√", "×"], answer: 1 },
+  { id: "t58", question: "【2022真题·判断】\\n8. 干电池做电磁铁实验时电消耗快，生产生活中应减少电磁铁运用。", options: ["√", "×"], answer: 1 },
+  { id: "t59", question: "【2022真题·判断】\\n9. 使用手帕减少使用纸巾是值得推广的绿色生活方式。", options: ["√", "×"], answer: 0 },
+  { id: "t60", question: "【2022真题·判断】\\n10. 壁虎能在墙壁上走是因为四肢有能勾住墙壁的爪子。", options: ["√", "×"], answer: 1 },
+  { id: "t61", question: "【2022真题·选择】\\n【材料一·物种入侵】澳大利亚本无兔子。1859年殖民者从欧洲带来12只兔子。澳洲气候土壤非常适合兔子繁殖，加上没有天敌，兔子疯狂繁衍泛滥成灾，当地物种受到威胁，生态圈遭到破坏。
+
+11. 物种入侵疯狂生长的最主要原因是什么？", options: ["数量少缺竞争", "没有天敌", "空气清新", "与周围物种相处融洽"], answer: 1 },
+  { id: "t62", question: "【2022真题·选择】\\n【材料一·物种入侵】澳大利亚本无兔子。1859年殖民者从欧洲带来12只兔子。澳洲气候土壤非常适合兔子繁殖，加上没有天敌，兔子疯狂繁衍泛滥成灾，当地物种受到威胁，生态圈遭到破坏。
+
+12. 疯狂繁衍的兔子对当地物种最大威胁是什么？", options: ["几乎吃光草地", "数量庞大占据土地", "四处乱窜影响交通", "耗费人力物力"], answer: 0 },
+  { id: "t63", question: "【2022真题·选择】\\n【材料一·物种入侵】澳大利亚本无兔子。1859年殖民者从欧洲带来12只兔子。澳洲气候土壤非常适合兔子繁殖，加上没有天敌，兔子疯狂繁衍泛滥成灾，当地物种受到威胁，生态圈遭到破坏。
+
+13. 引进兔子天敌失败最大原因可能是？", options: ["该天敌成为新物种入侵", "引进成本过高", "威胁人们生活", "该天敌吃其他动物"], answer: 0 },
+  { id: "t64", question: "【2022真题·选择】\\n【材料一·物种入侵】澳大利亚本无兔子。1859年殖民者从欧洲带来12只兔子。澳洲气候土壤非常适合兔子繁殖，加上没有天敌，兔子疯狂繁衍泛滥成灾，当地物种受到威胁，生态圈遭到破坏。
+
+14. 以下属于物种入侵现象的是？", options: ["水浮莲在江门梅江疯狂生长", "夏季藏羚羊迁徙", "明代引进红薯", "动物园引进大熊猫"], answer: 0 },
+  { id: "t65", question: "【2022真题·选择】\\n【材料一·物种入侵】澳大利亚本无兔子。1859年殖民者从欧洲带来12只兔子。澳洲气候土壤非常适合兔子繁殖，加上没有天敌，兔子疯狂繁衍泛滥成灾，当地物种受到威胁，生态圈遭到破坏。
+
+15. 小明设计宠物追踪器至少用到什么技术？", options: ["5G通讯", "视频监控", "卫星定位", "大数据"], answer: 2 },
+  { id: "t66", question: "【2022真题·选择】\\n【材料二·风力发电】风能是一种清洁无公害的可再生能源。地球上风无处不在，取之不尽用之不竭。现在风力发电是风能利用最主要形式。中国是世界上最大风力发电市场，2021年仅一年新增装机容量就超4800万千瓦。
+
+16. 以下描述风能不正确的是？", options: ["清洁能源", "可再生资源", "非常稳定", "分布广泛蕴量巨大"], answer: 2 },
+  { id: "t67", question: "【2022真题·选择】\\n【材料二·风力发电】风能是一种清洁无公害的可再生能源。地球上风无处不在，取之不尽用之不竭。现在风力发电是风能利用最主要形式。中国是世界上最大风力发电市场，2021年仅一年新增装机容量就超4800万千瓦。
+
+17. 不适合设风力发电的地方是？", options: ["沿海城市", "开阔草原牧区", "深山密林", "南沙群岛"], answer: 2 },
+  { id: "t68", question: "【2022真题·选择】\\n【材料二·风力发电】风能是一种清洁无公害的可再生能源。地球上风无处不在，取之不尽用之不竭。现在风力发电是风能利用最主要形式。中国是世界上最大风力发电市场，2021年仅一年新增装机容量就超4800万千瓦。
+
+18. 不属于古代利用风能的是？", options: ["风力发电", "灌溉", "风帆助航", "舂米"], answer: 0 },
+  { id: "t69", question: "【2022真题·选择】\\n【材料二·风力发电】风能是一种清洁无公害的可再生能源。地球上风无处不在，取之不尽用之不竭。现在风力发电是风能利用最主要形式。中国是世界上最大风力发电市场，2021年仅一年新增装机容量就超4800万千瓦。
+
+19. 关于风力发电叙述正确的是？", options: ["风能→水能→电能", "风能→机械能→电能", "风能→电能→机械能", "风能→机械能→化学能"], answer: 1 },
+  { id: "t70", question: "【2022真题·选择】\\n【材料三·神舟十三】2022年4月16日，神舟十三号载人飞船返回舱成功着陆，在轨飞行183天，刷新中国航天员单次驻留太空纪录。王亚平成为首位进驻中国空间站、首位出舱的女航天员。
+
+20. 「摘星星的妈妈回来了」讲的是哪位宇航员和她女儿的故事？", options: ["李素妍", "刘洋", "王亚平", "全红婵"], answer: 2 },
+  { id: "t71", question: "【2022真题·选择】\\n【材料三·神舟十三】2022年4月16日，神舟十三号载人飞船返回舱成功着陆，在轨飞行183天，刷新中国航天员单次驻留太空纪录。王亚平成为首位进驻中国空间站、首位出舱的女航天员。
+
+21. 「空中课堂」实验中主要讲解水面张力的是？", options: ["水油分离", "太空冰雪", "太空抛物", "液体搭桥"], answer: 3 },
+  { id: "t72", question: "【2022真题·选择】\\n【材料三·神舟十三】2022年4月16日，神舟十三号载人飞船返回舱成功着陆，在轨飞行183天，刷新中国航天员单次驻留太空纪录。王亚平成为首位进驻中国空间站、首位出舱的女航天员。
+
+22. 神舟飞船发射过程中主要用什么转化为动能？", options: ["化学能", "电能", "太阳能", "风能"], answer: 0 },
+  { id: "t73", question: "【2022真题·选择】\\n【材料三·神舟十三】2022年4月16日，神舟十三号载人飞船返回舱成功着陆，在轨飞行183天，刷新中国航天员单次驻留太空纪录。王亚平成为首位进驻中国空间站、首位出舱的女航天员。
+
+23. 若要将鸡蛋带上太空做实验最该考虑什么？", options: ["外形美观", "缓冲防撞", "装置容量", "设备重量"], answer: 1 },
+  { id: "t74", question: "【2022真题·选择】\\n【材料三·神舟十三】2022年4月16日，神舟十三号载人飞船返回舱成功着陆，在轨飞行183天，刷新中国航天员单次驻留太空纪录。王亚平成为首位进驻中国空间站、首位出舱的女航天员。
+
+24. 工作人员常向航天员实践调研主要了解什么？", options: ["太空趣事", "航天知识", "实际需求", "生活小妙招"], answer: 2 },
+  { id: "t75", question: "【2022真题·选择】\\n【材料四·海洋资源】约2.25亿年前地球只有一块联合古陆，其后大陆漂移、生物多样发展。科学家魏格纳提出「大陆漂移学说」。海洋生物历经漫长进化，形成今天物种繁多的海洋生物大家族。人类要保护海洋资源和海洋生态环境。
+
+25. 关于休渔期说法正确的是？", options: ["禁止所有水域捕鱼", "禁止规定水域捕鱼", "禁止无证渔船在规定水域捕鱼", "禁止渔船在所有水域捕鱼"], answer: 1 },
+  { id: "t76", question: "【2022真题·选择】\\n【材料四·海洋资源】约2.25亿年前地球只有一块联合古陆，其后大陆漂移、生物多样发展。科学家魏格纳提出「大陆漂移学说」。海洋生物历经漫长进化，形成今天物种繁多的海洋生物大家族。人类要保护海洋资源和海洋生态环境。
+
+26. 休渔期设在伏季的主要原因可能是？", options: ["政府部门规定", "台风多发保安全", "鱼类繁育和幼鱼生长重要时期", "天气太热"], answer: 2 },
+  { id: "t77", question: "【2022真题·选择】\\n【材料四·海洋资源】约2.25亿年前地球只有一块联合古陆，其后大陆漂移、生物多样发展。科学家魏格纳提出「大陆漂移学说」。海洋生物历经漫长进化，形成今天物种繁多的海洋生物大家族。人类要保护海洋资源和海洋生态环境。
+
+27. 陆地占地球表面的多少？", options: ["71%", "39%", "29%", "51%"], answer: 2 },
+  { id: "t78", question: "【2022真题·选择】\\n【材料四·海洋资源】约2.25亿年前地球只有一块联合古陆，其后大陆漂移、生物多样发展。科学家魏格纳提出「大陆漂移学说」。海洋生物历经漫长进化，形成今天物种繁多的海洋生物大家族。人类要保护海洋资源和海洋生态环境。
+
+28. 防溺水智能泳圈最不可能用到什么传感设备？", options: ["光敏传感器", "红外传感器", "压力传感器", "声音传感器"], answer: 0 },
+  { id: "t79", question: "【2022真题·选择】\\n【材料五·北京冬奥】2022年北京冬奥会于2月4日开幕。北京成为历史上第一个既举办夏奥会又举办冬奥会的城市。在「碳达峰、碳中和」背景下，本届冬奥会凸显绿色低碳可持续办奥理念。「一起向未来」的时代强音响亮奏响。
+
+29. 世界第一个既举办夏奥会又举办冬奥会的城市是？", options: ["盐城", "伦敦", "上海", "北京"], answer: 3 },
+  { id: "t80", question: "【2022真题·选择】\\n【材料五·北京冬奥】2022年北京冬奥会于2月4日开幕。北京成为历史上第一个既举办夏奥会又举办冬奥会的城市。在「碳达峰、碳中和」背景下，本届冬奥会凸显绿色低碳可持续办奥理念。「一起向未来」的时代强音响亮奏响。
+
+30. 冬奥会向世界发出了什么时代强音？", options: ["一带一路", "同一个世界同一个梦想", "一起向未来", "人类命运共同体"], answer: 2 },
+  { id: "t81", question: "【2022真题·选择】\\n【材料五·北京冬奥】2022年北京冬奥会于2月4日开幕。北京成为历史上第一个既举办夏奥会又举办冬奥会的城市。在「碳达峰、碳中和」背景下，本届冬奥会凸显绿色低碳可持续办奥理念。「一起向未来」的时代强音响亮奏响。
+
+31. 哪种材质做保温餐袋更合适？", options: ["不锈钢", "泡沫", "布条", "木板"], answer: 1 },
+  { id: "t82", question: "【2022真题·选择】\\n【材料五·北京冬奥】2022年北京冬奥会于2月4日开幕。北京成为历史上第一个既举办夏奥会又举办冬奥会的城市。在「碳达峰、碳中和」背景下，本届冬奥会凸显绿色低碳可持续办奥理念。「一起向未来」的时代强音响亮奏响。
+
+32. 研发新型纳米「仿鹅绒」材料主要运用了什么？", options: ["智能传感", "仿生发明", "信息互联", "逆向发明"], answer: 1 },
+  { id: "t83", question: "【2022真题·选择】\\n【材料五·北京冬奥】2022年北京冬奥会于2月4日开幕。北京成为历史上第一个既举办夏奥会又举办冬奥会的城市。在「碳达峰、碳中和」背景下，本届冬奥会凸显绿色低碳可持续办奥理念。「一起向未来」的时代强音响亮奏响。
+
+33. 不属于中国传统文化范畴的是？", options: ["二十四节气", "雪容融", "中国结", "智能餐厅"], answer: 3 },
+  { id: "t84", question: "【2022真题·选择】\\n【材料二·风力发电】风能是一种清洁无公害的可再生能源。地球上风无处不在，取之不尽用之不竭。现在风力发电是风能利用最主要形式。中国是世界上最大风力发电市场，2021年仅一年新增装机容量就超4800万千瓦。
+
+34. 关于水果电池让小灯泡发光说法正确的是？", options: ["电能→机械能", "磁能→机械能", "化学能→电能", "磁能→电能"], answer: 2 },
+  { id: "t85", question: "【2022真题·选择】\\n【材料二·风力发电】风能是一种清洁无公害的可再生能源。地球上风无处不在，取之不尽用之不竭。现在风力发电是风能利用最主要形式。中国是世界上最大风力发电市场，2021年仅一年新增装机容量就超4800万千瓦。
+
+35. 解决东部沿海用电需求国家大力推进什么项目？", options: ["南水北调", "西电东送", "西气东输", "北煤南运"], answer: 1 },
+  { id: "t86", question: "【2022真题·选择】\\n【实验一·生态瓶】琪琪和妍妍用密封透明瓶子制作了生态瓶（见附图1），模拟小生态系统。往生态瓶里加入小动物和植物前先把水过滤干净，观察小鱼在生态瓶里能活多久。
+
+36. 生态瓶中的生物主要有什么？\\n<br><img src=\'icons/tower_t22_exp1.png\' style=\'max-width:280px;border-radius:8px;margin:8px 0;\'>", options: ["小鱼、石子、沙子", "石子、沙子、水", "小鱼、金鱼藻", "水草、泥沙"], answer: 2 },
+  { id: "t87", question: "【2022真题·选择】\\n【实验一·生态瓶】琪琪和妍妍用密封透明瓶子制作了生态瓶（见附图1），模拟小生态系统。往生态瓶里加入小动物和植物前先把水过滤干净，观察小鱼在生态瓶里能活多久。
+
+37. 生态瓶中的非生物主要有什么？\\n<br><img src=\'icons/tower_t22_exp1.png\' style=\'max-width:280px;border-radius:8px;margin:8px 0;\'>", options: ["小鱼、石子、沙子", "石子、沙子", "小鱼、金鱼藻", "水、阳光"], answer: 1 },
+  { id: "t88", question: "【2022真题·选择】\\n【实验一·生态瓶】琪琪和妍妍用密封透明瓶子制作了生态瓶（见附图1），模拟小生态系统。往生态瓶里加入小动物和植物前先把水过滤干净，观察小鱼在生态瓶里能活多久。
+
+38. 生态系统是指什么？\\n<br><img src=\'icons/tower_t22_exp1.png\' style=\'max-width:280px;border-radius:8px;margin:8px 0;\'>", options: ["所有动物的总和", "所有生物的总和", "生物与环境形成的统一整体", "只有植物和动物"], answer: 2 },
+  { id: "t89", question: "【2022真题·选择】\\n【实验一·生态瓶】琪琪和妍妍用密封透明瓶子制作了生态瓶（见附图1），模拟小生态系统。往生态瓶里加入小动物和植物前先把水过滤干净，观察小鱼在生态瓶里能活多久。
+
+39. 下列是一个生态系统的是？\\n<br><img src=\'icons/tower_t22_exp1.png\' style=\'max-width:280px;border-radius:8px;margin:8px 0;\'>", options: ["一块农田", "一个池塘中的动物", "一片树林中的植物", "一群蜜蜂"], answer: 0 },
+  { id: "t90", question: "【2022真题·选择】\\n【实验一·生态瓶】琪琪和妍妍用密封透明瓶子制作了生态瓶（见附图1），模拟小生态系统。往生态瓶里加入小动物和植物前先把水过滤干净，观察小鱼在生态瓶里能活多久。
+
+40. 制作生态瓶的正确顺序是什么？\\n<br><img src=\'icons/tower_t22_exp1.png\' style=\'max-width:280px;border-radius:8px;margin:8px 0;\'>", options: ["②④③①", "②④①③", "②①④③", "①②③④"], answer: 1 },
+  { id: "t91", question: "【2022真题·选择】\\n【实验二·风能小吊车】科学小组用电机、扇叶、细线、回形针等材料制作风力小吊车（见附图2），研究风速对风能大小的影响，实验数据见下方SVG表格。
+
+41. 风能小吊车的工作原理是什么？\\n<br><img src=\'icons/tower_t22_exp2.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["把风能转换成机械能", "把风能转换成电能", "把风能转换成磁能", "把机械能转换成风能"], answer: 0 },
+  { id: "t92", question: "【2022真题·选择】\\n【实验二·风能小吊车】科学小组用电机、扇叶、细线、回形针等材料制作风力小吊车（见附图2），研究风速对风能大小的影响，实验数据见下方SVG表格。
+
+42. 中挡风时提起回形针个数正确的是？\\n<br><img src=\'icons/tower_t22_exp2.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["18枚", "6枚", "72枚", "36枚"], answer: 0 },
+  { id: "t93", question: "【2022真题·选择】\\n【实验二·风能小吊车】科学小组用电机、扇叶、细线、回形针等材料制作风力小吊车（见附图2），研究风速对风能大小的影响，实验数据见下方SVG表格。
+
+43. 关于风能小吊车实验结论说法错误的是？\\n<br><img src=\'icons/tower_t22_exp2.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["风越大风能越大", "风越小风能越小", "风越大风能越小", "风速与风力有关"], answer: 2 },
+  { id: "t94", question: "【2022真题·选择】\\n【实验二·风能小吊车】科学小组用电机、扇叶、细线、回形针等材料制作风力小吊车（见附图2），研究风速对风能大小的影响，实验数据见下方SVG表格。
+
+44. 能掀翻车辆摧毁建筑物威胁生命安全的是？\\n<br><img src=\'icons/tower_t22_exp2.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["微风", "龙卷风", "暖风", "和风"], answer: 1 },
+  { id: "t95", question: "【2022真题·选择】\\n【实验二·风能小吊车】科学小组用电机、扇叶、细线、回形针等材料制作风力小吊车（见附图2），研究风速对风能大小的影响，实验数据见下方SVG表格。
+
+45. 利用风能工作的是？①扬帆远航 ②彩旗飘扬 ③电闪雷鸣 ④树叶飘动\\n<br><img src=\'icons/tower_t22_exp2.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["①②③", "①③④", "①②④", "②③④"], answer: 2 },
+  { id: "t96", question: "【2022真题·选择】\\n【实验三·电动机】电动四驱车的动力装置是小电机（见附图3）。小电机主要由外壳、转子、后盖组成。转子由铁芯、线圈、换向器组成。
+
+46. 四驱车小电机的组成部分是？\\n<br><img src=\'icons/tower_t22_exp3.png\' style=\'max-width:360px;border-radius:8px;margin:8px 0;\'>", options: ["线圈、铁芯、转向器", "电刷、接线头", "外壳、转子、后盖", "定子、转子"], answer: 2 },
+  { id: "t97", question: "【2022真题·选择】\\n【实验三·电动机】电动四驱车的动力装置是小电机（见附图3）。小电机主要由外壳、转子、后盖组成。转子由铁芯、线圈、换向器组成。
+
+47. 生活中很多电动玩具的动力装置是？\\n<br><img src=\'icons/tower_t22_exp3.png\' style=\'max-width:360px;border-radius:8px;margin:8px 0;\'>", options: ["电动机", "线圈", "电刷", "电池"], answer: 0 },
+  { id: "t98", question: "【2022真题·选择】\\n【实验三·电动机】电动四驱车的动力装置是小电机（见附图3）。小电机主要由外壳、转子、后盖组成。转子由铁芯、线圈、换向器组成。
+
+48. 接通电动四驱车开关会动是因为什么？\\n<br><img src=\'icons/tower_t22_exp3.png\' style=\'max-width:360px;border-radius:8px;margin:8px 0;\'>", options: ["电能→电磁铁磁能→四驱车动能", "动能→电磁铁机械能→动能", "机械能→电磁铁动能→磁能", "电池直接产生动能"], answer: 0 },
+  { id: "t99", question: "【2022真题·选择】\\n【实验三·电动机】电动四驱车的动力装置是小电机（见附图3）。小电机主要由外壳、转子、后盖组成。转子由铁芯、线圈、换向器组成。
+
+49. 下列家电中应用电磁铁作用的是？\\n<br><img src=\'icons/tower_t22_exp3.png\' style=\'max-width:360px;border-radius:8px;margin:8px 0;\'>", options: ["电水壶", "电话座机", "电热毯", "电视机"], answer: 1 },
+  { id: "t100", question: "【2022真题·选择】\\n【实验三·电动机】电动四驱车的动力装置是小电机（见附图3）。小电机主要由外壳、转子、后盖组成。转子由铁芯、线圈、换向器组成。
+
+50. 改变电磁铁南极北极的方法是什么？\\n<br><img src=\'icons/tower_t22_exp3.png\' style=\'max-width:360px;border-radius:8px;margin:8px 0;\'>", options: ["只增加电池个数", "只增加线圈匝数", "只改变导线缠绕方向", "更换更粗铁钉"], answer: 2 },
+  { id: "t101", question: "【2023真题·判断】\\n1. 青蒿素是从黄花蒿中分离出来的，能快速有效杀死疟原虫，是抗疟疾首选药物。", options: ["√", "×"], answer: 0 },
+  { id: "t102", question: "【2023真题·判断】\\n2. 热是从温度低的一端传递到温度高的一端。", options: ["√", "×"], answer: 1 },
+  { id: "t103", question: "【2023真题·判断】\\n3. 工厂废气、汽车尾气、榴莲香味、烹饪油烟都是空气污染物来源。", options: ["√", "×"], answer: 1 },
+  { id: "t104", question: "【2023真题·判断】\\n4. 2023年5月30日神舟十六号成功发射，宇航服是多功能装备。", options: ["√", "×"], answer: 0 },
+  { id: "t105", question: "【2023真题·判断】\\n5. 剩饭剩菜属于有害垃圾。", options: ["√", "×"], answer: 1 },
+  { id: "t106", question: "【2023真题·判断】\\n6. 蛇喜欢躲在阴暗潮湿环境中，善于隐蔽，会冬眠。", options: ["√", "×"], answer: 0 },
+  { id: "t107", question: "【2023真题·判断】\\n7. 「沉淀→生物处理→化学处理→污泥处理」是城市污水处理一般流程。", options: ["√", "×"], answer: 1 },
+  { id: "t108", question: "【2023真题·判断】\\n8. 棉花保温效果好所以导热性能也很好。", options: ["√", "×"], answer: 1 },
+  { id: "t109", question: "【2023真题·判断】\\n9. 雷达是模仿蝙蝠回声定位原理设计的。", options: ["√", "×"], answer: 0 },
+  { id: "t110", question: "【2023真题·判断】\\n10. 做水果电池实验不能用苹果橘子西红柿代替柠檬。", options: ["√", "×"], answer: 1 },
+  { id: "t111", question: "【2023真题·选择】\\n【材料一·神舟十六】2023年5月30日，神舟十六号载人飞船成功发射。乘组由景海鹏、朱杨柱、桂海潮组成。桂海潮是北京航空航天大学教授，中国空间站首位载荷专家，中国首位戴眼镜执行飞行任务的航天员。
+
+11. 转椅主要检查宇航候选者前庭神经功能，转椅转动时能量形式主要表现为？", options: ["电能", "动能", "热能", "磁能"], answer: 1 },
+  { id: "t112", question: "【2023真题·选择】\\n【材料一·神舟十六】2023年5月30日，神舟十六号载人飞船成功发射。乘组由景海鹏、朱杨柱、桂海潮组成。桂海潮是北京航空航天大学教授，中国空间站首位载荷专家，中国首位戴眼镜执行飞行任务的航天员。
+
+12. 72小时睡眠剥夺实验目的是训练航天员什么？", options: ["极端环境下精神状态", "不眠大脑", "提高工作强度减少睡眠", "记忆力"], answer: 0 },
+  { id: "t113", question: "【2023真题·选择】\\n【材料一·神舟十六】2023年5月30日，神舟十六号载人飞船成功发射。乘组由景海鹏、朱杨柱、桂海潮组成。桂海潮是北京航空航天大学教授，中国空间站首位载荷专家，中国首位戴眼镜执行飞行任务的航天员。
+
+13. 首个进入太空的载荷专家是谁？", options: ["桂海潮", "杨利伟", "刘洋", "翟志刚"], answer: 0 },
+  { id: "t114", question: "【2023真题·选择】\\n【材料一·神舟十六】2023年5月30日，神舟十六号载人飞船成功发射。乘组由景海鹏、朱杨柱、桂海潮组成。桂海潮是北京航空航天大学教授，中国空间站首位载荷专家，中国首位戴眼镜执行飞行任务的航天员。
+
+14. 转椅转动能量转换是？", options: ["核能→机械能", "太阳能→电能", "电能→机械能", "化学能→热能"], answer: 2 },
+  { id: "t115", question: "【2023真题·选择】\\n【材料一·神舟十六】2023年5月30日，神舟十六号载人飞船成功发射。乘组由景海鹏、朱杨柱、桂海潮组成。桂海潮是北京航空航天大学教授，中国空间站首位载荷专家，中国首位戴眼镜执行飞行任务的航天员。
+
+15. 桂海潮在沙漠中独立生存两天最可能遇到的动物是？", options: ["猕猴", "丹顶鹤", "蜥蜴", "海豚"], answer: 2 },
+  { id: "t116", question: "【2023真题·选择】\\n【材料二·私人定制】私人定制是一种专属化、个性化的消费方式。定制的样式如软陶人偶、签名水杯、场馆纪念品、叶雕照片等，上面有个人专属标识，既彰显风格又充满乐趣。
+
+16. 作为私人定制的设计师你首要关注什么？", options: ["当前流行", "产品利润", "顾客实际需求", "个人审美"], answer: 2 },
+  { id: "t117", question: "【2023真题·选择】\\n【材料二·私人定制】私人定制是一种专属化、个性化的消费方式。定制的样式如软陶人偶、签名水杯、场馆纪念品、叶雕照片等，上面有个人专属标识，既彰显风格又充满乐趣。
+
+17. 下列不属于私人定制的是？", options: ["签名水杯", "城市公共交通", "叶雕照片", "定制T恤"], answer: 1 },
+  { id: "t118", question: "【2023真题·选择】\\n【材料二·私人定制】私人定制是一种专属化、个性化的消费方式。定制的样式如软陶人偶、签名水杯、场馆纪念品、叶雕照片等，上面有个人专属标识，既彰显风格又充满乐趣。
+
+18. 一个好的设计一般经过什么步骤？", options: ["构思、制作、改进", "观察、调查、体验", "提问、猜想、验证", "设计、生产、销售"], answer: 0 },
+  { id: "t119", question: "【2023真题·选择】\\n【材料二·私人定制】私人定制是一种专属化、个性化的消费方式。定制的样式如软陶人偶、签名水杯、场馆纪念品、叶雕照片等，上面有个人专属标识，既彰显风格又充满乐趣。
+
+19. 回形针内环微微翘起的目的是？", options: ["方便易拿", "美观好看", "快速夹纸", "节省材料"], answer: 2 },
+  { id: "t120", question: "【2023真题·选择】\\n【材料二·私人定制】私人定制是一种专属化、个性化的消费方式。定制的样式如软陶人偶、签名水杯、场馆纪念品、叶雕照片等，上面有个人专属标识，既彰显风格又充满乐趣。
+
+20. 《狂飙》带火江门，如何留住客流量更切题？", options: ["降低物价", "改善交通", "发掘更多私人定制", "增加景点"], answer: 2 },
+  { id: "t121", question: "【2023真题·选择】\\n【材料三·小鸟天堂】小鸟天堂位于江门新会天马村天马河河心沙洲。1933年巴金游览后写下《鸟的天堂》。百年古榕树覆盖1万多平方米，树上栖鸟无数，是全国最大的天然赏鸟乐园之一。
+
+21. 在小鸟天堂生态系统中最不可能存在的食物链是？", options: ["草→蝉→螳螂→黄雀", "草→鱼→蛇→浣熊", "草→鱼→白鹭→老鹰", "榕树→毛虫→小鸟→老鹰"], answer: 1 },
+  { id: "t122", question: "【2023真题·选择】\\n【材料三·小鸟天堂】小鸟天堂位于江门新会天马村天马河河心沙洲。1933年巴金游览后写下《鸟的天堂》。百年古榕树覆盖1万多平方米，树上栖鸟无数，是全国最大的天然赏鸟乐园之一。
+
+22. 动物迁徙的主要原因不包括？", options: ["寻找充足食物", "有天敌", "利于繁殖", "气候变化"], answer: 1 },
+  { id: "t123", question: "【2023真题·选择】\\n【材料三·小鸟天堂】小鸟天堂位于江门新会天马村天马河河心沙洲。1933年巴金游览后写下《鸟的天堂》。百年古榕树覆盖1万多平方米，树上栖鸟无数，是全国最大的天然赏鸟乐园之一。
+
+23. 白鹤、白琵鹭喜欢生活在哪里？", options: ["湿地", "森林", "沙漠", "高山"], answer: 0 },
+  { id: "t124", question: "【2023真题·选择】\\n【材料三·小鸟天堂】小鸟天堂位于江门新会天马村天马河河心沙洲。1933年巴金游览后写下《鸟的天堂》。百年古榕树覆盖1万多平方米，树上栖鸟无数，是全国最大的天然赏鸟乐园之一。
+
+24. 根据丹顶鹤生存环境其腿的特点应是？", options: ["胫足细长", "对趾足", "足有蹼", "短粗"], answer: 0 },
+  { id: "t125", question: "【2023真题·选择】\\n【材料三·小鸟天堂】小鸟天堂位于江门新会天马村天马河河心沙洲。1933年巴金游览后写下《鸟的天堂》。百年古榕树覆盖1万多平方米，树上栖鸟无数，是全国最大的天然赏鸟乐园之一。
+
+25. 为减少噪音对小鸟天堂影响需安装噪音检测设备最需要什么传感器？", options: ["湿度传感器", "温度传感器", "声音传感器", "光敏传感器"], answer: 2 },
+  { id: "t126", question: "【2023真题·选择】\\n【材料四·高温天气】2023年夏季江门持续高温，新会录得最高气温38.4℃。持续高温对生产生活带来诸多影响，科学应对高温十分必要。
+
+26. 持续高温天气是什么增加了？", options: ["热能", "核能", "风能", "太阳能"], answer: 0 },
+  { id: "t127", question: "【2023真题·选择】\\n【材料四·高温天气】2023年夏季江门持续高温，新会录得最高气温38.4℃。持续高温对生产生活带来诸多影响，科学应对高温十分必要。
+
+27. 气象局测量气温场所最应选择在哪里？", options: ["密闭房间", "空旷郊区", "人流密集街区", "室内空调房"], answer: 1 },
+  { id: "t128", question: "【2023真题·选择】\\n【材料四·高温天气】2023年夏季江门持续高温，新会录得最高气温38.4℃。持续高温对生产生活带来诸多影响，科学应对高温十分必要。
+
+28. 江门新会最高气温38.4℃，最符合以往最高气温极值的是？", options: ["28.4℃", "39.4℃", "38.3℃", "48.4℃"], answer: 2 },
+  { id: "t129", question: "【2023真题·选择】\\n【材料四·高温天气】2023年夏季江门持续高温，新会录得最高气温38.4℃。持续高温对生产生活带来诸多影响，科学应对高温十分必要。
+
+29. 太阳猛烈气温高最利于哪种能量转换？", options: ["太阳能→电能", "热能→机械能", "风能→机械能", "核能→电能"], answer: 0 },
+  { id: "t130", question: "【2023真题·选择】\\n【材料四·高温天气】2023年夏季江门持续高温，新会录得最高气温38.4℃。持续高温对生产生活带来诸多影响，科学应对高温十分必要。
+
+30. 更智能实时监测温度需要什么传感器？", options: ["红外线传感器", "温度传感器", "声音传感器", "光敏传感器"], answer: 1 },
+  { id: "t131", question: "【2023真题·选择】\\n【材料五·流浪地球2】2023年春节电影《流浪地球2》热映，展示太空电梯、行星发动机等未来科技。太空电梯高达9万公里直穿云霄，引发人们对未来科技的无限遐想。
+
+31. 太空电梯加速升空过程能量如何变化？", options: ["动能不变势能变大", "动能变小势能变小", "动能变大势能变大", "动能变小势能变大"], answer: 2 },
+  { id: "t132", question: "【2023真题·选择】\\n【材料五·流浪地球2】2023年春节电影《流浪地球2》热映，展示太空电梯、行星发动机等未来科技。太空电梯高达9万公里直穿云霄，引发人们对未来科技的无限遐想。
+
+32. 以下关于太阳能的说法错误的是？", options: ["太阳能是不可再生能源", "太阳能是新能源", "太阳能是可再生能源", "太阳能清洁无污染"], answer: 0 },
+  { id: "t133", question: "【2023真题·选择】\\n【材料五·流浪地球2】2023年春节电影《流浪地球2》热映，展示太空电梯、行星发动机等未来科技。太空电梯高达9万公里直穿云霄，引发人们对未来科技的无限遐想。
+
+33. 不属于动物受环境变化影响的现象是？", options: ["大雁南飞", "海参夏眠", "螳螂捕蝉", "蛇冬眠"], answer: 2 },
+  { id: "t134", question: "【2023真题·选择】\\n【材料五·流浪地球2】2023年春节电影《流浪地球2》热映，展示太空电梯、行星发动机等未来科技。太空电梯高达9万公里直穿云霄，引发人们对未来科技的无限遐想。
+
+34. 属于地球可再生资源的是？", options: ["煤炭", "森林", "石油", "天然气"], answer: 1 },
+  { id: "t135", question: "【2023真题·选择】\\n【材料五·流浪地球2】2023年春节电影《流浪地球2》热映，展示太空电梯、行星发动机等未来科技。太空电梯高达9万公里直穿云霄，引发人们对未来科技的无限遐想。
+
+35. 净水器过滤材料从上往下排序正确的是？", options: ["碎石→细沙→活性炭→棉花", "细沙→活性炭→棉花→碎石", "棉花→活性炭→碎石→细沙", "碎石→棉花→细沙→活性炭"], answer: 0 },
+  { id: "t136", question: "【2023真题·选择】\\n【实验一·太阳能热水器】琪琪和妍妍制作了一个简易太阳能热水器（见附图1）。
+
+36. 太阳能热水器的工作原理是？\\n<br><img src=\'icons/tower_t23_exp1.png\' style=\'max-width:350px;border-radius:8px;margin:8px 0;\'>", options: ["太阳能→热能", "电能→光能", "动能→热能", "热能→太阳能"], answer: 0 },
+  { id: "t137", question: "【2023真题·选择】\\n【实验一·太阳能热水器】琪琪和妍妍制作了一个简易太阳能热水器（见附图1）。
+
+37. 太阳能是一种什么资源？\\n<br><img src=\'icons/tower_t23_exp1.png\' style=\'max-width:350px;border-radius:8px;margin:8px 0;\'>", options: ["危险能源", "可再生资源", "不可再生资源", "污染能源"], answer: 1 },
+  { id: "t138", question: "【2023真题·选择】\\n【实验一·太阳能热水器】琪琪和妍妍制作了一个简易太阳能热水器（见附图1）。
+
+38. 简易太阳能热水器受热面怎样摆放升温最快？\\n<br><img src=\'icons/tower_t23_exp1.png\' style=\'max-width:350px;border-radius:8px;margin:8px 0;\'>", options: ["与地面水平", "与阳光垂直", "与地面垂直", "任意角度"], answer: 1 },
+  { id: "t139", question: "【2023真题·选择】\\n【实验一·太阳能热水器】琪琪和妍妍制作了一个简易太阳能热水器（见附图1）。
+
+39. 制作太阳能热水器时垫棉花和泡沫是为了？\\n<br><img src=\'icons/tower_t23_exp1.png\' style=\'max-width:350px;border-radius:8px;margin:8px 0;\'>", options: ["降温", "防碰撞", "保温", "增加重量"], answer: 2 },
+  { id: "t140", question: "【2023真题·选择】\\n【实验一·太阳能热水器】琪琪和妍妍制作了一个简易太阳能热水器（见附图1）。
+
+40. 下列能量转换连线正确的是？\\n<br><img src=\'icons/tower_t23_exp1.png\' style=\'max-width:350px;border-radius:8px;margin:8px 0;\'>", options: ["钻木取火→热能→机械能", "钻木取火→动能→光能", "钻木取火→机械能→热能", "钻木取火→电能→热能"], answer: 2 },
+  { id: "t141", question: "【2023真题·选择】\\n【实验二·电磁铁实验】如图（见附图2）为研究电磁铁的实验装置。猜想1：电磁铁通电有磁性断电无磁性；猜想2：磁力大小与电流大小有关；猜想3：磁力大小与线圈匝数有关。
+
+41. 验证猜想1（通电有磁性断电无磁性）比较哪两图？\\n<br><img src=\'icons/tower_t23_exp2.png\' style=\'max-width:420px;border-radius:8px;margin:8px 0;\'>", options: ["①②", "②③", "③④", "①④"], answer: 0 },
+  { id: "t142", question: "【2023真题·选择】\\n【实验二·电磁铁实验】如图（见附图2）为研究电磁铁的实验装置。猜想1：电磁铁通电有磁性断电无磁性；猜想2：磁力大小与电流大小有关；猜想3：磁力大小与线圈匝数有关。
+
+42. 验证猜想2（磁力与电流大小有关）比较哪两图？\\n<br><img src=\'icons/tower_t23_exp2.png\' style=\'max-width:420px;border-radius:8px;margin:8px 0;\'>", options: ["②③", "①②", "③④", "①④"], answer: 0 },
+  { id: "t143", question: "【2023真题·选择】\\n【实验二·电磁铁实验】如图（见附图2）为研究电磁铁的实验装置。猜想1：电磁铁通电有磁性断电无磁性；猜想2：磁力大小与电流大小有关；猜想3：磁力大小与线圈匝数有关。
+
+43. 验证猜想3（磁力与线圈匝数有关）比较哪两图？\\n<br><img src=\'icons/tower_t23_exp2.png\' style=\'max-width:420px;border-radius:8px;margin:8px 0;\'>", options: ["②③", "①②", "③④", "①④"], answer: 2 },
+  { id: "t144", question: "【2023真题·选择】\\n【实验二·电磁铁实验】如图（见附图2）为研究电磁铁的实验装置。猜想1：电磁铁通电有磁性断电无磁性；猜想2：磁力大小与电流大小有关；猜想3：磁力大小与线圈匝数有关。
+
+44. 磁悬浮列车工作原理是？\\n<br><img src=\'icons/tower_t23_exp2.png\' style=\'max-width:420px;border-radius:8px;margin:8px 0;\'>", options: ["同名磁极相斥异名相吸", "同名相吸异名相斥", "同名相斥异名相斥", "同名相吸异名相吸"], answer: 0 },
+  { id: "t145", question: "【2023真题·选择】\\n【实验二·电磁铁实验】如图（见附图2）为研究电磁铁的实验装置。猜想1：电磁铁通电有磁性断电无磁性；猜想2：磁力大小与电流大小有关；猜想3：磁力大小与线圈匝数有关。
+
+45. 制作电磁铁实验正确步骤是？\\n<br><img src=\'icons/tower_t23_exp2.png\' style=\'max-width:420px;border-radius:8px;margin:8px 0;\'>", options: ["⑤②③①④", "②⑤①③④", "⑤③②①④", "⑤①②③④"], answer: 2 },
+  { id: "t146", question: "【2023真题·选择】\\n【实验三·生态瓶】琪琪和妍妍制作了生态瓶（见附图3），内有小鱼和水草，放在向阳窗台上，观察生态瓶内生物变化，探究生物关系。
+
+46. 生态瓶③可以看作一个什么？\\n<br><img src=\'icons/tower_t23_exp3.png\' style=\'max-width:420px;border-radius:8px;margin:8px 0;\'>", options: ["呼吸系统", "生态系统", "消化系统", "循环系统"], answer: 1 },
+  { id: "t147", question: "【2023真题·选择】\\n【实验三·生态瓶】琪琪和妍妍制作了生态瓶（见附图3），内有小鱼和水草，放在向阳窗台上，观察生态瓶内生物变化，探究生物关系。
+
+47. 在生态瓶②③④中为小鱼提供氧气主要是什么？\\n<br><img src=\'icons/tower_t23_exp3.png\' style=\'max-width:420px;border-radius:8px;margin:8px 0;\'>", options: ["小石子", "水草", "沙子", "水"], answer: 1 },
+  { id: "t148", question: "【2023真题·选择】\\n【实验三·生态瓶】琪琪和妍妍制作了生态瓶（见附图3），内有小鱼和水草，放在向阳窗台上，观察生态瓶内生物变化，探究生物关系。
+
+48. 制作生态瓶时下列叙述不正确的是？\\n<br><img src=\'icons/tower_t23_exp3.png\' style=\'max-width:420px;border-radius:8px;margin:8px 0;\'>", options: ["定时向瓶内通入洁净空气", "生态瓶应无色透明", "避免阳光直射", "水草光合作用释放氧气"], answer: 0 },
+  { id: "t149", question: "【2023真题·选择】\\n【实验三·生态瓶】琪琪和妍妍制作了生态瓶（见附图3），内有小鱼和水草，放在向阳窗台上，观察生态瓶内生物变化，探究生物关系。
+
+49. ④装置小鱼存活时间短是因为？\\n<br><img src=\'icons/tower_t23_exp3.png\' style=\'max-width:420px;border-radius:8px;margin:8px 0;\'>", options: ["小鱼互相争斗", "小鱼向外逃窜", "水草有光照才释放氧气", "小虾吃小鱼"], answer: 2 },
+  { id: "t150", question: "【2023真题·选择】\\n【实验三·生态瓶】琪琪和妍妍制作了生态瓶（见附图3），内有小鱼和水草，放在向阳窗台上，观察生态瓶内生物变化，探究生物关系。
+
+50. 往生态瓶③加入2只小虾形成食物链正确的是？\\n<br><img src=\'icons/tower_t23_exp3.png\' style=\'max-width:420px;border-radius:8px;margin:8px 0;\'>", options: ["水草→小虾→小鱼", "石子→水草→小鱼→小虾", "水→水草→小虾→小鱼", "小鱼→小虾→水草"], answer: 0 },
+  { id: "t151", question: "【2024真题·判断】\\n1. 用陶瓷制作鸡蛋包装盒不仅美观还能很好解决鸡蛋运输中容易破损的问题。", options: ["√", "×"], answer: 1 },
+  { id: "t152", question: "【2024真题·判断】\\n2. 煤炭形成过程是无烟煤→褐煤→泥煤，是不可再生自然能源。", options: ["√", "×"], answer: 1 },
+  { id: "t153", question: "【2024真题·判断】\\n3. 模仿苍耳果实可制作窄口玻璃瓶作为捕蝇瓶。", options: ["√", "×"], answer: 1 },
+  { id: "t154", question: "【2024真题·判断】\\n4. 长臂猿、蜥蜴和树蛙生活在高温多雨的热带雨林中。", options: ["√", "×"], answer: 0 },
+  { id: "t155", question: "【2024真题·判断】\\n5. 风帆、风车、风力发电机都是利用风能来工作的装置，风能是清洁可再生资源。", options: ["√", "×"], answer: 0 },
+  { id: "t156", question: "【2024真题·判断】\\n6. 在生态瓶中放置动物和植物时应先放动物。", options: ["√", "×"], answer: 1 },
+  { id: "t157", question: "【2024真题·判断】\\n7. 过期葡萄糖粉捣碎撒入花盆土壤可帮助植物黄叶变绿叶实现变废为宝。", options: ["√", "×"], answer: 0 },
+  { id: "t158", question: "【2024真题·判断】\\n8. 在生态系统中「阳光→草→羊→狼→老虎」是正确的食物链。", options: ["√", "×"], answer: 1 },
+  { id: "t159", question: "【2024真题·判断】\\n9. 我国从1995年开始实施海洋伏季休渔制度保护渔业资源。", options: ["√", "×"], answer: 0 },
+  { id: "t160", question: "【2024真题·判断】\\n10. 用水果做电池需要用铜片和锌片作为电极利用水果酸性物质与金属反应产生电能。", options: ["√", "×"], answer: 0 },
+  { id: "t161", question: "【2024真题·选择】\\n【材料一·数字化赋能】当下各行各业推进数字化赋能。江门中小学生通过人工智能、图形化编程等制作出「太空电梯」「移动木偶剧场」等创新作品。有位小朋友将木偶艺术和智能化结合，通过现代技术传承发扬国家级非遗五华提线木偶。
+
+11. 以下不属于新能源范畴的是？", options: ["风能", "太阳能", "矿石能源", "核能"], answer: 2 },
+  { id: "t162", question: "【2024真题·选择】\\n【材料一·数字化赋能】当下各行各业推进数字化赋能。江门中小学生通过人工智能、图形化编程等制作出「太空电梯」「移动木偶剧场」等创新作品。有位小朋友将木偶艺术和智能化结合，通过现代技术传承发扬国家级非遗五华提线木偶。
+
+12. 与「移动木偶剧场」有异曲同工之妙的作品是？", options: ["智能垃圾桶", "「能说会动」的新会鱼灯", "婴儿溺水警报装置", "智能扫地机"], answer: 1 },
+  { id: "t163", question: "【2024真题·选择】\\n【材料一·数字化赋能】当下各行各业推进数字化赋能。江门中小学生通过人工智能、图形化编程等制作出「太空电梯」「移动木偶剧场」等创新作品。有位小朋友将木偶艺术和智能化结合，通过现代技术传承发扬国家级非遗五华提线木偶。
+
+13. 作品设计过程中作为设计师最应该考虑什么？", options: ["外观设计", "功能性和实用性", "成本和价格", "市场流行"], answer: 1 },
+  { id: "t164", question: "【2024真题·选择】\\n【材料一·数字化赋能】当下各行各业推进数字化赋能。江门中小学生通过人工智能、图形化编程等制作出「太空电梯」「移动木偶剧场」等创新作品。有位小朋友将木偶艺术和智能化结合，通过现代技术传承发扬国家级非遗五华提线木偶。
+
+14. 不属于智能鸡蛋保护装置功能的是？", options: ["5G实时监测温湿度", "手动开关控制开闭", "AI分析碰撞振动", "物联网远程监控"], answer: 1 },
+  { id: "t165", question: "【2024真题·选择】\\n【材料二·扫地机器人】扫地机器人是一种能自动清扫、吸尘、擦地的智能家用电器。通过检测房间大小、家具布局和清洁程度，依据内置程序规划清扫路线。采用刷扫和真空方式将杂物吸入垃圾箱。未来随着AI技术进步将实现更高效智能的清扫。
+
+15. 与扫地机器人能量转换方式相同的是？", options: ["电视机", "电熨斗", "新能源汽车", "微波炉"], answer: 2 },
+  { id: "t166", question: "【2024真题·选择】\\n【材料二·扫地机器人】扫地机器人是一种能自动清扫、吸尘、擦地的智能家用电器。通过检测房间大小、家具布局和清洁程度，依据内置程序规划清扫路线。采用刷扫和真空方式将杂物吸入垃圾箱。未来随着AI技术进步将实现更高效智能的清扫。
+
+16. 扫地机器人避障最可能用到什么传感器？", options: ["温度传感器", "超声波传感器", "湿度传感器", "光敏传感器"], answer: 1 },
+  { id: "t167", question: "【2024真题·选择】\\n【材料二·扫地机器人】扫地机器人是一种能自动清扫、吸尘、擦地的智能家用电器。通过检测房间大小、家具布局和清洁程度，依据内置程序规划清扫路线。采用刷扫和真空方式将杂物吸入垃圾箱。未来随着AI技术进步将实现更高效智能的清扫。
+
+17. 扫地机器人吸入杂物主要用到什么？", options: ["万有引力", "大气压力", "弹力", "摩擦力"], answer: 1 },
+  { id: "t168", question: "【2024真题·选择】\\n【材料二·扫地机器人】扫地机器人是一种能自动清扫、吸尘、擦地的智能家用电器。通过检测房间大小、家具布局和清洁程度，依据内置程序规划清扫路线。采用刷扫和真空方式将杂物吸入垃圾箱。未来随着AI技术进步将实现更高效智能的清扫。
+
+18. 江门长期刮北风为保护空气质量工厂最好集中在哪里？", options: ["东方", "西方", "南方", "北方"], answer: 2 },
+  { id: "t169", question: "【2024真题·选择】\\n【材料三·广交会江门制造】2024年4月15日第135届广交会开幕，江门298家企业获752个标准展位创历史新高。油电混合无人机、电动摩托车、激光机床、智能咖啡机等「江门制造」成为侨乡「好物」代言人。负责人介绍：「这款风扇体积小适合寸土寸金的香港；带电池移动空调则适合中东国家客户，室外或停电时可用两小时左右。」
+
+19. 可能不属于江门优势产业的是？", options: ["摩托车及零部件", "智能手机及配件", "陈皮及健康食品", "不锈钢制品"], answer: 1 },
+  { id: "t170", question: "【2024真题·选择】\\n【材料三·广交会江门制造】2024年4月15日第135届广交会开幕，江门298家企业获752个标准展位创历史新高。油电混合无人机、电动摩托车、激光机床、智能咖啡机等「江门制造」成为侨乡「好物」代言人。负责人介绍：「这款风扇体积小适合寸土寸金的香港；带电池移动空调则适合中东国家客户，室外或停电时可用两小时左右。」
+
+20. 根据材料推测中东国家天气整体？", options: ["偏热", "多雨", "舒适", "寒冷"], answer: 0 },
+  { id: "t171", question: "【2024真题·选择】\\n【材料三·广交会江门制造】2024年4月15日第135届广交会开幕，江门298家企业获752个标准展位创历史新高。油电混合无人机、电动摩托车、激光机床、智能咖啡机等「江门制造」成为侨乡「好物」代言人。负责人介绍：「这款风扇体积小适合寸土寸金的香港；带电池移动空调则适合中东国家客户，室外或停电时可用两小时左右。」
+
+21. 风扇公司设计不同款式风扇主要目的是？", options: ["申请更多专利", "凸显公司实力", "满足不同客户需求", "增加生产线"], answer: 2 },
+  { id: "t172", question: "【2024真题·选择】\\n【材料三·广交会江门制造】2024年4月15日第135届广交会开幕，江门298家企业获752个标准展位创历史新高。油电混合无人机、电动摩托车、激光机床、智能咖啡机等「江门制造」成为侨乡「好物」代言人。负责人介绍：「这款风扇体积小适合寸土寸金的香港；带电池移动空调则适合中东国家客户，室外或停电时可用两小时左右。」
+
+22. 有利于江门好物广泛推销的是？①抖音直播 ②线上拼团 ③大数据推送 ④老客户介绍", options: ["①②③", "①②③④", "②③④", "①③④"], answer: 1 },
+  { id: "t173", question: "【2024真题·选择】\\n【材料四·神舟十八】神舟十八号于2024年4月25日成功发射，由4条斑马鱼和金鱼藻组成的小型密闭生态系统实验组来到问天舱，开始国内首次在轨水生生态研究。鱼类呼出CO₂供金鱼藻光合作用，鱼类排泄物供给金鱼藻营养；斑马鱼产的卵将被带回地面供科学家研究。
+
+23. 与火箭发射最相符的能量转换是？", options: ["电能→热能→机械能", "化学能→磁能→机械能", "化学能→热能→机械能", "核能→热能→机械能"], answer: 2 },
+  { id: "t174", question: "【2024真题·选择】\\n【材料四·神舟十八】神舟十八号于2024年4月25日成功发射，由4条斑马鱼和金鱼藻组成的小型密闭生态系统实验组来到问天舱，开始国内首次在轨水生生态研究。鱼类呼出CO₂供金鱼藻光合作用，鱼类排泄物供给金鱼藻营养；斑马鱼产的卵将被带回地面供科学家研究。
+
+24. 探究燃料种类对发射高度影响应如何设计？", options: ["同时间同天气用不同燃料多次发射", "同时间不同天气用相同燃料", "同时间不同高度用不同燃料", "不同时间不同燃料"], answer: 0 },
+  { id: "t175", question: "【2024真题·选择】\\n【材料四·神舟十八】神舟十八号于2024年4月25日成功发射，由4条斑马鱼和金鱼藻组成的小型密闭生态系统实验组来到问天舱，开始国内首次在轨水生生态研究。鱼类呼出CO₂供金鱼藻光合作用，鱼类排泄物供给金鱼藻营养；斑马鱼产的卵将被带回地面供科学家研究。
+
+25. 确保空间站金鱼藻光合作用最好做法是？", options: ["放窗台确保阳光", "放飞船外确保阳光", "安装照明系统保障光照", "增加施肥量"], answer: 2 },
+  { id: "t176", question: "【2024真题·选择】\\n【材料四·神舟十八】神舟十八号于2024年4月25日成功发射，由4条斑马鱼和金鱼藻组成的小型密闭生态系统实验组来到问天舱，开始国内首次在轨水生生态研究。鱼类呼出CO₂供金鱼藻光合作用，鱼类排泄物供给金鱼藻营养；斑马鱼产的卵将被带回地面供科学家研究。
+
+26. 金鱼藻等水草植物主要作用是？", options: ["吸引蚊虫减少害虫", "调节水温保持环境", "提供氧气维持氧含量", "美化环境"], answer: 2 },
+  { id: "t177", question: "【2024真题·选择】\\n【材料五·江门中微子】江门开平打石山地下700米建有神秘实验室：江门中微子实验室。它担负捕获「幽灵粒子」中微子并测量其质量顺序的使命。实验室距阳江、台山核电站均53千米。核心检测装置由大型钢架构成，安装4.5万只光电倍增管，常年泡在3.5万吨超纯水中，静静等待中微子信号。
+
+27. 城市污水治理和户外饮用水提取处理第一步都是？", options: ["过滤", "生物处理", "沉淀", "消毒"], answer: 2 },
+  { id: "t178", question: "【2024真题·选择】\\n【材料五·江门中微子】江门开平打石山地下700米建有神秘实验室：江门中微子实验室。它担负捕获「幽灵粒子」中微子并测量其质量顺序的使命。实验室距阳江、台山核电站均53千米。核心检测装置由大型钢架构成，安装4.5万只光电倍增管，常年泡在3.5万吨超纯水中，静静等待中微子信号。
+
+28. 推测中微子可能具备什么特征？①质量大 ②穿地能力强 ③核电站50-55km处可探测概率高 ④很难发现", options: ["①②③", "①②", "②③④", "①③④"], answer: 2 },
+  { id: "t179", question: "【2024真题·选择】\\n【材料五·江门中微子】江门开平打石山地下700米建有神秘实验室：江门中微子实验室。它担负捕获「幽灵粒子」中微子并测量其质量顺序的使命。实验室距阳江、台山核电站均53千米。核心检测装置由大型钢架构成，安装4.5万只光电倍增管，常年泡在3.5万吨超纯水中，静静等待中微子信号。
+
+29. 研究热传递时用黄油粘绿豆在铜棒上主要考虑黄油？", options: ["传热速度快", "取材方便", "遇热易融化", "成本低"], answer: 2 },
+  { id: "t180", question: "【2024真题·选择】\\n【材料五·江门中微子】江门开平打石山地下700米建有神秘实验室：江门中微子实验室。它担负捕获「幽灵粒子」中微子并测量其质量顺序的使命。实验室距阳江、台山核电站均53千米。核心检测装置由大型钢架构成，安装4.5万只光电倍增管，常年泡在3.5万吨超纯水中，静静等待中微子信号。
+
+30. 与仿生技术无关的是？", options: ["尼龙搭扣", "垃圾袋", "直升机", "雷达"], answer: 1 },
+  { id: "t181", question: "【2024真题·选择】\\n【材料六·湿地生态】湿地与森林、海洋并称全球三大生态系统。江门面朝大海江河纵横，造就诸多湿地景观。小鸟天堂因一篇散文名扬天下，栖息成千上万鸟雀。白鹭喙、脚、颈都较长，全身白色。古劳水乡保留桑基鱼塘自然生态与围墩水乡风貌，水网交错，夏季荷莲清香。
+
+31. 小鸟天堂可能属于什么生态系统？", options: ["海洋", "森林", "湿地", "草原"], answer: 2 },
+  { id: "t182", question: "【2024真题·选择】\\n【材料六·湿地生态】湿地与森林、海洋并称全球三大生态系统。江门面朝大海江河纵横，造就诸多湿地景观。小鸟天堂因一篇散文名扬天下，栖息成千上万鸟雀。白鹭喙、脚、颈都较长，全身白色。古劳水乡保留桑基鱼塘自然生态与围墩水乡风貌，水网交错，夏季荷莲清香。
+
+32. 饮食习惯与白鹭最接近的是？", options: ["丹顶鹤", "蜂鸟", "啄木鸟", "麻雀"], answer: 0 },
+  { id: "t183", question: "【2024真题·选择】\\n【材料六·湿地生态】湿地与森林、海洋并称全球三大生态系统。江门面朝大海江河纵横，造就诸多湿地景观。小鸟天堂因一篇散文名扬天下，栖息成千上万鸟雀。白鹭喙、脚、颈都较长，全身白色。古劳水乡保留桑基鱼塘自然生态与围墩水乡风貌，水网交错，夏季荷莲清香。
+
+33. 最不可能出现在古劳水乡的是？", options: ["桑叶", "荷叶", "带鱼", "白鹭"], answer: 2 },
+  { id: "t184", question: "【2024真题·选择】\\n【材料六·湿地生态】湿地与森林、海洋并称全球三大生态系统。江门面朝大海江河纵横，造就诸多湿地景观。小鸟天堂因一篇散文名扬天下，栖息成千上万鸟雀。白鹭喙、脚、颈都较长，全身白色。古劳水乡保留桑基鱼塘自然生态与围墩水乡风貌，水网交错，夏季荷莲清香。
+
+34. 最可能出现在湿地的食物链是？", options: ["藻类→蚊子→鱼→细菌", "草→兔→狐狸→鹰", "藻类→虾→鱼→水鸟", "草→蝗虫→蛙→蛇"], answer: 2 },
+  { id: "t185", question: "【2024真题·选择】\\n【材料六·湿地生态】湿地与森林、海洋并称全球三大生态系统。江门面朝大海江河纵横，造就诸多湿地景观。小鸟天堂因一篇散文名扬天下，栖息成千上万鸟雀。白鹭喙、脚、颈都较长，全身白色。古劳水乡保留桑基鱼塘自然生态与围墩水乡风貌，水网交错，夏季荷莲清香。
+
+35. 哪条食物链加强有利于增加白鹭数量且表述正确？", options: ["植物→鱼→白鹭", "阳光→植物→鱼→白鹭", "植物→鱼→老鼠→白鹭", "阳光→水→鱼→白鹭"], answer: 0 },
+  { id: "t186", question: "【2024真题·选择】\\n【实验一·二极电动机】观察下图二极电动机装置（图甲和图乙见下方组合图），琪琪和妍妍把二极电动机连在电路中，把转子拨到中间，合上开关，放开手，转子就转动起来了。
+
+36. 图甲中①②③装置叙述正确的是？\\n<br><img src=\'icons/tower_t24_exp1.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["都是磁铁", "①③是磁铁②是电磁铁", "都是电磁铁", "①②是磁铁③是电磁铁"], answer: 1 },
+  { id: "t187", question: "【2024真题·选择】\\n【实验一·二极电动机】观察下图二极电动机装置（图甲和图乙见下方组合图），琪琪和妍妍把二极电动机连在电路中，把转子拨到中间，合上开关，放开手，转子就转动起来了。
+
+37. 电动机转动是因为什么？\\n<br><img src=\'icons/tower_t24_exp1.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["转子是电磁铁起作用", "转子是磁铁起作用", "转子圆形自动旋转", "惯性使然"], answer: 0 },
+  { id: "t188", question: "【2024真题·选择】\\n【实验一·二极电动机】观察下图二极电动机装置（图甲和图乙见下方组合图），琪琪和妍妍把二极电动机连在电路中，把转子拨到中间，合上开关，放开手，转子就转动起来了。
+
+38. 电动机能持续转动的秘密是？\\n<br><img src=\'icons/tower_t24_exp1.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["电磁铁转动有惯性", "电磁铁南北极改变", "电池电量改变", "线圈电阻变化"], answer: 1 },
+  { id: "t189", question: "【2024真题·选择】\\n【实验一·二极电动机】观察下图二极电动机装置（图甲和图乙见下方组合图），琪琪和妍妍把二极电动机连在电路中，把转子拨到中间，合上开关，放开手，转子就转动起来了。
+
+39. 电动机工作原理是？\\n<br><img src=\'icons/tower_t24_exp1.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["电→动能利用惯性", "电→核能利用核作用", "电→磁利用磁作用转动", "电→热利用热膨胀"], answer: 2 },
+  { id: "t190", question: "【2024真题·选择】\\n【实验一·二极电动机】观察下图二极电动机装置（图甲和图乙见下方组合图），琪琪和妍妍把二极电动机连在电路中，把转子拨到中间，合上开关，放开手，转子就转动起来了。
+
+40. 应用了电动机工作的是？①电饭锅 ②洗衣机 ③电风扇 ④搅拌机 ⑤电视机\\n<br><img src=\'icons/tower_t24_exp1.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["②③④", "①②③④⑤", "①②⑤", "③④⑤"], answer: 0 },
+  { id: "t191", question: "【2024真题·选择】\\n【实验二·鼠妇趋暗实验】琪琪和妍妍发现花坛边阴暗潮湿石块下可找到鼠妇，明亮地面上找不到。她们在一个长方形铁盘上布置①②③三个环境区域，在②区域放15只鼠妇自由移动，每隔2分钟统计各区域鼠妇数量，实验数据见下方SVG表格。
+
+41. 琪琪和妍妍在探究什么因素对鼠妇的影响？\\n<br><img src=\'icons/tower_t24_exp2.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["潮湿程度", "潮湿和光亮程度", "光亮程度", "温度"], answer: 2 },
+  { id: "t192", question: "【2024真题·选择】\\n【实验二·鼠妇趋暗实验】琪琪和妍妍发现花坛边阴暗潮湿石块下可找到鼠妇，明亮地面上找不到。她们在一个长方形铁盘上布置①②③三个环境区域，在②区域放15只鼠妇自由移动，每隔2分钟统计各区域鼠妇数量，实验数据见下方SVG表格。
+
+42. 第4分钟三区都有分布就下结论说没有影响，这个结论是？\\n<br><img src=\'icons/tower_t24_exp2.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["科学", "不科学", "很科学", "无法判断"], answer: 1 },
+  { id: "t193", question: "【2024真题·选择】\\n【实验二·鼠妇趋暗实验】琪琪和妍妍发现花坛边阴暗潮湿石块下可找到鼠妇，明亮地面上找不到。她们在一个长方形铁盘上布置①②③三个环境区域，在②区域放15只鼠妇自由移动，每隔2分钟统计各区域鼠妇数量，实验数据见下方SVG表格。
+
+43. 10分钟后鼠妇全部集中③区域说明什么？\\n<br><img src=\'icons/tower_t24_exp2.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["环境决定外形特征", "鼠妇选择阴暗环境生活", "环境对动物没影响", "鼠妇喜欢干燥环境"], answer: 1 },
+  { id: "t194", question: "【2024真题·选择】\\n【实验二·鼠妇趋暗实验】琪琪和妍妍发现花坛边阴暗潮湿石块下可找到鼠妇，明亮地面上找不到。她们在一个长方形铁盘上布置①②③三个环境区域，在②区域放15只鼠妇自由移动，每隔2分钟统计各区域鼠妇数量，实验数据见下方SVG表格。
+
+44. 右图丙中③设置的环境区域应该是？\\n<br><img src=\'icons/tower_t24_exp2.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["干燥", "阴暗", "明亮", "潮湿炎热"], answer: 0 },
+  { id: "t195", question: "【2024真题·选择】\\n【实验二·鼠妇趋暗实验】琪琪和妍妍发现花坛边阴暗潮湿石块下可找到鼠妇，明亮地面上找不到。她们在一个长方形铁盘上布置①②③三个环境区域，在②区域放15只鼠妇自由移动，每隔2分钟统计各区域鼠妇数量，实验数据见下方SVG表格。
+
+45. 「搬开石块鼠妇爬走」解释正确的是？\\n<br><img src=\'icons/tower_t24_exp2.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["鼠妇适应阴暗潮湿不适应明亮光线", "鼠妇适应明亮不适应阴暗", "鼠妇两者都适应", "鼠妇害怕人类"], answer: 0 },
+  { id: "t196", question: "【2024真题·选择】\\n【实验三·保温材料实验】科学小组用大小厚度相同的泡沫塑料和棉絮分别包着装有热水的密闭烧瓶让其自然冷却，定时测量水温，实验数据见下方SVG表格。
+
+46. 该实验水的初始温度是？\\n<br><img src=\'icons/tower_t24_exp3.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["20℃", "45℃", "80℃", "100℃"], answer: 2 },
+  { id: "t197", question: "【2024真题·选择】\\n【实验三·保温材料实验】科学小组用大小厚度相同的泡沫塑料和棉絮分别包着装有热水的密闭烧瓶让其自然冷却，定时测量水温，实验数据见下方SVG表格。
+
+47. 保温效果更好的材料是？\\n<br><img src=\'icons/tower_t24_exp3.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["泡沫塑料组", "棉絮组", "两组一样", "无法判断"], answer: 0 },
+  { id: "t198", question: "【2024真题·选择】\\n【实验三·保温材料实验】科学小组用大小厚度相同的泡沫塑料和棉絮分别包着装有热水的密闭烧瓶让其自然冷却，定时测量水温，实验数据见下方SVG表格。
+
+48. 导热性能更好的材料是？\\n<br><img src=\'icons/tower_t24_exp3.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["泡沫塑料组", "棉絮组", "两组一样", "无法判断"], answer: 1 },
+  { id: "t199", question: "【2024真题·选择】\\n【实验三·保温材料实验】科学小组用大小厚度相同的泡沫塑料和棉絮分别包着装有热水的密闭烧瓶让其自然冷却，定时测量水温，实验数据见下方SVG表格。
+
+49. 30分钟时棉絮组水温可能是？\\n<br><img src=\'icons/tower_t24_exp3.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["48℃", "35℃", "26℃", "50℃"], answer: 1 },
+  { id: "t200", question: "【2024真题·选择】\\n【实验三·保温材料实验】科学小组用大小厚度相同的泡沫塑料和棉絮分别包着装有热水的密闭烧瓶让其自然冷却，定时测量水温，实验数据见下方SVG表格。
+
+50. 科学小组的探究问题是？\\n<br><img src=\'icons/tower_t24_exp3.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["同时间内比较水温下降多少来比较保温性能", "同水温下比较时间快慢来比较保温性能", "同材料下比较水温下降来比较保温性能", "同比热容来比较保温性能"], answer: 0 },
+  { id: "t201", question: "【2025真题·判断】\\n1. 电磁铁的磁力大小与线圈匝数和电流大小有关。", options: ["√", "×"], answer: 0 },
+  { id: "t202", question: "【2025真题·判断】\\n2. 食物链通常从绿色植物开始到凶猛的肉食动物结束。", options: ["√", "×"], answer: 0 },
+  { id: "t203", question: "【2025真题·判断】\\n3. 热总是从温度高的物体传到温度低的物体。", options: ["√", "×"], answer: 0 },
+  { id: "t204", question: "【2025真题·判断】\\n4. 风能是一种不可再生资源。", options: ["√", "×"], answer: 1 },
+  { id: "t205", question: "【2025真题·判断】\\n5. 在生态系统中分解者（如细菌）可以分解动植物遗体。", options: ["√", "×"], answer: 0 },
+  { id: "t206", question: "【2025真题·判断】\\n6. 用放大镜观察物体时看到的是缩小的像。", options: ["√", "×"], answer: 1 },
+  { id: "t207", question: "【2025真题·判断】\\n7. 声音可以在真空中传播。", options: ["√", "×"], answer: 1 },
+  { id: "t208", question: "【2025真题·判断】\\n8. 植物光合作用可以把光能转化为化学能。", options: ["√", "×"], answer: 0 },
+  { id: "t209", question: "【2025真题·判断】\\n9. 地球的自转产生了四季变化。", options: ["√", "×"], answer: 1 },
+  { id: "t210", question: "【2025真题·判断】\\n10. 废电池属于有害垃圾需要特殊处理。", options: ["√", "×"], answer: 0 },
+  { id: "t211", question: "【2025真题·选择】\\n【材料一·江门智能制造】随着科技强国战略推进，江门正加速向智能制造转型。新宝电器研发的智能咖啡机拥有精准控温技术，可通过APP远程操控。江门中车轨道交通装备公司生产的动车组部件已应用于全国多条高铁线路。
+
+11. Dobot Atom机器人最适合在哪个场所协助工作？", options: ["游泳池", "实验室", "健身房", "电影院"], answer: 1 },
+  { id: "t212", question: "【2025真题·选择】\\n【材料一·江门智能制造】随着科技强国战略推进，江门正加速向智能制造转型。新宝电器研发的智能咖啡机拥有精准控温技术，可通过APP远程操控。江门中车轨道交通装备公司生产的动车组部件已应用于全国多条高铁线路。
+
+12. Dobot Atom执行精密操作最可能用到什么传感器？", options: ["湿度传感器", "温度传感器", "视觉传感器", "声音传感器"], answer: 2 },
+  { id: "t213", question: "【2025真题·选择】\\n【材料一·江门智能制造】随着科技强国战略推进，江门正加速向智能制造转型。新宝电器研发的智能咖啡机拥有精准控温技术，可通过APP远程操控。江门中车轨道交通装备公司生产的动车组部件已应用于全国多条高铁线路。
+
+13. 机器人Dobot Atom工作时主要能量转换是？", options: ["电能→机械能", "热能→机械能", "化学能→电能", "风能→机械能"], answer: 0 },
+  { id: "t214", question: "【2025真题·选择】\\n【材料一·江门智能制造】随着科技强国战略推进，江门正加速向智能制造转型。新宝电器研发的智能咖啡机拥有精准控温技术，可通过APP远程操控。江门中车轨道交通装备公司生产的动车组部件已应用于全国多条高铁线路。
+
+14. Dobot Atom作为教育机器人最能培养学生什么能力？", options: ["记忆力", "体力", "编程与创新思维", "艺术鉴赏"], answer: 2 },
+  { id: "t215", question: "【2025真题·选择】\\n【材料一·江门智能制造】随着科技强国战略推进，江门正加速向智能制造转型。新宝电器研发的智能咖啡机拥有精准控温技术，可通过APP远程操控。江门中车轨道交通装备公司生产的动车组部件已应用于全国多条高铁线路。
+
+15. 以下哪项不是Dobot Atom机器人的特点？", options: ["高精度操作", "可编程控制", "多轴运动", "需人工全程操控"], answer: 3 },
+  { id: "t216", question: "【2025真题·选择】\\n【材料二·江门侨都文化】江门素有「中国侨都」美誉。新会陈皮是广东三宝之一，以独特药效闻名海内外，越陈越香。世界文化遗产开平碉楼融合中西建筑特色。鹤山古劳水乡保留「桑基鱼塘」生态农业模式。
+
+16. 江门新会陈皮是用哪种水果皮制成的？", options: ["新会柑", "橙子", "柚子", "柠檬"], answer: 0 },
+  { id: "t217", question: "【2025真题·选择】\\n【材料二·江门侨都文化】江门素有「中国侨都」美誉。新会陈皮是广东三宝之一，以独特药效闻名海内外，越陈越香。世界文化遗产开平碉楼融合中西建筑特色。鹤山古劳水乡保留「桑基鱼塘」生态农业模式。
+
+17. 以下哪种是江门特色美食？", options: ["北京烤鸭", "恩平濑粉", "兰州拉面", "四川火锅"], answer: 1 },
+  { id: "t218", question: "【2025真题·选择】\\n【材料二·江门侨都文化】江门素有「中国侨都」美誉。新会陈皮是广东三宝之一，以独特药效闻名海内外，越陈越香。世界文化遗产开平碉楼融合中西建筑特色。鹤山古劳水乡保留「桑基鱼塘」生态农业模式。
+
+18. 新会陈皮最有价值的成分是？", options: ["挥发油和黄酮类物质", "糖分", "淀粉", "蛋白质"], answer: 0 },
+  { id: "t219", question: "【2025真题·选择】\\n【材料二·江门侨都文化】江门素有「中国侨都」美誉。新会陈皮是广东三宝之一，以独特药效闻名海内外，越陈越香。世界文化遗产开平碉楼融合中西建筑特色。鹤山古劳水乡保留「桑基鱼塘」生态农业模式。
+
+19. 关于陈皮说法正确的是？", options: ["年份越新价值越高", "年份越久价值越高", "与年份无关", "只能保存1年"], answer: 1 },
+  { id: "t220", question: "【2025真题·选择】\\n【材料二·江门侨都文化】江门素有「中国侨都」美誉。新会陈皮是广东三宝之一，以独特药效闻名海内外，越陈越香。世界文化遗产开平碉楼融合中西建筑特色。鹤山古劳水乡保留「桑基鱼塘」生态农业模式。
+
+20. 外海面是哪个地区的传统美食？", options: ["广州", "深圳", "江门", "珠海"], answer: 2 },
+  { id: "t221", question: "【2025真题·选择】\\n【材料三·碳达峰碳中和】碳达峰指CO₂排放达历史最高后逐步下降；碳中和指通过植树造林、节能减排等方式抵消自身碳排放实现「零排放」。中国提出2030年前碳达峰、2060年前碳中和目标。
+
+21. 以下哪项是减少碳排放的有效措施？", options: ["植树造林", "绿色出行", "节约用电", "以上都是"], answer: 3 },
+  { id: "t222", question: "【2025真题·选择】\\n【材料三·碳达峰碳中和】碳达峰指CO₂排放达历史最高后逐步下降；碳中和指通过植树造林、节能减排等方式抵消自身碳排放实现「零排放」。中国提出2030年前碳达峰、2060年前碳中和目标。
+
+22. 「双碳」目标是指什么？", options: ["碳达峰和碳中和", "碳排放和碳回收", "碳捕捉和碳封存", "碳减排和碳交易"], answer: 0 },
+  { id: "t223", question: "【2025真题·选择】\\n【材料三·碳达峰碳中和】碳达峰指CO₂排放达历史最高后逐步下降；碳中和指通过植树造林、节能减排等方式抵消自身碳排放实现「零排放」。中国提出2030年前碳达峰、2060年前碳中和目标。
+
+23. 以下哪种发电方式最环保？", options: ["煤炭发电", "太阳能发电", "石油发电", "天然气发电"], answer: 1 },
+  { id: "t224", question: "【2025真题·选择】\\n【材料三·碳达峰碳中和】碳达峰指CO₂排放达历史最高后逐步下降；碳中和指通过植树造林、节能减排等方式抵消自身碳排放实现「零排放」。中国提出2030年前碳达峰、2060年前碳中和目标。
+
+24. 温室效应主要由什么气体引起？", options: ["二氧化碳", "氧气", "氮气", "氢气"], answer: 0 },
+  { id: "t225", question: "【2025真题·选择】\\n【材料三·碳达峰碳中和】碳达峰指CO₂排放达历史最高后逐步下降；碳中和指通过植树造林、节能减排等方式抵消自身碳排放实现「零排放」。中国提出2030年前碳达峰、2060年前碳中和目标。
+
+25. 下列哪项行为不利于环境保护？", options: ["垃圾分类", "节约用水", "绿色出行", "焚烧垃圾"], answer: 3 },
+  { id: "t226", question: "【2025真题·选择】\\n【材料四·地球与宇宙】地球绕太阳公转一周约365天形成四季变化；月球绕地球公转约27.3天形成月相变化。日食是月球运行到太阳地球之间挡住太阳光；月食是地球运行到太阳月球之间挡住照向月球的阳光。
+
+26. 地球绕太阳公转一周的时间是？", options: ["一天", "一年", "一个月", "一小时"], answer: 1 },
+  { id: "t227", question: "【2025真题·选择】\\n【材料四·地球与宇宙】地球绕太阳公转一周约365天形成四季变化；月球绕地球公转约27.3天形成月相变化。日食是月球运行到太阳地球之间挡住太阳光；月食是地球运行到太阳月球之间挡住照向月球的阳光。
+
+27. 月球是地球的什么？", options: ["卫星", "行星", "恒星", "彗星"], answer: 0 },
+  { id: "t228", question: "【2025真题·选择】\\n【材料四·地球与宇宙】地球绕太阳公转一周约365天形成四季变化；月球绕地球公转约27.3天形成月相变化。日食是月球运行到太阳地球之间挡住太阳光；月食是地球运行到太阳月球之间挡住照向月球的阳光。
+
+28. 月相变化周期大约是？", options: ["一天", "一个月", "一年", "一周"], answer: 1 },
+  { id: "t229", question: "【2025真题·选择】\\n【材料四·地球与宇宙】地球绕太阳公转一周约365天形成四季变化；月球绕地球公转约27.3天形成月相变化。日食是月球运行到太阳地球之间挡住太阳光；月食是地球运行到太阳月球之间挡住照向月球的阳光。
+
+29. 日食发生时是什么挡住了太阳光？", options: ["地球", "月球", "金星", "火星"], answer: 1 },
+  { id: "t230", question: "【2025真题·选择】\\n【材料四·地球与宇宙】地球绕太阳公转一周约365天形成四季变化；月球绕地球公转约27.3天形成月相变化。日食是月球运行到太阳地球之间挡住太阳光；月食是地球运行到太阳月球之间挡住照向月球的阳光。
+
+30. 地球自转一周时间大约是？", options: ["24小时", "12小时", "一个月", "一年"], answer: 0 },
+  { id: "t231", question: "【2025真题·选择】\\n【材料五·电路知识】电路由电源、导线、用电器、开关组成。串联电路中电流只有一条通路；并联电路中电流有多条通路各支路独立工作。安全用电：不用湿手触碰电器、不私拉乱接电线。
+
+31. 下列哪种物质是导体？", options: ["橡皮", "铜线", "玻璃", "塑料"], answer: 1 },
+  { id: "t232", question: "【2025真题·选择】\\n【材料五·电路知识】电路由电源、导线、用电器、开关组成。串联电路中电流只有一条通路；并联电路中电流有多条通路各支路独立工作。安全用电：不用湿手触碰电器、不私拉乱接电线。
+
+32. 简单电路至少需要哪些元件？", options: ["电源", "导线", "用电器", "以上都是"], answer: 3 },
+  { id: "t233", question: "【2025真题·选择】\\n【材料五·电路知识】电路由电源、导线、用电器、开关组成。串联电路中电流只有一条通路；并联电路中电流有多条通路各支路独立工作。安全用电：不用湿手触碰电器、不私拉乱接电线。
+
+33. 串联电路中一个灯泡坏了另一个会怎样？", options: ["继续亮", "也会熄灭", "变得更亮", "不受影响"], answer: 1 },
+  { id: "t234", question: "【2025真题·选择】\\n【材料五·电路知识】电路由电源、导线、用电器、开关组成。串联电路中电流只有一条通路；并联电路中电流有多条通路各支路独立工作。安全用电：不用湿手触碰电器、不私拉乱接电线。
+
+34. 以下哪种情况会导致短路？", options: ["接入灯泡", "接入开关", "导线直接连接电池正负极", "接入电阻"], answer: 2 },
+  { id: "t235", question: "【2025真题·选择】\\n【材料五·电路知识】电路由电源、导线、用电器、开关组成。串联电路中电流只有一条通路；并联电路中电流有多条通路各支路独立工作。安全用电：不用湿手触碰电器、不私拉乱接电线。
+
+35. 安全用电中做法正确的是？", options: ["不用湿手触碰电器", "用金属棒插插座", "在电线上晾衣服", "随便拆电器"], answer: 0 },
+  { id: "t236", question: "【2025真题·选择】\\n【实验一·电磁铁】琪琪和妍妍用铁钉、导线、电池制作电磁铁，探究影响电磁铁磁力大小的因素。设计对比实验改变线圈匝数和电池个数，测量吸引大头针数量。
+
+36. 改变什么可以改变电磁铁的磁力大小？\\n<br><img src=\'icons/tower_t25_exp1_chart.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["线圈匝数", "电流大小", "铁芯", "以上都可以"], answer: 3 },
+  { id: "t237", question: "【2025真题·选择】\\n【实验一·电磁铁】琪琪和妍妍用铁钉、导线、电池制作电磁铁，探究影响电磁铁磁力大小的因素。设计对比实验改变线圈匝数和电池个数，测量吸引大头针数量。
+
+37. 电磁铁和磁铁相比最大优点是什么？\\n<br><img src=\'icons/tower_t25_exp1_chart.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["永磁铁磁性更强", "可控制磁性有无", "磁性不可改变", "不需用电"], answer: 1 },
+  { id: "t238", question: "【2025真题·选择】\\n【实验一·电磁铁】琪琪和妍妍用铁钉、导线、电池制作电磁铁，探究影响电磁铁磁力大小的因素。设计对比实验改变线圈匝数和电池个数，测量吸引大头针数量。
+
+38. 验证电磁铁通电有磁性断电无磁性应做什么？\\n<br><img src=\'icons/tower_t25_exp1_chart.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["对比通断电时吸引大头针数量", "对比不同线圈匝数吸引大头针", "对比不同电池数量吸引大头针", "用磁铁靠近电磁铁"], answer: 0 },
+  { id: "t239", question: "【2025真题·选择】\\n【实验一·电磁铁】琪琪和妍妍用铁钉、导线、电池制作电磁铁，探究影响电磁铁磁力大小的因素。设计对比实验改变线圈匝数和电池个数，测量吸引大头针数量。
+
+39. 制作电磁铁时导线应怎么缠绕？\\n<br><img src=\'icons/tower_t25_exp1_chart.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["随意缠绕", "沿同方向紧密缠绕", "交叉缠绕", "松散缠绕"], answer: 1 },
+  { id: "t240", question: "【2025真题·选择】\\n【实验一·电磁铁】琪琪和妍妍用铁钉、导线、电池制作电磁铁，探究影响电磁铁磁力大小的因素。设计对比实验改变线圈匝数和电池个数，测量吸引大头针数量。
+
+40. 以下哪项不是电磁铁的应用？\\n<br><img src=\'icons/tower_t25_exp1_chart.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["电铃", "电磁起重机", "电热毯", "磁悬浮列车"], answer: 2 },
+  { id: "t241", question: "【2025真题·选择】\\n【实验二·摩擦力探究】科学小组为探究「摩擦力大小与什么因素有关」，用弹簧测力计拉着木块在水平桌面上匀速滑动，改变接触面粗糙程度（毛巾、玻璃等），记录读数。
+
+41. 研究影响摩擦力大小的因素应采用什么实验方法？\\n<br><img src=\'icons/tower_t25_exp2a_heat.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'><br><img src=\'icons/tower_t25_exp2b_heat.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["控制变量法", "观察法", "调查法", "文献法"], answer: 0 },
+  { id: "t242", question: "【2025真题·选择】\\n【实验二·摩擦力探究】科学小组为探究「摩擦力大小与什么因素有关」，用弹簧测力计拉着木块在水平桌面上匀速滑动，改变接触面粗糙程度（毛巾、玻璃等），记录读数。
+
+42. 要使物体在斜面上滑动得更快可以怎么做？\\n<br><img src=\'icons/tower_t25_exp2a_heat.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'><br><img src=\'icons/tower_t25_exp2b_heat.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["减小斜面坡度", "增大斜面坡度", "增加物体重量", "减小接触面积"], answer: 1 },
+  { id: "t243", question: "【2025真题·选择】\\n【实验二·摩擦力探究】科学小组为探究「摩擦力大小与什么因素有关」，用弹簧测力计拉着木块在水平桌面上匀速滑动，改变接触面粗糙程度（毛巾、玻璃等），记录读数。
+
+43. 以下哪种做法可以增加摩擦力？\\n<br><img src=\'icons/tower_t25_exp2a_heat.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'><br><img src=\'icons/tower_t25_exp2b_heat.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["轴承加润滑油", "使用气垫船", "轮胎上刻花纹", "打磨光滑表面"], answer: 2 },
+  { id: "t244", question: "【2025真题·选择】\\n【实验二·摩擦力探究】科学小组为探究「摩擦力大小与什么因素有关」，用弹簧测力计拉着木块在水平桌面上匀速滑动，改变接触面粗糙程度（毛巾、玻璃等），记录读数。
+
+44. 测量水温时温度计液泡应如何放置？\\n<br><img src=\'icons/tower_t25_exp2a_heat.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'><br><img src=\'icons/tower_t25_exp2b_heat.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["碰到杯底", "完全浸入不碰杯壁杯底", "一半在水中", "碰到杯壁"], answer: 1 },
+  { id: "t245", question: "【2025真题·选择】\\n【实验二·摩擦力探究】科学小组为探究「摩擦力大小与什么因素有关」，用弹簧测力计拉着木块在水平桌面上匀速滑动，改变接触面粗糙程度（毛巾、玻璃等），记录读数。
+
+45. 进行科学实验时最重要步骤是什么？\\n<br><img src=\'icons/tower_t25_exp2a_heat.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'><br><img src=\'icons/tower_t25_exp2b_heat.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["准备材料", "动手操作", "得出结论", "记录和分析数据"], answer: 3 },
+  { id: "t246", question: "【2025真题·选择】\\n【实验三·生态瓶】琪琪和妍妍制作了生态瓶，瓶内有水草、小鱼、小虾和泥沙。放在窗台上观察生物生存状况，探究生态系统生物与非生物间的关系。
+
+46. 在生态瓶中水草主要作用是什么？\\n<br><img src=\'icons/tower_t25_exp3_electro.png\' style=\'max-width:420px;border-radius:8px;margin:8px 0;\'>", options: ["产生氧气", "美化环境", "提供食物", "吸收废物"], answer: 0 },
+  { id: "t247", question: "【2025真题·选择】\\n【实验三·生态瓶】琪琪和妍妍制作了生态瓶，瓶内有水草、小鱼、小虾和泥沙。放在窗台上观察生物生存状况，探究生态系统生物与非生物间的关系。
+
+47. 生态瓶应放在什么环境下？\\n<br><img src=\'icons/tower_t25_exp3_electro.png\' style=\'max-width:420px;border-radius:8px;margin:8px 0;\'>", options: ["完全黑暗", "有阳光但不直射", "阳光直射", "任何地方"], answer: 1 },
+  { id: "t248", question: "【2025真题·选择】\\n【实验三·生态瓶】琪琪和妍妍制作了生态瓶，瓶内有水草、小鱼、小虾和泥沙。放在窗台上观察生物生存状况，探究生态系统生物与非生物间的关系。
+
+48. 生态瓶中动物和植物的关系是什么？\\n<br><img src=\'icons/tower_t25_exp3_electro.png\' style=\'max-width:420px;border-radius:8px;margin:8px 0;\'>", options: ["互不影响", "互相竞争", "相互依存", "互相排斥"], answer: 2 },
+  { id: "t249", question: "【2025真题·选择】\\n【实验三·生态瓶】琪琪和妍妍制作了生态瓶，瓶内有水草、小鱼、小虾和泥沙。放在窗台上观察生物生存状况，探究生态系统生物与非生物间的关系。
+
+49. 如果生态瓶中水草过多可能发生什么？\\n<br><img src=\'icons/tower_t25_exp3_electro.png\' style=\'max-width:420px;border-radius:8px;margin:8px 0;\'>", options: ["动物生长更好", "夜间氧气不足致动物死亡", "没有影响", "水质更清澈"], answer: 1 },
+  { id: "t250", question: "【2025真题·选择】\\n【实验三·生态瓶】琪琪和妍妍制作了生态瓶，瓶内有水草、小鱼、小虾和泥沙。放在窗台上观察生物生存状况，探究生态系统生物与非生物间的关系。
+
+50. 设计科学实验时第一步应做什么？\\n<br><img src=\'icons/tower_t25_exp3_electro.png\' style=\'max-width:420px;border-radius:8px;margin:8px 0;\'><br><img src=\'icons/tower_t25_exp3_last.png\' style=\'max-width:380px;border-radius:8px;margin:8px 0;\'>", options: ["提出问题和假设", "收集材料", "分析数据", "得出结论"], answer: 0 },
 ];
 // ====== 合并共享月考题库（去重：已存在的跳过） ======
 (function() {
