@@ -1745,6 +1745,45 @@
     0% { opacity: 1; transform: translate(-50%, 0); }
     100% { opacity: 0; transform: translate(-50%, -80px); }
   }
+  /* 🆕 v714: 线索面板 */
+  .clue-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+    z-index: 90; display: flex; align-items: center; justify-content: center;
+  }
+  .clue-card {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border: 1px solid rgba(100,200,255,0.3);
+    border-radius: 16px; padding: 24px;
+    max-width: 500px; width: 90%; max-height: 70vh; overflow-y: auto;
+    box-shadow: 0 0 30px rgba(0,150,255,0.15);
+  }
+  .clue-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .clue-title { font-size: 1.2em; font-weight: bold; color: #7ec8ff; }
+  .clue-close { background: rgba(255,255,255,0.1); border: none; color: #aaa; font-size: 1.3em; cursor: pointer; border-radius: 8px; padding: 4px 10px; }
+  .clue-close:hover { background: rgba(255,255,255,0.2); color: #fff; }
+  .clue-item {
+    background: rgba(100,200,255,0.08); border-left: 3px solid #7ec8ff;
+    border-radius: 8px; padding: 10px 14px; margin-bottom: 8px;
+    font-size: 0.88em; color: #b0d0ff; line-height: 1.5;
+  }
+  .clue-item .clue-from { font-size: 0.75em; color: #668; margin-top: 4px; }
+  .clue-complete-banner {
+    background: linear-gradient(90deg, #ff0080, #ff8c00);
+    border-radius: 10px; padding: 12px 16px; margin: 12px 0;
+    text-align: center; color: #fff; font-weight: bold;
+    animation: danmakuRainbow 1s linear infinite; background-size: 300% 100%;
+  }
+  .secret-item {
+    background: rgba(255,179,0,0.1); border: 1px solid rgba(255,179,0,0.3);
+    border-radius: 10px; padding: 10px 14px; margin-bottom: 8px;
+    color: #ffd700;
+  }
+  /* 探索商店按钮 */
+  .explore-shop-btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    margin-left: 8px; cursor: pointer;
+  }
 </style>
 </head>
 <body>
@@ -1783,6 +1822,10 @@
     <div class="status-item" id="exploreStatusItem" style="cursor:pointer;" onclick="showToast('🔍 探索积分：通过点击、访问、发现隐藏内容获得。只增不减！', 'info', 4000)" title="探索积分（只增不减）">
       <span class="status-icon">🔍</span>
       <span>探索: <span class="status-value" id="explorePointsDisplay">0</span></span>
+    </div>
+    <div class="status-item" style="cursor:pointer;" onclick="openCluePanel()" title="线索笔记">
+      <span class="status-icon">📜</span>
+      <span>线索</span>
     </div>
     <div class="status-item" id="ladderStatusItem" style="display:none;cursor:pointer;" onclick="document.getElementById('ladderOverlay') && document.getElementById('ladderOverlay').classList.add('show')">
       <span class="status-icon" id="ladderTierIcon">⚡</span>
@@ -3089,6 +3132,9 @@ function finishQuiz() {
   
   checkUnitAchievements();
 
+  // 🆕 v714: 课程完成后触发线索掉落
+  checkClueDrops('lesson_complete');
+
   // 趣味成就检查
   const isPerfect = accuracy === 100;
   const elapsed = gameState.lessonStartTime ? (Date.now() - gameState.lessonStartTime) / 1000 : 999;
@@ -3983,6 +4029,210 @@ function initExploreTracking() {
     var el = e.target.closest('[data-interactive]');
     if (el) trackClick(el.getAttribute('data-interactive'));
   });
+}
+
+// ====== 🆕 v714: 线索碎片系统 ======
+
+/** 线索定义 */
+var CLUE_DEFINITIONS = [
+  // 线索链1：实验室的秘密
+  { id: 'lab_clue_1', chain: 'secret_lab', order: 1, text: '传说实验室有个隐藏房间...听说爬塔到第10层的人能看到入口', from: 'lesson_complete', dropText: '📜 获得线索碎片：「实验室的传闻」' },
+  { id: 'lab_clue_2', chain: 'secret_lab', order: 2, text: '墙壁上刻着模糊的字迹：「校队选拔的冠军才能推开这扇门」', from: 'tower_floor_10', dropText: '📜 爬塔途中发现线索：「冠军之门」' },
+  { id: 'lab_clue_3', chain: 'secret_lab', order: 3, text: '在选拔测试的考场角落发现密码：🔑 太阳系第三颗行星', from: 'xuanba_attempt', dropText: '📜 选拔考场角落发现线索：「行星密码」' },
+  // 线索链2：宠物主人的秘密食谱
+  { id: 'pet_clue_1', chain: 'pet_recipe', order: 1, text: '你的宠物似乎对某种食物很感兴趣...去宠物商店看看吧', from: 'pet_battle', dropText: '📜 宠物交战后发现线索：「宠物的渴望」' },
+  { id: 'pet_clue_2', chain: 'pet_recipe', order: 2, text: '宠物商店店主说：「去天梯打到黄金段位，那里的零食店有秘方」', from: 'ladder_gold', dropText: '📜 天梯商店老板透露：「秘方交易」' },
+  // 线索链3：装备大师的秘密
+  { id: 'equip_clue_1', chain: 'equip_master', order: 1, text: '背包角落里发现一张褪色的纸条：「集齐3色装备的人，来合成台找我」', from: 'backpack_visit', dropText: '📜 背包角落发现纸条：「三色传说」' },
+  { id: 'equip_clue_2', chain: 'equip_master', order: 2, text: '合成台的铭牌上刻着一行小字：「彩虹七色终归一，神话装备在等你」', from: 'equip_rainbow', dropText: '📜 合成台铭牌：「彩虹的承诺」' }
+];
+
+/** 秘密发现定义 */
+var SECRET_DEFINITIONS = {
+  'secret_lab': { name: '隐藏实验室', desc: '你破解了行星密码，发现了隐藏的实验室！', equipId: 'explorer_hat_01', discovererName: null },
+  'pet_recipe': { name: '宠物秘方', desc: '你找到了传说中的宠物秘方！', equipId: 'explorer_glove_01', discovererName: null },
+  'equip_master': { name: '装备大师', desc: '你解开了装备大师留下的谜题！', equipId: 'explorer_cape_01', discovererName: null }
+};
+
+/** 掉落线索碎片 */
+function dropClue(clueId) {
+  var clue = CLUE_DEFINITIONS.find(function(c) { return c.id === clueId; });
+  if (!clue) return;
+
+  gameState.clueFragments = gameState.clueFragments || [];
+  // 检查是否已收集
+  if (gameState.clueFragments.some(function(c) { return c.id === clueId; })) return;
+  
+  gameState.clueFragments.push({
+    id: clue.id,
+    chain: clue.chain,
+    text: clue.text,
+    from: clue.from,
+    discoveredAt: Date.now()
+  });
+
+  // 显示掉落提示
+  if (clue.dropText) showToast(clue.dropText, 'info', 4000);
+  awardExplorePoints(15, '线索碎片');
+  
+  // 检查是否能拼凑完整
+  checkClueCombinations();
+  saveUserData();
+}
+
+/** 检查线索拼凑 */
+function checkClueCombinations() {
+  var fragments = gameState.clueFragments || [];
+  var discovered = gameState.discoveredSecrets || [];
+
+  Object.keys(SECRET_DEFINITIONS).forEach(function(secretId) {
+    if (discovered.indexOf(secretId) >= 0) return; // 已发现
+
+    // 检查该秘密的所有线索是否都收集齐
+    var requiredClues = CLUE_DEFINITIONS.filter(function(c) { return c.chain === secretId; });
+    var allCollected = requiredClues.every(function(rc) {
+      return fragments.some(function(f) { return f.id === rc.id; });
+    });
+
+    if (allCollected) {
+      discoverSecret(secretId);
+    }
+  });
+}
+
+/** 发现隐藏秘密 */
+function discoverSecret(secretId) {
+  var secret = SECRET_DEFINITIONS[secretId];
+  if (!secret) return;
+
+  gameState.discoveredSecrets = gameState.discoveredSecrets || [];
+  if (gameState.discoveredSecrets.indexOf(secretId) >= 0) return;
+  
+  gameState.discoveredSecrets.push(secretId);
+  
+  // 显示发现弹窗
+  var msg = '🔍 你发现了【' + secret.name + '】！\n' + secret.desc + '\n\n';
+  if (secret.equipId) msg += '🎁 获得专属装备奖励！';
+
+  // 用更显眼的提示
+  showToast('🔍 发现隐藏秘密：' + secret.name + '！', 'success', 6000);
+  
+  // 奖励大量探索积分
+  awardExplorePoints(100, '发现隐藏内容：' + secret.name);
+  
+  // 解锁隐藏发现者成就
+  if (!gameState.unlockedAchievements.includes('hidden_finder')) {
+    unlockAchievement('hidden_finder');
+  }
+
+  // 🆕 发送弹幕广播
+  broadcastAchievement('隐藏发现者：' + secret.name, true);
+
+  saveUserData();
+}
+
+/** 打开线索面板 */
+function openCluePanel() {
+  var overlay = document.getElementById('clueOverlay');
+  if (!overlay) return;
+  overlay.style.display = 'flex';
+  renderCluePanel();
+}
+
+/** 关闭线索面板 */
+function closeCluePanel() {
+  var overlay = document.getElementById('clueOverlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+/** 渲染线索面板 */
+function renderCluePanel() {
+  var list = document.getElementById('clueList');
+  var secretsSection = document.getElementById('clueSecretsSection');
+  var secretsList = document.getElementById('discoveredSecretsList');
+  if (!list) return;
+
+  var fragments = gameState.clueFragments || [];
+  var discovered = gameState.discoveredSecrets || [];
+
+  // 渲染线索碎片
+  if (fragments.length === 0) {
+    list.innerHTML = '<div style="text-align:center;color:#666;padding:20px;">还没有收集到线索碎片...<br>多探索不同模块吧！</div>';
+  } else {
+    list.innerHTML = fragments.map(function(f) {
+      return '<div class="clue-item">' +
+        '<div>' + esc(f.text) + '</div>' +
+        '<div class="clue-from">来源：' + {
+          'lesson_complete': '课程完成', 'tower_floor_10': '爬塔第10层',
+          'xuanba_attempt': '校队选拔', 'pet_battle': '宠物战斗',
+          'ladder_gold': '天梯黄金段位', 'backpack_visit': '背包探索',
+          'equip_rainbow': '彩虹装备'
+        }[f.from] + '</div>' +
+      '</div>';
+    }).join('');
+
+    // 检查未完成的线索链
+    var incompleteChains = [];
+    Object.keys(SECRET_DEFINITIONS).forEach(function(sid) {
+      if (discovered.indexOf(sid) >= 0) return;
+      var req = CLUE_DEFINITIONS.filter(function(c) { return c.chain === sid; });
+      var collected = req.filter(function(rc) { return fragments.some(function(f) { return f.id === rc.id; }); });
+      if (collected.length > 0 && collected.length < req.length) {
+        incompleteChains.push({
+          name: SECRET_DEFINITIONS[sid].name,
+          collected: collected.length,
+          total: req.length
+        });
+      }
+    });
+
+    if (incompleteChains.length > 0) {
+      list.innerHTML += '<div style="margin-top:12px;padding:8px;background:rgba(255,179,0,0.08);border-radius:8px;font-size:0.85em;color:#ffb000;">' +
+        incompleteChains.map(function(ic) {
+          return '🔗 ' + ic.name + '：' + ic.collected + '/' + ic.total + ' 线索';
+        }).join('<br>') +
+      '</div>';
+    }
+  }
+
+  // 渲染已发现的秘密
+  if (discovered.length > 0 && secretsSection && secretsList) {
+    secretsSection.style.display = 'block';
+    secretsList.innerHTML = discovered.map(function(sid) {
+      var s = SECRET_DEFINITIONS[sid];
+      return '<div class="secret-item">🏆 <strong>' + esc(s.name) + '</strong>：' + esc(s.desc) + '</div>';
+    }).join('');
+  } else if (secretsSection) {
+    secretsSection.style.display = 'none';
+  }
+}
+
+/** 线索掉落触发检查（在关键时机调用） */
+function checkClueDrops(trigger) {
+  // 课程完成 → 掉落 lab_clue_1
+  if (trigger === 'lesson_complete') {
+    dropClue('lab_clue_1');
+  }
+  // 背包访问 → 掉落 equip_clue_1
+  if (trigger === 'backpack_visit') {
+    dropClue('equip_clue_1');
+  }
+  // 宠物战斗 → 掉落 pet_clue_1
+  if (trigger === 'pet_battle') {
+    dropClue('pet_clue_1');
+  }
+  // 校队选拔尝试 → 掉落 lab_clue_3
+  if (trigger === 'xuanba_attempt') {
+    dropClue('lab_clue_3');
+  }
+  // 天梯黄金段位 → 掉落 pet_clue_2（在 checkAchievements 中检测）
+  if (trigger === 'ladder_gold') {
+    dropClue('pet_clue_2');
+  }
+  // 彩虹装备 → 掉落 equip_clue_2（在 checkEquipAchievements 中检测）
+  if (trigger === 'equip_rainbow') {
+    dropClue('equip_clue_2');
+  }
 }
 
 // ====== 从成绩分析系统同步数据 ======
@@ -6213,8 +6463,9 @@ function bpClear62() {
 var _keji2026Loaded = false;
 
 function showBackpack() {
-  // 🆕 v714: 追踪页面访问
+  // 🆕 v714: 追踪页面访问 + 线索掉落
   trackPageVisit('背包');
+  checkClueDrops('backpack_visit');
   bpCurrentPage = 1;
   // v715: 首次打开背包时懒加载科技节装备数据（155KB）
   if (!_keji2026Loaded) {
@@ -6400,8 +6651,9 @@ function closeLadderModal() {
 
 // ====== 校队选拔弹窗 ======
 function showXuanbaModal() {
-  // 🆕 v714: 追踪页面访问
+  // 🆕 v714: 追踪页面访问 + 线索掉落
   trackPageVisit('校队选拔');
+  checkClueDrops('xuanba_attempt');
   if (!gameState.studentId || gameState.isGuest) {
     showLoginScreen();
     return;
@@ -6736,8 +6988,9 @@ async function migrateLadderRankingData() {
 }
 
 function showPetBattle() {
-  // 🆕 v714: 追踪页面访问
+  // 🆕 v714: 追踪页面访问 + 线索掉落
   trackPageVisit('宠物');
+  checkClueDrops('pet_battle');
   const modal = document.getElementById('petModal');
   const iframe = document.getElementById('petIframe');
   document.getElementById('petModalPoints').textContent = (gameState.totalPoints || 0).toLocaleString();
@@ -8400,6 +8653,24 @@ if (!window._giftCheckTimer) {
       <button class="tier-btn" onclick="filterAchievements('🏆')">🏆神话</button>
     </div>
     <div class="achievement-grid" id="achievementGrid"></div>
+  </div>
+</div>
+
+<!-- 🆕 v714: 线索面板 -->
+<div class="clue-overlay" id="clueOverlay" style="display:none;">
+  <div class="clue-card">
+    <div class="clue-header">
+      <div class="clue-title">🔍 线索笔记</div>
+      <button class="clue-close" onclick="closeCluePanel()">✕</button>
+    </div>
+    <div class="clue-hint-text" style="font-size:0.82em;color:#888;margin-bottom:12px;">💡 线索分散在平台的各个角落——完成课程、爬塔、玩宠物都可能掉落线索碎片。拼凑完整线索可解锁隐藏内容！</div>
+    <div class="clue-list" id="clueList">
+      <div style="text-align:center;color:#666;padding:20px;">还没有收集到线索碎片...<br>多探索不同模块吧！</div>
+    </div>
+    <div class="clue-secrets-section" id="clueSecretsSection" style="margin-top:16px;display:none;">
+      <div style="font-size:1em;font-weight:bold;color:#ffd700;margin-bottom:8px;">🏆 已发现的秘密</div>
+      <div id="discoveredSecretsList"></div>
+    </div>
   </div>
 </div>
 
