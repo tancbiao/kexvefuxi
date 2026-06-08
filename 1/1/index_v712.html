@@ -2288,6 +2288,8 @@ const gameState = {
   xuanbaBestScore: 0,    // 🆕 v710: 校队选拔最高分
   xuanbaBestPct: 0,      // 🆕 v710: 校队选拔最高正确率
   xuanbaBestRA: 0,       // 🆕 v713: 校队选拔最高RA推理指数
+  honoraryTitles: [],    // 🆕 v715: 手动授予称号 (如 "优秀工作者")
+  weeklyKingTitles: {},  // 🆕 v715: 每周王者称号 {ladder: true, achievement: true, tower: true}
   totalQuestionsAnswered: 0,
   totalCorrectAnswers: 0, // 累计答对题数
   retrySuccessCount: 0,
@@ -2409,6 +2411,8 @@ function loginWithId() {
   gameState.ladderBestScore = 0;
   gameState.ladderPoints = 0;
   gameState.ladderTier = null;
+  gameState.honoraryTitles = [];
+  gameState.weeklyKingTitles = {};
   gameState.xuanbaBestScore = 0;
   gameState.xuanbaBestPct = 0;
   gameState.xuanbaBestRA = 0;
@@ -2434,6 +2438,8 @@ function loginWithId() {
   loadDanmakuSetting();
   startDanmaku();
   setTimeout(function() { broadcastLogin(); }, 1000);
+  // 🆕 v715: 拉取每周王者称号
+  setTimeout(function() { checkWeeklyKings(); }, 2000);
   
   // 先更新本地状态（体力等，不依赖云端数据）
   checkAndResetStamina();
@@ -2493,6 +2499,8 @@ function loginAsGuest() {
   gameState.ladderBestScore = 0;
   gameState.ladderPoints = 0;
   gameState.ladderTier = null;
+  gameState.honoraryTitles = [];
+  gameState.weeklyKingTitles = {};
   gameState.xuanbaBestScore = 0;
   gameState.xuanbaBestPct = 0;
   gameState.xuanbaBestRA = 0;
@@ -2552,6 +2560,8 @@ function logout() {
   gameState.ladderBestScore = 0;
   gameState.ladderPoints = 0;
   gameState.ladderTier = null;
+  gameState.honoraryTitles = [];
+  gameState.weeklyKingTitles = {};
   gameState.xuanbaBestScore = 0;
   gameState.xuanbaBestPct = 0;
   gameState.xuanbaBestRA = 0;
@@ -3620,6 +3630,8 @@ async function saveUserData(skipCloud) {
     ladderBestScore: gameState.ladderBestScore || 0,      // 🆕 天梯最佳分数持久化
     ladderPoints: gameState.ladderPoints || 0,            // 🆕 v705 天梯积分
     ladderTier: gameState.ladderTier || null,             // 🆕 v705 天梯段位
+    honoraryTitles: gameState.honoraryTitles || [],       // 🆕 v715
+    weeklyKingTitles: gameState.weeklyKingTitles || {},   // 🆕 v715
     // 🆕 一次性奖励标记（防跨设备重复领取）
     compensationClaimed: !!localStorage.getItem('compensation_claimed_' + gameState.studentId),
     s0RewardClaimed: !!localStorage.getItem('s0_season_reward_claimed_' + gameState.studentId),
@@ -3731,6 +3743,46 @@ function getDisplayRank() {
   return '黑铁';
 }
 
+/** 获取完整天梯段位（含子段，如"黑铁三段"、"最强王者"） */
+function getDisplayRankFull() {
+  if (gameState.ladderTier) {
+    var t = gameState.ladderTier;
+    if (t.name === '王者') return '最强王者';
+    if (t.sub) return t.name + t.sub + '段';
+    return t.name;
+  }
+  return '黑铁三段';
+}
+
+/** 获取所有称号（弹幕用，最多返回前3个） */
+function getAllTitles() {
+  var titles = [];
+  // 每周王者称号
+  if (gameState.weeklyKingTitles) {
+    var kings = gameState.weeklyKingTitles;
+    if (kings.ladder) titles.push('天梯王者');
+    if (kings.achievement) titles.push('成就王者');
+    if (kings.tower) titles.push('爬塔王者');
+  }
+  // 成就称号
+  var unlocked = gameState.unlockedAchievements || [];
+  var ids = unlocked.map(function(a) { return a.id || a; });
+  if (ids.some(function(id) { return id === 'all_complete' || id === 'streak_10'; })) titles.push('神话获得者');
+  else if (ids.some(function(id) { return id === 'q_200' || id === 'equip_rainbow' || id === 'equip_mythic'; })) titles.push('传说获得者');
+  // 隐藏发现者
+  if ((gameState.discoveredSecrets || []).length > 0) titles.push('隐藏发现者');
+  // 爬塔
+  if ((gameState.towerHighestFloor || 0) >= 100) titles.push('爬塔王者');
+  // 连胜
+  if ((gameState.maxStreak || 0) >= 7) titles.push('连胜之星');
+  // 优秀工作者（手动授予）
+  if (gameState.honoraryTitles && gameState.honoraryTitles.length > 0) {
+    titles = gameState.honoraryTitles.concat(titles);
+  }
+  // 最多3个
+  return titles.slice(0, 3);
+}
+
 /** 获取弹幕显示名（实名优先） */
 function getDanmakuName() {
   if (gameState.studentName) return gameState.studentName;
@@ -3765,7 +3817,16 @@ function spawnDanmaku(item) {
   var rank = item.rank || getDisplayRank();
 
   if (item.type === 'login') {
-    el.innerHTML = '<span style="color:#a0d0ff;">' + esc(name) + '</span> 登录了！';
+    // 构建称号前缀
+    var allTitles = item.titles || getAllTitles();
+    var titleStr = allTitles.length > 0 ? allTitles.join('、') : '';
+    var rankFull = item.rankFull || getDisplayRankFull();
+    var prefix = '';
+    if (titleStr) {
+      prefix = '<span style="color:#ffd700;font-size:0.85em;">' + esc(titleStr) + '</span> ';
+    }
+    prefix += '<span style="color:#a0d0ff;font-weight:bold;">' + esc(rankFull) + '·' + esc(name) + '</span>';
+    el.innerHTML = prefix + ' 上线了！';
   } else if (item.type === 'achievement' || item.type === 'legend') {
     el.innerHTML = '<span style="color:#ffd700;">[' + esc(title) + ']</span> <span style="font-weight:bold;">' + esc(name) + '</span> 解锁成就 <span style="color:#ffeb3b;">' + esc(item.achievementName || '') + '</span> <span class="danmaku-rank">' + esc(rank) + '</span>';
   } else if (item.type === 'tower_king') {
@@ -3838,8 +3899,8 @@ function startDanmakuHeartbeat() {
         body: JSON.stringify({
           studentId: gameState.studentId,
           name: getDanmakuName(),
-          title: getHighestTitle(),
-          rank: getDisplayRank()
+          titles: getAllTitles(),
+          rankFull: getDisplayRankFull()
         })
       }).catch(function() {});
     } catch(e) {}
@@ -3868,6 +3929,38 @@ function startDanmaku() {
   startDanmakuRepeat();
 }
 
+/** 🆕 v715: 拉取每周王者称号并设置 */
+function checkWeeklyKings() {
+  if (gameState.isGuest || !gameState.studentId) return;
+  try {
+    fetch(API_BASE + '/weekly-kings?_=' + Date.now(), { signal: (function() { var c = new AbortController(); setTimeout(function() { c.abort(); }, 5000); return c.signal; })() })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (!data || !data.kings) return;
+        var updated = false;
+        var titles = {};
+        var sid = gameState.studentId;
+        // 检查天梯王者
+        if (data.kings.ladder && data.kings.ladder.some(function(k) { return k.studentId === sid; })) {
+          titles.ladder = true; updated = true;
+        }
+        // 检查成就王者
+        if (data.kings.achievement && data.kings.achievement.some(function(k) { return k.studentId === sid; })) {
+          titles.achievement = true; updated = true;
+        }
+        // 检查爬塔王者
+        if (data.kings.tower && data.kings.tower.some(function(k) { return k.studentId === sid; })) {
+          titles.tower = true; updated = true;
+        }
+        if (updated) {
+          gameState.weeklyKingTitles = titles;
+          saveUserData(true); // skipCloud，仅本地保存
+        }
+      })
+      .catch(function() { /* 静默失败 */ });
+  } catch(e) {}
+}
+
 /** 停止弹幕系统 */
 function stopDanmaku() {
   if (_danmakuPollTimer) { clearInterval(_danmakuPollTimer); _danmakuPollTimer = null; }
@@ -3883,13 +3976,16 @@ function stopDanmaku() {
 /** 发送登录弹幕广播 */
 function broadcastLogin() {
   if (gameState.isGuest || !gameState.studentId) return;
+  var titles = getAllTitles();
+  var rankFull = getDisplayRankFull();
+  var displayName = getDanmakuName();
   // 本地先弹
   spawnDanmaku({
     id: 'local_login_' + Date.now(),
     type: 'login',
-    name: getDanmakuName(),
-    title: getHighestTitle(),
-    rank: getDisplayRank()
+    name: displayName,
+    titles: titles,
+    rankFull: rankFull
   });
   // 发送到服务端
   try {
@@ -3899,10 +3995,10 @@ function broadcastLogin() {
       body: JSON.stringify({
         type: 'login',
         studentId: gameState.studentId,
-        name: getDanmakuName(),
-        title: getHighestTitle(),
-        rank: getDisplayRank(),
-        content: getDanmakuName() + ' 登录了！'
+        name: displayName,
+        titles: titles,
+        rankFull: rankFull,
+        content: (titles.join('、') + ' ' + rankFull + '·' + displayName + ' 上线了！').trim()
       })
     }).catch(function() {});
   } catch(e) {}
@@ -5447,6 +5543,11 @@ function mergeUserData(localData, cloudData) {
     merged.ladderTier = localData.ladderTier || cloudData.ladderTier || null;
   }
 
+  // 🆕 v715: 称号合并（去重并集）
+  merged.honoraryTitles = [...new Set([...(localData.honoraryTitles || []), ...(cloudData.honoraryTitles || [])])];
+  // 🆕 v715: 每周王者称号合并（云端覆盖本地）
+  merged.weeklyKingTitles = Object.assign({}, localData.weeklyKingTitles || {}, cloudData.weeklyKingTitles || {});
+
   // 🆕 v714: 探索积分（只增不减）
   merged.explorePoints = Math.max(localData.explorePoints || 0, cloudData.explorePoints || 0);
   // 🆕 v714: 探索数据合并（去重并集）
@@ -5774,6 +5875,8 @@ function applyUserData(data) {
   gameState.ladderBestScore = data.ladderBestScore || 0;
   gameState.ladderPoints = data.ladderPoints || 0;
   gameState.ladderTier = data.ladderTier || null;
+  gameState.honoraryTitles = data.honoraryTitles || [];
+  gameState.weeklyKingTitles = data.weeklyKingTitles || {};
   // 🆕 v714: 恢复探索积分数据
   gameState.explorePoints = data.explorePoints || 0;
   gameState.clickedElements = data.clickedElements || [];
@@ -6766,6 +6869,27 @@ window.addEventListener('message', function(e) {
       updateStatusBar();
       // 推送天梯数据到排行榜（独立体系，不覆盖主站积分）
       pushRankingData();
+    }
+  }
+  // 接收天梯段位奖励（装备+积分）
+  if (e.data && e.data.type === 'ladder_tier_reward') {
+    if (gameState) {
+      var reward = e.data;
+      // 添加积分奖励
+      if (reward.bonusPoints) {
+        gameState.totalPoints = (gameState.totalPoints || 0) + reward.bonusPoints;
+      }
+      // 添加装备奖励
+      if (reward.equipData) {
+        gameState.equipment = gameState.equipment || [];
+        gameState.equipment.push(reward.equipData);
+      }
+      // 显示提示
+      if (reward.tierName) {
+        showToast('🎉 达到' + reward.tierName + '段位！获得' + (reward.equipRarity ? reward.equipData ? '装备' : '' : '') + '奖励', '');
+      }
+      updateStatusBar();
+      saveUserData();
     }
   }
   // 接收天梯传来的错题记录

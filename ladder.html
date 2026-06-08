@@ -324,6 +324,13 @@ body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius
 .challenge-timer.danger { color: #ff4444; animation: pulse 0.5s infinite; }
 .challenge-timer-icon { font-size: 1.4em; }
 
+.challenge-wrong-indicator {
+  font-size: 0.8em;
+  color: rgba(255,255,255,0.6);
+  margin-bottom: 6px;
+  letter-spacing: 2px;
+}
+
 .question-card {
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.08);
@@ -725,6 +732,7 @@ body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius
 <div class="screen" id="screen-challenge">
   <div class="challenge-header">
     <div class="challenge-progress" id="challengeProgress">第 1/10 题</div>
+    <div class="challenge-wrong-indicator" id="wrongIndicator">容错：⬜⬜⬜ (剩3次)</div>
     <div class="challenge-timer-wrap">
       <span class="challenge-timer-icon">⏱</span>
       <span class="challenge-timer normal" id="challengeTimer">50</span>
@@ -839,7 +847,7 @@ window.addEventListener('message', function(e) {
     // 重置挑战状态（防止上一个人残留的暂停数据）
     challengeState = {
       questions: [], totalQuestions: 0, currentIdx: 0,
-      correctCount: 0, wrongAnswers: [],
+      correctCount: 0, wrongCount: 0, maxWrong: 3, wrongAnswers: [],
       timerInterval: null, timeLeft: QUESTION_TIME,
       answered: false, scoreBefore: state.score,
       tierBefore: getTier(state.score)
@@ -877,6 +885,37 @@ function notifyLadderWrongQuestions() {
     grade: state.grade,
     wrongAnswers: challengeState.wrongAnswers
   }, parentOrigin);
+}
+
+// 通知父页面段位奖励
+function notifyTierReward(reward) {
+  if (!isIframeMode || window.parent === window) return;
+  window.parent.postMessage({
+    type: 'ladder_tier_reward',
+    tierName: reward.tierName,
+    tierColor: reward.tierColor,
+    tierIcon: reward.tierIcon,
+    equipRarity: reward.equipRarity,
+    bonusPoints: reward.bonusPoints,
+    equipData: reward.equipData
+  }, parentOrigin);
+}
+
+// 更新答错次数指示器
+function updateWrongIndicator() {
+  var el = document.getElementById('wrongIndicator');
+  if (!el) return;
+  var maxW = challengeState.maxWrong;
+  var curW = challengeState.wrongCount;
+  if (maxW === 0) {
+    el.innerHTML = '<span style="color:#ff6b6b;">王者·无容错</span>';
+  } else {
+    var dots = '';
+    for (var i = 0; i < maxW; i++) {
+      dots += i < curW ? '❌' : '⬜';
+    }
+    el.innerHTML = '容错：' + dots + ' (剩' + (maxW - curW) + '次)';
+  }
 }
 
 // API 配置（复用 cloud-config 体系）
@@ -920,6 +959,64 @@ function getTier(score) {
   return { idx: 0, name: '黑铁', icon: '⚙️', color: '#8B8B8B', sub: 'III', subIdx: 0, subsCount: 3, min: 1000, max: 1119 };
 }
 
+// 按段位获取容错次数
+function getMaxWrong(score) {
+  var tier = getTier(score);
+  if (tier.name === '王者') return 0;
+  if (tier.name === '铂金' || tier.name === '钻石' || tier.name === '星耀') return 2;
+  return 3; // 黑铁/青铜/白银/黄金
+}
+
+// 段位首次奖励配置
+var TIER_REWARDS = {
+  '青铜': { rarity: 'normal', icon: '⬜', points: 5 },
+  '白银': { rarity: 'fine', icon: '⚪', points: 10 },
+  '黄金': { rarity: 'good', icon: '🟢', points: 15 },
+  '铂金': { rarity: 'rare', icon: '🔵', points: 20 },
+  '钻石': { rarity: 'epic', icon: '🟣', points: 30 },
+  '星耀': { rarity: 'legendary', icon: '🟠', points: 40 },
+  '王者': { rarity: 'mythic', icon: '🔴', points: 50 }
+};
+
+// 积分公式：按答对数返回积分变化
+function calcLadderPoints(correct, isKing) {
+  var table = isKing
+    ? [-12, -8, -5, -3, -1, 1, 2, 3, 4, 6, 10]
+    : [-8, -6, -4, -2, -1, 1, 2, 4, 6, 8, 16];
+  return table[correct] !== undefined ? table[correct] : table[0];
+}
+
+// 检测并发放段位首次奖励（在结算中调用）
+// 返回 { tierName, tierColor, tierIcon, equipRarity, bonusPoints, equipData } 或 null
+function checkTierReward(oldTier, newTier) {
+  // 只有在段位升级时才检测（idx 变大）
+  if (newTier.idx <= oldTier.idx) return null;
+  // 逐级检查未领取的段位
+  for (var i = oldTier.idx + 1; i <= newTier.idx; i++) {
+    var tierName = TIER_CONFIG[i].name;
+    if (state.claimedTierRewards[i]) continue; // 已领过
+    var reward = TIER_REWARDS[tierName];
+    if (!reward) continue;
+    state.claimedTierRewards[i] = true;
+    // 生成装备
+    var equipData = null;
+    try {
+      if (typeof generateEquip === 'function') {
+        equipData = generateEquip(reward.rarity);
+      }
+    } catch(e) { equipData = null; }
+    return {
+      tierName: tierName,
+      tierColor: TIER_CONFIG[i].color,
+      tierIcon: TIER_CONFIG[i].icon,
+      equipRarity: reward.rarity,
+      bonusPoints: reward.points,
+      equipData: equipData
+    };
+  }
+  return null;
+}
+
 // ==================== 积分算法 ====================
 function calcBaseReward(score) {
   if (score >= 1800) return 1;
@@ -956,13 +1053,16 @@ var state = {
   dailyCount: 0,
   dailyDate: '',
   questionHistory: {},  // {qid: timesSeen}
-  lastTierIdx: 0
+  lastTierIdx: 0,
+  claimedTierRewards: {}  // 已领取的段位奖励 {tierIdx: true}
 };
 
 var challengeState = {
   questions: [],
   currentIdx: 0,
   correctCount: 0,
+  wrongCount: 0,
+  maxWrong: 3,
   timerInterval: null,
   timeLeft: 0,
   answered: false,
@@ -973,6 +1073,7 @@ var challengeState = {
 var currentRankingGrade = '';
 var currentRankingType = 'score';
 var cachedRankings = {};  // {grade: {score: [], accuracy: []}}
+var _pendingTierReward = null;  // 待展示的段位奖励
 
 // ==================== 题库转换 ====================
 var LADDER_QUESTIONS = {};  // {gradeKey: [{id, question, options, answer}]}
@@ -1060,7 +1161,8 @@ function saveLocal() {
     dailyCount: state.dailyCount,
     dailyDate: state.dailyDate,
     questionHistory: state.questionHistory,
-    lastTierIdx: state.lastTierIdx
+    lastTierIdx: state.lastTierIdx,
+    claimedTierRewards: state.claimedTierRewards
   };
   try {
     localStorage.setItem(getStorageKey(), JSON.stringify(data));
@@ -1090,6 +1192,7 @@ function loadLocal(studentId) {
       state.dailyDate = data.dailyDate || '';
       state.questionHistory = data.questionHistory || {};
       state.lastTierIdx = data.lastTierIdx || 0;
+      state.claimedTierRewards = data.claimedTierRewards || {};
       return true;
     }
   } catch (e) {
@@ -1119,6 +1222,7 @@ async function saveCloud() {
         dailyCount: state.dailyCount,
         dailyDate: state.dailyDate,
         questionHistory: state.questionHistory,
+        claimedTierRewards: state.claimedTierRewards,
         lastUpdated: Date.now()
       })
     });
@@ -1148,6 +1252,12 @@ async function loadCloud() {
         if (data.questionHistory) {
           for (var k in data.questionHistory) {
             state.questionHistory[k] = Math.max(state.questionHistory[k] || 0, data.questionHistory[k] || 0);
+          }
+        }
+        // 合并 claimedTierRewards（取并集）
+        if (data.claimedTierRewards) {
+          for (var k in data.claimedTierRewards) {
+            state.claimedTierRewards[k] = true;
           }
         }
         // currentStreak 取最新的（最新的为准）
@@ -1396,6 +1506,8 @@ function startChallenge() {
     totalQuestions: selected.length,
     currentIdx: 0,
     correctCount: 0,
+    wrongCount: 0,
+    maxWrong: getMaxWrong(state.score),
     wrongAnswers: [],    // 错题记录：{question, options, answer, userAnswer}
     timerInterval: null,
     timeLeft: QUESTION_TIME,
@@ -1415,6 +1527,7 @@ function renderQuestion() {
   document.getElementById('challengeProgress').textContent = '第 ' + (cs.currentIdx + 1) + '/' + cs.totalQuestions + ' 题';
   document.getElementById('challengeNext').style.display = 'none';
   document.getElementById('challengeFailOverlay').classList.remove('show');
+  updateWrongIndicator();
 
   // 渲染题目文本（支持图片和材料题标记）
   var qText = q.question;
@@ -1514,20 +1627,33 @@ function selectAnswer(idx) {
     });
   }
 
-  // 如果答错，显示失败遮罩
+  // 如果答错，累计错误次数
   if (!isCorrect) {
-    document.getElementById('challengeFailOverlay').classList.add('show');
-    // 延迟显示结果
-    setTimeout(function() {
-      showResult(false);
-    }, 800);
+    challengeState.wrongCount++;
+    // 达到容错上限 → 立即结算
+    if (challengeState.wrongCount >= challengeState.maxWrong) {
+      document.getElementById('challengeFailOverlay').classList.add('show');
+      setTimeout(function() {
+        showResult();
+      }, 800);
+    } else {
+      // 未达上限 → 显示警告但可以继续
+      updateWrongIndicator();
+      if (challengeState.currentIdx < challengeState.totalQuestions - 1) {
+        document.getElementById('challengeNext').style.display = 'flex';
+        document.getElementById('btnNext').textContent = '继续 ▶ (剩余' + (challengeState.maxWrong - challengeState.wrongCount) + '次机会)';
+      } else {
+        document.getElementById('challengeNext').style.display = 'flex';
+        document.getElementById('btnNext').textContent = '查看结果';
+      }
+    }
   } else {
-    // 答对，显示下一题按钮
+    // 答对
     if (challengeState.currentIdx < challengeState.totalQuestions - 1) {
       document.getElementById('challengeNext').style.display = 'flex';
       document.getElementById('btnNext').textContent = '继续 ▶';
     } else {
-      // 全部正确！
+      // 全部完成！
       document.getElementById('challengeNext').style.display = 'flex';
       document.getElementById('btnNext').textContent = '查看结果 🎉';
     }
@@ -1555,55 +1681,61 @@ function handleTimeout() {
     answer: q.answer,
     userAnswer: -1  // 超时未答
   });
+  challengeState.wrongCount++;
 
-  document.getElementById('challengeFailOverlay').classList.add('show');
-  setTimeout(function() {
-    showResult(false);
-  }, 800);
+  // 达到容错上限 → 立即结算
+  if (challengeState.wrongCount >= challengeState.maxWrong) {
+    document.getElementById('challengeFailOverlay').classList.add('show');
+    setTimeout(function() {
+      showResult();
+    }, 800);
+  } else {
+    updateWrongIndicator();
+    if (challengeState.currentIdx < challengeState.totalQuestions - 1) {
+      document.getElementById('challengeNext').style.display = 'flex';
+      document.getElementById('btnNext').textContent = '继续 ▶ (超时,剩余' + (challengeState.maxWrong - challengeState.wrongCount) + '次机会)';
+    } else {
+      document.getElementById('challengeNext').style.display = 'flex';
+      document.getElementById('btnNext').textContent = '查看结果';
+    }
+  }
 }
 
 function nextQuestion() {
   challengeState.currentIdx++;
   if (challengeState.currentIdx >= challengeState.totalQuestions) {
-    // 全部完成且全对 → 成功
-    showResult(true);
+    // 全部完成 → 结算
+    showResult();
   } else {
     renderQuestion();
   }
 }
 
 // ==================== 结算 ====================
-function showResult(success) {
+function showResult() {
   clearInterval(challengeState.timerInterval);
 
   var cs = challengeState;
   var correctCount = cs.correctCount;
-  var totalCorrect = 0; // 本次涉及题的得分总和
+  var isKing = (cs.tierBefore && cs.tierBefore.name === '王者');
 
-  // 计算积分变化
-  if (success) {
-    // 全部正确
-    var totalReward = 0;
-    for (var i = 0; i < cs.questions.length; i++) {
-      var q = cs.questions[i];
-      var timesSeen = state.questionHistory[q.id] - 1; // 减去本次
-      var reward = calcQuestionReward(cs.scoreBefore, timesSeen, cs.totalQuestions);
-      totalReward += Math.max(reward, 0);
-    }
-    totalCorrect = totalReward;
-    state.score += totalReward;
+  // 使用新积分公式计算
+  var pointChange = calcLadderPoints(correctCount, isKing);
+
+  // 应用积分
+  state.score += pointChange;
+  if (state.score < 0) state.score = 0;
+
+  // 连胜/连败
+  if (pointChange > 0) {
     state.totalWins++;
     state.currentStreak = state.currentStreak > 0 ? state.currentStreak + 1 : 1;
-  } else {
-    // 失败 - 梯度扣分：对0题扣10，对9题扣1（对的越多扣越少）
-    var totalPenalty = Math.max(1, 10 - correctCount);
-    totalCorrect = -totalPenalty;
-    state.score = Math.max(0, state.score - totalPenalty);
+  } else if (pointChange < 0) {
     state.totalLosses++;
     state.currentStreak = state.currentStreak < 0 ? state.currentStreak - 1 : -1;
   }
 
-  // 保底
+  // 保底 + 最高分记录
   if (state.score < 0) state.score = 0;
   if (state.score > state.bestScore) state.bestScore = state.score;
   if (Math.abs(state.currentStreak) > state.bestStreak) state.bestStreak = Math.abs(state.currentStreak);
@@ -1613,43 +1745,70 @@ function showResult(success) {
   state.totalCorrect += correctCount;
   state.dailyCount++;
 
+  // 段位变化
+  var newTier = getTier(state.score);
+  var oldTier = cs.tierBefore;
+  var tierChanged = newTier.idx !== oldTier.idx || newTier.sub !== oldTier.sub;
+
+  // ===== 段位首次奖励检测 =====
+  var tierReward = checkTierReward(oldTier, newTier);
+  if (tierReward) {
+    // 加上奖励积分
+    state.score += tierReward.bonusPoints;
+    // 标记待展示的奖励（用于弹窗）
+    _pendingTierReward = tierReward;
+    // 重新计算分数相关
+    if (state.score > state.bestScore) state.bestScore = state.score;
+    newTier = getTier(state.score);
+    tierChanged = true; // 有奖励必然触发段位显示
+  }
+
   // 通知父页面积分变动（iframe 模式）
   notifyLadderChange();
 
   // 通知父页面错题记录（iframe 模式）
   notifyLadderWrongQuestions();
 
-  // 段位变化
-  var newTier = getTier(state.score);
-  var oldTier = cs.tierBefore;
-  var tierChanged = newTier.idx !== oldTier.idx || newTier.sub !== oldTier.sub;
+  // 通知父页面段位奖励（iframe 模式）
+  if (tierReward) notifyTierReward(tierReward);
+
+  // 是否正向结果
+  var isPositive = pointChange >= 0;
 
   // 渲染结算页
-  document.getElementById('resultIcon').textContent = success ? '🏆' : '💔';
-  document.getElementById('resultIcon').className = 'result-icon ' + (success ? 'win' : 'lose');
-  document.getElementById('resultTitle').textContent = success ? '挑战成功！' : '挑战失败';
-  document.getElementById('resultTitle').className = 'result-title ' + (success ? 'win' : 'lose');
-  document.getElementById('resultSubtitle').textContent = success
-    ? cs.totalQuestions + '题全对，积分提升！'
-    : '答错一题，挑战中止';
+  document.getElementById('resultIcon').textContent = isPositive ? '🏆' : '💔';
+  document.getElementById('resultIcon').className = 'result-icon ' + (isPositive ? 'win' : 'lose');
+  document.getElementById('resultTitle').textContent = isPositive ? '挑战完成！' : '积分下降';
+  document.getElementById('resultTitle').className = 'result-title ' + (isPositive ? 'win' : 'lose');
+  if (isKing && cs.wrongCount > 0) {
+    document.getElementById('resultSubtitle').textContent = '王者段位，错1题即止！';
+  } else if (cs.wrongCount >= cs.maxWrong) {
+    document.getElementById('resultSubtitle').textContent = '答错' + cs.wrongCount + '题，达到容错上限';
+  } else {
+    document.getElementById('resultSubtitle').textContent = '答对' + correctCount + '题，完成挑战';
+  }
 
   // 积分变化
+  var effectiveChange = pointChange + (tierReward ? tierReward.bonusPoints : 0);
   var changeBox = document.getElementById('scoreChangeBox');
-  changeBox.className = 'score-change-box ' + (success ? 'win' : 'lose');
-  document.getElementById('scoreChangeAmount').textContent = (totalCorrect >= 0 ? '+' : '') + totalCorrect;
-  document.getElementById('scoreChangeAmount').className = 'score-change-amount ' + (success ? 'win' : 'lose');
-  document.getElementById('scoreChangeLabel').textContent = success ? '天梯积分提升' : '天梯积分扣除';
+  changeBox.className = 'score-change-box ' + (isPositive ? 'win' : 'lose');
+  document.getElementById('scoreChangeAmount').textContent = (effectiveChange >= 0 ? '+' : '') + effectiveChange;
+  document.getElementById('scoreChangeAmount').className = 'score-change-amount ' + (isPositive ? 'win' : 'lose');
+  var scoreLabel = '天梯积分';
+  if (tierReward) scoreLabel += ' (含段位奖励+' + tierReward.bonusPoints + ')';
+  document.getElementById('scoreChangeLabel').textContent = scoreLabel;
 
   // 段位变化
   var tierBox = document.getElementById('tierChangeBox');
   if (tierChanged) {
     tierBox.style.display = 'block';
     if (newTier.idx > oldTier.idx || (newTier.idx === oldTier.idx && newTier.subIdx > oldTier.subIdx)) {
-      // 升级（subIdx越大 = 子段越高，如III(0)→II(1)→I(2)）
       tierBox.className = 'tier-change-box upgrade';
       tierBox.textContent = '🎉 段位晋升！' + oldTier.name + ' ' + oldTier.sub + ' → ' + newTier.name + ' ' + (newTier.sub || '');
+      if (tierReward) {
+        tierBox.textContent += ' | 获得段位奖励！';
+      }
     } else if (newTier.idx < oldTier.idx || (newTier.idx === oldTier.idx && newTier.subIdx < oldTier.subIdx)) {
-      // 降级
       tierBox.className = 'tier-change-box downgrade';
       tierBox.textContent = '📉 段位下降！' + oldTier.name + ' ' + oldTier.sub + ' → ' + newTier.name + ' ' + (newTier.sub || '');
     } else {
@@ -1664,6 +1823,13 @@ function showResult(success) {
   document.getElementById('rdCorrect').textContent = correctCount + ' / ' + cs.totalQuestions;
   document.getElementById('rdWrong').textContent = (cs.totalQuestions - correctCount) + ' / ' + cs.totalQuestions;
   document.getElementById('rdNewScore').textContent = state.score;
+
+  // 容错信息
+  if (isKing) {
+    document.getElementById('rdWrong').textContent += ' (王者·无容错)';
+  } else if (cs.maxWrong > 0) {
+    document.getElementById('rdWrong').textContent += ' (还剩' + Math.max(0, cs.maxWrong - cs.wrongCount) + '次机会)';
+  }
 
   // 保存
   saveLocal();

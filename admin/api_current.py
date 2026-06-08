@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-科学复习系统 API v710 — 新增校队选拔
+科学复习系统 API v715 — 每周王者结算 + 弹幕登录增强
 改动：
 1. _write_json_internal: os.replace() + PID 隔离 (修复竞态)
 2. student 端点: 智能合并 (Math.max/去重/并集/零分守卫)
@@ -514,11 +514,122 @@ def xuanba_ranking():
     return jsonify(rankings[:200])
 
 
+# ==================== 每周王者结算 (v715) ====================
+
+@app.route('/api/weekly-kings', methods=['GET'])
+def weekly_kings():
+    """获取本周各类王者榜单"""
+    data = _read_json('weekly_kings')
+    return jsonify(data)
+
+
+@app.route('/api/weekly-kings/settle', methods=['POST'])
+def settle_weekly_kings():
+    """
+    执行每周结算（周日21:00 cron调用，或手动触发）
+    从排行榜数据中选出前10名天梯王者/成就王者/爬塔王者
+    """
+    # 验证（简单token保护）
+    token = request.headers.get('X-Settle-Token', '') or request.args.get('token', '')
+    if token != 'kexvefuxi_settle_2026':
+        return jsonify({'error': 'unauthorized'}), 403
+
+    results = {'week': time.strftime('%Y-W%W'), 'settledAt': time.time(), 'kings': {}}
+
+    # ---- 天梯王者：从天梯积分榜取前10 ----
+    try:
+        ladder_data = _read_json('rankings_ladder')
+        ladder_scores = []
+        for grade, entries in ladder_data.items():
+            if isinstance(entries, list):
+                for e in entries:
+                    if e.get('score', 0) > 1000:
+                        ladder_scores.append({
+                            'studentId': e.get('studentId', ''),
+                            'studentName': e.get('studentName', ''),
+                            'score': e.get('score', 0),
+                            'grade': grade
+                        })
+        ladder_scores.sort(key=lambda x: x['score'], reverse=True)
+        results['kings']['ladder'] = ladder_scores[:10]
+    except Exception as e:
+        results['kings']['ladder'] = []
+        print(f'[settle] 天梯王者结算失败: {e}')
+
+    # ---- 爬塔王者：从主站排行榜取前10 ----
+    try:
+        ranking_data = _read_json('rankings_global_ranking')
+        tower_kings = []
+        for grade, entries in ranking_data.items():
+            if isinstance(entries, list):
+                for e in entries:
+                    if e.get('towerHighestFloor', 0) > 0:
+                        tower_kings.append({
+                            'studentId': e.get('studentId', ''),
+                            'studentName': e.get('studentName', ''),
+                            'towerFloor': e.get('towerHighestFloor', 0),
+                            'grade': grade
+                        })
+        tower_kings.sort(key=lambda x: x['towerFloor'], reverse=True)
+        results['kings']['tower'] = tower_kings[:10]
+    except Exception as e:
+        results['kings']['tower'] = []
+        print(f'[settle] 爬塔王者结算失败: {e}')
+
+    # ---- 成就王者：从students.json取前10（按成就数/积分） ----
+    try:
+        students_data = _read_json('students')
+        achievement_kings = []
+        for sid, data in students_data.items():
+            if isinstance(data, dict):
+                ach = data.get('unlockedAchievements', [])
+                ach_count = len(ach) if isinstance(ach, list) else 0
+                # 只统计有传说/神话成就的
+                has_legend = any(a.get('id') in ('all_complete','streak_10','equip_rainbow','equip_mythic','q_200','perfect_3','equip_10') for a in ach) if isinstance(ach, list) else False
+                if ach_count >= 5 or has_legend:
+                    achievement_kings.append({
+                        'studentId': sid,
+                        'studentName': data.get('studentName', ''),
+                        'achievements': ach_count,
+                        'totalPoints': data.get('totalPoints', 0)
+                    })
+        achievement_kings.sort(key=lambda x: (x['achievements'], x['totalPoints']), reverse=True)
+        results['kings']['achievement'] = achievement_kings[:10]
+    except Exception as e:
+        results['kings']['achievement'] = []
+        print(f'[settle] 成就王者结算失败: {e}')
+
+    # 保存结算结果
+    _write_json_internal('weekly_kings', results)
+
+    # 广播到弹幕系统
+    try:
+        danmaku = _read_json('danmaku_broadcasts')
+        danmaku = danmaku if isinstance(danmaku, list) else []
+        for cat_key, cat_name in [('ladder', '天梯王者'), ('tower', '爬塔王者'), ('achievement', '成就王者')]:
+            kings = results['kings'].get(cat_key, [])
+            for k in kings[:3]:  # 每类只广播前3名
+                danmaku.append({
+                    'type': 'legend',
+                    'studentId': k.get('studentId', ''),
+                    'name': k.get('studentName', '') or k.get('studentId', ''),
+                    'achievementName': cat_name,
+                    'content': f'{k.get("studentName","") or k.get("studentId","")} 荣获本周{cat_name}！',
+                    'time': time.time()
+                })
+        # 限制弹幕队列长度
+        _write_json_internal('danmaku_broadcasts', danmaku[-500:] if len(danmaku) > 500 else danmaku)
+    except Exception as e:
+        print(f'[settle] 弹幕广播失败: {e}')
+
+    return jsonify({'ok': True, 'settled': len(results['kings'])})
+
+
 # ==================== 健康检查 ====================
 
 @app.route('/api/health')
 def health():
-    return jsonify({'status': 'ok', 'time': time.time(), 'version': 'v710'})
+    return jsonify({'status': 'ok', 'time': time.time(), 'version': 'v715'})
 
 
 if __name__ == '__main__':
