@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
-科学复习系统 API v713 — 新增装备合成原子端点
+科学复习系统 API v714 — 弹幕互动系统
 改动：
 1. _write_json_internal: os.replace() + PID 隔离 (修复竞态)
 2. student 端点: 智能合并 (Math.max/去重/并集/零分守卫)
 3. ranking 端点: 零分守卫 (保留原有)
 4. 新增 /api/xuanba/* 校队选拔 API
-5. v713: 新增 /api/synthesis/compose 装备合成原子端点（删除原料+生成新装备）
+5. v713: 新增 /api/synthesis/compose 装备合成原子端点
+6. v714: 新增 /api/online/* 在线状态 + /api/danmaku/* 弹幕系统
 """
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -566,6 +567,180 @@ def xuanba_ranking():
     # 按RA降序
     rankings.sort(key=lambda x: x['bestRA'], reverse=True)
     return jsonify(rankings[:200])
+
+
+# ==================== 🆕 在线状态 & 弹幕系统 API (v714) ====================
+
+HEARTBEAT_TTL = 60       # 心跳有效期（秒）：超过此时间视为离线
+DANMAKU_CLEANUP = 3600   # 弹幕过期清理间隔：1小时
+
+def _cleanup_online_users(data):
+    """清理过期在线用户"""
+    now = time.time()
+    data['onlineUsers'] = {
+        uid: info for uid, info in data.get('onlineUsers', {}).items()
+        if now - info.get('lastSeen', 0) < HEARTBEAT_TTL
+    }
+    return data
+
+def _cleanup_danmaku_queue(data):
+    """清理过期弹幕"""
+    now = time.time()
+    data['queue'] = [
+        item for item in data.get('queue', [])
+        if item.get('expireAt', 0) > now
+    ]
+    return data
+
+
+@app.route('/api/online/heartbeat', methods=['POST'])
+def online_heartbeat():
+    """学生心跳上报：记录在线状态 + 返回在线人数"""
+    body = request.json or {}
+    student_id = body.get('studentId', '')
+    if not student_id:
+        return jsonify({'error': '缺少 studentId'}), 400
+
+    now = time.time()
+
+    def updater(data):
+        if 'onlineUsers' not in data:
+            data['onlineUsers'] = {}
+        data['onlineUsers'][student_id] = {
+            'name': body.get('name', ''),
+            'lastSeen': now,
+            'title': body.get('title', '探索者'),
+            'rank': body.get('rank', '黑铁'),
+            'achievement': body.get('achievement', '')
+        }
+        data = _cleanup_online_users(data)
+        return data
+
+    data = _atomic_read_write('online', updater)
+    online_count = len(data.get('onlineUsers', {}))
+    return jsonify({'ok': True, 'onlineCount': online_count})
+
+
+@app.route('/api/online/status', methods=['GET'])
+def online_status():
+    """获取在线状态 + 弹幕队列"""
+    online_data = _read_json('online')
+    danmaku_data = _read_json('danmaku')
+
+    # 清理过期数据
+    online_data = _cleanup_online_users(online_data)
+    danmaku_data = _cleanup_danmaku_queue(danmaku_data)
+
+    # 提取弹幕中待显示的项（用 repeatCount 控制显示频率）
+    now = time.time()
+    danmaku_items = []
+    for item in danmaku_data.get('queue', []):
+        repeat_count = item.get('repeatCount', 0)
+        max_repeat = item.get('maxRepeat', 0)
+        if repeat_count < max_repeat:
+            danmaku_items.append({
+                'id': item['id'],
+                'type': item.get('type', 'achievement'),
+                'userId': item.get('userId', ''),
+                'name': item.get('name', ''),
+                'title': item.get('title', ''),
+                'rank': item.get('rank', ''),
+                'content': item.get('content', ''),
+                'achievementName': item.get('achievementName', '')
+            })
+
+    online_count = len(online_data.get('onlineUsers', {}))
+    online_users = list(online_data.get('onlineUsers', {}).values())
+
+    return jsonify({
+        'onlineCount': online_count,
+        'onlineUsers': online_users,
+        'danmakuItems': danmaku_items
+    })
+
+
+@app.route('/api/danmaku/broadcast', methods=['POST'])
+def danmaku_broadcast():
+    """记录成就广播事件"""
+    body = request.json or {}
+    dan_type = body.get('type', 'achievement')
+    student_id = body.get('studentId', '')
+    if not student_id:
+        return jsonify({'error': '缺少 studentId'}), 400
+
+    now = time.time()
+
+    def updater(data):
+        if 'queue' not in data:
+            data['queue'] = []
+
+        # 清理过期弹幕
+        data = _cleanup_danmaku_queue(data)
+
+        # 设置重复参数
+        if dan_type == 'login':
+            max_repeat = 1
+            repeat_interval = 0
+            expire_sec = 10  # 登录弹幕只存活10秒
+        elif dan_type == 'legend':
+            max_repeat = 10
+            repeat_interval = 180  # 传说成就3分钟一次
+            expire_sec = 86400  # 当天
+        elif dan_type == 'tower_king':
+            max_repeat = 3
+            repeat_interval = 600  # 10分钟一次
+            expire_sec = 86400
+        else:  # achievement
+            max_repeat = 5
+            repeat_interval = 300  # 5分钟一次
+            expire_sec = 86400
+
+        danmaku_id = f"dan_{student_id}_{dan_type}_{body.get('achievementId', '')}_{int(now)}"
+
+        # 检查是否已有相同类型的弹幕（去重）
+        for item in data['queue']:
+            if item.get('userId') == student_id and item.get('achievementName') == body.get('achievementName', ''):
+                return data  # 已存在，不重复添加
+
+        data['queue'].append({
+            'id': danmaku_id,
+            'type': dan_type,
+            'userId': student_id,
+            'name': body.get('name', ''),
+            'title': body.get('title', ''),
+            'rank': body.get('rank', '黑铁'),
+            'content': body.get('content', ''),
+            'achievementName': body.get('achievementName', ''),
+            'createdAt': now,
+            'expireAt': now + expire_sec,
+            'repeatCount': 0,
+            'maxRepeat': max_repeat,
+            'repeatInterval': repeat_interval
+        })
+        return data
+
+    _atomic_read_write('danmaku', updater)
+    return jsonify({'ok': True})
+
+
+@app.route('/api/danmaku/repeat_tick', methods=['POST'])
+def danmaku_repeat_tick():
+    """弹幕重复计数器递增（前端定时调用，触发重复弹幕）"""
+    now = time.time()
+
+    def updater(data):
+        if 'queue' not in data:
+            return data
+        data = _cleanup_danmaku_queue(data)
+        for item in data['queue']:
+            rc = item.get('repeatCount', 0)
+            mx = item.get('maxRepeat', 0)
+            if rc < mx:
+                item['repeatCount'] = rc + 1
+        return data
+
+    _atomic_read_write('danmaku', updater)
+    return jsonify({'ok': True})
 
 
 # ==================== 健康检查 ====================

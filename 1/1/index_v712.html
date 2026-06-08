@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="expires" content="0">
-<title>🔮 科学探险家 · 统一闯关系统 v713</title>
-<!-- v713: 云优先存档架构改造(saveUserData云优先+loadUserData反馈+心跳自检); v712: 装备赠送+亲密值+合成系统+纯云端存档; v710: 校队选拔推理测试 -->
+<title>🔮 科学探险家 · 统一闯关系统 v714</title>
+<!-- v714: 弹幕互动系统(在线状态+成就广播+称号+段位); v713: 云优先存档架构改造; v712-v710: 装备合成/校队选拔 -->
 <!-- PAGE_VERSION 用于版本自检：url?v= 不匹配时自动跳转最新 -->
 <script>
 (function(){
@@ -1661,11 +1661,104 @@
 .equip-detail-extras { display: flex; gap: 6px; margin-top: 8px; justify-content: center; }
 .equip-detail-extras .bp-detail-btn { font-size: 0.75em; padding: 4px 10px; }
 
+  /* ========== 🆕 v714: 弹幕系统样式 ========== */
+  .danmaku-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 100;
+    overflow: hidden;
+  }
+  .danmaku-track { position: absolute; left: 0; width: 100%; height: 36px; }
+  .danmaku-item {
+    position: absolute; white-space: nowrap;
+    padding: 6px 16px; border-radius: 20px;
+    font-size: 0.85em; font-weight: bold;
+    animation: danmakuFly 10s linear forwards;
+    opacity: 0;
+  }
+  .danmaku-item.login-danmaku {
+    background: rgba(66,133,244,0.75); color: #fff;
+    box-shadow: 0 0 12px rgba(66,133,244,0.5);
+  }
+  .danmaku-item.achievement-danmaku {
+    background: rgba(255,179,0,0.8); color: #1a1a2e;
+    box-shadow: 0 0 18px rgba(255,179,0,0.7);
+    animation: danmakuFly 9s linear forwards, danmakuShine 0.5s ease-in-out 3;
+  }
+  .danmaku-item.legend-danmaku {
+    background: linear-gradient(90deg, #ff0080, #ff8c00, #40e0d0, #ff0080);
+    background-size: 300% 100%;
+    color: #fff;
+    box-shadow: 0 0 24px rgba(255,0,128,0.8);
+    animation: danmakuFly 8s linear forwards, danmakuRainbow 1s linear infinite;
+  }
+  .danmaku-rank {
+    font-size: 0.75em; opacity: 0.8; margin-left: 6px;
+  }
+  @keyframes danmakuFly {
+    0% { left: 100%; opacity: 0; }
+    5% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { left: -600px; opacity: 0; }
+  }
+  @keyframes danmakuShine {
+    0%,100% { filter: brightness(1); }
+    50% { filter: brightness(1.5); }
+  }
+  @keyframes danmakuRainbow {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 300% 50%; }
+  }
+  /* 在线人数面板 */
+  .online-panel {
+    position: fixed; top: 80px; right: 16px; z-index: 99;
+    background: rgba(0,0,0,0.65); backdrop-filter: blur(8px);
+    border-radius: 12px; padding: 8px 14px;
+    font-size: 0.82em; color: #a0d0ff;
+    border: 1px solid rgba(100,180,255,0.3);
+    cursor: pointer; transition: all 0.3s;
+    pointer-events: auto;
+  }
+  .online-panel:hover { border-color: rgba(100,180,255,0.7); background: rgba(0,0,0,0.8); }
+  .online-dot {
+    display: inline-block; width: 8px; height: 8px;
+    border-radius: 50%; background: #4caf50;
+    margin-right: 6px; animation: onlinePulse 2s infinite;
+  }
+  @keyframes onlinePulse {
+    0%,100% { box-shadow: 0 0 4px #4caf50; }
+    50% { box-shadow: 0 0 12px #4caf50; }
+  }
+  /* 弹幕开关 */
+  .danmaku-toggle {
+    position: fixed; top: 80px; right: 150px; z-index: 99;
+    background: rgba(0,0,0,0.55); backdrop-filter: blur(6px);
+    border-radius: 20px; padding: 6px 14px;
+    font-size: 0.78em; color: #ccc;
+    border: 1px solid rgba(255,255,255,0.15);
+    cursor: pointer; pointer-events: auto;
+    transition: all 0.3s;
+  }
+  .danmaku-toggle:hover { border-color: rgba(255,255,255,0.4); }
+  .danmaku-toggle.off { color: #888; text-decoration: line-through; }
 </style>
 </head>
 <body>
 
 <div id="toastContainer"></div>
+<!-- 🆕 v714: 弹幕层 -->
+<div class="danmaku-overlay" id="danmakuOverlay">
+  <div class="danmaku-track" style="top:8%;" id="danmakuTrack1"></div>
+  <div class="danmaku-track" style="top:14%;" id="danmakuTrack2"></div>
+  <div class="danmaku-track" style="top:20%;" id="danmakuTrack3"></div>
+  <div class="danmaku-track" style="top:26%;" id="danmakuTrack4"></div>
+</div>
+<!-- 🆕 v714: 在线人数面板 -->
+<div class="online-panel" id="onlinePanel" onclick="toggleOnlineDetail()">
+  <span class="online-dot"></span>
+  <span id="onlineCount">加载中...</span>
+</div>
+<!-- 🆕 v714: 弹幕开关 -->
+<div class="danmaku-toggle" id="danmakuToggle" onclick="toggleDanmaku()" title="点击开关弹幕">弹幕 ON</div>
 <div class="particles" id="particles"></div>
 
 <div class="game-container">
@@ -2199,7 +2292,16 @@ const gameState = {
     { id: 'no_wrong_5', icon: '❄️', name: '冷血杀手', desc: '连续5课零失误通关', tier: '🏆', bonus: { pointsMul: 1.30 } },
     { id: 'all_complete', icon: '<img src="../../icons/trophy.png" class="icon-32">', name: '科学探险家', desc: '完成所有关卡', tier: '🏆', bonus: { pointsMul: 1.50, dropBonus: 0.30, hintExtra: 3 } },
   ],
-  unlockedAchievements: []
+  unlockedAchievements: [],
+  // 🆕 v714: 探索积分与弹幕系统
+  explorePoints: 0,
+  clickedElements: [],
+  visitedPages: [],
+  clueFragments: [],
+  discoveredSecrets: [],
+  danmakuEnabled: true,
+  achievementBroadcasted: {},
+  lastDanmakuTick: 0
 };
 
 function createParticles() {
@@ -2252,6 +2354,13 @@ function loginWithId() {
   gameState.xuanbaBestScore = 0;
   gameState.xuanbaBestPct = 0;
   gameState.xuanbaBestRA = 0;
+  // 🆕 v714: 探索 + 弹幕字段重置
+  gameState.explorePoints = 0;
+  gameState.clickedElements = [];
+  gameState.visitedPages = [];
+  gameState.clueFragments = [];
+  gameState.discoveredSecrets = [];
+  gameState.achievementBroadcasted = {};
   // 重置错题本渲染缓存，让新账号重新渲染
   window._wrongQuestionsLoaded = false;
   gameState.studentId = id;
@@ -2262,6 +2371,11 @@ function loginWithId() {
   hideLoginScreen();
   localStorage.setItem('rememberedStudentId', id);
   clearOtherPetLocalStorage(id);
+  
+  // 🆕 v714: 加载弹幕设置 + 启动弹幕系统
+  loadDanmakuSetting();
+  startDanmaku();
+  setTimeout(function() { broadcastLogin(); }, 1000);
   
   // 先更新本地状态（体力等，不依赖云端数据）
   checkAndResetStamina();
@@ -2295,6 +2409,8 @@ function loginWithId() {
 function loginAsGuest() {
   // v713: 清除心跳定时器（游客不需要云端同步）
   stopHeartbeat();
+  // 🆕 v714: 停止弹幕系统
+  stopDanmaku();
   // 重置所有数据（防止旧用户数据残留）
   gameState.totalPoints = 0;
   gameState.lessonProgress = {};
@@ -2320,9 +2436,18 @@ function loginAsGuest() {
   gameState.xuanbaBestScore = 0;
   gameState.xuanbaBestPct = 0;
   gameState.xuanbaBestRA = 0;
+  // 🆕 v714: 探索字段重置
+  gameState.explorePoints = 0;
+  gameState.clickedElements = [];
+  gameState.visitedPages = [];
+  gameState.clueFragments = [];
+  gameState.discoveredSecrets = [];
+  gameState.achievementBroadcasted = {};
   window._wrongQuestionsLoaded = false;
   gameState.studentId = null;
   gameState.isGuest = true;
+  // 🆕 v714: 游客默认显示弹幕
+  gameState.danmakuEnabled = true;
   hideLoginScreen();
   checkAndResetStamina();
   updateStaminaDisplay();
@@ -2340,6 +2465,8 @@ function showSemesters(grade) {
 function logout() {
   // v713: 清除心跳定时器
   stopHeartbeat();
+  // 🆕 v714: 停止弹幕系统
+  stopDanmaku();
   // v606: 退出前清除宠物 localStorage（防止下一个人串号）
   if (gameState.studentId) {
     clearOtherPetLocalStorage(gameState.studentId);
@@ -3269,6 +3396,11 @@ function unlockAchievement(id) {
   updateStatusBar();
   renderAchievementPreview();
   saveUserData();
+  // 🆕 v714: 成就弹幕广播
+  if (a) {
+    var isLegend = (a.tier === '👑' || a.tier === '🏆');
+    broadcastAchievement(a.name, isLegend);
+  }
 }
 
 // ========== 云同步（JSONBin） ==========
@@ -3409,6 +3541,12 @@ async function saveUserData(skipCloud) {
     loginStreakG6: JSON.parse(localStorage.getItem('g6_login_streak_' + gameState.studentId) || 'null'),
     loginStreakG45: JSON.parse(localStorage.getItem('g45_login_streak_' + gameState.studentId) || 'null'),
     gradeDataMerged: true, // 跨年级迁移标记（防止每次登录重复合并）
+    // 🆕 v714: 探索积分字段
+    explorePoints: gameState.explorePoints || 0,
+    clickedElements: gameState.clickedElements || [],
+    visitedPages: gameState.visitedPages || [],
+    clueFragments: gameState.clueFragments || [],
+    discoveredSecrets: gameState.discoveredSecrets || [],
     lastUpdated: Date.now(),
     equippedSlots: bpEquippedSlots62
   };
@@ -3475,6 +3613,277 @@ function showToast(msg, type, duration) {
   c.appendChild(t);
   setTimeout(function() { t.classList.add('show'); }, 10);
   setTimeout(function() { t.classList.remove('show'); setTimeout(function() { t.remove(); }, 300); }, duration);
+}
+
+// ====== 🆕 v714: 弹幕互动系统 ======
+var _danmakuTrackIdx = 0;
+var _danmakuPollTimer = null;
+var _danmakuHeartbeatTimer = null;
+var _danmakuRepeatTimer = null;
+var _onlineUsersCache = {};
+
+/** 获取最高称号 */
+function getHighestTitle() {
+  var unlocked = gameState.unlockedAchievements || [];
+  var ids = unlocked.map(function(a) { return a.id || a; });
+  // 按优先级检测
+  if (ids.some(function(id) { return id === 'all_complete' || id === 'streak_10'; })) return '神话获得者';
+  if (ids.some(function(id) { return id === 'q_200' || id === 'equip_rainbow' || id === 'equip_mythic'; })) return '传说获得者';
+  if (ids.some(function(id) { return id === 'equip_epic' || id === 'perfect_3' || id === 'equip_10'; })) return '卓越探险家';
+  if ((gameState.discoveredSecrets || []).length > 0) return '隐藏发现者';
+  if ((gameState.towerHighestFloor || 0) >= 100) return '爬塔王者';
+  if ((gameState.maxStreak || 0) >= 7) return '连胜之星';
+  return '探索者';
+}
+
+/** 获取天梯段位（默认黑铁） */
+function getDisplayRank() {
+  if (gameState.ladderTier && gameState.ladderTier.name) return gameState.ladderTier.name;
+  return '黑铁';
+}
+
+/** 获取弹幕显示名（实名优先） */
+function getDanmakuName() {
+  if (gameState.studentName) return gameState.studentName;
+  if (gameState.isGuest) return '游客';
+  return gameState.studentId ? gameState.studentId.slice(-4) : '???';
+}
+
+/** 弹幕动画：在轨道上飞过一条弹幕 */
+function spawnDanmaku(item) {
+  if (!gameState.danmakuEnabled) return;
+  var overlay = document.getElementById('danmakuOverlay');
+  if (!overlay) return;
+
+  var trackIdx = _danmakuTrackIdx % 4;
+  _danmakuTrackIdx++;
+  var track = document.getElementById('danmakuTrack' + (trackIdx + 1));
+  if (!track) return;
+
+  var el = document.createElement('div');
+  var typeClass = {
+    'login': 'login-danmaku',
+    'achievement': 'achievement-danmaku',
+    'legend': 'legend-danmaku',
+    'tower_king': 'achievement-danmaku'
+  }[item.type] || 'login-danmaku';
+
+  el.className = 'danmaku-item ' + typeClass;
+
+  // 构建弹幕文本
+  var name = item.name || getDanmakuName();
+  var title = item.title || getHighestTitle();
+  var rank = item.rank || getDisplayRank();
+
+  if (item.type === 'login') {
+    el.innerHTML = '<span style="color:#a0d0ff;">' + esc(name) + '</span> 登录了！';
+  } else if (item.type === 'achievement' || item.type === 'legend') {
+    el.innerHTML = '<span style="color:#ffd700;">[' + esc(title) + ']</span> <span style="font-weight:bold;">' + esc(name) + '</span> 解锁成就 <span style="color:#ffeb3b;">' + esc(item.achievementName || '') + '</span> <span class="danmaku-rank">' + esc(rank) + '</span>';
+  } else if (item.type === 'tower_king') {
+    el.innerHTML = '<span style="color:#ffd700;">[爬塔王者]</span> <span style="font-weight:bold;">' + esc(name) + '</span> 已突破天际！ <span class="danmaku-rank">' + esc(rank) + '</span>';
+  } else {
+    el.textContent = item.content || '';
+  }
+
+  // 随机初始垂直偏移
+  el.style.top = (Math.random() * 10) + 'px';
+
+  track.appendChild(el);
+
+  // 动画结束后移除
+  var duration = item.type === 'legend' ? 8000 : (item.type === 'login' ? 10000 : 9000);
+  setTimeout(function() {
+    if (el.parentNode) el.parentNode.removeChild(el);
+  }, duration + 200);
+}
+
+/** 简易 HTML 转义 */
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+/** 启动弹幕轮询（获取在线人数 + 弹幕队列） */
+function startDanmakuPoll() {
+  if (gameState.isGuest || !gameState.studentId) return;
+  if (_danmakuPollTimer) return;
+
+  function poll() {
+    if (gameState.isGuest || !gameState.studentId) return;
+    try {
+      fetch(API_BASE + '/online/status?_=' + Date.now(), { signal: (function() { var c = new AbortController(); setTimeout(function() { c.abort(); }, 5000); return c.signal; })() })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          // 更新在线人数
+          var count = data.onlineCount || 0;
+          var el = document.getElementById('onlineCount');
+          if (el) el.textContent = count + ' 人在线';
+
+          // 处理弹幕队列
+          var items = data.danmakuItems || [];
+          items.forEach(function(item) {
+            spawnDanmaku(item);
+          });
+        })
+        .catch(function() { /* 轮询失败忽略 */ });
+    } catch(e) {}
+  }
+
+  // 首次立即执行
+  poll();
+  // 每10秒轮询
+  _danmakuPollTimer = setInterval(poll, 10000);
+}
+
+/** 启动心跳上报 */
+function startDanmakuHeartbeat() {
+  if (gameState.isGuest || !gameState.studentId) return;
+  if (_danmakuHeartbeatTimer) return;
+
+  function beat() {
+    if (gameState.isGuest || !gameState.studentId) return;
+    try {
+      fetch(API_BASE + '/online/heartbeat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentId: gameState.studentId,
+          name: getDanmakuName(),
+          title: getHighestTitle(),
+          rank: getDisplayRank()
+        })
+      }).catch(function() {});
+    } catch(e) {}
+  }
+
+  beat(); // 首次立即
+  _danmakuHeartbeatTimer = setInterval(beat, 30000);
+}
+
+/** 弹幕重复动画定时器（启动本地重复弹幕） */
+function startDanmakuRepeat() {
+  if (_danmakuRepeatTimer) return;
+  _danmakuRepeatTimer = setInterval(function() {
+    if (gameState.isGuest || !gameState.studentId) return;
+    try {
+      fetch(API_BASE + '/danmaku/repeat_tick', { method: 'POST' }).catch(function() {});
+    } catch(e) {}
+  }, 60000); // 每分钟触发一次重复tick
+}
+
+/** 启动全部弹幕系统 */
+function startDanmaku() {
+  if (gameState.isGuest || !gameState.studentId) return;
+  startDanmakuPoll();
+  startDanmakuHeartbeat();
+  startDanmakuRepeat();
+}
+
+/** 停止弹幕系统 */
+function stopDanmaku() {
+  if (_danmakuPollTimer) { clearInterval(_danmakuPollTimer); _danmakuPollTimer = null; }
+  if (_danmakuHeartbeatTimer) { clearInterval(_danmakuHeartbeatTimer); _danmakuHeartbeatTimer = null; }
+  if (_danmakuRepeatTimer) { clearInterval(_danmakuRepeatTimer); _danmakuRepeatTimer = null; }
+  // 清空弹幕层
+  for (var i = 1; i <= 4; i++) {
+    var track = document.getElementById('danmakuTrack' + i);
+    if (track) track.innerHTML = '';
+  }
+}
+
+/** 发送登录弹幕广播 */
+function broadcastLogin() {
+  if (gameState.isGuest || !gameState.studentId) return;
+  // 本地先弹
+  spawnDanmaku({
+    id: 'local_login_' + Date.now(),
+    type: 'login',
+    name: getDanmakuName(),
+    title: getHighestTitle(),
+    rank: getDisplayRank()
+  });
+  // 发送到服务端
+  try {
+    fetch(API_BASE + '/danmaku/broadcast', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'login',
+        studentId: gameState.studentId,
+        name: getDanmakuName(),
+        title: getHighestTitle(),
+        rank: getDisplayRank(),
+        content: getDanmakuName() + ' 登录了！'
+      })
+    }).catch(function() {});
+  } catch(e) {}
+}
+
+/** 发送成就弹幕广播 */
+function broadcastAchievement(achievementName, isLegend) {
+  if (gameState.isGuest || !gameState.studentId) return;
+  var key = achievementName;
+  // 检查是否已广播过
+  gameState.achievementBroadcasted = gameState.achievementBroadcasted || {};
+  if (gameState.achievementBroadcasted[key]) return;
+  gameState.achievementBroadcasted[key] = true;
+
+  try {
+    fetch(API_BASE + '/danmaku/broadcast', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: isLegend ? 'legend' : 'achievement',
+        studentId: gameState.studentId,
+        name: getDanmakuName(),
+        title: getHighestTitle(),
+        rank: getDisplayRank(),
+        achievementName: achievementName,
+        achievementId: key
+      })
+    }).catch(function() {});
+  } catch(e) {}
+}
+
+/** 弹幕开关 */
+function toggleDanmaku() {
+  gameState.danmakuEnabled = !gameState.danmakuEnabled;
+  var btn = document.getElementById('danmakuToggle');
+  if (btn) {
+    if (gameState.danmakuEnabled) {
+      btn.textContent = '弹幕 ON';
+      btn.classList.remove('off');
+    } else {
+      btn.textContent = '弹幕 OFF';
+      btn.classList.add('off');
+    }
+  }
+  // 更新弹幕层可见性
+  var overlay = document.getElementById('danmakuOverlay');
+  if (overlay) overlay.style.display = gameState.danmakuEnabled ? '' : 'none';
+  // 保存设置
+  if (gameState.studentId) {
+    localStorage.setItem('danmaku_enabled_' + gameState.studentId, gameState.danmakuEnabled ? '1' : '0');
+  }
+}
+
+/** 加载弹幕开关设置 */
+function loadDanmakuSetting() {
+  if (gameState.studentId) {
+    var saved = localStorage.getItem('danmaku_enabled_' + gameState.studentId);
+    if (saved === '0') {
+      gameState.danmakuEnabled = false;
+      var btn = document.getElementById('danmakuToggle');
+      if (btn) { btn.textContent = '弹幕 OFF'; btn.classList.add('off'); }
+      var overlay = document.getElementById('danmakuOverlay');
+      if (overlay) overlay.style.display = 'none';
+    }
+  }
+}
+
+/** 在线详情切换 */
+function toggleOnlineDetail() {
+  showToast('当前 ' + (document.getElementById('onlineCount')?.textContent || '?') + '，弹幕飘过的是同学们的实时动态', 'info', 3000);
 }
 
 // ====== 从成绩分析系统同步数据 ======
@@ -4659,6 +5068,14 @@ function mergeUserData(localData, cloudData) {
     merged.ladderTier = localData.ladderTier || cloudData.ladderTier || null;
   }
 
+  // 🆕 v714: 探索积分（只增不减）
+  merged.explorePoints = Math.max(localData.explorePoints || 0, cloudData.explorePoints || 0);
+  // 🆕 v714: 探索数据合并（去重并集）
+  merged.clickedElements = [...new Set([...(localData.clickedElements || []), ...(cloudData.clickedElements || [])])];
+  merged.visitedPages = [...new Set([...(localData.visitedPages || []), ...(cloudData.visitedPages || [])])];
+  merged.clueFragments = [...new Set([...(localData.clueFragments || []), ...(cloudData.clueFragments || [])])];
+  merged.discoveredSecrets = [...new Set([...(localData.discoveredSecrets || []), ...(cloudData.discoveredSecrets || [])])];
+
   // 课次进度：合并并集（每个key取较大值，进度只增不减）
   const lpLocal = localData.lessonProgress || {};
   const lpCloud = cloudData.lessonProgress || {};
@@ -4978,6 +5395,12 @@ function applyUserData(data) {
   gameState.ladderBestScore = data.ladderBestScore || 0;
   gameState.ladderPoints = data.ladderPoints || 0;
   gameState.ladderTier = data.ladderTier || null;
+  // 🆕 v714: 恢复探索积分数据
+  gameState.explorePoints = data.explorePoints || 0;
+  gameState.clickedElements = data.clickedElements || [];
+  gameState.visitedPages = data.visitedPages || [];
+  gameState.clueFragments = data.clueFragments || [];
+  gameState.discoveredSecrets = data.discoveredSecrets || [];
   // 恢复宠物碎片到宠物系统 localStorage（v606: 从云端恢复）
   if (data.petPieces && gameState.studentId) {
     try {
