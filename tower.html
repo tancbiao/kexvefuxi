@@ -1192,7 +1192,7 @@ img.emoji { height: 1em; width: 1em; margin: 0 0.05em; vertical-align: -0.1em; }
 
 <!-- v612: Twemoji 异步加载，避免阻塞 -->
 <script src="equipment-gen.js"></script>
-<script src="data/shared-exam-bank.js"></script>
+/* v715: 已移除旧共享月考题库，塔内仅保留2021-2025真题 */
 <script>
 // v713: Twemoji CDN 已移除（Safari追踪防护拦截 + Win7兼容需求已过时）
 // 现代浏览器原生支持emoji渲染
@@ -2322,22 +2322,7 @@ const TOWER_QUESTIONS = [
 
 50. 下列操作能使"铁钉桥"更稳固的是`, options: ['改变电磁铁的电流方向', '增大电磁铁的电流', '更换更大的铁钉'], answer: 1 },
 ];
-// ====== 合并共享月考题库（去重：已存在的跳过） ======
-(function() {
-  if (!window.SHARED_EXAM_BANK) return;
-  var existingIds = new Set(TOWER_QUESTIONS.map(function(q) { return q.id.replace('x',''); }));
-  window.SHARED_EXAM_BANK.forEach(function(q) {
-    if (existingIds.has(String(q.id))) return;
-    var imgHtml = q.img ? '\n<img src=\"' + q.img + '\" style=\"max-width:100%;max-height:280px;border-radius:8px;margin:8px 0;\">' : '';
-    TOWER_QUESTIONS.push({
-      id: 'x' + q.id,
-      question: (q.material ? '【' + q.material + '】' : '') + q.question + imgHtml,
-      options: q.options,
-      answer: q.answer
-    });
-  });
-  console.log('[Tower] 合并共享题库: ' + TOWER_QUESTIONS.length + '题（含共享）');
-})();
+// v715: 已移除旧共享月考题库合并，塔内仅保留2021-2025真题250题
 function shuffleArray(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
