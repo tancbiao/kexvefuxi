@@ -743,6 +743,64 @@ def danmaku_repeat_tick():
     return jsonify({'ok': True})
 
 
+# ==================== 🆕 v714: 发现者榜 API ====================
+
+@app.route('/api/discovery/list', methods=['GET'])
+def discovery_list():
+    """获取所有发现者记录（永久荣誉榜）"""
+    data = _read_json('discoveries')
+    return jsonify(data)
+
+
+@app.route('/api/discovery/claim', methods=['POST'])
+def discovery_claim():
+    """
+    首次发现者申领（原子操作，防并发）
+    同一个人不能多次"首次发现"同一内容
+    """
+    body = request.json or {}
+    discovery_id = body.get('discoveryId', '')
+    student_id = body.get('studentId', '')
+    student_name = body.get('studentName', '')
+    discovery_name = body.get('discoveryName', '')
+    equip_id = body.get('equipId', '')
+
+    if not discovery_id or not student_id:
+        return jsonify({'error': '缺少 discoveryId 或 studentId'}), 400
+
+    def updater(data):
+        if discovery_id in data and data[discovery_id].get('discovererId'):
+            # 已被发现
+            return data
+        
+        now = time.time()
+        data[discovery_id] = {
+            'discoveryId': discovery_id,
+            'discoveryName': discovery_name,
+            'discovererId': student_id,
+            'discovererName': student_name,
+            'discoveredAt': now,
+            'equipId': equip_id
+        }
+        return data
+
+    # 原子操作：只有第一个到达的请求能成功写入
+    result = _atomic_read_write('discoveries', updater)
+
+    # 检查是否真的是我们写入的（第一个发现者）
+    if result.get(discovery_id, {}).get('discovererId') == student_id:
+        return jsonify({'ok': True, 'firstDiscoverer': True})
+    else:
+        # 已被他人抢先发现
+        existing = result.get(discovery_id, {})
+        return jsonify({
+            'ok': True,
+            'firstDiscoverer': False,
+            'alreadyDiscoveredBy': existing.get('discovererName', '未知'),
+            'discoveredAt': existing.get('discoveredAt', 0)
+        })
+
+
 # ==================== 健康检查 ====================
 
 @app.route('/api/health')

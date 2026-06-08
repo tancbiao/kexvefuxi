@@ -2115,6 +2115,7 @@ var CLASS012102_IDS = ["01210236", "01210206", "01210222", "01210223", "01210231
       <div class="ranking-tab" onclick="switchRankingTab('questions', this)">📝 总答题</div>
       <div class="ranking-tab" onclick="switchRankingTab('accuracy', this)">🎯 正确率</div>
       <div class="ranking-tab" onclick="switchRankingTab('xuanba', this)">🧠 校队选拔</div>
+      <div class="ranking-tab" onclick="switchRankingTab('discovery', this)">🔍 发现者榜</div>
     </div>
     <div class="ranking-list" id="rankingList">
       <div class="ranking-loading">加载中...</div>
@@ -4101,7 +4102,7 @@ function checkClueCombinations() {
 }
 
 /** 发现隐藏秘密 */
-function discoverSecret(secretId) {
+async function discoverSecret(secretId) {
   var secret = SECRET_DEFINITIONS[secretId];
   if (!secret) return;
 
@@ -4109,14 +4110,42 @@ function discoverSecret(secretId) {
   if (gameState.discoveredSecrets.indexOf(secretId) >= 0) return;
   
   gameState.discoveredSecrets.push(secretId);
-  
-  // 显示发现弹窗
-  var msg = '🔍 你发现了【' + secret.name + '】！\n' + secret.desc + '\n\n';
-  if (secret.equipId) msg += '🎁 获得专属装备奖励！';
 
-  // 用更显眼的提示
-  showToast('🔍 发现隐藏秘密：' + secret.name + '！', 'success', 6000);
-  
+  // 🆕 v714: 向服务端申领首次发现（原子操作）
+  var isFirst = true;
+  if (!gameState.isGuest && gameState.studentId) {
+    try {
+      var resp = await fetch(API_BASE + '/discovery/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          discoveryId: secretId,
+          studentId: gameState.studentId,
+          studentName: getDanmakuName(),
+          discoveryName: secret.name,
+          equipId: secret.equipId || ''
+        })
+      });
+      if (resp.ok) {
+        var result = await resp.json();
+        if (result.firstDiscoverer) {
+          secret.discovererName = getDanmakuName();
+          isFirst = true;
+        } else {
+          isFirst = false;
+          secret.discovererName = result.alreadyDiscoveredBy;
+        }
+      }
+    } catch(e) { /* 离线模式：使用本地记录 */ }
+  }
+
+  // 显示发现弹窗
+  if (isFirst) {
+    showToast('🔍 你是第一个发现【' + secret.name + '】的人！🏆 永久荣誉！', 'success', 6000);
+  } else if (secret.discovererName) {
+    showToast('此秘密已由 ' + secret.discovererName + ' 率先发现，但你仍获得探索奖励！', 'info', 5000);
+  }
+
   // 奖励大量探索积分
   awardExplorePoints(100, '发现隐藏内容：' + secret.name);
   
@@ -4129,6 +4158,7 @@ function discoverSecret(secretId) {
   broadcastAchievement('隐藏发现者：' + secret.name, true);
 
   saveUserData();
+  renderCluePanel();
 }
 
 /** 打开线索面板 */
@@ -6860,12 +6890,49 @@ async function loadAndRenderRanking(type) {
       arr.sort((a, b) => (b.xuanbaRA || 0) - (a.xuanbaRA || 0));
       renderXuanbaRankList(listEl, arr, myId);
       return;
+    } else if (type === 'discovery') {
+      // 🆕 v714: 发现者榜——从服务端获取永久荣誉记录
+      renderDiscoveryBoard(listEl);
+      return;
     }
 
     arr.sort((a, b) => (b[sortField] || 0) - (a[sortField] || 0));
     renderRankList(listEl, arr, sortField, myId);
   } catch(e) {
     console.error('加载排行失败:', e);
+    listEl.innerHTML = '<div class="ranking-empty">加载失败，请稍后重试</div>';
+  }
+}
+
+/** 🆕 v714: 渲染发现者榜（永恒荣誉） */
+async function renderDiscoveryBoard(listEl) {
+  listEl.innerHTML = '<div class="ranking-loading">加载发现者榜...</div>';
+  try {
+    var resp = await fetch(API_BASE + '/discovery/list?_=' + Date.now());
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    var discoveries = await resp.json();
+    var items = Object.values(discoveries || {});
+    
+    if (items.length === 0) {
+      listEl.innerHTML = '<div class="ranking-empty">还没有人发现过隐藏内容...<br>多探索各个模块，你可能是第一个！</div>';
+      return;
+    }
+
+    items.sort(function(a, b) { return (a.discoveredAt || 0) - (b.discoveredAt || 0); });
+
+    var html = '<div style="text-align:center;font-size:0.85em;color:#ffd700;margin-bottom:12px;">🏆 永恒荣誉 · 发现者永久留名</div>';
+    items.forEach(function(item, idx) {
+      html += '<div style="display:flex;align-items:center;padding:10px 14px;margin-bottom:8px;background:rgba(255,179,0,0.08);border:1px solid rgba(255,179,0,0.2);border-radius:10px;">' +
+        '<span style="font-size:1.2em;margin-right:10px;">' + (idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '🏅') + '</span>' +
+        '<div style="flex:1;">' +
+          '<div style="font-weight:bold;color:#ffd700;">' + esc(item.discoveryName || '隐藏内容') + '</div>' +
+          '<div style="font-size:0.82em;color:#aaa;">发现者：<span style="color:#fff;">' + esc(item.discovererName || '未知') + '</span></div>' +
+          '<div style="font-size:0.72em;color:#666;">' + new Date(item.discoveredAt * 1000).toLocaleDateString('zh-CN') + '</div>' +
+        '</div>' +
+      '</div>';
+    });
+    listEl.innerHTML = html;
+  } catch(e) {
     listEl.innerHTML = '<div class="ranking-empty">加载失败，请稍后重试</div>';
   }
 }
