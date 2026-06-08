@@ -2300,6 +2300,11 @@ const gameState = {
     { id: 'streak_10', icon: '<img src="../../icons/crown.png" class="icon-32">', name: '常胜将军', desc: '单课达成10连胜', tier: '🏆', bonus: {} },
     { id: 'no_wrong_5', icon: '❄️', name: '冷血杀手', desc: '连续5课零失误通关', tier: '🏆', bonus: { pointsMul: 1.30 } },
     { id: 'all_complete', icon: '<img src="../../icons/trophy.png" class="icon-32">', name: '科学探险家', desc: '完成所有关卡', tier: '🏆', bonus: { pointsMul: 1.50, dropBonus: 0.30, hintExtra: 3 } },
+    // 🆕 v714: 探索勋章
+    { id: 'click_all', icon: '🖱️', name: '乱点达人', desc: '点击过50个不同的可交互元素', tier: '⭐⭐', bonus: { exploreBonus: 0.05 } },
+    { id: 'map_explorer', icon: '🗺️', name: '地图探索者', desc: '访问过所有页面和区域', tier: '⭐⭐⭐', bonus: { exploreBonus: 0.10 } },
+    { id: 'hidden_finder', icon: '🔍', name: '隐藏发现者', desc: '发现了一个隐藏内容', tier: '⭐⭐⭐', bonus: { exploreBonus: 0.10 } },
+    { id: 'comeback_find', icon: '🌸', name: '柳暗花明', desc: '答错后自己找到正确答案5次', tier: '⭐⭐', bonus: { exploreBonus: 0.05 } },
   ],
   unlockedAchievements: [],
   // 🆕 v714: 探索积分与弹幕系统
@@ -3337,6 +3342,27 @@ function checkTotalQuestionsAchievements() {
   if ((gameState.wrongQuestions || []).length >= 10 && !gameState.unlockedAchievements.includes('wrong_10')) {
     unlockAchievement('wrong_10');
   }
+
+  // 🆕 v714: 探索勋章检查
+  // 乱点达人：50个不同交互元素
+  if ((gameState.clickedElements || []).length >= 50 && !gameState.unlockedAchievements.includes('click_all')) {
+    unlockAchievement('click_all');
+  }
+  // 地图探索者：所有7个区域
+  var allAreas = ['首页', '爬塔', '宠物', '背包', '排行榜', '校队选拔'];
+  var visited = gameState.visitedPages || [];
+  var allVisited = allAreas.every(function(a) { return visited.indexOf(a) >= 0; });
+  if (allVisited && !gameState.unlockedAchievements.includes('map_explorer')) {
+    unlockAchievement('map_explorer');
+  }
+  // 隐藏发现者
+  if ((gameState.discoveredSecrets || []).length > 0 && !gameState.unlockedAchievements.includes('hidden_finder')) {
+    unlockAchievement('hidden_finder');
+  }
+  // 柳暗花明：5次
+  if ((gameState.retrySuccessCount || 0) >= 5 && !gameState.unlockedAchievements.includes('comeback_find')) {
+    unlockAchievement('comeback_find');
+  }
 }
 
 // ========== 装备成就检查 ==========
@@ -3930,6 +3956,9 @@ function trackPageVisit(pageName) {
   if (gameState.visitedPages.indexOf(pageName) >= 0) return; // 已访问
   gameState.visitedPages.push(pageName);
   awardExplorePoints(10, '首次访问「' + pageName + '」');
+  // 触发成就检测（检查地图探索者等）
+  checkAchievements();
+  saveUserData();
 }
 
 /** 记录交互点击（探索积分+乱点达人进度） */
@@ -6275,6 +6304,8 @@ async function pushRankingData() {
 
 // 显示排行榜
 async function showRanking() {
+  // 🆕 v714: 追踪页面访问
+  trackPageVisit('排行榜');
   document.getElementById('rankingOverlay').classList.add('show');
   // 首次打开时加载数据，后续只显示（保持当前tab和滚动位置）
   if (!window._rankingLoaded) {
