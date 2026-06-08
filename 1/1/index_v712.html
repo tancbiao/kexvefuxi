@@ -1696,6 +1696,10 @@
       <span class="status-icon">🎒</span>
       <span>背包</span>
     </div>
+    <div class="status-item cloud-sync-item" id="cloudSyncItem" style="opacity:0.7;">
+      <span class="status-icon" id="cloudSyncIcon">☁️</span>
+      <span style="font-size:0.85em;color:rgba(255,255,255,0.5);" id="cloudSyncLabel">等待同步</span>
+    </div>
     <div class="status-item" id="towerBtn" style="cursor:pointer;" onclick="showTowerModal()">
       <span class="status-icon">🏰</span>
       <span>爬塔送神装</span>
@@ -1929,7 +1933,7 @@ var EXAM_REWARDS = {"over90": {"01220123": true, "01210351": true, "01210222": t
 var CLASS012102_IDS = ["01210236", "01210206", "01210222", "01210223", "01210231", "01210240", "01210224", "01210239", "01210214", "01210250", "01210235", "01210220", "01210233", "01210234", "01210225", "01210218", "01210242", "01210247", "01210207", "01210244", "01210227", "01210232", "01210246", "01210241", "01210210", "01210216", "01210229", "01210230", "01210243", "01210205", "01210237", "01210215", "01210203", "01210248", "01210249", "01210219", "01210245", "01210238", "01210226", "01210201", "01210209", "01210221", "01210204", "01210217", "01210211", "01210213", "01210208"];
 </script>
 <script src="../../admin/reward-collector.js" defer></script>
-<script src="../../data/keji2026-equips.js"></script>
+<!-- keji2026-equips.js 改为首次打开背包时动态加载，节省首屏 155KB -->
 <script src="../../js/ai-tutor.js" defer></script>
 <!-- v713: 关键脚本加载完成后启用"开始挑战"按钮 -->
 <script>
@@ -2251,23 +2255,8 @@ function loginWithId() {
   gameState.isGuest = false;
   gameState.studentName = getStudentName(id);
   
-  // v714: 登录时先等待云端存档同步，再进入主界面
-  // 显示加载状态，替换登录表单内容
-  var loginBox = document.querySelector('#loginOverlay .login-box');
-  var originalHTML = loginBox.innerHTML;
-  loginBox.innerHTML = '<h2 class=\"login-title\">⏳ 正在同步云端存档</h2>' +
-    '<div style=\"text-align:center;padding:20px;color:rgba(255,255,255,0.85);\">' +
-    '<div style=\"font-size:2.5em;margin-bottom:8px;\">☁️</div>' +
-    '<p style=\"font-size:1.1em;margin:8px 0;\">正在从云端拉取你的存档数据...</p>' +
-    '<p style=\"font-size:0.8em;color:rgba(255,255,255,0.45);\">请稍候，马上就好</p>' +
-    '<div class=\"cloud-loading-spinner\"></div>' +
-    '</div>';
-  // 禁用输入框和按钮的交互（保留遮罩但不让操作）
-  document.getElementById('studentIdInput').disabled = true;
-  document.getElementById('loginBtn').disabled = true;
-  document.getElementById('guestBtn').disabled = true;
-  
-  // v714: 不立即隐藏登录遮罩和跳转，等云端同步完成后才执行
+  // v715: 登录立即进入主界面，云端同步后台进行
+  hideLoginScreen();
   localStorage.setItem('rememberedStudentId', id);
   clearOtherPetLocalStorage(id);
   
@@ -2275,42 +2264,29 @@ function loginWithId() {
   checkAndResetStamina();
   updateStaminaDisplay();
   updateStatusBar();
+  document.getElementById('studentDisplay').textContent = (gameState.studentName || id) + ' 同学';
+  showScreen('courseScreen');
   
-  // v714: 启动云端同步 + 8秒超时保护
-  var cloudDone = loadUserData();  // 返回 Promise
-  var timeout = new Promise(function(resolve) {
-    setTimeout(function() { resolve('timeout'); }, 8000);
+  // v715: 云端同步在后台运行，状态栏显示进度
+  updateCloudSyncStatus('syncing');
+  loadUserData().then(function() {
+    updateCloudSyncStatus('done');
+  }).catch(function() {
+    updateCloudSyncStatus('local');
   });
   
-  Promise.race([cloudDone, timeout]).then(function(result) {
-    // 恢复登录表单（下次打开登录弹窗时可用）
-    loginBox.innerHTML = originalHTML;
-    document.getElementById('studentIdInput').disabled = false;
-    document.getElementById('loginBtn').disabled = false;
-    document.getElementById('guestBtn').disabled = false;
-    
-    if (result === 'timeout') {
-      showToast('云端同步超时，使用本地数据', 'warn', 3000);
-    }
-    
-    // 现在才切换到主界面
-    hideLoginScreen();
-    document.getElementById('studentDisplay').textContent = (gameState.studentName || id) + ' 同学';
-    showScreen('courseScreen');
-    
-    // 以下为登录后的各种检查和弹窗
-    checkActivityNotice(id);
-    loadGiftData();
-    checkGrade45Activity(id);
-    checkCompensationNotice(id);
-    checkS0SeasonReward(id);
-    showGreetingWithNoticeCheck();
-    setTimeout(function() {
-      var reward = getOrCreateReward(id);
-      if (reward) { showSpecialRewardPopup(reward); }
-    }, 1500);
-    setTimeout(function() { flushPendingSync(); }, 5000);
-  });
+  // 以下为登录后的各种检查和弹窗（不依赖云端数据）
+  checkActivityNotice(id);
+  loadGiftData();
+  checkGrade45Activity(id);
+  checkCompensationNotice(id);
+  checkS0SeasonReward(id);
+  showGreetingWithNoticeCheck();
+  setTimeout(function() {
+    var reward = getOrCreateReward(id);
+    if (reward) { showSpecialRewardPopup(reward); }
+  }, 1500);
+  setTimeout(function() { flushPendingSync(); }, 5000);
 }
 
 function loginAsGuest() {
@@ -2539,6 +2515,31 @@ function getLadderTier(score) {
     }
   }
   return { name:'黑铁', icon:'⚙️', sub:'III', color:'#8B8B8B', cls:'tier-iron' };
+}
+
+// v715: 云端同步状态指示器（状态栏常驻）
+function updateCloudSyncStatus(state) {
+  var item = document.getElementById('cloudSyncItem');
+  var icon = document.getElementById('cloudSyncIcon');
+  var label = document.getElementById('cloudSyncLabel');
+  if (!item || !icon || !label) return;
+  if (state === 'syncing') {
+    icon.textContent = '☁️';
+    label.textContent = '同步中...';
+    label.style.color = '#4fc3f7';
+    item.style.opacity = '1';
+  } else if (state === 'done') {
+    icon.textContent = '✅';
+    label.textContent = '已同步';
+    label.style.color = '#66bb6a';
+    item.style.opacity = '0.7';
+    setTimeout(function() { item.style.opacity = '0.4'; }, 5000);
+  } else if (state === 'local') {
+    icon.textContent = '💾';
+    label.textContent = '本地数据';
+    label.style.color = '#ffa726';
+    item.style.opacity = '0.7';
+  }
 }
 
 function updateStatusBar() {
@@ -4875,6 +4876,7 @@ function loadUserData() {
 
   // v713: 云端加载+反馈 — 先弹Toast提示同步中
   showToast('正在同步云端存档...', 'info', 6000);
+  updateCloudSyncStatus('syncing');
   
   // 【跨年级云端迁移】首次登录时合并旧年级数据（仅执行一次）
   // v714: 返回 Promise 让 loginWithId 可以等待同步完成
@@ -4893,15 +4895,18 @@ function loadUserData() {
         // 始终回写云端，确保双端一致
         saveToCloud(gameState.studentId, updatedLocal || cloudData);
         showToast('云端存档同步完成', 'success', 2000);
+        updateCloudSyncStatus('done');
         console.log('已同步云端最新存档');
       } else {
         // 云端为空
         showToast('使用本地数据', 'info', 2000);
+        updateCloudSyncStatus('local');
       }
     }).catch(function(e) {
       // 网络异常
       console.error('云端加载网络异常:', e);
       showToast('网络异常，使用本地存档', 'warn', 3000);
+      updateCloudSyncStatus('local');
     });
   }).finally(function() {
     // v704: 云端数据加载完成后才推送排行，避免 0 分覆盖云端
@@ -5679,8 +5684,30 @@ function bpClear62() {
   overlay.onclick = function(e) { if (e.target === overlay) document.body.removeChild(overlay); };
 }
 
+// v715: 标记 keji2026-equips.js 是否已加载
+var _keji2026Loaded = false;
+
 function showBackpack() {
   bpCurrentPage = 1;
+  // v715: 首次打开背包时懒加载科技节装备数据（155KB）
+  if (!_keji2026Loaded) {
+    _keji2026Loaded = true;
+    var script = document.createElement('script');
+    script.src = '../../data/keji2026-equips.js?v=20260608';
+    script.onload = function() {
+      showBackpackReady();
+    };
+    script.onerror = function() {
+      console.warn('科技节装备数据加载失败，跳过');
+      showBackpackReady();
+    };
+    document.head.appendChild(script);
+    return;
+  }
+  showBackpackReady();
+}
+
+function showBackpackReady() {
   // 科技节装备多推保障：每次打开背包都尝试发放（内置防重复）
   if (typeof grantKeji2026Equip === 'function') {
     grantKeji2026Equip();
