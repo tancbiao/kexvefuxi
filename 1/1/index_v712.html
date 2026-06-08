@@ -5486,10 +5486,13 @@ function practiceWrongQuestions() {
 
     if (!originalQ) {
       return {
-        type: w.questionType,
+        type: w.questionType || 'choice',
         q: w.question,
-        opts: w.questionType === 'choice' ? [w.correctAnswer, w.userAnswer, '其他A', '其他B'] : undefined,
+        options: (w.questionType === 'choice' || !w.questionType)
+          ? [w.correctAnswer, w.userAnswer, '以上都对', '以上都不对']
+          : ['√', '×'],
         answer: 0,
+        difficultyName: '错题重做',
         hint: '这是一道错题'
       };
     }
@@ -5509,7 +5512,7 @@ function practiceWrongQuestions() {
 
   closeWrongQuestions();
   showScreen('quizScreen');
-  showQuestion();
+  renderQuestion();
 }
 
 

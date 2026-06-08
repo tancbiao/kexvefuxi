@@ -377,6 +377,24 @@ body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius
 .q-option.wrong { background: rgba(255,68,68,0.2); border-color: #ff4444; }
 .q-option:disabled { cursor: not-allowed; opacity: 0.7; }
 
+/* 纠错按钮 */
+.correction-btn {
+  display: none;
+  margin-top: 8px;
+  padding: 6px 14px;
+  background: rgba(255,100,100,0.15);
+  border: 1px solid rgba(255,100,100,0.3);
+  border-radius: 8px;
+  color: #ff8888;
+  font-size: 0.82em;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.correction-btn.show { display: inline-block; }
+.correction-btn:hover { background: rgba(255,100,100,0.3); color: #ffaaaa; }
+.correction-btn.confirmed { background: rgba(74,222,128,0.2); border-color: #4ade80; color: #4ade80; pointer-events: none; }
+
 /* 倒计时 */
 .timer-bar-wrap {
   height: 3px;
@@ -1078,6 +1096,7 @@ img.emoji { height: 1em; width: 1em; margin: 0 0.05em; vertical-align: -0.1em; }
     </div>
     <div class="q-text" id="qText">加载题目中...</div>
     <div class="q-options" id="qOptions"></div>
+    <button class="correction-btn" id="correctionBtn" onclick="submitTowerCorrection()">⚠️ 答案有误？点此纠错</button>
   </div>
 </div>
 
@@ -3730,6 +3749,10 @@ function showNextQuestion() {
     `<button class="q-option" data-idx="${i}" onclick="answerPlayerTurn(${i})">${opt}</button>`
   ).join('');
 
+  // 隐藏纠错按钮
+  var cb = document.getElementById('correctionBtn');
+  if (cb) { cb.classList.remove('show', 'confirmed'); }
+
   // 倒计时
   const timeLimit = Math.max(30 - Math.floor(run.floor / 5), 10);
   timeLeft = timeLimit;
@@ -3761,6 +3784,10 @@ function answerPlayerTurn(idx) {
   if (!isCorrect) {
     options[q.answer]?.classList.add('correct');
   }
+
+  // 显示纠错按钮
+  var cb = document.getElementById('correctionBtn');
+  if (cb) cb.classList.add('show');
 
   if (isCorrect) {
     streakCount++;
@@ -4069,6 +4096,10 @@ function doMonsterDamageToPlayer(customAtk, callback, ignoreDodge, sureHit, dmgM
     `<button class="q-option" data-idx="${i}" onclick="answerMonsterTurn(${i}, ${customAtk || 'null'}, ${sureHit || false}, ${dmgMult || 1})">${opt}</button>`
   ).join('');
 
+  // 隐藏纠错按钮
+  var cb = document.getElementById('correctionBtn');
+  if (cb) { cb.classList.remove('show', 'confirmed'); }
+
   // 倒计时
   const timeLimit = Math.max(30 - Math.floor(run.floor / 5), 10);
   timeLeft = timeLimit;
@@ -4098,6 +4129,10 @@ function answerMonsterTurn(idx, customAtk, sureHit, dmgMult) {
   if (!isCorrect) {
     options[q.answer]?.classList.add('correct');
   }
+
+  // 显示纠错按钮
+  var cb = document.getElementById('correctionBtn');
+  if (cb) cb.classList.add('show');
 
   if (isCorrect) {
     // 格挡成功 - 闪避/减伤
@@ -4527,6 +4562,40 @@ function startTimer(seconds, onTimeout) {
 
 function disableOptions() {
   document.querySelectorAll('.q-option').forEach(o => o.disabled = true);
+}
+
+// ====== 答案纠错 ======
+function submitTowerCorrection() {
+  var cb = document.getElementById('correctionBtn');
+  if (!cb || cb.classList.contains('confirmed')) return;
+  
+  if (!currentQuestion || !currentQuestion.id) return;
+  
+  // 收集纠错数据
+  var correction = {
+    questionId: currentQuestion.id,
+    question: currentQuestion.question,
+    options: currentQuestion.options,
+    currentAnswer: currentQuestion.answer,
+    towerFloor: run.floor,
+    studentId: (typeof towerStudentId !== 'undefined' ? towerStudentId : ''),
+    timestamp: Date.now()
+  };
+  
+  // 保存到 localStorage
+  try {
+    var corrections = JSON.parse(localStorage.getItem('tower_corrections') || '[]');
+    // 去重
+    var exists = corrections.some(function(c) { return c.questionId === correction.questionId; });
+    if (!exists) {
+      corrections.push(correction);
+      localStorage.setItem('tower_corrections', JSON.stringify(corrections));
+    }
+  } catch(e) {}
+  
+  // UI 反馈
+  cb.textContent = '✅ 已提交纠错，谢谢！';
+  cb.classList.add('confirmed');
 }
 
 // ============================================================
