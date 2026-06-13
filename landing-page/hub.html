@@ -1623,12 +1623,19 @@ function init() {
     document.querySelector('.user-grade').textContent = '';
   }
 
-  // Wire up quick buttons
+  // Wire up quick buttons — v715: 宠物/合成/成就/礼物标记为待开发
   var overlayMap = ['wrongOverlay','rankOverlay','xuanbaOverlay','backpackOverlay',
                     'petOverlay','synOverlay','achieveOverlay','giftOverlay'];
+  var disabledSet = {petOverlay:true, synOverlay:true, achieveOverlay:true, giftOverlay:true};
   document.querySelectorAll('.quick-btn').forEach(function(b, i) {
-    if (overlayMap[i]) {
-      b.setAttribute('onclick', "openOverlay('" + overlayMap[i] + "'); populateOverlay('" + overlayMap[i] + "')");
+    var ovId = overlayMap[i];
+    if (!ovId) return;
+    if (disabledSet[ovId]) {
+      b.setAttribute('onclick', "showCloudToast('🚧 待开发，敬请期待','info')");
+      b.style.opacity = '0.5';
+      b.title = '待开发';
+    } else {
+      b.setAttribute('onclick', "openOverlay('" + ovId + "'); populateOverlay('" + ovId + "')");
     }
   });
 
