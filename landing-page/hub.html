@@ -2260,12 +2260,29 @@ function extractLessonQuestions(grade) {
   var qs=[];
   for (var sem=1;sem<=2;sem++) {
     var data=lessonDataCache[grade+sem];
-    if(!data||!data.lessons) continue;
-    data.lessons.forEach(function(lesson){
-      if(lesson.questions) lesson.questions.forEach(function(q){
-        if(q.question&&q.options&&q.answer!==undefined) qs.push({question:'【'+grade+'·'+lesson.unit+'】'+q.question,options:q.options,answer:q.answer});
+    if(!data) continue;
+    // v715: data结构为 { unit1:{lessons:[...]}, unit2:{lessons:[...]}, ... }
+    for (var uk in data) {
+      if (!data.hasOwnProperty(uk)) continue;
+      var unit = data[uk];
+      if (!unit || !unit.lessons) continue;
+      unit.lessons.forEach(function(lesson){
+        // 每个lesson有 basic/medium/hard 三个难度数组
+        ['basic','medium','hard'].forEach(function(diff){
+          var arr = lesson[diff];
+          if (!arr || !arr.length) return;
+          arr.forEach(function(q){
+            if(q.q && q.options && q.answer!==undefined) {
+              qs.push({
+                question:'【'+grade+'·'+((unit.name||'')+'-'+(lesson.name||'')).replace(/^【/,'')+'】'+q.q,
+                options:q.options,
+                answer:q.answer
+              });
+            }
+          });
+        });
       });
-    });
+    }
   }
   return qs;
 }
