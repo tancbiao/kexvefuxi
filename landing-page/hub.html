@@ -1734,14 +1734,14 @@ function showCloudToast(msg, type) {
 
 // ===== Tier System (v712) =====
 var TIER_CONFIG = [
-  { name:'黑铁',icon:'⚙️',min:0,max:119,subs:['III','II','I'],color:'#8B8B8B' },
-  { name:'青铜',icon:'🛡️',min:120,max:269,subs:['III','II','I'],color:'#CD7F32' },
-  { name:'白银',icon:'⚪',min:270,max:419,subs:['III','II','I'],color:'#C0C0C0' },
-  { name:'黄金',icon:'🥇',min:420,max:549,subs:['IV','III','II','I'],color:'#FFD700' },
-  { name:'铂金',icon:'💎',min:550,max:669,subs:['IV','III','II','I'],color:'#4FC3F7' },
-  { name:'钻石',icon:'💠',min:670,max:769,subs:['V','IV','III','II','I'],color:'#7C4DFF' },
-  { name:'星耀',icon:'🌟',min:770,max:899,subs:['V','IV','III','II','I'],color:'#FF6B6B' },
-  { name:'王者',icon:'👑',min:900,max:99999,subs:[],color:'#FFD700' }
+  { name:'黑铁',icon:'⚙️',min:1000,max:1119,subs:['III','II','I'],color:'#8B8B8B' },
+  { name:'青铜',icon:'🛡️',min:1120,max:1269,subs:['III','II','I'],color:'#CD7F32' },
+  { name:'白银',icon:'⚪',min:1270,max:1419,subs:['III','II','I'],color:'#C0C0C0' },
+  { name:'黄金',icon:'🥇',min:1420,max:1549,subs:['IV','III','II','I'],color:'#FFD700' },
+  { name:'铂金',icon:'💎',min:1550,max:1669,subs:['IV','III','II','I'],color:'#4FC3F7' },
+  { name:'钻石',icon:'💠',min:1670,max:1799,subs:['V','IV','III','II','I'],color:'#7C4DFF' },
+  { name:'星耀',icon:'🌟',min:1800,max:1899,subs:['V','IV','III','II','I'],color:'#FF6B6B' },
+  { name:'王者',icon:'👑',min:1900,max:99999,subs:[],color:'#FFD700' }
 ];
 function getTier(score) {
   score = score || 0;
@@ -2215,9 +2215,10 @@ var _ladderTab = 'score';
 
 function openLadder() {
   if (!studentId) { openOverlay('loginModal'); return; }
-  // Default 1000 base score (黑铁起点)
-  _ladderState.score = gameState.ladderPoints || 1000;
-  if (!gameState.ladderPoints) { gameState.ladderPoints = 1000; saveGame(); }
+  // v715: 天梯分底线1000，本地缓存低于1000时强制恢复到1000
+  var localScore = gameState.ladderPoints || 0;
+  if (localScore < 1000) { localScore = 1000; gameState.ladderPoints = 1000; saveGame(); }
+  _ladderState.score = localScore;
   var today = new Date().toDateString();
   if (_ladderState.dailyDate !== today) { _ladderState.dailyCount = 0; _ladderState.dailyDate = today; }
   var tier = getTier(_ladderState.score);
@@ -2367,7 +2368,7 @@ function showLadderResult() {
   var points = table[correct] !== undefined ? table[correct] : table[0];
   if (_ladderState.streak >= 5) points += 3;
   if (points > 0 && _ladderState.bestStreak >= 3) points += 2;
-  _ladderState.score = Math.max(0, _ladderState.score + points);
+  _ladderState.score = Math.max(1000, _ladderState.score + points);
   _ladderState.dailyCount++;
   var today = new Date().toDateString(); _ladderState.dailyDate = today;
   gameState.ladderPoints = _ladderState.score;
@@ -2399,13 +2400,18 @@ function loadLadderRankings() {
 
 function renderLadder(rankings, type) {
   var list = document.getElementById('ladderList');
-  var sortField = type==='score'?'ladderScore':'accuracyRate';
-  rankings.sort(function(a,b){return(b[sortField]||0)-(a[sortField]||0);});
+  // v715: 榜单数据可能来自不同API，统一使用ladderScore或score字段
+  rankings.sort(function(a,b){
+    var sa = a.ladderScore || a.score || 0;
+    var sb = b.ladderScore || b.score || 0;
+    return sb - sa;
+  });
   list.innerHTML='';
   rankings.slice(0,15).forEach(function(item,i){
-    var medals=['🥇','🥈','🥉'],medal=medals[i]||(i+1),isMe=item.studentId===studentId,val=item[sortField]||0;
+    var medals=['🥇','🥈','🥉'],medal=medals[i]||(i+1),isMe=item.studentId===studentId;
+    var val = item.ladderScore || item.score || 0;
     var name=getStudentDisplay(item.studentId);
-    var tier = getTier(item.ladderScore||0);
+    var tier = getTier(val);
     var tierBadge = '<span style=\"font-size:10px;color:'+tier.color+';\">'+tier.icon+tier.name+tier.sub+'</span>';
     var row=document.createElement('div');row.className='rank-row';
     row.style.cssText=isMe?'border:2px solid var(--primary-light);background:#EEF2FF;':'';
