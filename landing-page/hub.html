@@ -1465,26 +1465,24 @@ a { text-decoration: none; }
   </div>
 </div>
 
-<!-- ===== Overlay: 校队选拔 ===== -->
+<!-- ===== Overlay: 校队选拔 v715: 内嵌iframe全屏模式 ===== -->
 <div class="overlay" id="xuanbaOverlay">
-  <div class="overlay-card">
+  <div class="overlay-card" style="max-width:95vw;max-height:95vh;">
     <div class="overlay-header">
       <span class="overlay-title">🧪 校队选拔</span>
-      <button class="overlay-close" onclick="closeOverlay('xuanbaOverlay')">✕</button>
-    </div>
-    <div class="overlay-body">
-      <div class="xuanba-info">
-        <div class="xuanba-icon">🧪</div>
-        <div class="xuanba-title">推理能力评估测试</div>
-        <div class="xuanba-desc">挑战综合科学推理题，选拔优秀小科学家加入校队。每月一次机会，认真作答！</div>
-        <div class="xuanba-stats">
-          <div class="xuanba-stat"><div class="xuanba-stat-value">92分</div><div class="xuanba-stat-label">上次成绩</div></div>
-          <div class="xuanba-stat"><div class="xuanba-stat-value">12名</div><div class="xuanba-stat-label">年级排名</div></div>
-          <div class="xuanba-stat"><div class="xuanba-stat-value">3次</div><div class="xuanba-stat-label">剩余机会</div></div>
-        </div>
-        <button class="syn-btn" style="margin:0 auto;" onclick="startXuanba()">🚀 开始测试</button>
+      <div style="display:flex;align-items:center;gap:6px;margin-left:auto;">
+        <button class="fullscreen-btn" onclick="toggleFullscreen('xuanbaOverlay')">⛶ 全屏</button>
+        <button class="overlay-close" onclick="minimizeXuanba()" title="缩小窗口">▾</button>
       </div>
     </div>
+    <div class="overlay-body" style="padding:0;height:80vh;">
+      <iframe id="xuanbaFrame" src="" style="width:100%;height:100%;border:none;border-radius:0 0 12px 12px;"></iframe>
+    </div>
+  </div>
+</div>
+
+<!-- v715: 校队选拔最小化浮动按钮 -->
+<div id="xuanbaFloat" style="display:none;position:fixed;bottom:20px;right:20px;z-index:9999;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#A855F7);color:#fff;font-size:24px;cursor:pointer;box-shadow:0 4px 20px rgba(124,58,237,0.5);display:none;align-items:center;justify-content:center;" onclick="restoreXuanba()" title="恢复校队选拔">🧪</div>
   </div>
 </div>
 
@@ -3399,12 +3397,24 @@ function showStreakPopup() {
 
 // ===== v715: 校队选拔入口 =====
 function startXuanba() {
-  closeOverlay('xuanbaOverlay');
-  // 打开xuanba.html的iframe
-  var html = '<div style=\"padding:0;\">';
-  html += '<iframe src=\"../xuanba.html?sid='+(studentId||'')+'\" style=\"width:100%;height:75vh;border:none;border-radius:8px;\"></iframe>';
-  html += '</div>';
-  showGenericPopup(html, true);
+  if (!studentId) { showCloudToast('请先登录','warn'); openOverlay('loginModal'); return; }
+  var frame = document.getElementById('xuanbaFrame');
+  if (frame && !frame.src) {
+    frame.src = '../xuanba.html?sid=' + studentId;
+  }
+  openOverlay('xuanbaOverlay');
+  document.getElementById('xuanbaFloat').style.display = 'none';
+}
+
+function minimizeXuanba() {
+  document.getElementById('xuanbaOverlay').classList.remove('show');
+  document.getElementById('xuanbaFloat').style.display = 'flex';
+  showCloudToast('🧪 校队选拔已缩小，点击右下角按钮恢复','info');
+}
+
+function restoreXuanba() {
+  document.getElementById('xuanbaOverlay').classList.add('show');
+  document.getElementById('xuanbaFloat').style.display = 'none';
 }
 
 // ===== v715: 通用弹窗 =====
@@ -3429,6 +3439,7 @@ function closeGenericPopup() {
 function populateOverlay(id) {
   if (id === 'wrongOverlay') populateWrongQuestions();
   else if (id === 'backpackOverlay') populateBackpack();
+  else if (id === 'xuanbaOverlay') startXuanba();
   else if (id === 'petOverlay') populatePets();
   else if (id === 'achieveOverlay') populateAchievements();
 }
