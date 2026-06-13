@@ -2714,7 +2714,10 @@ async function doCloudLogin(sid) {
     pets: [],
     petPieces: {},
     unlockedAchievements: [],
-    retrySuccessCount: 0
+    retrySuccessCount: 0,
+    xuanbaBestScore: 0,     // v715: 校队选拔最高分
+    xuanbaBestPct: 0,       // v715: 校队选拔最高正确率
+    xuanbaBestRA: 0         // v715: 校队选拔最高RA推理指数
   };
 
   // Try to load from cloud (v712 sync pattern)
@@ -2834,7 +2837,10 @@ function doGuestLogin() {
     towerHighestFloor: 0,
     towerCoins: 0,
     ladderBestScore: 0,
-    isGuest: true
+    isGuest: true,
+    xuanbaBestScore: 0,
+    xuanbaBestPct: 0,
+    xuanbaBestRA: 0
   };
   finishLogin();
 }
@@ -3448,6 +3454,18 @@ function startXuanba() {
   var frame = document.getElementById('xuanbaFrame');
   if (frame && !frame.src) {
     frame.src = '../xuanba.html?sid=' + studentId;
+    // v715fix: 向 iframe 发送 init_xuanba 消息，传递学生信息
+    frame.onload = function() {
+      if (!frame.contentWindow) return;
+      var gradeCode = (studentId && studentId.length >= 4) ? studentId.substring(2,4) : '';
+      var name = (gameState && gameState.studentName) || studentId || '';
+      frame.contentWindow.postMessage({
+        type: 'init_xuanba',
+        studentId: studentId,
+        studentName: name,
+        grade: gradeCode
+      }, '*');
+    };
   }
   openOverlay('xuanbaOverlay');
   document.getElementById('xuanbaFloat').style.display = 'none';
@@ -3462,6 +3480,42 @@ function minimizeXuanba() {
 function restoreXuanba() {
   document.getElementById('xuanbaOverlay').classList.add('show');
   document.getElementById('xuanbaFloat').style.display = 'none';
+}
+
+// ===== v715: 接收校队选拔结果 + 同步排行榜 =====
+window.addEventListener('message', function(e) {
+  // v715fix: 接收校队选拔成绩
+  if (e.data && e.data.type === 'xuanba_result') {
+    if (gameState && e.data.score !== undefined) {
+      gameState.xuanbaBestScore = Math.max(gameState.xuanbaBestScore || 0, e.data.score || 0);
+      gameState.xuanbaBestPct = Math.max(gameState.xuanbaBestPct || 0, e.data.pct || 0);
+      gameState.xuanbaBestRA = Math.max(gameState.xuanbaBestRA || 0, e.data.ra || 0);
+      saveGame();
+      // 立即推送排行榜
+      pushXuanbaRanking();
+      showCloudToast('🧪 校队选拔成绩已同步：RA=' + (e.data.ra||0) + ' (' + (e.data.score||0) + '/60)', 'success');
+    }
+  }
+  // v715fix: 校队选拔关闭
+  if (e.data && e.data.type === 'xuanba_close') {
+    minimizeXuanba();
+  }
+});
+
+// v715: 推送校队选拔成绩到全局排行榜
+function pushXuanbaRanking() {
+  if (!studentId || !gameState) return;
+  var data = {
+    studentId: studentId,
+    studentName: gameState.studentName || studentId,
+    totalPoints: gameState.totalPoints || 0,
+    xuanbaScore: gameState.xuanbaBestScore || 0,
+    xuanbaRA: gameState.xuanbaBestRA || 0
+  };
+  fetch(API_BASE + '/ranking/grade_all', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }).catch(function() {});
 }
 
 // ===== v715: 通用弹窗 =====
@@ -3826,6 +3880,9 @@ function saveGame() {
       lastStaminaDate: gameState.lastStaminaDate,
       petPieces: gameState.petPieces || {},
       retrySuccessCount: gameState.retrySuccessCount || 0,
+      xuanbaBestScore: gameState.xuanbaBestScore || 0,   // v715: 校队选拔分数
+      xuanbaBestPct: gameState.xuanbaBestPct || 0,       // v715: 校队选拔正确率
+      xuanbaBestRA: gameState.xuanbaBestRA || 0,         // v715: 校队选拔RA指数
       lastUpdated: Date.now()
     }).then(function(ok) {
       if (ok) { showCloudToast('💾 云端存档成功', 'success'); console.log('[saveGame] 云端保存成功'); }
