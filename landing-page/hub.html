@@ -1080,6 +1080,11 @@ a { text-decoration: none; }
 .equip-popup .ep-affix { padding:4px 10px; margin:3px 0; border-radius:var(--radius-full); font-size:11px; font-weight:600; }
 .equip-popup .ep-close { position:absolute; top:8px; right:12px; cursor:pointer; font-size:18px; color:var(--muted); }
 
+/* ====== 备案号 ====== */
+.icp-footer { text-align: center; padding: 12px 12px 20px; font-size: 0.75em; color: var(--muted); }
+.icp-footer a { color: var(--muted); text-decoration: none; opacity: 0.5; }
+.icp-footer a:hover { opacity: 0.8; }
+
 </style>
 </head>
 <body>
@@ -1131,7 +1136,7 @@ a { text-decoration: none; }
   <h2 class="section-title">🎮 选择冒险模式</h2>
   <div class="mode-cards">
     <!-- 闯关学习 -->
-    <div class="mode-card lesson" onclick="location.href='../1/1/index_v712.html'">
+    <div class="mode-card lesson" onclick="openQuizSection()">
       <div class="mode-icon lesson-bg">📚</div>
       <div class="mode-name">闯关学习</div>
       <div class="mode-desc">按课程闯关答题，掌握科学知识</div>
@@ -1141,7 +1146,7 @@ a { text-decoration: none; }
     </div>
 
     <!-- 爬塔挑战 -->
-    <div class="mode-card tower" onclick="location.href='tower.html'">
+    <div class="mode-card tower" onclick="openTower()">
       <div class="mode-icon tower-bg">🗼</div>
       <div class="mode-name">爬塔挑战</div>
       <div class="mode-desc">层层闯关击败Boss，赢稀有装备</div>
@@ -1151,7 +1156,7 @@ a { text-decoration: none; }
     </div>
 
     <!-- 天梯排行 -->
-    <div class="mode-card ladder" onclick="location.href='ladder.html'">
+    <div class="mode-card ladder" onclick="openLadder()">
       <div class="mode-icon ladder-bg">🏆</div>
       <div class="mode-name">天梯排行</div>
       <div class="mode-desc">和全校同学PK，争当最强探险家</div>
@@ -2017,6 +2022,12 @@ function loadTowerQuestions() {
 }
 function shuffleArray(a) { for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;} return a; }
 function pickRand(a,n) { var r=[]; for(var i=0;i<n&&a.length;i++){var idx=Math.floor(Math.random()*a.length);r.push(a[idx]);a.splice(idx,1);} return r; }
+
+function openQuizSection() {
+  // Scroll to course panel section
+  var panel = document.querySelector('.course-panel');
+  if (panel) { panel.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+}
 
 function openTower() {
   if (!studentId) { openOverlay('loginModal'); return; }
@@ -4112,5 +4123,11 @@ function animateEntrance() {
 // ===== Init =====
 document.addEventListener('DOMContentLoaded', init);
 </script>
+<!-- ====== 备案号 ====== -->
+<div class="icp-footer">
+  <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">粤ICP备2026065263号</a>
+  &nbsp;&nbsp;
+  <a href="https://beian.mps.gov.cn/#/query/webSearch?code=44070302440945" rel="noreferrer" target="_blank">粤公网安备44070302440945号</a>
+</div>
 </body>
 </html>
