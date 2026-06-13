@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>登录 · 科学探险家</title>
+<link rel="icon" type="image/png" href="icons/icon_crystal.png">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ===== Design System ===== */
+:root {
+  --primary:       #4F46E5;
+  --primary-light: #818CF8;
+  --primary-bg:    #EEF2FF;
+  --accent:        #EA580C;
+  --text:          #1E1B4B;
+  --muted:         #64748B;
+  --white:         #FFFFFF;
+  --border:        #C7D2FE;
+  --font-heading:  'Fredoka', 'Segoe UI', sans-serif;
+  --font-body:     'Nunito', 'Segoe UI', sans-serif;
+  --radius-sm: 16px;
+  --radius-md: 24px;
+  --radius-lg: 32px;
+  --radius-xl: 48px;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font-body);
+  font-weight: 500;
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #4F46E5 0%, #7C5CE7 30%, #A78BFA 60%, #EEF2FF 100%);
+  overflow: hidden;
+}
+
+/* ===== Floating Decorations ===== */
+.floating-stars {
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none; z-index: 0;
+}
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.6);
+  animation: floatStar 6s ease-in-out infinite;
+}
+.star:nth-child(1) { width: 8px; height: 8px; top: 10%; left: 15%; animation-delay: 0s; }
+.star:nth-child(2) { width: 12px; height: 12px; top: 20%; left: 80%; animation-delay: 1.5s; }
+.star:nth-child(3) { width: 6px; height: 6px; top: 60%; left: 10%; animation-delay: 0.8s; }
+.star:nth-child(4) { width: 10px; height: 10px; top: 75%; left: 85%; animation-delay: 2.2s; }
+.star:nth-child(5) { width: 5px; height: 5px; top: 30%; left: 40%; animation-delay: 3s; }
+.star:nth-child(6) { width: 9px; height: 9px; top: 85%; left: 30%; animation-delay: 1s; }
+.star:nth-child(7) { width: 7px; height: 7px; top: 50%; left: 70%; animation-delay: 2.8s; }
+.star:nth-child(8) { width: 11px; height: 11px; top: 5%; left: 55%; animation-delay: 0.5s; }
+
+@keyframes floatStar {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.6; }
+  50% { transform: translateY(-30px) scale(1.4); opacity: 1; }
+}
+
+/* Orb decorations */
+.orb {
+  position: fixed; border-radius: 50%;
+  pointer-events: none; z-index: 0;
+  filter: blur(60px); opacity: 0.3;
+}
+.orb-1 { width: 300px; height: 300px; top: -100px; left: -100px; background: #818CF8; animation: driftOrb 12s ease-in-out infinite; }
+.orb-2 { width: 250px; height: 250px; bottom: -80px; right: -80px; background: #EA580C; animation: driftOrb 14s ease-in-out 2s infinite; }
+.orb-3 { width: 200px; height: 200px; top: 40%; right: 20%; background: #4ADE80; animation: driftOrb 16s ease-in-out 4s infinite; }
+
+@keyframes driftOrb {
+  0%, 100% { transform: translate(0, 0); }
+  33% { transform: translate(30px, -20px); }
+  66% { transform: translate(-20px, 30px); }
+}
+
+/* ===== Login Card ===== */
+.login-container {
+  position: relative; z-index: 1;
+  text-align: center;
+}
+
+.login-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 48px 44px 40px;
+  width: 420px;
+  max-width: 90vw;
+  box-shadow:
+    0 16px 48px rgba(79, 70, 229, 0.25),
+    inset 0 -2px 6px rgba(255, 255, 255, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, #4F46E5, #EA580C, #4ADE80);
+}
+
+.logo-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.logo-emoji {
+  font-size: 48px;
+  animation: bounceLogo 2s ease-in-out infinite;
+}
+
+@keyframes bounceLogo {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.site-name {
+  font-family: var(--font-heading);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.tagline {
+  font-size: 15px;
+  color: var(--muted);
+  font-weight: 500;
+  margin-bottom: 32px;
+}
+
+/* Input Group */
+.input-group {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.input-icon {
+  position: absolute;
+  left: 18px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  z-index: 1;
+}
+
+.login-input {
+  width: 100%;
+  padding: 16px 18px 16px 48px;
+  border: 3px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--primary-bg);
+  font-family: var(--font-body);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  text-align: center;
+  outline: none;
+  transition: all 0.3s ease;
+  letter-spacing: 4px;
+}
+
+.login-input::placeholder {
+  color: var(--muted);
+  letter-spacing: 0;
+  font-weight: 500;
+}
+
+.login-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 6px rgba(79, 70, 229, 0.12);
+}
+
+/* Buttons */
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: var(--radius-xl);
+  font-family: var(--font-body);
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+.btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: var(--white);
+  box-shadow:
+    0 6px 20px rgba(79, 70, 229, 0.35),
+    inset 0 -2px 4px rgba(255, 255, 255, 0.15);
+  margin-bottom: 12px;
+}
+
+.btn-primary:hover {
+  box-shadow:
+    0 10px 28px rgba(79, 70, 229, 0.45),
+    inset 0 -2px 4px rgba(255, 255, 255, 0.15);
+}
+
+.btn-ghost {
+  background: var(--white);
+  color: var(--muted);
+  border: 2px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.btn-ghost:hover {
+  border-color: var(--primary-light);
+  color: var(--primary);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
+}
+
+/* Back link */
+.back-link {
+  display: inline-block;
+  margin-top: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--white);
+  text-decoration: none;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.back-link:hover { opacity: 1; }
+
+/* Loading state */
+.login-loading {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 32px;
+}
+
+.login-loading.show {
+  display: flex;
+}
+
+.spinner {
+  width: 48px; height: 48px;
+  border: 5px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* Error shake */
+.shake {
+  animation: shake 0.5s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .login-card {
+    padding: 36px 24px 32px;
+    border-radius: var(--radius-md);
+  }
+  .site-name { font-size: 26px; }
+  .login-input { font-size: 16px; padding: 14px 14px 14px 42px; }
+  .btn { font-size: 16px; padding: 14px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Floating decorations -->
+<div class="floating-stars">
+  <div class="star"></div><div class="star"></div><div class="star"></div>
+  <div class="star"></div><div class="star"></div><div class="star"></div>
+  <div class="star"></div><div class="star"></div>
+</div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<!-- Login Card -->
+<div class="login-container">
+  <div class="login-card" id="loginCard">
+    <div class="logo-wrap">
+      <span class="logo-emoji">🔮</span>
+    </div>
+    <div class="site-name">科学探险家</div>
+    <p class="tagline">用冒险的方式掌握科学知识</p>
+
+    <div class="login-form" id="loginForm">
+      <div class="input-group">
+        <span class="input-icon">👤</span>
+        <input
+          type="text"
+          class="login-input"
+          id="studentIdInput"
+          placeholder="输入你的 8 位学号"
+          maxlength="8"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          autocomplete="off"
+        >
+      </div>
+      
+      <button class="btn btn-primary" id="loginBtn">
+        🚀 登录存档
+      </button>
+      
+      <button class="btn btn-ghost" id="guestBtn">
+        👀 游客试玩
+      </button>
+    </div>
+
+    <!-- Loading state -->
+    <div class="login-loading" id="loginLoading">
+      <div class="spinner"></div>
+      <p class="loading-text">⏳ 正在同步云端存档...</p>
+    </div>
+  </div>
+
+  <a href="index.html" class="back-link">← 返回首页</a>
+</div>
+
+<!-- The actual login functionality is provided by the main app;
+     this standalone page is a visual prototype. -->
+<script>
+(function() {
+  var input = document.getElementById('studentIdInput');
+  var loginBtn = document.getElementById('loginBtn');
+  var guestBtn = document.getElementById('guestBtn');
+  var loginForm = document.getElementById('loginForm');
+  var loginLoading = document.getElementById('loginLoading');
+  var loginCard = document.getElementById('loginCard');
+
+  // Auto-focus
+  setTimeout(function() { input.focus(); }, 500);
+
+  // Only allow numbers
+  input.addEventListener('input', function() {
+    this.value = this.value.replace(/[^0-9]/g, '');
+  });
+
+  function showLoading() {
+    loginForm.style.display = 'none';
+    loginLoading.classList.add('show');
+  }
+
+  function hideLoading() {
+    loginLoading.classList.remove('show');
+    loginForm.style.display = 'block';
+  }
+
+  function shake() {
+    loginCard.classList.add('shake');
+    setTimeout(function() { loginCard.classList.remove('shake'); }, 500);
+  }
+
+  // Login
+  loginBtn.addEventListener('click', function() {
+    var sid = input.value.trim();
+    if (sid.length !== 8) {
+      shake();
+      input.focus();
+      return;
+    }
+    showLoading();
+
+    // Redirect to game app with student ID
+    // In production, this would call the actual login API
+    setTimeout(function() {
+      window.location.href = 'hub.html?sid=' + sid;
+    }, 1500);
+  });
+
+  // Guest
+  guestBtn.addEventListener('click', function() {
+    window.location.href = 'hub.html';
+  });
+
+  // Enter key
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') loginBtn.click();
+  });
+})();
+</script>
+<script src="js/icon-map.js?v=2"></script>
+<script>
+// Replace emoji with PNG icons
+(function() {
+  var logo = document.querySelector('.logo-emoji');
+  if (logo) logo.innerHTML = iconImg('🔮', 48);
+  
+  var inputIcon = document.querySelector('.input-icon');
+  if (inputIcon) inputIcon.innerHTML = iconImg('👤', 20);
+  
+  var loginBtn = document.getElementById('loginBtn');
+  if (loginBtn) loginBtn.innerHTML = iconImg('🚀', 18) + ' 登录存档';
+  
+  var guestBtn = document.getElementById('guestBtn');
+  if (guestBtn) guestBtn.innerHTML = iconImg('👀', 18) + ' 游客试玩';
+})();
+</script>
+</body>
+</html>
