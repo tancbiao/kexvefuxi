@@ -198,6 +198,18 @@ a { text-decoration: none; }
   color: var(--primary);
 }
 
+/* v715: News tags & tabs */
+.news-tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-right: 4px; }
+.news-tag-hot { background: #fff3e0; color: #e65100; }
+.news-tag-new { background: #e8f5e9; color: #2e7d32; }
+.news-tag-update { background: #e3f2fd; color: #1565c0; }
+.news-tabs { display: flex; gap: 8px; margin: 8px 0; }
+.news-tab { padding: 6px 14px; border: 1px solid #ddd; border-radius: 20px; background: #fff; cursor: pointer; font-size: 13px; }
+.news-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.news-popup-header { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+.news-item:hover { background: #f5f5ff; }
+.news-item { transition: background .15s; }
+
 /* ===== Game Mode Cards ===== */
 .section-title {
   font-family: var(--font-heading);
@@ -1058,7 +1070,7 @@ a { text-decoration: none; }
       <div class="stat-pill points">
         <span class="stat-icon">⭐</span> 12,580
       </div>
-      <div class="stat-pill streak">
+      <div class="stat-pill streak" onclick="showStreakPopup()" style="cursor:pointer;" title="点击查看连续登录奖励">
         <span class="stat-icon">🔥</span> 连续 7 天
       </div>
       <div class="stat-pill rank">
@@ -1079,11 +1091,11 @@ a { text-decoration: none; }
     <p class="hero-msg">今天你想去哪里冒险？</p>
   </div>
 
-  <!-- Notice -->
-  <div class="notice-bar">
+  <!-- Notice — v715: 可点击弹出最新消息 -->
+  <div class="notice-bar" onclick="showNewsPopup()" style="cursor:pointer;">
     <span class="notice-icon">📢</span>
     <div class="notice-content">
-      <strong>最新消息：</strong>科技节特别活动进行中！完成挑战可获得限定装备。点击查看详情 →
+      <strong>最新消息：</strong><span id="newsTicker">每周日王者结算，前10名赢专属称号！点击查看详情 →</span>
     </div>
   </div>
 
@@ -1245,6 +1257,7 @@ a { text-decoration: none; }
         <button class="rank-tab" onclick="switchRankTab('tower')">🗼 爬塔榜</button>
         <button class="rank-tab" onclick="switchRankTab('mythic')">💎 神话装备</button>
         <button class="rank-tab" onclick="switchRankTab('achievement')">🏅 成就榜</button>
+        <button class="rank-tab" onclick="switchRankTab('xuanba')">🧪 校队选拔</button>
       </div>
       <div class="rank-list" id="rankListContent">
         <div style="text-align:center;padding:32px;color:var(--muted);">加载中...</div>
@@ -1469,7 +1482,7 @@ a { text-decoration: none; }
           <div class="xuanba-stat"><div class="xuanba-stat-value">12名</div><div class="xuanba-stat-label">年级排名</div></div>
           <div class="xuanba-stat"><div class="xuanba-stat-value">3次</div><div class="xuanba-stat-label">剩余机会</div></div>
         </div>
-        <button class="syn-btn" style="margin:0 auto;">🚀 开始测试</button>
+        <button class="syn-btn" style="margin:0 auto;" onclick="startXuanba()">🚀 开始测试</button>
       </div>
     </div>
   </div>
@@ -2460,7 +2473,7 @@ function switchRankTab(type) {
   _currentRankTab = type;
   // Update tab buttons
   var tabs = document.querySelectorAll('#rankTabBar .rank-tab');
-  var tabNames = {score:'积分',ladder:'天梯',tower:'爬塔',mythic:'神话',achievement:'成就'};
+  var tabNames = {score:'积分',ladder:'天梯',tower:'爬塔',mythic:'神话',achievement:'成就',xuanba:'校队'};
   var tName = tabNames[type] || '';
   tabs.forEach(function(t) { t.classList.toggle('active', t.textContent.indexOf(tName) !== -1); });
   
@@ -2473,6 +2486,7 @@ function switchRankTab(type) {
   else if (type === 'ladder') { sortField = 'ladderScore'; label = '天梯分'; selfField = 'ladderScore'; selfFallback = gameState.ladderBestScore; }
   else if (type === 'tower') { sortField = 'towerFloor'; label = '爬塔层数'; selfField = 'towerFloor'; selfFallback = gameState.towerHighestFloor; }
   else if (type === 'mythic') { sortField = 'mythicCount'; label = '神话装备'; selfField = 'mythicCount'; selfFallback = 0; }
+  else if (type === 'xuanba') { sortField = 'xuanbaScore'; label = '校队选拔'; selfField = 'xuanbaScore'; selfFallback = gameState.xuanbaBestScore || 0; }
   else { sortField = 'achievementCount'; label = '成就数'; selfField = 'achievementCount'; selfFallback = (gameState.unlockedAchievements || []).length; }
 
   rankings.sort(function(a, b) { return (b[sortField] || 0) - (a[sortField] || 0); });
@@ -3293,6 +3307,122 @@ function setupCourseTabs() {
       loadCourses(currentGrade, currentSemester);
     });
   });
+}
+
+// ===== v715: 最新消息弹窗 =====
+var NEWS_DATA = {
+  announce: [
+    {title:'🏆 每周日王者结算',date:'2026-06-13',tag:'hot',tagLabel:'🔥 热门',
+     detail:'每周日晚上21:00自动结算天梯排行。天梯王者（前10名）、爬塔王者（前10名）、成就王者（前10名）将获得专属称号和弹幕广播。获得王者的同学下周登录即可领取奖励！'},
+    {title:'🎊 六年级每日登录奖励',date:'2026-06-01',tag:'hot',tagLabel:'🔥 热门',
+     detail:'每日登录即送10,000积分！连续登录3天送传说装备，连续登录7天送神话装备。积分可用于抽取宠物和合成装备。'},
+    {title:'⚔️ 天梯挑战已上线',date:'2026-06-08',tag:'new',tagLabel:'🆕 新功能',
+     detail:'天梯挑战每日可进行10次，每次随机10道科学基础题。答对越多积分越高，黑铁段位起步1000分。达到王者段位（1900分）即可登顶排行！'},
+    {title:'🧪 校队选拔开放',date:'2026-06-03',tag:'new',tagLabel:'🆕 新功能',
+     detail:'校队选拔测试现已开放！挑战综合科学推理题，展示你的逻辑思维和推理能力。每人限测2次，保留最高分。点击首页"校队选拔"按钮即可开始。'},
+    {title:'🗼 爬塔系统升级',date:'2026-06-08',tag:'update',tagLabel:'📋 更新',
+     detail:'爬塔题库已升级为2021-2025五年六年级科学真题，共250道真实考题。每道题标注年份来源，刷题更有效！'},
+  ],
+  update: [
+    {title:'v715 天梯段位修复',date:'2026-06-13',
+     detail:'修复天梯段位显示bug：段位刻度统一为1000基线（黑铁1000、青铜1120、白银1270、黄金1420、铂金1550、钻石1670、星耀1800、王者1900）。新增积分暴涨守卫和悬崖守卫。'},
+    {title:'v714 登录等待云同步',date:'2026-06-08',
+     detail:'优化登录流程：登录后不再等待云同步，秒进主界面。云端数据在后台同步，状态栏显示同步进度。装备数据改为首次打开背包时加载，减少首屏加载时间。'},
+    {title:'v713 云存档修复',date:'2026-06-06',
+     detail:'修复装备合成原子操作bug。强化云端智能合并策略。新增pending队列自动重试机制。'},
+  ]
+};
+
+function showNewsPopup() {
+  var html = '<div class=\"news-popup-header\">📢 最新消息</div>';
+  html += '<div class=\"news-tabs\"><button class=\"news-tab active\" onclick=\"switchNewsTab(this,&quot;announce&quot;)\">📋 公告</button><button class=\"news-tab\" onclick=\"switchNewsTab(this,&quot;update&quot;)\">🔄 更新</button></div>';
+  html += '<div class=\"news-list\" id=\"newsList\"></div>';
+  var popup = showGenericPopup(html);
+  renderNewsList('announce');
+}
+
+function switchNewsTab(btn, tab) {
+  document.querySelectorAll('.news-tab').forEach(function(t){t.classList.remove('active');});
+  btn.classList.add('active');
+  renderNewsList(tab);
+}
+
+function renderNewsList(tab) {
+  var list = document.getElementById('newsList');
+  if (!list) return;
+  var items = NEWS_DATA[tab] || [];
+  list.innerHTML = items.map(function(item, i){
+    var tagHtml = item.tag ? '<span class=\"news-tag news-tag-'+item.tag+'\">'+item.tagLabel+'</span>' : '';
+    return '<div class=\"news-item\" style=\"cursor:pointer;padding:10px;border-bottom:1px solid #eee;\" data-tab=\"'+tab+'\" data-idx=\"'+i+'\">'+tagHtml+' <strong>'+item.title+'</strong><div style=\"font-size:11px;color:#999;\">'+item.date+'</div></div>';
+  }).join('');
+  // v715: attach click handlers via delegation
+  list.querySelectorAll('.news-item').forEach(function(el){
+    el.addEventListener('click', function(){
+      var t = this.getAttribute('data-tab');
+      var idx = parseInt(this.getAttribute('data-idx'));
+      showNewsDetail(t, idx);
+    });
+  });
+}
+
+function showNewsDetail(tab, idx) {
+  var item = NEWS_DATA[tab][idx];
+  if (!item) return;
+  var detailHtml = '<div style=\"padding:16px;\"><h3>'+item.title+'</h3><div style=\"color:#999;font-size:12px;margin:8px 0;\">'+item.date+'</div><div style=\"line-height:1.8;white-space:pre-wrap;\">'+item.detail+'</div><button class=\"btn btn-primary\" style=\"margin-top:12px;\" onclick=\"closeGenericPopup()\">关闭</button></div>';
+  showGenericPopup(detailHtml);
+}
+
+// ===== v715: 连续登录奖励说明弹窗 =====
+function showStreakPopup() {
+  var streak = gameState.currentStreak || 0;
+  var rewards = [
+    {day:1,reward:'+10,000 积分',desc:'每日登录即可领取'},
+    {day:3,reward:'传说装备 ×1',desc:'连续3天登录奖励'},
+    {day:7,reward:'神话装备 ×1',desc:'连续7天登录奖励'},
+  ];
+  var html = '<div style=\"padding:16px;\"><h3>🔥 连续登录奖励</h3>';
+  html += '<p style=\"color:#666;margin:8px 0;\">你当前连续登录：<strong style=\"color:#ff6b00;\">' + streak + ' 天</strong></p>';
+  html += '<div style=\"margin:12px 0;\">';
+  rewards.forEach(function(r){
+    var done = streak >= r.day;
+    html += '<div style=\"padding:10px;margin:6px 0;border-radius:8px;background:'+(done?'#e8f5e9':'#f5f5f5')+';\">';
+    html += '<span style=\"font-size:1.2em;\">'+(done?'✅':'⏳')+'</span> ';
+    html += '<strong>第'+r.day+'天</strong>：'+r.reward;
+    html += '<div style=\"font-size:11px;color:#999;\">'+r.desc+'</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  html += '<p style=\"font-size:12px;color:#999;\">每天登录即自动累计，中断后重新计算。奖励自动发放到背包。</p>';
+  html += '<button class=\"btn btn-primary\" style=\"margin-top:8px;\" onclick=\"closeGenericPopup()\">我知道了</button></div>';
+  showGenericPopup(html);
+}
+
+// ===== v715: 校队选拔入口 =====
+function startXuanba() {
+  closeOverlay('xuanbaOverlay');
+  // 打开xuanba.html的iframe
+  var html = '<div style=\"padding:0;\">';
+  html += '<iframe src=\"../xuanba.html?sid='+(studentId||'')+'\" style=\"width:100%;height:75vh;border:none;border-radius:8px;\"></iframe>';
+  html += '</div>';
+  showGenericPopup(html, true);
+}
+
+// ===== v715: 通用弹窗 =====
+var _genericPopupOverlay = null;
+function showGenericPopup(html, fullscreen) {
+  if (!_genericPopupOverlay) {
+    _genericPopupOverlay = document.createElement('div');
+    _genericPopupOverlay.className = 'overlay';
+    _genericPopupOverlay.id = 'genericPopupOverlay';
+    _genericPopupOverlay.innerHTML = '<div class=\"overlay-card\" style=\"max-width:'+(fullscreen?'95vw':'480px')+';max-height:90vh;overflow-y:auto;\"><button class=\"overlay-close\" onclick=\"closeGenericPopup()\">✕</button><div id=\"genericPopupContent\"></div></div>';
+    document.body.appendChild(_genericPopupOverlay);
+  }
+  document.getElementById('genericPopupContent').innerHTML = html;
+  _genericPopupOverlay.classList.add('show');
+}
+
+function closeGenericPopup() {
+  if (_genericPopupOverlay) _genericPopupOverlay.classList.remove('show');
 }
 
 // ===== Populate Overlays with Real Data =====
