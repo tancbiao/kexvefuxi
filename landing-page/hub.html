@@ -3450,25 +3450,14 @@ function showStreakPopup() {
 
 // ===== v715: 校队选拔入口 =====
 function startXuanba() {
-  if (!studentId) { showCloudToast('请先登录','warn'); openOverlay('loginModal'); return; }
-  var frame = document.getElementById('xuanbaFrame');
-  if (frame && !frame.src) {
-    frame.src = '../xuanba.html?sid=' + studentId;
-    // v715fix: 向 iframe 发送 init_xuanba 消息，传递学生信息
-    frame.onload = function() {
-      if (!frame.contentWindow) return;
-      var gradeCode = (studentId && studentId.length >= 4) ? studentId.substring(2,4) : '';
-      var name = (gameState && gameState.studentName) || studentId || '';
-      frame.contentWindow.postMessage({
-        type: 'init_xuanba',
-        studentId: studentId,
-        studentName: name,
-        grade: gradeCode
-      }, '*');
-    };
-  }
-  openOverlay('xuanbaOverlay');
-  document.getElementById('xuanbaFloat').style.display = 'none';
+  showCloudToast('🧪 校队选拔功能敬请期待', 'info');
+  var html = '<div style="text-align:center;padding:20px 0;">';
+  html += '<div style="font-size:48px;margin-bottom:12px;">🧪</div>';
+  html += '<h3 style="color:#4F46E5;margin:0 0 8px;">校队选拔</h3>';
+  html += '<p style="color:#666;margin:0 0 16px;">功能正在开发中，敬请期待！</p>';
+  html += '<p style="font-size:12px;color:#999;">我们将尽快上线瑞文推理测验，敬请留意公告。</p>';
+  html += '<button class="btn btn-primary" style="margin-top:8px;" onclick="closeGenericPopup()">我知道了</button></div>';
+  showGenericPopup(html);
 }
 
 function minimizeXuanba() {
