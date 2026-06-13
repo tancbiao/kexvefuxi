@@ -2237,60 +2237,60 @@ function getCurrentGrade() {
   if (studentId && studentId.length>=4) { var gi=parseInt(studentId.substring(2,4)); var gm={20:'6',21:'5',22:'4',23:'3'}; return gm[gi]||'4'; }
   return '4';
 }
-function loadGradeQuestions(grade) {
-  return new Promise(function(resolve) {
-    var qs = extractLessonQuestions(grade);
-    if (qs.length > 0) { resolve(qs); return; }
-    loadCourses(grade, '2').then(function() {
-      var qs2 = extractLessonQuestions(grade);
-      if (qs2.length > 0) { resolve(qs2); return; }
-      // v715: 下册无数据，尝试上册
-      loadCourses(grade, '1').then(function() {
-        resolve(extractLessonQuestions(grade));
-      }).catch(function() {
-        resolve(generateBackupQuestions());
-      });
-    }).catch(function() {
-      // v715: loadCourses失败，回退到备用题库
-      resolve(generateBackupQuestions());
-    });
-  });
-}
-function extractLessonQuestions(grade) {
-  var qs=[];
-  for (var sem=1;sem<=2;sem++) {
-    var data=lessonDataCache[grade+sem];
-    if(!data) continue;
-    // v715: data结构为 { unit1:{lessons:[...]}, unit2:{lessons:[...]}, ... }
-    for (var uk in data) {
-      if (!data.hasOwnProperty(uk)) continue;
-      var unit = data[uk];
-      if (!unit || !unit.lessons) continue;
-      unit.lessons.forEach(function(lesson){
-        // 每个lesson有 basic/medium/hard 三个难度数组
-        ['basic','medium','hard'].forEach(function(diff){
-          var arr = lesson[diff];
-          if (!arr || !arr.length) return;
-          arr.forEach(function(q){
-            if(q.q && q.options && q.answer!==undefined) {
-              qs.push({
-                question:'【'+grade+'·'+((unit.name||'')+'-'+(lesson.name||'')).replace(/^【/,'')+'】'+q.q,
-                options:q.options,
-                answer:q.answer
-              });
-            }
-          });
-        });
-      });
-    }
-  }
-  return qs;
-}
-function generateBackupQuestions() {
-  var qs=[];
-  for(var i=1;i<=10;i++) qs.push({question:'题库加载中... 第'+i+'题',options:['A','B','C','D'],answer:0});
-  return qs;
-}
+
+// v715: 天梯基础题库（50道科学常识题，黑铁段位用）
+var LADDER_BASIC_QUESTIONS = [
+  {question:'下列哪种材料是导体？',options:['橡皮','铜线','玻璃','塑料'],answer:1},
+  {question:'电磁铁的磁力大小与什么有关？',options:['铁钉颜色','线圈匝数和电流','导线长度','电池品牌'],answer:1},
+  {question:'食物链通常从什么开始？',options:['肉食动物','绿色植物','分解者','太阳'],answer:1},
+  {question:'太阳能属于什么能源？',options:['不可再生','可再生能源','化石能源','核能'],answer:1},
+  {question:'植物的叶子主要进行什么作用？',options:['呼吸作用','光合作用','消化作用','蒸腾作用'],answer:1},
+  {question:'电路由哪几部分组成？',options:['电源、导线、用电器、开关','电池、灯泡','开关、电线','正极、负极'],answer:0},
+  {question:'下列哪种做法是安全用电？',options:['湿手插插头','用金属棒捅插座','不用湿手碰电器','在电线上晾衣服'],answer:2},
+  {question:'月相变化周期大约是？',options:['一天','一周','一个月','一年'],answer:2},
+  {question:'地球绕太阳转一周的时间是？',options:['一天','一个月','一年','一小时'],answer:2},
+  {question:'磁悬浮列车利用了什么原理？',options:['风力','电磁铁','蒸汽','太阳能'],answer:1},
+  {question:'下列哪种废弃物可以回收利用？',options:['废电池','易拉罐','医疗废物','过期药品'],answer:1},
+  {question:'凤仙花（不）属于什么？',options:['草本植物','木本植物','水生植物','藤本植物'],answer:0},
+  {question:'青蛙的发育过程叫什么？',options:['完全变态','不完全变态','变态发育','直接发育'],answer:2},
+  {question:'下列哪种动物是哺乳动物？',options:['蛇','鲸','乌龟','青蛙'],answer:1},
+  {question:'水在多少摄氏度结冰？',options:['100°C','0°C','-10°C','50°C'],answer:1},
+  {question:'空气的主要成分是什么？',options:['氧气和氮气','氧气和二氧化碳','氮气和氢气','氧气和水蒸气'],answer:0},
+  {question:'声音可以在什么中传播？',options:['真空中','空气中','太空中','以上都不能'],answer:1},
+  {question:'杠杆原理中，支点离重物越近越？',options:['费力','省力','没影响','无法判断'],answer:1},
+  {question:'下列哪种现象是化学变化？',options:['冰融化','铁生锈','水蒸发','纸撕碎'],answer:1},
+  {question:'摩擦力的大小与什么有关？',options:['接触面光滑程度和压力','物体颜色','温度','湿度'],answer:0},
+  {question:'太阳能电池板将太阳能转化为什么能？',options:['热能','电能','机械能','化学能'],answer:1},
+  {question:'风向标用来测量什么？',options:['风速','风向','温度','湿度'],answer:1},
+  {question:'蚕的一生经历几个阶段？',options:['2个','3个','4个','5个'],answer:2},
+  {question:'定滑轮的作用是什么？',options:['省力','改变用力方向','省距离','加快速度'],answer:1},
+  {question:'下列哪种不是昆虫？',options:['蝴蝶','蜘蛛','蚂蚁','蜜蜂'],answer:1},
+  {question:'骨骼的作用不包括什么？',options:['支撑身体','保护内脏','产生血液','制造营养'],answer:3},
+  {question:'土壤中最适合植物生长的是？',options:['沙土','黏土','壤土','岩石'],answer:2},
+  {question:'一天中影子最短是什么时候？',options:['早晨','中午','傍晚','晚上'],answer:1},
+  {question:'下列哪种是绝缘体？',options:['铁钉','铜线','橡皮','铝箔'],answer:2},
+  {question:'气象站用雨量器测量什么？',options:['温度','湿度','降水量','风速'],answer:2},
+  {question:'人体正常体温大约是？',options:['35°C','37°C','39°C','42°C'],answer:1},
+  {question:'用放大镜观察物体时看到的是？',options:['缩小的像','放大的像','一样大','倒立的像'],answer:1},
+  {question:'并联电路中一个灯泡坏了，另一个会？',options:['也灭','继续亮','变暗','爆炸'],answer:1},
+  {question:'下列哪种做法能减少摩擦力？',options:['加润滑油','轮胎刻花纹','鞋底做凹凸','增加重量'],answer:0},
+  {question:'热是怎样传递的？',options:['从低温到高温','从高温到低温','同时传递','不传递'],answer:1},
+  {question:'植物的根主要作用是什么？',options:['光合作用','吸收水分和矿物质','繁殖','呼吸'],answer:1},
+  {question:'下列哪个是果实？',options:['萝卜','土豆','苹果','白菜'],answer:2},
+  {question:'日食发生时，什么挡住了太阳光？',options:['地球','月球','金星','火星'],answer:1},
+  {question:'弹簧测力计是用来测量什么的？',options:['温度','力的大小','长度','时间'],answer:1},
+  {question:'鸟类的繁殖方式是？',options:['胎生','卵生','分裂','出芽'],answer:1},
+  {question:'小孔成像的原理是什么？',options:['光沿直线传播','光的反射','光的折射','光的散射'],answer:0},
+  {question:'下列哪种是可再生资源？',options:['煤炭','石油','太阳能','天然气'],answer:2},
+  {question:'熄灭酒精灯的正确方法？',options:['用嘴吹灭','用灯帽盖灭','用水浇灭','用手扇灭'],answer:1},
+  {question:'下列哪种物质溶于水？',options:['沙子','食盐','铁粉','木屑'],answer:1},
+  {question:'显微镜的发明使人们发现了什么？',options:['细胞','原子','分子','电子'],answer:0},
+  {question:'电灯是将电能转化为什么？',options:['光能和热能','机械能','化学能','声能'],answer:0},
+  {question:'彩虹有几种颜色？',options:['5种','6种','7种','8种'],answer:2},
+  {question:'卫星绕着行星转，月球是地球的什么？',options:['行星','恒星','卫星','彗星'],answer:2},
+  {question:'把纸揉成团，这个变化是？',options:['化学变化','物理变化','生物变化','核变化'],answer:1},
+  {question:'蚂蚁靠什么交流信息？',options:['声音','触角','眼睛','颜色'],answer:1},
+];
 
 function startLadderChallenge() {
   if (_ladderState.dailyCount >= 10) { showCloudToast('今日挑战次数已用完，明天再来！','warn'); return; }
@@ -2298,13 +2298,10 @@ function startLadderChallenge() {
   document.getElementById('ladderQuizArea').style.display = '';
   var elRes = document.getElementById('ladderResult'); if (elRes) elRes.style.display = 'none';
   _ladderState.qIdx = 0; _ladderState.correctCount = 0; _ladderState.streak = 0;
-  // Use grade-specific lesson questions (基础题库)
-  var grade = getCurrentGrade();
-  loadGradeQuestions(grade).then(function(qs) {
-    _ladderState.questions = shuffleArray(qs.slice()).slice(0,10);
-    if (_ladderState.questions.length === 0) { showCloudToast('题库加载失败','warn'); return; }
-    renderLadderQ();
-  });
+  // v715: 直接用内置基础题库（黑铁段位=基础题）
+  _ladderState.questions = shuffleArray(LADDER_BASIC_QUESTIONS.slice()).slice(0,10);
+  if (_ladderState.questions.length === 0) { showCloudToast('题库加载失败','warn'); return; }
+  renderLadderQ();
 }
 
 function renderLadderQ() {
