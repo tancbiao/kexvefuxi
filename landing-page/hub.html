@@ -1031,6 +1031,20 @@ a { text-decoration: none; }
 .overlay-card.font-size-sm, .overlay-card.font-size-sm * { --fs-scale: 0.85; }
 .overlay-card.font-size-md, .overlay-card.font-size-md * { --fs-scale: 1; }
 .overlay-card.font-size-lg, .overlay-card.font-size-lg * { --fs-scale: 1.5; }
+
+/* v715: 爬塔弹窗字体缩放——覆盖inline style */
+.overlay-card.font-size-sm #towerQuestionText { font-size: calc(12px * 0.85) !important; }
+.overlay-card.font-size-md #towerQuestionText { font-size: 12px !important; }
+.overlay-card.font-size-lg #towerQuestionText { font-size: calc(12px * 1.5) !important; }
+.overlay-card.font-size-sm #towerOptions button { font-size: calc(12px * 0.85) !important; padding: calc(7px * 0.85) calc(12px * 0.85) !important; }
+.overlay-card.font-size-md #towerOptions button { font-size: 12px !important; padding: 7px 12px !important; }
+.overlay-card.font-size-lg #towerOptions button { font-size: calc(12px * 1.5) !important; padding: calc(7px * 1.5) calc(12px * 1.5) !important; }
+.overlay-card.font-size-sm #towerFloorNum { font-size: calc(15px * 0.85) !important; }
+.overlay-card.font-size-md #towerFloorNum { font-size: 15px !important; }
+.overlay-card.font-size-lg #towerFloorNum { font-size: calc(15px * 1.5) !important; }
+.overlay-card.font-size-sm #towerBody { font-size: calc(13px * 0.85) !important; }
+.overlay-card.font-size-md #towerBody { font-size: 13px !important; }
+.overlay-card.font-size-lg #towerBody { font-size: calc(13px * 1.5) !important; }
 .font-ctrl { display: none; gap: 4px; align-items: center; }
 .overlay.fullscreen .font-ctrl { display: flex; }
 .font-ctrl button { padding: 3px 10px; border-radius: var(--radius-full); border: 2px solid var(--border); background: white; font-size: 12px; font-weight: 600; cursor: pointer; }
