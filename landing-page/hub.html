@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" href="icons/icon_crystal.png">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
 <script src="../js/cloud-config.js?v=5"></script>
-<script src="../js/icon-map.js?v=3"></script>
+<script src="js/icon-map.js?v=3"></script>
 <style>
 /* ===== Design System ===== */
 :root {
@@ -2016,7 +2016,7 @@ function loadTowerQuestions() {
   if (_towerQuestions) return Promise.resolve(_towerQuestions);
   return new Promise(function(resolve) {
     if (typeof TOWER_QUESTIONS !== 'undefined') { _towerQuestions = shuffleArray(TOWER_QUESTIONS.slice()); resolve(_towerQuestions); return; }
-    var s = document.createElement('script'); s.src='../data/tower-questions.js?v=1'; s.onload = function() { _towerQuestions = shuffleArray(TOWER_QUESTIONS.slice()); resolve(_towerQuestions); };
+    var s = document.createElement('script'); s.src='data/tower-questions.js?v=1'; s.onload = function() { _towerQuestions = shuffleArray(TOWER_QUESTIONS.slice()); resolve(_towerQuestions); };
     s.onerror = function() { _towerQuestions = []; resolve([]); }; document.head.appendChild(s);
   });
 }
