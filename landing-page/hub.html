@@ -1,0 +1,3855 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>科学探险家 · 冒险大厅</title>
+<link rel="icon" type="image/png" href="icons/icon_crystal.png">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="../js/cloud-config.js?v=5"></script>
+<script src="js/icon-map.js?v=3"></script>
+<style>
+/* ===== Design System ===== */
+:root {
+  --primary:       #4F46E5;
+  --primary-light: #818CF8;
+  --primary-bg:    #EEF2FF;
+  --accent:        #EA580C;
+  --accent-light:  #FFF7ED;
+  --success:       #4ADE80;
+  --success-light: #F0FDF4;
+  --gold:          #F59E0B;
+  --gold-light:    #FFFBEB;
+  --text:          #1E1B4B;
+  --muted:         #64748B;
+  --white:         #FFFFFF;
+  --border:        #C7D2FE;
+  --font-heading:  'Fredoka', 'Segoe UI', sans-serif;
+  --font-body:     'Nunito', 'Segoe UI', sans-serif;
+  --radius-sm: 16px;
+  --radius-md: 24px;
+  --radius-lg: 32px;
+  --radius-xl: 48px;
+  --radius-full: 9999px;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font-body);
+  font-weight: 500;
+  color: var(--text);
+  min-height: 100vh;
+  background: linear-gradient(180deg, #EEF2FF 0%, #F5F3FF 40%, #FFF7ED 100%);
+}
+
+a { text-decoration: none; }
+
+/* ===== Top Status Bar ===== */
+.top-bar {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 2px 12px rgba(200, 200, 240, 0.3);
+  padding: 12px 24px;
+}
+
+.logout-btn {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--white);
+  font-size: 18px; color: var(--muted);
+  cursor: pointer; transition: all 0.25s;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.logout-btn:hover { border-color: #EF4444; color: #DC2626; background: #FEF2F2; }
+
+.top-bar-inner {
+  max-width: 900px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px;
+}
+
+.top-user {
+  display: flex; align-items: center; gap: 10px;
+}
+
+.user-avatar {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4F46E5, #818CF8);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  color: var(--white);
+  box-shadow: 0 3px 10px rgba(79, 70, 229, 0.3);
+}
+
+.user-name {
+  font-family: var(--font-heading);
+  font-size: 18px; font-weight: 700;
+  color: var(--text);
+}
+
+.user-grade {
+  font-size: 12px; font-weight: 600;
+  color: var(--primary);
+  background: var(--primary-bg);
+  padding: 2px 10px; border-radius: var(--radius-full);
+}
+
+/* Stats pills */
+.top-stats {
+  display: flex; align-items: center; gap: 12px;
+}
+
+.stat-pill {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  font-size: 14px; font-weight: 700;
+  transition: transform 0.2s;
+}
+
+.stat-pill:hover {
+  transform: scale(1.05);
+}
+
+.stat-pill.points {
+  background: var(--gold-light);
+  color: #92400E;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+}
+
+.stat-pill.streak {
+  background: #FEF2F2;
+  color: #DC2626;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.1);
+}
+
+.stat-pill.rank {
+  background: var(--success-light);
+  color: #166534;
+  box-shadow: 0 2px 8px rgba(74, 222, 128, 0.15);
+}
+
+.stat-icon { font-size: 16px; }
+
+/* ===== Main Content ===== */
+.main-content {
+  max-width: 900px; margin: 0 auto;
+  padding: 24px 20px 40px;
+}
+
+/* Hero area */
+.hero-area {
+  text-align: center;
+  padding: 32px 20px 24px;
+}
+
+.hero-mascot {
+  font-size: 72px;
+  animation: floatMascot 3s ease-in-out infinite;
+  display: inline-block;
+}
+
+@keyframes floatMascot {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-10px) rotate(-3deg); }
+  75% { transform: translateY(-6px) rotate(3deg); }
+}
+
+.hero-greeting {
+  font-family: var(--font-heading);
+  font-size: 28px; font-weight: 700;
+  color: var(--text);
+  margin: 12px 0 6px;
+}
+
+.hero-msg {
+  font-size: 15px; color: var(--muted); font-weight: 600;
+}
+
+/* Notice section */
+.notice-bar {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  padding: 16px 24px;
+  margin-bottom: 28px;
+  box-shadow:
+    0 4px 16px rgba(79, 70, 229, 0.08),
+    inset 0 -1px 4px rgba(255, 255, 255, 0.5);
+  display: flex; align-items: flex-start; gap: 12px;
+}
+
+.notice-icon {
+  font-size: 22px; flex-shrink: 0; margin-top: 2px;
+}
+
+.notice-content {
+  flex: 1;
+  font-size: 14px; line-height: 1.6; color: var(--muted);
+  font-weight: 600;
+}
+
+.notice-content strong {
+  color: var(--primary);
+}
+
+/* ===== Game Mode Cards ===== */
+.section-title {
+  font-family: var(--font-heading);
+  font-size: 22px; font-weight: 700;
+  color: var(--text);
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.mode-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+@media (max-width: 700px) {
+  .mode-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .mode-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mode-card {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  padding: 28px 20px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow:
+    0 4px 16px rgba(79, 70, 229, 0.08),
+    inset 0 -2px 4px rgba(255, 255, 255, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.mode-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+}
+
+.mode-card.lesson::before { background: var(--primary); }
+.mode-card.tower::before  { background: var(--accent); }
+.mode-card.ladder::before { background: var(--success); }
+
+.mode-card:hover {
+  transform: translateY(-6px);
+}
+
+.mode-card.lesson:hover {
+  box-shadow: 0 12px 32px rgba(79, 70, 229, 0.18), inset 0 -2px 4px rgba(255,255,255,0.5);
+}
+.mode-card.tower:hover {
+  box-shadow: 0 12px 32px rgba(234, 88, 12, 0.15), inset 0 -2px 4px rgba(255,255,255,0.5);
+}
+.mode-card.ladder:hover {
+  box-shadow: 0 12px 32px rgba(74, 222, 128, 0.15), inset 0 -2px 4px rgba(255,255,255,0.5);
+}
+
+.mode-icon {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px;
+  margin: 0 auto 14px;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.mode-card:hover .mode-icon {
+  transform: scale(1.15);
+}
+
+.mode-icon.lesson-bg { background: var(--primary-bg); }
+.mode-icon.tower-bg  { background: var(--accent-light); }
+.mode-icon.ladder-bg { background: var(--success-light); }
+
+.mode-name {
+  font-family: var(--font-heading);
+  font-size: 20px; font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.mode-desc {
+  font-size: 13px; font-weight: 500;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* Progress bar */
+.mode-progress {
+  margin-top: 14px;
+  height: 6px;
+  background: var(--primary-bg);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.mode-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+
+.mode-progress-fill.purple { background: var(--primary); }
+.mode-progress-fill.orange { background: var(--accent); }
+.mode-progress-fill.green  { background: var(--success); }
+
+/* ===== Quick Actions ===== */
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+@media (max-width: 600px) {
+  .quick-actions {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.quick-btn {
+  background: var(--white);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 20px 12px;
+  text-align: center;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 14px; font-weight: 700;
+  color: var(--text);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow:
+    0 2px 8px rgba(0,0,0,0.04),
+    inset 0 -2px 4px rgba(255,255,255,0.4);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+
+.quick-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.12);
+}
+
+.quick-icon {
+  font-size: 28px;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.quick-btn:hover .quick-icon {
+  transform: scale(1.2);
+}
+
+/* ===== Bottom CTA ===== */
+.bottom-cta {
+  background: linear-gradient(135deg, #4F46E5, #7C5CE7);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  text-align: center;
+  color: var(--white);
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.25);
+}
+
+.bottom-cta h3 {
+  font-family: var(--font-heading);
+  font-size: 20px; font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.bottom-cta p {
+  font-size: 14px; font-weight: 600;
+  opacity: 0.85;
+  margin-bottom: 16px;
+}
+
+.btn-white-sm {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 32px;
+  border-radius: var(--radius-xl);
+  background: var(--white);
+  color: var(--primary);
+  font-family: var(--font-body);
+  font-size: 16px; font-weight: 700;
+  border: none; cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.btn-white-sm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .top-stats { gap: 8px; }
+  .stat-pill { padding: 6px 12px; font-size: 13px; }
+  .hero-mascot { font-size: 56px; }
+  .hero-greeting { font-size: 22px; }
+  .section-title { font-size: 18px; }
+}
+/* ============================================
+   Overlay / Modal System — Claymorphism Style
+   ============================================ */
+
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(30, 27, 75, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 500;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+  animation: overlayFadeIn 0.25s ease;
+}
+
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.overlay.show { display: flex; }
+
+.overlay-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 600px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow:
+    0 20px 60px rgba(79, 70, 229, 0.2),
+    inset 0 -2px 6px rgba(255, 255, 255, 0.4);
+  animation: cardSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes cardSlideUp {
+  from { opacity: 0; transform: translateY(40px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.overlay-header {
+  position: sticky; top: 0;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 24px 28px 16px;
+  border-bottom: 2px solid var(--primary-bg);
+  background: var(--white);
+  z-index: 2;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.overlay-title {
+  font-family: var(--font-heading);
+  font-size: 22px; font-weight: 700;
+  color: var(--text);
+  display: flex; align-items: center; gap: 10px;
+}
+
+.overlay-close {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: var(--primary-bg);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+  color: var(--muted);
+}
+
+.overlay-close:hover {
+  background: #FEE2E2;
+  color: #DC2626;
+  transform: rotate(90deg);
+}
+
+/* ===== Icon PNG images ===== */
+.icon-png {
+  vertical-align: middle;
+  transition: transform 0.2s;
+  object-fit: contain;
+}
+.icon-emoji, .icon-emoji-fallback {
+  vertical-align: middle;
+  line-height: 1;
+}
+.quick-btn:hover .icon-png { transform: scale(1.2); }
+.mode-card:hover .mode-icon .icon-png { transform: scale(1.15); }
+
+.overlay-body {
+  padding: 24px 28px 28px;
+}
+
+/* ===== Backpack Grid ===== */
+.bp-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.bp-item {
+  background: var(--primary-bg);
+  border-radius: var(--radius-sm);
+  padding: 20px 12px;
+  text-align: center;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.bp-item:hover {
+  transform: translateY(-3px);
+  border-color: var(--primary-light);
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.12);
+}
+
+.bp-item-icon {
+  font-size: 32px; margin-bottom: 8px;
+}
+
+.bp-item-name {
+  font-size: 13px; font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.bp-item-rarity {
+  font-size: 11px; font-weight: 600;
+  padding: 2px 10px; border-radius: var(--radius-full);
+  display: inline-block;
+}
+
+.bp-rarity-common  { background: #F3F4F6; color: #6B7280; }
+.bp-rarity-rare    { background: #DBEAFE; color: #2563EB; }
+.bp-rarity-epic    { background: #F3E8FF; color: #7C3AED; }
+.bp-rarity-legend  { background: #FEF3C7; color: #D97706; }
+.bp-rarity-mythic  { background: #FEE2E2; color: #DC2626; }
+
+/* ===== Rank List ===== */
+.rank-tabs {
+  display: flex; gap: 8px; margin-bottom: 20px;
+}
+
+.rank-tab {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--border);
+  background: var(--white);
+  font-family: var(--font-body);
+  font-size: 14px; font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.25s;
+}
+
+.rank-tab.active {
+  border-color: var(--primary);
+  background: var(--primary-bg);
+  color: var(--primary);
+}
+
+.rank-list { display: flex; flex-direction: column; gap: 10px; }
+
+.rank-row {
+  display: flex; align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--primary-bg);
+  transition: transform 0.2s;
+}
+
+.rank-row:hover { transform: translateX(4px); }
+
+.rank-row:first-child { background: linear-gradient(135deg, #FEF3C7, #FFFBEB); }
+.rank-row:nth-child(2) { background: linear-gradient(135deg, #F3F4F6, #F9FAFB); }
+.rank-row:nth-child(3) { background: linear-gradient(135deg, #FEF2F2, #FFF5F5); }
+
+.rank-num {
+  width: 32px; font-size: 16px; font-weight: 800;
+  color: var(--muted); text-align: center;
+}
+.rank-row:first-child .rank-num { color: #D97706; font-size: 20px; }
+.rank-row:nth-child(2) .rank-num { color: #6B7280; font-size: 18px; }
+.rank-row:nth-child(3) .rank-num { color: #B45309; font-size: 17px; }
+
+.rank-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+
+.rank-name { flex: 1; font-size: 15px; font-weight: 700; color: var(--text); }
+.rank-score { font-size: 15px; font-weight: 800; color: var(--primary); }
+
+/* ===== Wrong Questions ===== */
+.wq-list { display: flex; flex-direction: column; gap: 14px; }
+
+.wq-item {
+  background: var(--primary-bg);
+  border-radius: var(--radius-sm);
+  padding: 16px 18px;
+  border-left: 4px solid #EF4444;
+}
+
+.wq-q { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 8px; line-height: 1.5; }
+
+.wq-answers {
+  display: flex; gap: 10px; font-size: 13px; font-weight: 600;
+}
+
+.wq-wrong { color: #DC2626; }
+.wq-correct { color: #16A34A; }
+
+.wq-meta {
+  font-size: 12px; color: var(--muted); margin-top: 8px;
+  display: flex; gap: 12px;
+}
+
+/* ===== Pets ===== */
+.pet-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.pet-card {
+  background: var(--primary-bg);
+  border-radius: var(--radius-sm);
+  padding: 20px;
+  text-align: center;
+  transition: all 0.25s;
+  cursor: pointer;
+}
+
+.pet-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.1);
+}
+
+.pet-avatar { font-size: 44px; margin-bottom: 8px; }
+.pet-name { font-size: 15px; font-weight: 700; color: var(--text); }
+.pet-level { font-size: 12px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+.pet-hp-bar {
+  height: 6px; background: #E5E7EB;
+  border-radius: 3px; margin-top: 10px; overflow: hidden;
+}
+.pet-hp-fill {
+  height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, #4ADE80, #22C55E);
+}
+
+/* ===== Achievement Badges ===== */
+.achievement-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.ach-badge {
+  background: var(--primary-bg);
+  border-radius: var(--radius-sm);
+  padding: 18px 10px;
+  text-align: center;
+  transition: all 0.25s;
+  cursor: pointer;
+}
+
+.ach-badge:hover { transform: scale(1.05); }
+
+.ach-icon { font-size: 32px; margin-bottom: 8px; }
+.ach-name { font-size: 12px; font-weight: 700; color: var(--text); }
+.ach-tier {
+  font-size: 10px; font-weight: 600; padding: 2px 8px;
+  border-radius: var(--radius-full); display: inline-block;
+  margin-top: 4px;
+}
+
+.ach-tier-bronze { background: #FEF3C7; color: #D97706; }
+.ach-tier-silver { background: #F3F4F6; color: #6B7280; }
+.ach-tier-gold   { background: #FEF3C7; color: #D97706; }
+.ach-tier-platinum { background: #ECFDF5; color: #059669; }
+
+.ach-locked {
+  opacity: 0.4;
+  filter: grayscale(0.8);
+}
+
+/* ===== Synthesis ===== */
+.syn-slots {
+  display: flex; gap: 12px; justify-content: center; margin-bottom: 24px;
+}
+
+.syn-slot {
+  width: 90px; height: 90px;
+  border-radius: var(--radius-sm);
+  background: var(--primary-bg);
+  border: 3px dashed var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 600; color: var(--muted);
+  transition: all 0.25s;
+}
+
+.syn-slot.filled {
+  border-style: solid;
+  border-color: var(--primary-light);
+  background: #EEF2FF;
+}
+
+.syn-plus {
+  font-size: 28px; color: var(--muted);
+  align-self: center;
+}
+
+.syn-arrow {
+  font-size: 28px; color: var(--primary);
+  align-self: center;
+}
+
+.syn-result {
+  width: 100px; height: 100px;
+  border-radius: var(--radius-sm);
+  border: 3px dashed var(--primary-light);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto;
+}
+
+.syn-btn {
+  display: block;
+  margin: 20px auto 0;
+  padding: 14px 48px;
+  border-radius: var(--radius-xl);
+  background: var(--primary);
+  color: var(--white);
+  font-family: var(--font-body);
+  font-size: 16px; font-weight: 700;
+  border: none; cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3);
+}
+
+.syn-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4); }
+.syn-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.syn-btn.ready { background: var(--accent); box-shadow: 0 4px 14px rgba(234, 88, 12, 0.3); }
+
+/* ===== Xuanba ===== */
+.xuanba-info {
+  text-align: center; padding: 20px 0;
+}
+
+.xuanba-icon { font-size: 56px; margin-bottom: 16px; }
+.xuanba-title { font-family: var(--font-heading); font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+.xuanba-desc { font-size: 14px; color: var(--muted); margin-bottom: 24px; line-height: 1.6; }
+
+.xuanba-stats {
+  display: flex; gap: 12px; justify-content: center; margin-bottom: 24px;
+}
+
+.xuanba-stat {
+  flex: 1;
+  background: var(--primary-bg);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  text-align: center;
+}
+
+.xuanba-stat-value { font-family: var(--font-heading); font-size: 28px; font-weight: 700; color: var(--primary); }
+.xuanba-stat-label { font-size: 12px; font-weight: 600; color: var(--muted); margin-top: 4px; }
+
+/* ===== Gifts ===== */
+.gift-tabs {
+  display: flex; gap: 8px; margin-bottom: 20px;
+}
+
+.gift-tab {
+  flex: 1;
+  padding: 10px; border-radius: var(--radius-full);
+  border: 2px solid var(--border);
+  background: var(--white);
+  font-family: var(--font-body);
+  font-size: 13px; font-weight: 700;
+  color: var(--muted); cursor: pointer; text-align: center;
+  transition: all 0.25s;
+}
+
+.gift-tab.active { border-color: var(--primary); background: var(--primary-bg); color: var(--primary); }
+
+.gift-list { display: flex; flex-direction: column; gap: 10px; }
+
+.gift-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--primary-bg);
+}
+
+.gift-icon { font-size: 28px; }
+.gift-info { flex: 1; }
+.gift-name { font-size: 14px; font-weight: 700; color: var(--text); }
+.gift-from { font-size: 12px; color: var(--muted); }
+.gift-btn-sm {
+  padding: 8px 20px; border-radius: var(--radius-full);
+  border: none; font-size: 13px; font-weight: 700; cursor: pointer;
+  transition: all 0.2s;
+}
+.gift-btn-accept { background: var(--primary); color: var(--white); }
+.gift-btn-accept:hover { transform: scale(1.05); }
+
+@media (max-width: 600px) {
+  .overlay-card { max-width: 100%; border-radius: var(--radius-md); }
+  .overlay-body { padding: 20px 20px 24px; }
+  .bp-grid { grid-template-columns: repeat(2, 1fr); }
+  .pet-grid { grid-template-columns: 1fr; }
+  .achievement-grid { grid-template-columns: repeat(2, 1fr); }
+  .syn-slots { gap: 8px; }
+  .syn-slot { width: 72px; height: 72px; }
+}
+
+/* ===== Login Modal ===== */
+.login-modal { text-align: center; }
+.login-modal .logo-emoji {
+  font-size: 44px;
+  animation: bounce 2s ease-in-out infinite;
+  display: inline-block;
+  margin-bottom: 4px;
+}
+@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+.login-modal h3 {
+  font-family: var(--font-heading); font-size: 24px; font-weight: 700;
+  color: var(--text); margin-bottom: 6px;
+}
+.login-modal .lm-sub { font-size: 14px; color: var(--muted); margin-bottom: 20px; }
+.login-modal .lm-input {
+  width: 100%; padding: 16px 20px; border: 3px solid var(--border);
+  border-radius: var(--radius-xl); background: var(--primary-bg);
+  font-family: var(--font-body); font-size: 18px; font-weight: 600;
+  text-align: center; outline: none; letter-spacing: 4px;
+  margin-bottom: 14px; color: var(--text);
+  transition: all 0.3s;
+}
+.login-modal .lm-input:focus { border-color: var(--primary); box-shadow: 0 0 0 6px rgba(79,70,229,0.12); }
+.login-modal .lm-input::placeholder { letter-spacing: 0; color: var(--muted); }
+.lm-btn {
+  width: 100%; padding: 14px; border: none; border-radius: var(--radius-xl);
+  font-family: var(--font-body); font-size: 17px; font-weight: 700;
+  cursor: pointer; transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  margin-bottom: 10px;
+}
+.lm-btn:hover { transform: translateY(-2px); }
+.lm-btn:active { transform: translateY(0) scale(0.98); }
+.lm-btn-primary {
+  background: var(--primary); color: var(--white);
+  box-shadow: 0 6px 20px rgba(79,70,229,0.35), inset 0 -2px 4px rgba(255,255,255,0.15);
+}
+.lm-btn-ghost {
+  background: var(--white); color: var(--muted);
+  border: 2px solid var(--border);
+}
+.lm-btn-ghost:hover { border-color: var(--primary-light); color: var(--primary); }
+
+/* ===== Course Panel ===== */
+.course-panel { display: flex; flex-direction: column; gap: 20px; }
+.cp-grade-tabs { display: flex; gap: 8px; }
+.cp-grade-tab {
+  flex: 1; padding: 10px; border-radius: var(--radius-full);
+  border: 2px solid var(--border); background: var(--white);
+  font-family: var(--font-body); font-size: 14px; font-weight: 700;
+  color: var(--muted); cursor: pointer; text-align: center; transition: all 0.2s;
+}
+.cp-grade-tab.active { border-color: var(--primary); background: var(--primary-bg); color: var(--primary); }
+.cp-semester-tabs { display: flex; gap: 8px; }
+.cp-semester-tab {
+  flex: 1; padding: 8px; border-radius: var(--radius-full);
+  border: 2px solid var(--border); background: var(--white);
+  font-family: var(--font-body); font-size: 13px; font-weight: 600;
+  color: var(--muted); cursor: pointer; text-align: center; transition: all 0.2s;
+}
+.cp-semester-tab.active { border-color: var(--accent); background: var(--accent-light); color: var(--accent); font-weight: 700; }
+.cp-lesson-grid { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; }
+.cp-lesson {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 18px; border-radius: var(--radius-sm);
+  background: var(--primary-bg); cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  border: 2px solid transparent;
+}
+.cp-lesson:hover { transform: translateX(4px); border-color: var(--primary-light); }
+.cp-lesson.completed { background: var(--success-light); border-color: var(--success); }
+.cp-lesson-icon { font-size: 24px; flex-shrink: 0; }
+.cp-lesson-info { flex: 1; }
+.cp-lesson-name { font-size: 15px; font-weight: 700; color: var(--text); }
+.cp-lesson-unit { font-size: 12px; color: var(--muted); font-weight: 600; }
+.cp-lesson-badge {
+  flex-shrink: 0; padding: 4px 14px; border-radius: var(--radius-full);
+  font-size: 12px; font-weight: 700;
+}
+.cp-lesson-badge.done { background: var(--success); color: var(--white); }
+.cp-lesson-badge.todo { background: var(--accent); color: var(--white); animation: pulseBadge 1.5s ease-in-out infinite; }
+@keyframes pulseBadge { 0%,100%{opacity:1} 50%{opacity:0.7} }
+.cp-lesson-badge.stars { background: var(--gold-light); color: #92400E; }
+
+/* ===== Loading spinner ===== */
+.lm-loading { display: none; flex-direction: column; align-items: center; gap: 16px; padding: 24px; }
+.lm-loading.show { display: flex; }
+.lm-spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.lm-loading-text { font-size: 14px; font-weight: 600; color: var(--muted); }
+
+/* ===== Quiz Gameplay ===== */
+.quiz-topbar {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 20px;
+  font-size: 14px; font-weight: 700; color: var(--muted);
+}
+.quiz-topbar .quiz-progress { color: var(--primary); }
+.quiz-topbar .quiz-points { color: var(--accent); }
+.quiz-question {
+  font-family: var(--font-heading);
+  font-size: 21px; font-weight: 700; color: var(--text);
+  margin-bottom: 24px; line-height: 1.5;
+  padding: 20px; background: var(--primary-bg);
+  border-radius: var(--radius-sm);
+}
+.quiz-options {
+  display: flex; flex-direction: column; gap: 10px;
+  margin-bottom: 16px;
+}
+.quiz-option {
+  padding: 16px 20px; border-radius: var(--radius-sm);
+  border: 3px solid var(--border); background: var(--white);
+  font-family: var(--font-body); font-size: 16px; font-weight: 600;
+  color: var(--text); cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+  text-align: left;
+}
+.quiz-option:hover { border-color: var(--primary-light); transform: translateX(4px); }
+.quiz-option:active { transform: scale(0.98); }
+.quiz-option.correct { border-color: var(--success); background: var(--success-light); color: #166534; }
+.quiz-option.wrong { border-color: #EF4444; background: #FEF2F2; color: #DC2626; }
+
+.quiz-score-bar { height: 8px; background: var(--primary-bg); border-radius: 4px; margin-bottom: 16px; overflow: hidden; }
+.quiz-score-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--primary), var(--accent)); transition: width 0.5s ease; }
+
+.quiz-result {
+  text-align: center; padding: 20px 0;
+}
+.quiz-result-icon { font-size: 64px; margin-bottom: 12px; animation: bounce 1.5s ease-in-out; }
+.quiz-result h3 {
+  font-family: var(--font-heading); font-size: 28px; font-weight: 700;
+  color: var(--text); margin-bottom: 8px;
+}
+.quiz-result p { font-size: 16px; color: var(--muted); margin-bottom: 4px; font-weight: 600; }
+.quiz-result .stars-display { font-size: 36px; margin: 12px 0; letter-spacing: 4px; }
+.quiz-result .earned-points { font-size: 18px; font-weight: 700; color: var(--primary); margin-bottom: 20px; }
+
+/* Quiz hint */
+.quiz-hint-bar {
+  text-align: center; margin-top: 8px;
+}
+.quiz-hint-btn {
+  padding: 6px 20px; border-radius: var(--radius-full);
+  border: 2px solid var(--border); background: var(--white);
+  font-size: 13px; font-weight: 600; color: var(--muted);
+  cursor: pointer; transition: all 0.2s;
+}
+.quiz-hint-btn:hover { border-color: var(--primary-light); color: var(--primary); }
+.quiz-hint-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ===== Cloud Sync Toast ===== */
+.cloud-toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px);
+  padding: 12px 28px; border-radius: var(--radius-xl);
+  font-family: var(--font-body); font-size: 14px; font-weight: 700;
+  background: #1E1B4B; color: white;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  z-index: 10000; pointer-events: none;
+  opacity: 0; transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+}
+.cloud-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.cloud-toast.loading { background: #4F46E5; }
+.cloud-toast.success { background: #059669; }
+.cloud-toast.warn { background: #D97706; }
+.cloud-toast.info { background: #6366F1; }
+
+/* ===== Danmaku (floating) ===== */
+.danmaku-float { position:fixed; z-index:9998; pointer-events:none; white-space:nowrap; font-size:13px; font-weight:700; text-shadow:0 1px 4px rgba(0,0,0,0.4); padding:4px 14px; border-radius:20px; animation:dmFloat 10s linear forwards; }
+.danmaku-float.login-dm { background:rgba(79,70,229,0.85); color:#FDE68A; }
+.danmaku-float.achieve-dm { background:rgba(219,39,119,0.85); color:#F9A8D4; }
+.danmaku-float.legend-dm { background:rgba(180,83,9,0.9); color:#FFD700; }
+@keyframes dmFloat { from{transform:translateX(-120%)} to{transform:translateX(110vw)} }
+@media (max-width:768px) { .danmaku-float { font-size:11px; padding:3px 10px; animation:dmFloatMobile 8s linear forwards; } }
+@keyframes dmFloatMobile { from{transform:translateX(-120%)} to{transform:translateX(150vw)} }
+
+/* ===== Fullscreen & Font Size ===== */
+.overlay.fullscreen .overlay-card {
+  max-width: 100vw !important; width: 100vw !important; height: 100vh !important;
+  border-radius: 0 !important; max-height: 100vh !important; margin: 0 !important;
+}
+.overlay.fullscreen .overlay-body { max-height: calc(100vh - 60px) !important; padding: 16px 20px !important; }
+.overlay.fullscreen .overlay-header { padding: 12px 20px !important; }
+.overlay.fullscreen .overlay-title { font-size: 20px !important; }
+.font-size-sm { --fs-scale: 0.85; }
+.font-size-md { --fs-scale: 1; }
+.font-size-lg { --fs-scale: 1.35; }
+.font-ctrl { display: none; gap: 4px; align-items: center; }
+.overlay.fullscreen .font-ctrl { display: flex; }
+.font-ctrl button { padding: 3px 10px; border-radius: var(--radius-full); border: 2px solid var(--border); background: white; font-size: 12px; font-weight: 600; cursor: pointer; }
+.font-ctrl button.active { border-color: var(--primary); color: var(--primary); background: var(--primary-bg); }
+.fullscreen-btn { background: none; border: 2px solid var(--border); border-radius: var(--radius-full); padding: 3px 10px; font-size: 13px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+.fullscreen-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+/* ===== Equipment Detail Popup ===== */
+.equip-popup {
+  display: none; position: fixed; z-index: 10001;
+  background: white; border-radius: var(--radius-md); padding: 20px 24px;
+  min-width: 260px; max-width: 320px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.25);
+  border: 2px solid var(--border); font-size: 13px;
+}
+.equip-popup.show { display: block; }
+.equip-popup .ep-header { text-align:center; margin-bottom:12px; }
+.equip-popup .ep-name { font-family:var(--font-heading); font-size:18px; font-weight:700; }
+.equip-popup .ep-rarity { display:inline-block; padding:2px 10px; border-radius:var(--radius-full); font-size:11px; font-weight:700; margin-top:4px; }
+.equip-popup .ep-stats { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0; }
+.equip-popup .ep-stat { background:var(--primary-bg); padding:4px 10px; border-radius:var(--radius-full); font-weight:600; font-size:12px; }
+.equip-popup .ep-affix { padding:4px 10px; margin:3px 0; border-radius:var(--radius-full); font-size:11px; font-weight:600; }
+.equip-popup .ep-close { position:absolute; top:8px; right:12px; cursor:pointer; font-size:18px; color:var(--muted); }
+
+</style>
+</head>
+<body>
+
+<!-- Top Status Bar -->
+<header class="top-bar">
+  <div class="top-bar-inner">
+    <div class="top-user">
+      <div class="user-avatar">🧑‍🔬</div>
+      <div>
+        <div class="user-name">小探险家</div>
+        <div class="user-grade">四年级</div>
+      </div>
+    </div>
+    <div class="top-stats">
+      <div class="stat-pill points">
+        <span class="stat-icon">⭐</span> 12,580
+      </div>
+      <div class="stat-pill streak">
+        <span class="stat-icon">🔥</span> 连续 7 天
+      </div>
+      <div class="stat-pill rank">
+        <span class="stat-icon">🏆</span> 排行第 3
+      </div>
+    </div>
+    <button class="logout-btn" id="logoutBtn" onclick="doLogout()" title="退出登录 / 换人">⇄</button>
+  </div>
+</header>
+
+<!-- Main Content -->
+<main class="main-content">
+
+  <!-- Hero -->
+  <div class="hero-area">
+    <div class="hero-mascot">🔮</div>
+    <h1 class="hero-greeting">欢迎回来，探险家！</h1>
+    <p class="hero-msg">今天你想去哪里冒险？</p>
+  </div>
+
+  <!-- Notice -->
+  <div class="notice-bar">
+    <span class="notice-icon">📢</span>
+    <div class="notice-content">
+      <strong>最新消息：</strong>科技节特别活动进行中！完成挑战可获得限定装备。点击查看详情 →
+    </div>
+  </div>
+
+  <!-- Game Modes -->
+  <h2 class="section-title">🎮 选择冒险模式</h2>
+  <div class="mode-cards">
+    <!-- 闯关学习 -->
+    <div class="mode-card lesson" onclick="location.href='../1/1/index_v712.html'">
+      <div class="mode-icon lesson-bg">📚</div>
+      <div class="mode-name">闯关学习</div>
+      <div class="mode-desc">按课程闯关答题，掌握科学知识</div>
+      <div class="mode-progress">
+        <div class="mode-progress-fill purple" style="width:68%"></div>
+      </div>
+    </div>
+
+    <!-- 爬塔挑战 -->
+    <div class="mode-card tower" onclick="location.href='tower.html'">
+      <div class="mode-icon tower-bg">🗼</div>
+      <div class="mode-name">爬塔挑战</div>
+      <div class="mode-desc">层层闯关击败Boss，赢稀有装备</div>
+      <div class="mode-progress">
+        <div class="mode-progress-fill orange" style="width:34%"></div>
+      </div>
+    </div>
+
+    <!-- 天梯排行 -->
+    <div class="mode-card ladder" onclick="location.href='ladder.html'">
+      <div class="mode-icon ladder-bg">🏆</div>
+      <div class="mode-name">天梯排行</div>
+      <div class="mode-desc">和全校同学PK，争当最强探险家</div>
+      <div class="mode-progress">
+        <div class="mode-progress-fill green" style="width:52%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <h2 class="section-title">📦 功能入口</h2>
+  <div class="quick-actions">
+    <button class="quick-btn">
+      <span class="quick-icon">📖</span> 错题本
+    </button>
+    <button class="quick-btn">
+      <span class="quick-icon">🏆</span> 排行榜
+    </button>
+    <button class="quick-btn">
+      <span class="quick-icon">🧪</span> 校队选拔
+    </button>
+    <button class="quick-btn">
+      <span class="quick-icon">🎒</span> 我的背包
+    </button>
+    <button class="quick-btn">
+      <span class="quick-icon">🐾</span> 宠物伙伴
+    </button>
+    <button class="quick-btn">
+      <span class="quick-icon">⚗️</span> 装备合成
+    </button>
+    <button class="quick-btn">
+      <span class="quick-icon">🏅</span> 成就勋章
+    </button>
+    <button class="quick-btn">
+      <span class="quick-icon">🎁</span> 礼物中心
+    </button>
+  </div>
+
+  <!-- Bottom CTA -->
+  <div class="bottom-cta">
+    <h3>🎯 每日完成闯关奖励加倍</h3>
+    <p>今天还没开始学习哦，快来解锁新装备吧！</p>
+    <button class="btn-white-sm" onclick="openLesson()">🚀 开始学习</button>
+  </div>
+
+</main>
+
+<!-- ===== Overlay: 爬塔挑战 ===== -->
+<div class="overlay" id="towerOverlay" style="z-index:1000;">
+  <div class="overlay-card" style="max-width:500px;">
+    <div class="overlay-header" style="padding:10px 16px;">
+      <span class="overlay-title" id="towerTitle" style="font-size:16px;">🗼 爬塔挑战</span>
+      <div style="display:flex;align-items:center;gap:6px;margin-left:auto;">
+        <div class="font-ctrl" id="towerFontCtrl">
+          <button onclick="setFontSize('sm','towerFontCtrl')" id="towerFontSm">小</button>
+          <button onclick="setFontSize('md','towerFontCtrl')" id="towerFontMd" class="active">中</button>
+          <button onclick="setFontSize('lg','towerFontCtrl')" id="towerFontLg">大</button>
+        </div>
+        <button class="fullscreen-btn" onclick="toggleFullscreen('towerOverlay')">⛶ 全屏</button>
+        <button class="overlay-close" onclick="closeTower()">✕</button>
+      </div>
+    </div>
+    <div class="overlay-body" id="towerBody" style="padding:10px 14px;">
+      <!-- Floor bar -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:6px;">
+        <span style="font-family:var(--font-heading);font-size:15px;font-weight:800;color:var(--primary);" id="towerFloorNum">第 1 层</span>
+        <span style="font-size:10px;color:var(--muted);" id="towerFloorLabel">普通</span>
+        <span id="towerTimer" style="display:none;font-size:12px;font-weight:700;color:#EA580C;">⏱30s</span>
+        <span style="font-size:10px;color:var(--muted);">🗼<b id="towerBestFloor">1</b></span>
+        <span style="font-size:10px;color:var(--muted);">🪙<b id="towerCoinDisplay">0</b></span>
+      </div>
+      <!-- Monster (tiny) & Player HP inline -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;padding:8px 10px;background:linear-gradient(135deg,#FEF3C7,#FEE2E2);border-radius:var(--radius-sm);">
+        <div style="text-align:center;min-width:44px;">
+          <div id="monsterEmoji" style="font-size:28px;">👾</div>
+          <div id="monsterName" style="font-size:10px;font-weight:700;">史莱姆</div>
+          <div id="monsterTypeTag" style="display:inline-block;padding:1px 6px;border-radius:var(--radius-full);font-size:9px;font-weight:600;background:#FEF3C7;color:#92400E;">小怪</div>
+        </div>
+        <div style="flex:1;">
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);"><span>怪物</span><span>❤️<span id="monsterHP">100</span>/<span id="monsterMaxHP">100</span></span></div>
+          <div style="height:4px;background:#FEE2E2;border-radius:2px;overflow:hidden;margin:2px 0;"><div id="monsterHPBar" style="background:linear-gradient(90deg,#EF4444,#F97316);height:100%;width:100%;transition:width 0.3s;"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:3px;"><span>🧑‍🔬</span><span>❤️<span id="playerHP">100</span>/<span id="playerMaxHP">100</span></span></div>
+          <div style="height:4px;background:var(--primary-bg);border-radius:2px;overflow:hidden;"><div id="playerHPBar" style="background:linear-gradient(90deg,#22C55E,#10B981);height:100%;width:100%;transition:width 0.3s;"></div></div>
+        </div>
+      </div>
+      <!-- Class selection -->
+      <div id="towerClassPick" style="display:none;text-align:center;padding:10px 0;">
+        <div style="font-size:14px;font-weight:700;margin-bottom:8px;">⚔️ 选择你的职业</div>
+        <div style="display:flex;gap:6px;justify-content:center;" id="towerClassOpts"></div>
+      </div>
+      <!-- Start area -->
+      <div id="towerStartArea" style="text-align:center;padding:12px 0;">
+        <div style="margin-bottom:6px;font-size:13px;color:var(--muted);" id="towerStartMsg">准备好了吗？击败怪物，攀登高塔！</div>
+        <button onclick="towerBeginChallenge()" style="padding:10px 36px;border-radius:var(--radius-md);border:none;background:linear-gradient(135deg,#EA580C,#DC2626);color:white;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(234,88,12,0.3);">⚔️ 开始挑战</button>
+        <button onclick="towerResumeFloor()" id="towerResumeBtn" style="display:none;margin-left:8px;padding:10px 18px;border-radius:var(--radius-md);border:2px solid var(--primary);background:white;color:var(--primary);font-size:14px;font-weight:700;cursor:pointer;">▶ 继续</button>
+      </div>
+      <!-- Card pick area -->
+      <div id="towerCardPick" style="display:none;text-align:center;padding:6px 0;">
+        <div style="font-size:12px;font-weight:700;margin-bottom:6px;">🎴 选择一张卡牌</div>
+        <div style="display:flex;gap:6px;justify-content:center;" id="towerCardOpts"></div>
+      </div>
+      <!-- Question area -->
+      <div id="towerQuestionArea" style="display:none;padding:8px;background:var(--primary-bg);border-radius:var(--radius-sm);max-height:38vh;overflow-y:auto;font-size:12px;">
+        <div id="towerQuestionText" style="color:var(--text);white-space:pre-wrap;line-height:1.5;margin-bottom:4px;"></div>
+        <div id="towerQuestionImg" style="text-align:center;margin:4px 0;"></div>
+        <div id="towerOptions" style="display:flex;flex-direction:column;gap:4px;margin-top:6px;"></div>
+        <div id="towerFeedback" style="display:none;text-align:center;padding:6px;margin-top:6px;border-radius:var(--radius-sm);font-size:12px;font-weight:700;"></div>
+        <button onclick="towerReportWrong()" id="towerReportBtn" style="display:none;margin-top:6px;padding:3px 10px;border-radius:var(--radius-full);border:1px solid #D97706;background:#FFFBEB;color:#92400E;font-size:10px;cursor:pointer;width:100%;">❗ 答案纠错</button>
+      </div>
+      <!-- Actions -->
+      <div id="towerActions" style="display:none;">
+        <button onclick="towerNextFloor()" id="towerNextBtn" style="display:none;width:100%;padding:10px;border-radius:var(--radius-md);border:none;background:linear-gradient(135deg,#F59E0B,#D97706);color:white;font-size:15px;font-weight:800;cursor:pointer;margin-top:8px;">➡️ 下一层</button>
+      </div>
+      <div id="towerLog" style="margin-top:6px;max-height:80px;overflow-y:auto;font-size:10px;color:var(--muted);padding:4px;background:var(--primary-bg);border-radius:var(--radius-sm);"></div>
+      <div id="towerDrop" style="text-align:center;margin-top:4px;font-size:12px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Overlay: 排行榜 ===== -->
+<div class="overlay" id="rankOverlay">
+  <div class="overlay-card" style="max-width:520px;">
+    <div class="overlay-header">
+      <span class="overlay-title">🏆 排行榜</span>
+      <button class="overlay-close" onclick="closeOverlay('rankOverlay')">✕</button>
+    </div>
+    <div class="overlay-body">
+      <div class="rank-tabs" id="rankTabBar">
+        <button class="rank-tab active" onclick="switchRankTab('score')">⭐ 积分榜</button>
+        <button class="rank-tab" onclick="switchRankTab('ladder')">⚡ 天梯榜</button>
+        <button class="rank-tab" onclick="switchRankTab('tower')">🗼 爬塔榜</button>
+        <button class="rank-tab" onclick="switchRankTab('mythic')">💎 神话装备</button>
+        <button class="rank-tab" onclick="switchRankTab('achievement')">🏅 成就榜</button>
+      </div>
+      <div class="rank-list" id="rankListContent">
+        <div style="text-align:center;padding:32px;color:var(--muted);">加载中...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Overlay: 背包 ===== -->
+<div class="overlay" id="backpackOverlay">
+  <div class="overlay-card" style="max-width:680px;">
+    <div class="overlay-header">
+      <span class="overlay-title" id="bpTitle">🎒 我的背包</span>
+      <button class="overlay-close" onclick="closeOverlay('backpackOverlay')">✕</button>
+    </div>
+    <div class="overlay-body">
+      <!-- Equipped slots -->
+      <div id="bpEquipped" style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;"></div>
+      <!-- Filter & action bar -->
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center;">
+        <select id="bpFilterRarity" onchange="renderBpPage()" style="padding:6px 12px;border-radius:var(--radius-full);border:2px solid var(--border);font-size:13px;font-weight:600;background:white;">
+          <option value="all">全部品级</option>
+          <option value="7">神话</option><option value="6">传说</option><option value="5">史诗</option>
+          <option value="4">稀有</option><option value="3">良好</option><option value="2">精致</option><option value="1">普通</option>
+        </select>
+        <select id="bpFilterSlot" onchange="renderBpPage()" style="padding:6px 12px;border-radius:var(--radius-full);border:2px solid var(--border);font-size:13px;font-weight:600;background:white;">
+          <option value="all">全部槽位</option>
+          <option value="武器">武器</option><option value="头盔">头盔</option><option value="上衣">上衣</option>
+          <option value="下装">下装</option><option value="手套">手套</option><option value="披风">披风</option>
+          <option value="盾牌">盾牌</option><option value="鞋子">鞋子</option>
+          <option value="脸饰">脸饰</option><option value="眼饰">眼饰</option><option value="宝物">宝物</option>
+        </select>
+        <button onclick="autoEquipBest()" style="padding:6px 14px;border-radius:var(--radius-full);border:2px solid var(--success);background:var(--success-light);color:#166534;font-size:13px;font-weight:700;cursor:pointer;">⚡ 一键装备</button>
+        <span style="font-size:12px;color:var(--muted);margin-left:auto;" id="bpPageInfo">第1页</span>
+      </div>
+      <!-- Item grid -->
+      <div class="bp-grid" id="bpGrid"></div>
+      <!-- Page controls -->
+      <div id="bpPageCtrl" style="display:flex;justify-content:center;gap:8px;margin-top:12px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Overlay: 错题本 ===== -->
+<div class="overlay" id="wrongOverlay">
+  <div class="overlay-card">
+    <div class="overlay-header">
+      <span class="overlay-title">📖 错题本 (12题)</span>
+      <button class="overlay-close" onclick="closeOverlay('wrongOverlay')">✕</button>
+    </div>
+    <div class="overlay-body">
+      <div class="wq-list">
+        <div class="wq-item">
+          <div class="wq-q">🔬 植物的光合作用主要依靠哪种色素？</div>
+          <div class="wq-answers"><span class="wq-wrong">✗ 你答：叶黄素</span><span class="wq-correct">✓ 正确：叶绿素</span></div>
+          <div class="wq-meta"><span>🌿 四年级 · 植物单元</span><span>📅 2026-06-10</span></div>
+        </div>
+        <div class="wq-item">
+          <div class="wq-q">⚡ 电路中，下列哪个是导体？</div>
+          <div class="wq-answers"><span class="wq-wrong">✗ 你答：橡胶</span><span class="wq-correct">✓ 正确：铁</span></div>
+          <div class="wq-meta"><span>⚡ 四年级 · 电路单元</span><span>📅 2026-06-08</span></div>
+        </div>
+        <div class="wq-item">
+          <div class="wq-q">🌍 地球自转一周大约需要多少时间？</div>
+          <div class="wq-answers"><span class="wq-wrong">✗ 你答：12小时</span><span class="wq-correct">✓ 正确：24小时</span></div>
+          <div class="wq-meta"><span>🌍 五年级 · 地球单元</span><span>📅 2026-06-07</span></div>
+        </div>
+      </div>
+      <button class="syn-btn" style="margin-top:20px;width:100%;">🎯 重做全部错题</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Overlay: 宠物伙伴 ===== -->
+<div class="overlay" id="petOverlay">
+  <div class="overlay-card">
+    <div class="overlay-header">
+      <span class="overlay-title">🐾 宠物伙伴</span>
+      <button class="overlay-close" onclick="closeOverlay('petOverlay')">✕</button>
+    </div>
+    <div class="overlay-body">
+      <!-- Gacha section -->
+      <div style="text-align:center;padding:16px;margin-bottom:16px;background:linear-gradient(135deg,#FDF2F8,#EDE9FE);border-radius:var(--radius-md);border:2px dashed var(--primary-light);">
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;" id="petGachaInfo">
+          🎁 消耗 <strong style="color:var(--primary);">100</strong> 积分 抽取随机宠物
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">
+          普通60% · 稀有25% · 史诗10% · 传说5%
+        </div>
+        <button class="btn" style="display:inline-flex;width:auto;padding:10px 32px;font-size:15px;background:linear-gradient(135deg,#A855F7,#EC4899);color:white;border:none;border-radius:var(--radius-xl);cursor:pointer;font-weight:700;box-shadow:0 4px 14px rgba(168,85,247,0.35);" onclick="drawPet()" id="petDrawBtn">
+          🎲 抽取宠物 (100积分)
+        </button>
+        <div id="petResult" style="margin-top:10px;"></div>
+      </div>
+      <!-- Pet grid -->
+      <div class="pet-grid" id="petGrid">
+        <div style="text-align:center;padding:40px;color:var(--muted);font-weight:600;">🐾 还没有宠物，快来抽取吧！</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Overlay: 成就勋章 ===== -->
+<div class="overlay" id="achieveOverlay">
+  <div class="overlay-card">
+    <div class="overlay-header">
+      <span class="overlay-title">🏅 成就勋章 (12/20)</span>
+      <button class="overlay-close" onclick="closeOverlay('achieveOverlay')">✕</button>
+    </div>
+    <div class="overlay-body">
+      <div class="achievement-grid">
+        <div class="ach-badge"><div class="ach-icon">🏆</div><div class="ach-name">首次闯关</div><span class="ach-tier ach-tier-bronze">青铜</span></div>
+        <div class="ach-badge"><div class="ach-icon">🔥</div><div class="ach-name">7日连击</div><span class="ach-tier ach-tier-silver">白银</span></div>
+        <div class="ach-badge"><div class="ach-icon">🗼</div><div class="ach-name">爬塔英雄</div><span class="ach-tier ach-tier-gold">黄金</span></div>
+        <div class="ach-badge"><div class="ach-icon">📚</div><div class="ach-name">百题达人</div><span class="ach-tier ach-tier-platinum">铂金</span></div>
+        <div class="ach-badge ach-locked"><div class="ach-icon">👑</div><div class="ach-name">科学之王</div><span class="ach-tier ach-tier-gold">黄金</span></div>
+        <div class="ach-badge ach-locked"><div class="ach-icon">💎</div><div class="ach-name">全收集</div><span class="ach-tier ach-tier-platinum">铂金</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Overlay: 装备合成 ===== -->
+<div class="overlay" id="synOverlay">
+  <div class="overlay-card">
+    <div class="overlay-header">
+      <span class="overlay-title">⚗️ 装备合成</span>
+      <button class="overlay-close" onclick="closeOverlay('synOverlay')">✕</button>
+    </div>
+    <div class="overlay-body" style="text-align:center;">
+      <p style="font-size:14px;color:var(--muted);margin-bottom:20px;">放入3件同稀有度装备，合成更高1级装备</p>
+      <div class="syn-slots">
+        <div class="syn-slot filled">🗡️</div>
+        <div class="syn-plus">+</div>
+        <div class="syn-slot filled">🛡️</div>
+        <div class="syn-plus">+</div>
+        <div class="syn-slot filled">👑</div>
+        <div class="syn-arrow">→</div>
+        <div class="syn-slot" style="border-color:var(--primary);background:#EEF2FF;">💎</div>
+      </div>
+      <button class="syn-btn ready">⚗️ 开始合成</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Overlay: 天梯排行 ===== -->
+<div class="overlay" id="ladderOverlay" style="z-index:1000;">
+  <div class="overlay-card" style="max-width:540px;">
+    <div class="overlay-header">
+      <span class="overlay-title">⚡ 天梯排行 · 尖峰时刻</span>
+      <div style="display:flex;align-items:center;gap:6px;margin-left:auto;">
+        <div class="font-ctrl" id="ladderFontCtrl">
+          <button onclick="setFontSize('sm','ladderFontCtrl')" id="ladderFontSm" class="active">小</button>
+          <button onclick="setFontSize('md','ladderFontCtrl')" id="ladderFontMd">中</button>
+          <button onclick="setFontSize('lg','ladderFontCtrl')" id="ladderFontLg">大</button>
+        </div>
+        <button class="fullscreen-btn" onclick="toggleFullscreen('ladderOverlay')">⛶ 全屏</button>
+        <button class="overlay-close" onclick="closeOverlay('ladderOverlay')">✕</button>
+      </div>
+    </div>
+    <div class="overlay-body" style="padding:12px 14px;">
+      <!-- Score header -->
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <div style="flex:1;text-align:center;padding:10px;background:linear-gradient(135deg,#EEF2FF,#E0E7FF);border-radius:var(--radius-sm);">
+          <div style="font-size:11px;color:var(--muted);">🏆 天梯分</div>
+          <div style="font-family:var(--font-heading);font-size:22px;font-weight:800;color:var(--primary);" id="ladderScore">0</div>
+        </div>
+        <div style="flex:1;text-align:center;padding:10px;background:linear-gradient(135deg,#FEF3C7,#FDE68A);border-radius:var(--radius-sm);">
+          <div style="font-size:11px;color:var(--muted);">今日剩余</div>
+          <div style="font-family:var(--font-heading);font-size:22px;font-weight:800;color:#D97706;" id="ladderRemaining">10</div>
+          <div style="font-size:10px;color:var(--muted);">/ 10 次</div>
+        </div>
+      </div>
+      <!-- Start area -->
+      <div id="ladderStartArea" style="text-align:center;padding:12px 0;">
+        <div style="margin-bottom:6px;font-size:13px;color:var(--muted);">答对题目赢积分，答错扣分！<br>连胜有额外加成</div>
+        <button onclick="startLadderChallenge()" style="padding:12px 40px;border-radius:var(--radius-md);border:none;background:linear-gradient(135deg,#7C3AED,#4F46E5);color:white;font-size:18px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(124,58,237,0.3);">⚡ 开始挑战 (10题)</button>
+      </div>
+      <!-- Quiz area -->
+      <div id="ladderQuizArea" style="display:none;padding:8px;background:var(--primary-bg);border-radius:var(--radius-sm);max-height:38vh;overflow-y:auto;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:11px;">
+          <span style="font-weight:600;">第 <span id="ladderQIdx">1</span>/10 题</span>
+          <span style="color:var(--muted);">⏱<span id="ladderTimer">20</span>s</span>
+          <span style="color:#7C3AED;">连胜 <span id="ladderStreak">0</span></span>
+        </div>
+        <div id="ladderQText" style="font-size:12px;color:var(--text);white-space:pre-wrap;line-height:1.5;margin-bottom:6px;"></div>
+        <div id="ladderQImg" style="text-align:center;margin:4px 0;"></div>
+        <div id="ladderQOpts" style="display:flex;flex-direction:column;gap:4px;"></div>
+        <div id="ladderQFeedback" style="display:none;text-align:center;padding:6px;margin-top:6px;border-radius:var(--radius-sm);font-size:12px;font-weight:700;"></div>
+      </div>
+      <!-- Result -->
+      <div id="ladderResult" style="display:none;text-align:center;padding:16px 0;">
+        <div id="ladderResultIcon" style="font-size:48px;">🏆</div>
+        <div id="ladderResultTitle" style="font-family:var(--font-heading);font-size:20px;font-weight:800;margin:6px 0;"></div>
+        <div id="ladderResultScore" style="font-size:14px;color:var(--muted);"></div>
+        <button onclick="resetLadderView()" style="margin-top:10px;padding:10px 30px;border-radius:var(--radius-md);border:none;background:var(--primary);color:white;font-size:15px;font-weight:700;cursor:pointer;">🔄 再来一次</button>
+      </div>
+      <!-- Ranking tabs -->
+      <div class="rank-tabs" style="margin-top:10px;">
+        <button class="rank-tab active" onclick="switchLadderTab('score')">⭐ 天梯分</button>
+        <button class="rank-tab" onclick="switchLadderTab('accuracy')">🎯 正确率</button>
+      </div>
+      <div class="rank-list" id="ladderList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Overlay: 校队选拔 ===== -->
+<div class="overlay" id="xuanbaOverlay">
+  <div class="overlay-card">
+    <div class="overlay-header">
+      <span class="overlay-title">🧪 校队选拔</span>
+      <button class="overlay-close" onclick="closeOverlay('xuanbaOverlay')">✕</button>
+    </div>
+    <div class="overlay-body">
+      <div class="xuanba-info">
+        <div class="xuanba-icon">🧪</div>
+        <div class="xuanba-title">推理能力评估测试</div>
+        <div class="xuanba-desc">挑战综合科学推理题，选拔优秀小科学家加入校队。每月一次机会，认真作答！</div>
+        <div class="xuanba-stats">
+          <div class="xuanba-stat"><div class="xuanba-stat-value">92分</div><div class="xuanba-stat-label">上次成绩</div></div>
+          <div class="xuanba-stat"><div class="xuanba-stat-value">12名</div><div class="xuanba-stat-label">年级排名</div></div>
+          <div class="xuanba-stat"><div class="xuanba-stat-value">3次</div><div class="xuanba-stat-label">剩余机会</div></div>
+        </div>
+        <button class="syn-btn" style="margin:0 auto;">🚀 开始测试</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Overlay: 礼物中心 ===== -->
+<div class="overlay" id="giftOverlay">
+  <div class="overlay-card">
+    <div class="overlay-header">
+      <span class="overlay-title">🎁 礼物中心</span>
+      <button class="overlay-close" onclick="closeOverlay('giftOverlay')">✕</button>
+    </div>
+    <div class="overlay-body">
+      <div class="gift-tabs">
+        <button class="gift-tab active" onclick="switchGiftTab(this,'pending')">📥 待领取 (2)</button>
+        <button class="gift-tab" onclick="switchGiftTab(this,'sent')">📤 已发送</button>
+        <button class="gift-tab" onclick="switchGiftTab(this,'history')">📋 历史</button>
+      </div>
+      <div class="gift-list">
+        <div class="gift-row"><span class="gift-icon">🔬</span><div class="gift-info"><div class="gift-name">显微透镜（稀有）</div><div class="gift-from">来自：李明轩</div></div><button class="gift-btn-sm gift-btn-accept">领取</button></div>
+        <div class="gift-row"><span class="gift-icon">⚗️</span><div class="gift-info"><div class="gift-name">炼金药水（史诗）</div><div class="gift-from">来自：张子涵</div></div><button class="gift-btn-sm gift-btn-accept">领取</button></div>
+        <div class="gift-row" style="opacity:0.5;"><span class="gift-icon">🛡️</span><div class="gift-info"><div class="gift-name">量子盾牌（普通）</div><div class="gift-from">→ 已赠送给 王雨桐</div></div><span style="font-size:12px;color:var(--muted);">已发送</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Quiz Overlay ===== -->
+<div class="overlay" id="quizOverlay">
+  <div class="overlay-card" style="max-width:560px;">
+    <div class="overlay-header">
+      <span class="overlay-title" id="quizTitle">📚 答题中...</span>
+      <div style="display:flex;align-items:center;gap:6px;margin-left:auto;">
+        <div class="font-ctrl" id="quizFontCtrl">
+          <button onclick="setFontSize('sm','quizFontCtrl')" id="quizFontSm">小</button>
+          <button onclick="setFontSize('md','quizFontCtrl')" id="quizFontMd" class="active">中</button>
+          <button onclick="setFontSize('lg','quizFontCtrl')" id="quizFontLg">大</button>
+        </div>
+        <button class="fullscreen-btn" onclick="toggleFullscreen('quizOverlay')">⛶ 全屏</button>
+        <button class="overlay-close" onclick="closeQuiz()" title="最小化（进度已保存）">▾</button>
+      </div>
+    </div>
+    <div class="overlay-body" id="quizBody">
+      <div style="text-align:center;padding:40px;color:var(--muted);">⏳ 准备题目...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Login Modal ===== -->
+<div class="overlay" id="loginModal">
+  <div class="overlay-card" style="max-width:420px;">
+    <div class="overlay-header">
+      <span class="overlay-title">🔮 登录探险</span>
+      <button class="overlay-close" onclick="closeOverlay('loginModal')">✕</button>
+    </div>
+    <div class="overlay-body">
+      <div class="login-modal">
+        <div class="logo-emoji">🔮</div>
+        <h3>科学探险家</h3>
+        <p class="lm-sub">输入学号，开启你的科学冒险</p>
+        <div id="lmForm">
+          <input type="text" class="lm-input" id="lmStudentId" placeholder="输入你的 8 位学号" maxlength="8" inputmode="numeric" autocomplete="off">
+          <button class="lm-btn lm-btn-primary" id="lmLoginBtn">🚀 登录存档</button>
+          <button class="lm-btn lm-btn-ghost" id="lmGuestBtn">👀 游客试玩</button>
+        </div>
+        <div class="lm-loading" id="lmLoading">
+          <div class="lm-spinner"></div>
+          <p class="lm-loading-text">⏳ 正在同步云端存档...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Course Selection Panel ===== -->
+<div class="overlay" id="courseOverlay">
+  <div class="overlay-card" style="max-width:580px;">
+    <div class="overlay-header">
+      <span class="overlay-title">📚 闯关学习</span>
+      <div style="display:flex;gap:8px;">
+        <button class="overlay-close" onclick="minimizeCourse()" title="缩小化" style="font-size:16px;">▾</button>
+        <button class="overlay-close" onclick="closeOverlay('courseOverlay')">✕</button>
+      </div>
+    </div>
+    <div class="overlay-body">
+      <div class="course-panel">
+        <div class="cp-grade-tabs" id="cpGradeTabs">
+          <button class="cp-grade-tab active" data-g="3">三年级</button>
+          <button class="cp-grade-tab" data-g="4">四年级</button>
+          <button class="cp-grade-tab" data-g="5">五年级</button>
+          <button class="cp-grade-tab" data-g="6">六年级</button>
+        </div>
+        <div class="cp-semester-tabs" id="cpSemesterTabs">
+          <button class="cp-semester-tab active" data-s="2">下册</button>
+          <button class="cp-semester-tab" data-s="1">上册</button>
+        </div>
+        <div class="cp-lesson-grid" id="cpLessonGrid">
+          <div style="text-align:center;padding:32px;color:var(--muted);">⏳ 加载课程中...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Equipment Detail Popup -->
+<div class="equip-popup" id="equipPopup">
+  <span class="ep-close" onclick="closeEquipPopup()">✕</span>
+  <div class="ep-header">
+    <div id="epIcon" style="font-size:48px;"></div>
+    <div class="ep-name" id="epName"></div>
+    <div class="ep-rarity" id="epRarity"></div>
+  </div>
+  <div id="epSlot" style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:8px;"></div>
+  <div class="ep-stats" id="epStats"></div>
+  <div id="epAffixes" style="margin-top:4px;"></div>
+  <div id="epDesc" style="text-align:center;font-size:12px;color:var(--muted);margin-top:8px;"></div>
+</div>
+
+<!-- Login / Sync status shown as toast -- see showCloudToast -->
+
+<script>
+// ===== Data Loading =====
+var studentId = '';
+var gameState = {};
+var API_BASE = (typeof API_BASE !== 'undefined') ? API_BASE : 'https://api.kexvefuxi.cn/api';
+
+function getQueryParam(name) {
+  var m = location.search.match(new RegExp('[?&]' + name + '=([^&]*)'));
+  return m ? decodeURIComponent(m[1]) : null;
+}
+
+function init() {
+  // Try to get student ID from URL first, then from gameState in localStorage
+  studentId = getQueryParam('sid') || '';
+  if (!studentId) {
+    // Check if any gameState exists in localStorage
+    for (var k in localStorage) {
+      if (k.indexOf('gameState_') === 0) {
+        studentId = k.replace('gameState_', '');
+        break;
+      }
+    }
+  }
+
+  if (studentId) {
+    loadGameData(studentId);
+    setupModeCards(studentId);
+  } else {
+    // No student data - show as guest
+    document.querySelector('.user-name').textContent = '游客';
+    document.querySelector('.user-grade').textContent = '';
+  }
+
+  // Wire up quick buttons
+  var overlayMap = ['wrongOverlay','rankOverlay','xuanbaOverlay','backpackOverlay',
+                    'petOverlay','synOverlay','achieveOverlay','giftOverlay'];
+  document.querySelectorAll('.quick-btn').forEach(function(b, i) {
+    if (overlayMap[i]) {
+      b.setAttribute('onclick', "openOverlay('" + overlayMap[i] + "'); populateOverlay('" + overlayMap[i] + "')");
+    }
+  });
+
+  // Setup login modal and course tabs
+  setupLoginModal();
+  setupCourseTabs();
+
+  // Fetch rankings (will be refreshed after login)
+  fetchRankings();
+  loadStudentNames();
+
+  // Entry animations
+  animateEntrance();
+  
+  // Replace static emoji with PNG icons
+  replaceStaticIcons();
+}
+
+/**
+ * Replace static emoji characters in the HTML with PNG icon images.
+ * Handles the few remaining emoji that aren't dynamically rendered.
+ */
+function replaceStaticIcons() {
+  // Hero mascot
+  var mascot = document.querySelector('.hero-mascot');
+  if (mascot) mascot.innerHTML = iconImg('🔮', 72);
+  
+  // Notice icon
+  var noticeIcon = document.querySelector('.notice-icon');
+  if (noticeIcon) noticeIcon.innerHTML = iconImg('📢', 22);
+  
+  // Section titles
+  document.querySelectorAll('.section-title').forEach(function(el) {
+    var t = el.textContent;
+    if (t.indexOf('🎮') !== -1) { el.innerHTML = iconImg('🎮', 22) + ' 选择冒险模式'; }
+    if (t.indexOf('📦') !== -1) { el.innerHTML = iconImg('📦', 22) + ' 功能入口'; }
+  });
+  
+  // Bottom CTA
+  var cta = document.querySelector('.bottom-cta h3');
+  if (cta) cta.innerHTML = iconImg('🎯', 20) + ' 每日完成闯关奖励加倍';
+  
+  // Overlay headers (replace emoji prefixes)
+  document.querySelectorAll('.overlay-title').forEach(function(el) {
+    var h = el.innerHTML;
+    if (h.indexOf('🏆') === 0) el.innerHTML = iconImg('🏆', 22) + ' 排行榜';
+    if (h.indexOf('🎒') === 0) el.innerHTML = iconImg('🎒', 22) + ' 我的背包';
+    if (h.indexOf('📖') === 0 && h.indexOf('错题') !== -1) el.innerHTML = iconImg('📖', 22) + ' 错题本';
+    if (h.indexOf('🐾') === 0) el.innerHTML = iconImg('🐾', 22) + ' 宠物伙伴';
+    if (h.indexOf('🏅') === 0) el.innerHTML = iconImg('🏅', 22) + ' 成就勋章';
+    if (h.indexOf('⚗️') === 0) el.innerHTML = iconImg('⚗️', 22) + ' 装备合成';
+    if (h.indexOf('🧪') === 0) el.innerHTML = iconImg('🧪', 22) + ' 校队选拔';
+    if (h.indexOf('🎁') === 0) el.innerHTML = iconImg('🎁', 22) + ' 礼物中心';
+    if (h.indexOf('🔮') === 0) el.innerHTML = iconImg('🔮', 22) + ' 登录探险';
+  });
+  
+  // Quick buttons
+  var qbtns = document.querySelectorAll('.quick-btn');
+  if (qbtns.length >= 8) {
+    qbtns[0].firstElementChild.innerHTML = iconImg('📖', 28);
+    qbtns[1].firstElementChild.innerHTML = iconImg('🏆', 28);
+    qbtns[2].firstElementChild.innerHTML = iconImg('🧪', 28);
+    qbtns[3].firstElementChild.innerHTML = iconImg('🎒', 28);
+    qbtns[4].firstElementChild.innerHTML = iconImg('🐾', 28);
+    qbtns[5].firstElementChild.innerHTML = iconImg('⚗️', 28);
+    qbtns[6].firstElementChild.innerHTML = iconImg('🏅', 28);
+    qbtns[7].firstElementChild.innerHTML = iconImg('🎁', 28);
+  }
+  
+  // Mode card icons
+  var modeIcons = document.querySelectorAll('.mode-icon');
+  modeIcons.forEach(function(el) {
+    var t = el.textContent.trim();
+    if (t === '📚') el.innerHTML = iconImg('📚', 32);
+    if (t === '🗼') el.innerHTML = iconImg('🗼', 32);
+    if (t === '🏆') el.innerHTML = iconImg('🏆', 32);
+  });
+  
+  // Login modal logo
+  var logoEmoji = document.querySelector('.login-modal .logo-emoji');
+  if (logoEmoji) logoEmoji.innerHTML = iconImg('🔮', 44);
+  
+  // Course panel title
+  var cpTitle = document.querySelector('#courseOverlay .overlay-title');
+  if (cpTitle) cpTitle.innerHTML = iconImg('📚', 22) + ' 闯关学习';
+}
+
+// ===== Cloud Sync Status Toast (defined early for hoisting) =====
+function showCloudToast(msg, type) {
+  var toast = document.getElementById('cloudToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'cloudToast';
+    toast.className = 'cloud-toast';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.className = 'cloud-toast show ' + (type || '');
+  console.log('[CloudSync] ' + msg);
+  clearTimeout(toast._hideTimer);
+  toast._hideTimer = setTimeout(function() { toast.classList.remove('show'); }, 3000);
+}
+
+// ===== Tier System (v712) =====
+var TIER_CONFIG = [
+  { name:'黑铁',icon:'⚙️',min:0,max:119,subs:['III','II','I'],color:'#8B8B8B' },
+  { name:'青铜',icon:'🛡️',min:120,max:269,subs:['III','II','I'],color:'#CD7F32' },
+  { name:'白银',icon:'⚪',min:270,max:419,subs:['III','II','I'],color:'#C0C0C0' },
+  { name:'黄金',icon:'🥇',min:420,max:549,subs:['IV','III','II','I'],color:'#FFD700' },
+  { name:'铂金',icon:'💎',min:550,max:669,subs:['IV','III','II','I'],color:'#4FC3F7' },
+  { name:'钻石',icon:'💠',min:670,max:769,subs:['V','IV','III','II','I'],color:'#7C4DFF' },
+  { name:'星耀',icon:'🌟',min:770,max:899,subs:['V','IV','III','II','I'],color:'#FF6B6B' },
+  { name:'王者',icon:'👑',min:900,max:99999,subs:[],color:'#FFD700' }
+];
+function getTier(score) {
+  score = score || 0;
+  for (var i=0;i<TIER_CONFIG.length;i++) {
+    if (score>=TIER_CONFIG[i].min && score<=TIER_CONFIG[i].max) {
+      var t=TIER_CONFIG[i]; var subIdx=0;
+      if (t.subs.length>0) { var seg=(t.max-t.min)/t.subs.length; subIdx=Math.min(Math.floor((score-t.min)/seg),t.subs.length-1); }
+      return {idx:i,name:t.name,icon:t.icon,color:t.color,sub:t.subs.length>0?t.subs[subIdx]:'',subIdx:subIdx,subsCount:t.subs.length,min:t.min,max:t.max};
+    }
+  }
+  return {idx:0,name:'黑铁',icon:'⚙️',color:'#8B8B8B',sub:'III',subIdx:0,subsCount:3,min:0,max:119};
+}
+function getTierDisplay(score) {
+  var t = getTier(score);
+  return '<span style=\"color:'+t.color+';font-weight:700;\">'+t.icon+' '+t.name+' '+t.sub+'</span>';
+}
+
+// ===== Student Name Cache =====
+var _studentNames = {};
+function loadStudentNames() {
+  fetch(API_BASE + '/students/names')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data && typeof data === 'object') { _studentNames = data; console.log('[Names] 加载了 ' + Object.keys(data).length + ' 个学生姓名'); }
+      // Refresh name display after names load
+      if (studentId && data && data[studentId]) {
+        var name = data[studentId];
+        document.querySelector('.user-name').textContent = name;
+        gameState.studentName = name;
+        var greet = document.querySelector('.hero-greeting');
+        if (greet) greet.textContent = '欢迎回来，' + name + '！';
+      }
+    })
+    .catch(function(e) { console.warn('[Names] 加载失败: ' + e.message); });
+}
+function getStudentDisplay(sid) {
+  if (!sid) return '未知';
+  return _studentNames[sid] || sid;
+}
+
+// ===== Equipment Detail Popup =====
+function showEquipPopup(idx, event) {
+  var item = gameState.equipment[idx];
+  if (!item) return;
+  var popup = document.getElementById('equipPopup');
+  var rN = {1:'普通',2:'精致',3:'良好',4:'稀有',5:'史诗',6:'传说',7:'神话'};
+  var rC = {1:'#9CA3AF',2:'#4CAF50',3:'#2196F3',4:'#9C27B0',5:'#E91E63',6:'#FFD700',7:'#FF6600'};
+  var rarity = item.rarity || 1, color = rC[rarity] || '#9CA3AF';
+  document.getElementById('epIcon').innerHTML = equipImg(item.typeId||'box', 48, item.icon||'🎒');
+  document.getElementById('epName').textContent = item.name || item.equipName || '装备';
+  document.getElementById('epName').style.color = color;
+  document.getElementById('epRarity').textContent = rN[rarity];
+  document.getElementById('epRarity').style.background = color+'22'; document.getElementById('epRarity').style.color = color;
+  document.getElementById('epSlot').textContent = (item.slot||item.slotType||'未知') + ' · ×' + (item.multiplier||1).toFixed(2);
+  var s = '';
+  if (item.str>0) s+='<span class=\"ep-stat\">💪力量+'+item.str+'</span>';
+  if (item.dex>0) s+='<span class=\"ep-stat\">🏃敏捷+'+item.dex+'</span>';
+  if (item.int>0) s+='<span class=\"ep-stat\">🧠智力+'+item.int+'</span>';
+  if (item.atk>0) s+='<span class=\"ep-stat\">⚔️攻击+'+item.atk+'</span>';
+  if (item.def>0) s+='<span class=\"ep-stat\">🛡️防御+'+item.def+'</span>';
+  if (item.hpBonus>0) s+='<span class=\"ep-stat\">❤️HP+'+item.hpBonus+'</span>';
+  if (item.mpBonus>0) s+='<span class=\"ep-stat\">💧MP+'+item.mpBonus+'</span>';
+  document.getElementById('epStats').innerHTML = s||'<div class=\"ep-stat\">无额外属性</div>';
+  var a = '';
+  if (item.affixes&&item.affixes.length) item.affixes.forEach(function(f){a+='<div class=\"ep-affix\" style=\"background:'+(f.color||'#888')+'22;color:'+(f.color||'#888')+';\">✦'+f.name+'：'+f.effect+'</div>';});
+  if (rarity>=7) a+='<div class=\"ep-affix\" style=\"background:#FF660022;color:#FF6600;\">🔮神话专属：全属性+10% 积分×3.0</div>';
+  document.getElementById('epAffixes').innerHTML = a;
+  document.getElementById('epDesc').textContent = item.desc||'';
+  var x = (event&&event.clientX)?event.clientX+10:100, y = (event&&event.clientY)?event.clientY-10:100;
+  popup.style.left = Math.min(x, window.innerWidth-340)+'px'; popup.style.top = Math.min(y, window.innerHeight-400)+'px';
+  popup.classList.add('show');
+}
+function closeEquipPopup() { document.getElementById('equipPopup').classList.remove('show'); }
+document.addEventListener('click',function(e){var p=document.getElementById('equipPopup');if(p&&p.classList.contains('show')&&!p.contains(e.target)&&!e.target.closest('.bp-item'))p.classList.remove('show');});
+
+// ===== Fullscreen & Font Size =====
+function toggleFullscreen(overlayId) {
+  var ov = document.getElementById(overlayId);
+  if (!ov) return;
+  var btn = ov.querySelector('.fullscreen-btn');
+  if (ov.classList.contains('fullscreen')) {
+    ov.classList.remove('fullscreen');
+    if (btn) btn.textContent = '⛶ 全屏';
+    // Reset to default small
+    ov.classList.remove('font-size-sm','font-size-md','font-size-lg');
+  } else {
+    ov.classList.add('fullscreen');
+    if (btn) btn.textContent = '⛶ 退出';
+    // Default: small font
+    setFontSize('sm', overlayId==='quizOverlay'?'quizFontCtrl':overlayId==='ladderOverlay'?'':overlayId==='towerOverlay'?'towerFontCtrl':'');
+  }
+}
+function setFontSize(size, ctrlId) {
+  var ov = document.querySelector('.overlay.fullscreen');
+  if (!ov) return;
+  ov.classList.remove('font-size-sm','font-size-md','font-size-lg');
+  ov.classList.add('font-size-'+size);
+  if (!ctrlId) return;
+  var ctrl = document.getElementById(ctrlId);
+  if (!ctrl) return;
+  ctrl.querySelectorAll('button').forEach(function(b){b.classList.remove('active')});
+  var btn = ctrl.querySelector('[onclick*=\"'+size+'\"]');
+  if (btn) btn.classList.add('active');
+}
+
+function loadGameData(sid) {
+  studentId = sid;
+  // Restore from localStorage first
+  try {
+    var raw = localStorage.getItem('gameState_' + sid);
+    if (!raw) raw = localStorage.getItem('scienceGame_user_' + sid);
+    if (raw) gameState = JSON.parse(raw);
+  } catch(e) {}
+  
+  // Ensure equipment is valid — if empty/broken, trigger cloud reload
+  if (!gameState.equipment || !Array.isArray(gameState.equipment) || gameState.equipment.filter(Boolean).length === 0) {
+    gameState.equipment = new Array(500).fill(null);
+    console.log('[loadGameData] 本地装备为空，触发云端恢复...');
+    loadStudent('grade_all', sid).then(function(cloudData) {
+      if (cloudData && cloudData.equipment) {
+        var eq = cloudData.equipment;
+        if (Array.isArray(eq)) {
+          if (eq.length !== 500) {
+            var inv = new Array(500).fill(null);
+            eq.filter(Boolean).forEach(function(it, i) { if (i < 500) inv[i] = it; });
+            gameState.equipment = inv;
+          } else gameState.equipment = eq;
+        }
+        if (cloudData.equippedSlots) Object.assign(bpEquippedSlots62, cloudData.equippedSlots);
+        if (cloudData.totalPoints) gameState.totalPoints = Math.max(gameState.totalPoints||0, cloudData.totalPoints||0);
+        saveEquippedSlots62();
+        try { localStorage.setItem('gameState_' + sid, JSON.stringify(gameState)); } catch(e) {}
+        try { localStorage.setItem('scienceGame_user_' + sid, JSON.stringify(gameState)); } catch(e) {}
+        console.log('[loadGameData] 云端恢复: ' + gameState.equipment.filter(Boolean).length + '件装备');
+      }
+    }).catch(function() {});
+  }
+  
+  // Restore equipped slots
+  loadEquippedSlots62();
+  
+  // Update user info
+  var grade = '四年级';
+  if (sid.length >= 4) {
+    var g = parseInt(sid.substring(2,4));
+    var gradeMap = {20:'六年级',21:'五年级',22:'四年级',23:'三年级'};
+    grade = gradeMap[g] || (g <= 20 ? '六年级' : '四年级');
+  }
+  document.querySelector('.user-name').textContent = sid || '游客';
+  document.querySelector('.user-grade').textContent = grade;
+
+  // Update stats
+  var pts = gameState.totalPoints || 0;
+  var ptsEl = document.querySelector('.stat-pill.points');
+  if (ptsEl) ptsEl.innerHTML = iconImg('⭐', 16) + ' ' + pts.toLocaleString();
+
+  var streak = gameState.currentStreak || 0;
+  var stEl = document.querySelector('.stat-pill.streak');
+  if (stEl) stEl.innerHTML = iconImg('🔥', 16) + ' 连续 ' + streak + ' 天';
+
+  // Student avatar based on grade
+  var avatarEmoji = '🧑‍🔬';
+  if (grade === '三年级') avatarEmoji = '👨‍🔬';
+  else if (grade === '六年级') avatarEmoji = '👩‍🔬';
+  document.querySelector('.user-avatar').innerHTML = iconImg(avatarEmoji, 28);
+
+  // Greeting
+  var name = gameState.studentName || '探险家';
+  var streakStr = '';
+  if ((gameState.currentStreak || 0) >= 3) {
+    streakStr = ' ' + iconImg('🔥', 18) + ' 连续' + gameState.currentStreak + '天！';
+  }
+  document.querySelector('.hero-greeting').innerHTML = '欢迎回来，' + name + '！' + streakStr;
+  
+  // Update rank pill
+  var rankEl = document.querySelector('.stat-pill.rank');
+  if (rankEl) {
+    if (gameState.ladderTier) {
+      rankEl.innerHTML = iconImg('🎯', 16) + ' ' + gameState.ladderTier;
+    } else {
+      rankEl.innerHTML = iconImg('📚', 16) + ' ' + (gameState.totalQuestionsAnswered || 0) + ' 题';
+    }
+  }
+}
+
+// ===== 爬塔 v3 (职业+计时器+自动推进+3卡牌选择) =====
+var towerState = {};
+var TOWER_CLASSES = {
+  warrior: { name:'⚔️ 战士', desc:'攻击力+30%，血量+40%', color:'#DC2626', atkBonus:30, hpBonus:40, skillCards: [{id:'w1',name:'🛡️铁壁',apply:function(t){t._shield+=25;}},{id:'w2',name:'💢狂怒',apply:function(t){t._atkBonus+=30;}},{id:'w3',name:'⚔️斩杀',apply:function(t){t._critBonus+=25;}}] },
+  mage: { name:'🧙 法师', desc:'智力加成+50%，技能伤害翻倍', color:'#7C3AED', atkBonus:10, intBonus:50, skillCards: [{id:'m1',name:'🔥火球术',apply:function(t){t._atkBonus+=40;t.playerHP-=10;}},{id:'m2',name:'💎魔力盾',apply:function(t){t._shield+=15;t._lifesteal+=10;}},{id:'m3',name:'❄️冰霜',apply:function(t){t._critBonus+=20;t._atkBonus+=20;}}] },
+  archer: { name:'🏹 弓手', desc:'暴击率+30%，闪避+20%', color:'#059669', critBonus:30, dodgeBonus:20, skillCards: [{id:'a1',name:'🎯精准',apply:function(t){t._critBonus+=35;}},{id:'a2',name:'🏃闪避',apply:function(t){t._dodge+=25;}},{id:'a3',name:'💉毒箭',apply:function(t){t._atkBonus+=20;t._lifesteal+=15;}}] }
+};
+var TOWER_MONSTERS = { small:{names:'绿史莱姆 小蝙蝠 毒蝎子 石像鬼 暗影鼠 熔岩虫 霜冻妖 藤蔓怪'.split(' '),emoji:'👾🦇🦂🗿🐀🐛❄️🌿',hpMul:2.5,atkMul:1}, elite:{names:'火焰魔 冰霜巨人 雷电精 暗影刺客 地狱犬 巨石卫 毒雾龙 幽灵骑士'.split(' '),emoji:'🔥🧊⚡🗡️🐕🪨🐉👻',hpMul:4,atkMul:1.5}, boss:{names:'暗黑龙王 深渊领主 毁灭天使 混沌魔尊 时空裂兽 末日机甲 不朽巫妖 万魔之祖'.split(' '),emoji:'🐲👹😈🌀🦖🤖💀👑',hpMul:6,atkMul:2.2} };
+var TOWER_GENERIC_CARDS = [
+  {id:'g1',name:'⚔️攻击+20%',apply:function(t){t._atkBonus+=20;}},{id:'g2',name:'💚恢复30HP',apply:function(t){t.playerHP=Math.min(t.playerMaxHP,t.playerHP+30);}},
+  {id:'g3',name:'🎯暴击+15%',apply:function(t){t._critBonus+=15;}},{id:'g4',name:'🩸吸血+10%',apply:function(t){t._lifesteal+=10;}},
+  {id:'g5',name:'🛡️减伤+15%',apply:function(t){t._shield+=15;}},{id:'g6',name:'💰积分+8/层',apply:function(t){t._bonusPts+=8;}},
+];
+var _towerQuestions = null, _towerTimer = null;
+
+function loadTowerQuestions() {
+  if (_towerQuestions) return Promise.resolve(_towerQuestions);
+  return new Promise(function(resolve) {
+    if (typeof TOWER_QUESTIONS !== 'undefined') { _towerQuestions = shuffleArray(TOWER_QUESTIONS.slice()); resolve(_towerQuestions); return; }
+    var s = document.createElement('script'); s.src='data/tower-questions.js?v=1'; s.onload = function() { _towerQuestions = shuffleArray(TOWER_QUESTIONS.slice()); resolve(_towerQuestions); };
+    s.onerror = function() { _towerQuestions = []; resolve([]); }; document.head.appendChild(s);
+  });
+}
+function shuffleArray(a) { for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;} return a; }
+function pickRand(a,n) { var r=[]; for(var i=0;i<n&&a.length;i++){var idx=Math.floor(Math.random()*a.length);r.push(a[idx]);a.splice(idx,1);} return r; }
+
+function openTower() {
+  if (!studentId) { openOverlay('loginModal'); return; }
+  var eqStats = {str:0,dex:0,int:0};
+  try { eqStats = JSON.parse(localStorage.getItem('equipStats_' + studentId) || '{}'); } catch(e) {}
+  var bonus = Math.floor((eqStats.str||0)*0.5 + (eqStats.dex||0)*0.3 + (eqStats.int||0)*0.4);
+  towerState = { floor:1, monster:null, classPicked:false, className:'', classData:null, playerMaxHP:100+(gameState.towerHighestFloor||0)*3+bonus, playerHP:100+(gameState.towerHighestFloor||0)*3+bonus, playerAtk:25+Math.floor(bonus/2), inCombat:false, question:null, questionIdx:0, _coins:gameState.towerCoins||0, _atkBonus:0, _critBonus:0, _lifesteal:0, _shield:0, _dodge:0, _bonusPts:0, _cardCount:0, _reportedQuestions:{}, _totalCorrect:0, _totalWrong:0, _timerSec:30 };
+  towerState.playerMaxHP = Math.min(towerState.playerMaxHP, 600); towerState.playerHP = towerState.playerMaxHP;
+  document.getElementById('towerDrop').innerHTML=''; document.getElementById('towerLog').innerHTML='';
+  document.getElementById('towerStartArea').style.display = ''; document.getElementById('towerQuestionArea').style.display = 'none';
+  document.getElementById('towerCardPick').style.display = 'none'; document.getElementById('towerClassPick').style.display = 'none';
+  document.getElementById('towerActions').style.display = 'none'; document.getElementById('towerTimer').style.display = 'none';
+  document.getElementById('towerStartMsg').textContent = '准备好了吗？击败怪物，攀登高塔！';
+  document.getElementById('towerResumeBtn').style.display = 'none';
+  var resume = null;
+  try { resume = JSON.parse(localStorage.getItem('towerResume_'+studentId)||'null'); } catch(e) {}
+  if (resume && resume.floor > 1) {
+    document.getElementById('towerResumeBtn').style.display = '';
+    document.getElementById('towerStartMsg').textContent = '上次到达第 '+resume.floor+' 层，要继续吗？';
+  }
+  openOverlay('towerOverlay');
+  loadTowerQuestions();
+  updateTowerUI();
+}
+
+function towerBeginChallenge() {
+  document.getElementById('towerStartArea').style.display = 'none';
+  if (!towerState.classPicked) { showClassPick(); return; }
+  startTowerRun();
+}
+
+function showClassPick() {
+  document.getElementById('towerClassPick').style.display = '';
+  var opts = document.getElementById('towerClassOpts'); opts.innerHTML = '';
+  for (var k in TOWER_CLASSES) {
+    var c = TOWER_CLASSES[k];
+    var btn = document.createElement('button');
+    btn.style.cssText = 'flex:1;padding:10px 8px;border-radius:var(--radius-sm);border:2px solid '+c.color+';background:white;cursor:pointer;font-size:12px;font-weight:700;transition:all 0.2s;';
+    btn.innerHTML = c.name+'<br><span style="font-size:9px;font-weight:400;color:var(--muted);">'+c.desc+'</span>';
+    btn.onclick = (function(cls, key) { return function() {
+      towerState.classPicked = true; towerState.className = key; towerState.classData = cls;
+      document.getElementById('towerClassPick').style.display = 'none';
+      // Apply class bonuses
+      if (cls.atkBonus) towerState._atkBonus += cls.atkBonus;
+      if (cls.hpBonus) { towerState.playerMaxHP += Math.floor(towerState.playerMaxHP*cls.hpBonus/100); towerState.playerHP = towerState.playerMaxHP; }
+      if (cls.intBonus) towerState.playerAtk += Math.floor(towerState.playerAtk*cls.intBonus/100);
+      if (cls.critBonus) towerState._critBonus += cls.critBonus;
+      if (cls.dodgeBonus) towerState._dodge += cls.dodgeBonus;
+      towerLog('🎯 职业: <b style="color:'+cls.color+';">'+cls.name+'</b>');
+      updateTowerUI(); startTowerRun();
+    }; })(c, k);
+    opts.appendChild(btn);
+  }
+}
+
+function startTowerRun() {
+  document.getElementById('towerQuestionArea').style.display = '';
+  document.getElementById('towerActions').style.display = '';
+  towerState.questionIdx = 0; towerState.inCombat = true;
+  spawnTowerMonster();
+}
+
+function startTimer() {
+  towerState._timerSec = 30;
+  document.getElementById('towerTimer').style.display = '';
+  document.getElementById('towerTimer').textContent = '⏱30s';
+  if (_towerTimer) clearInterval(_towerTimer);
+  _towerTimer = setInterval(function() {
+    towerState._timerSec--;
+    var el = document.getElementById('towerTimer');
+    if (el) { el.textContent = '⏱'+towerState._timerSec+'s'; if (towerState._timerSec <= 5) el.style.color = '#DC2626'; }
+    if (towerState._timerSec <= 0) {
+      clearInterval(_towerTimer); _towerTimer = null;
+      towerAnswer(-1); // Timeout = wrong answer
+    }
+  }, 1000);
+}
+
+function stopTimer() { if (_towerTimer) { clearInterval(_towerTimer); _towerTimer = null; } document.getElementById('towerTimer').style.display = 'none'; }
+
+function spawnTowerMonster() {
+  var floor = towerState.floor, isBoss = floor%10===0;
+  var cat = isBoss?'boss':(Math.random()<0.7?'small':'elite'), data = TOWER_MONSTERS[cat];
+  towerState.monster = { name:data.names[Math.floor(Math.random()*data.names.length)], emoji:data.emoji[Math.floor(Math.random()*data.emoji.length)], type:cat, maxHP:Math.floor(5+floor*data.hpMul*(floor>50?1.5:1)), hp:0, atk:Math.floor(3+floor*data.atkMul) };
+  towerState.monster.hp = towerState.monster.maxHP; towerState.inCombat = true;
+  updateTowerUI(); renderMonster(); renderQuestion(); startTimer();
+}
+
+function renderQuestion() {
+  if (!_towerQuestions || _towerQuestions.length===0) { towerLog('⚠️ 题库加载中...'); return; }
+  var idx = towerState.questionIdx % _towerQuestions.length; towerState.question = _towerQuestions[idx];
+  var q = towerState.question, qText = (q.question||'').replace(/\\n/g,'<br>');
+  document.getElementById('towerQuestionText').innerHTML = qText;
+  var imgDiv = document.getElementById('towerQuestionImg'); imgDiv.innerHTML = '';
+  var imgMatch = qText.match(/src=['\"]([^'\"]+)['\"]/);
+  if (imgMatch) { var src = imgMatch[1]; if (src.indexOf('icons/')===0) src = '../'+src; imgDiv.innerHTML='<img src=\"'+src+'\" style=\"max-width:100%;max-height:160px;border-radius:8px;margin:4px auto;display:block;\">'; }
+  var optsDiv = document.getElementById('towerOptions'); optsDiv.innerHTML = '';
+  (q.options||['√','×']).forEach(function(opt,i){
+    var btn = document.createElement('button');
+    btn.textContent = (i===0?'A':i===1?'B':i===2?'C':'D')+'. '+opt;
+    btn.style.cssText = 'padding:7px 12px;border-radius:var(--radius-sm);border:2px solid var(--border);background:white;font-size:12px;cursor:pointer;text-align:left;font-weight:600;transition:all 0.15s;';
+    btn.onmouseenter=function(){this.style.borderColor='var(--primary-light)';};
+    btn.onmouseleave=function(){this.style.borderColor='var(--border)';};
+    btn.setAttribute('data-opt', i);
+    btn.onclick = function() { towerAnswer(i); };
+    optsDiv.appendChild(btn);
+  });
+  document.getElementById('towerFeedback').style.display = 'none';
+  var total = towerState._totalCorrect+towerState._totalWrong, acc = total>0?towerState._totalCorrect/total:1;
+  document.getElementById('towerReportBtn').style.display = (total>=10&&acc>=0.8)?'':'none';
+  updateHPs();
+}
+
+function towerAnswer(choice) {
+  stopTimer();
+  if (!towerState.inCombat||!towerState.monster||!towerState.question) return;
+  var correct = choice>=0 && towerState.question.answer===choice, m = towerState.monster;
+  var btns = document.querySelectorAll('#towerOptions button');
+  btns.forEach(function(b){ b.disabled=true; });
+  // Highlight correct answer
+  btns.forEach(function(b){ if(parseInt(b.getAttribute('data-opt'))===towerState.question.answer) b.style.background='#F0FDF4'; });
+  var fb = document.getElementById('towerFeedback');
+  if (correct) {
+    towerState._totalCorrect++; fb.style.display='';fb.style.background='#F0FDF4';fb.style.border='2px solid #22C55E';
+    fb.innerHTML = '✅ <b>正确！</b>';
+    var crit = Math.random()*100<((towerState._critBonus||0)+5);
+    var pAtk = towerState.playerAtk; if(towerState._atkBonus) pAtk=Math.floor(pAtk*(1+towerState._atkBonus/100));
+    var dmg = Math.floor(pAtk*(crit?2:1)*(0.8+Math.random()*0.4)); m.hp-=dmg;
+    var heal=0; if(towerState._lifesteal) heal=Math.floor(dmg*towerState._lifesteal/100);
+    if(heal) towerState.playerHP=Math.min(towerState.playerMaxHP,towerState.playerHP+heal);
+    towerLog((crit?'🎯暴击! ':'')+'<b style=\"color:#EF4444;\">'+dmg+'</b> 伤害'+(heal?' 💚+'+heal:''));
+    if (m.hp<=0) { towerState.questionIdx++; setTimeout(function(){ monsterDefeated(); },800); return; }
+    var shield=towerState._shield||0; var mDmg=Math.floor(m.atk*(1-shield/100)*(0.8+Math.random()*0.4));
+    if(towerState._dodge>0&&Math.random()*100<towerState._dodge){towerLog('🏃 闪避！');}
+    else{towerState.playerHP-=mDmg;towerLog('反击 <b style=\"color:#DC2626;\">'+mDmg+'</b>');}
+    if(towerState.playerHP<=0){updateTowerUI();setTimeout(function(){playerDefeated();},800);return;}
+  } else {
+    towerState._totalWrong++; fb.style.display='';fb.style.background='#FEF2F2';fb.style.border='2px solid #EF4444';
+    fb.innerHTML = '❌ <b>错误！</b> '+(choice<0?'超时！':'')+'答案: '+(towerState.question.options[towerState.question.answer]||'?');
+    var mDmg=Math.floor(m.atk*1.2*(0.9+Math.random()*0.2));
+    if(towerState._dodge>0&&Math.random()*100<towerState._dodge){towerLog('🏃 闪避！');}
+    else{towerState.playerHP-=mDmg;towerLog('受到 <b style=\"color:#DC2626;\">'+mDmg+'</b> 伤害');}
+    if(towerState.playerHP<=0){updateTowerUI();setTimeout(function(){playerDefeated();},800);return;}
+  }
+  towerState.questionIdx++; updateTowerUI();
+  setTimeout(function(){ renderQuestion(); startTimer(); },1000);
+}
+
+function monsterDefeated() {
+  stopTimer(); towerState.inCombat=false; towerState.monster=null;
+  towerLog('<div style=\"color:#059669;font-weight:700;\">🎉 击败怪物！</div>');
+  var coins=(towerState._bonusPts||0)+towerState.floor+(towerState.floor%10===0?20:5);
+  towerState._coins=(towerState._coins||0)+coins; gameState.totalPoints+=coins;
+  // Equipment drop
+  var dropHTML='',dropRate=0.1+towerState.floor*0.005;
+  if(Math.random()<dropRate){
+    var rarities=['普通','良好','稀有'],rWeights=[60,30,10],rVals={普通:1,良好:3,稀有:4},rColors={普通:'#9CA3AF',良好:'#2196F3',稀有:'#9C27B0'};
+    if(towerState.floor>=20){rarities.push('史诗');rWeights.push(5);rVals.史诗=5;rColors.史诗='#E91E63';}
+    if(towerState.floor>=40){rarities.push('传说');rWeights.push(3);rVals.传说=6;rColors.传说='#FFD700';}
+    var r=Math.random()*100,rAcc=0,rarity='普通';
+    for(var i=0;i<rarities.length;i++){rAcc+=rWeights[i];if(r<rAcc){rarity=rarities[i];break;}}
+    var slots=['宝具','脸饰','眼饰','手套','披风','盾牌'],slot=slots[Math.floor(Math.random()*slots.length)];
+    var item={name:slot+'·'+rarity+'装备',rarity:rVals[rarity]||1,slot:slot,typeId:'box',str:Math.floor(Math.random()*towerState.floor*2)+5,dex:Math.floor(Math.random()*towerState.floor*2)+3,int:Math.floor(Math.random()*towerState.floor*2)+3,multiplier:1+(rVals[rarity]-1)*0.1};
+    for(var ii=0;ii<500;ii++){if(!gameState.equipment[ii]){gameState.equipment[ii]=item;break;}}
+    dropHTML='<div style=\"margin-top:4px;padding:6px;background:#F0FDF4;border-radius:var(--radius-sm);border:2px solid '+rColors[rarity]+';\">🎁 <b style=\"color:'+rColors[rarity]+';\">'+item.name+'</b></div>';
+    showCloudToast('🎁 获得装备!','success');
+  }
+  document.getElementById('towerDrop').innerHTML=dropHTML;
+  saveGame(); updateTowerUI();
+  // Show 3-card pick
+  showCardPick(function(){ advanceToNextFloor(); });
+}
+
+function showCardPick(cb) {
+  document.getElementById('towerQuestionArea').style.display='none';
+  document.getElementById('towerCardPick').style.display='';
+  var pool = (towerState.classData&&towerState.classData.skillCards?towerState.classData.skillCards.slice():[]).concat(TOWER_GENERIC_CARDS.slice());
+  var cards = pickRand(pool, 3);
+  var opts = document.getElementById('towerCardOpts'); opts.innerHTML='';
+  cards.forEach(function(c){
+    var btn = document.createElement('button');
+    btn.style.cssText = 'flex:1;padding:10px 6px;border-radius:var(--radius-sm);border:2px solid #8B5CF6;background:white;cursor:pointer;font-size:11px;font-weight:700;transition:all 0.2s;max-width:120px;';
+    btn.textContent = c.name;
+    btn.onclick = function() { c.apply(towerState); document.getElementById('towerCardPick').style.display='none'; document.getElementById('towerQuestionArea').style.display=''; towerLog('🎴 '+c.name); if(cb) cb(); };
+    opts.appendChild(btn);
+  });
+}
+
+function advanceToNextFloor() {
+  towerState.floor++; towerState.playerHP = Math.min(towerState.playerMaxHP, towerState.playerHP+Math.floor(towerState.playerMaxHP*0.15));
+  document.getElementById('towerDrop').innerHTML=''; document.getElementById('towerNextBtn').style.display='none';
+  updateTowerUI(); spawnTowerMonster();
+  towerLog('<div style=\"color:var(--primary);\">⬆️ 第 '+towerState.floor+' 层...</div>');
+}
+
+function playerDefeated() {
+  stopTimer(); towerState.inCombat=false; towerState.playerHP=0;
+  towerLog('<div style=\"color:#DC2626;font-weight:700;\">💀 被击败！到达第 '+towerState.floor+' 层</div>');
+  if(towerState.floor>1&&towerState.floor>(gameState.towerHighestFloor||0)){gameState.towerHighestFloor=towerState.floor;showCloudToast('🗼 新纪录! 第'+towerState.floor+'层','success');}
+  gameState.towerCoins=towerState._coins||0; saveGame();
+  try{localStorage.removeItem('towerResume_'+studentId);}catch(e){}
+  document.getElementById('towerQuestionArea').style.display='none';document.getElementById('towerCardPick').style.display='none';
+  document.getElementById('towerNextBtn').style.display='';document.getElementById('towerNextBtn').textContent='🔄 重新开始';
+  document.getElementById('towerNextBtn').onclick=function(){openTower();towerBeginChallenge();};
+  updateTowerUI();
+}
+
+function renderMonster() {
+  var m = towerState.monster; if(!m) return;
+  document.getElementById('monsterEmoji').textContent=m.emoji; document.getElementById('monsterName').textContent=m.name;
+  var tag=m.type==='boss'?'👑BOSS':m.type==='elite'?'⭐精英':'小怪';
+  document.getElementById('monsterTypeTag').textContent=tag;
+  document.getElementById('monsterTypeTag').style.background=m.type==='boss'?'#FEE2E2':m.type==='elite'?'#FEF3C7':'var(--primary-bg)';
+  document.getElementById('monsterTypeTag').style.color=m.type==='boss'?'#DC2626':m.type==='elite'?'#92400E':'var(--muted)';
+  updateHPs();
+}
+function towerLog(msg){var l=document.getElementById('towerLog');l.innerHTML+='<div>'+msg+'</div>';l.scrollTop=l.scrollHeight;}
+function updateHPs(){
+  var m=towerState.monster;
+  if(m){document.getElementById('monsterHP').textContent=Math.max(0,Math.floor(m.hp));document.getElementById('monsterMaxHP').textContent=m.maxHP;document.getElementById('monsterHPBar').style.width=Math.max(0,m.hp/m.maxHP*100)+'%';}
+  document.getElementById('playerHP').textContent=Math.floor(towerState.playerHP);document.getElementById('playerMaxHP').textContent=towerState.playerMaxHP;
+  document.getElementById('playerHPBar').style.width=Math.max(0,towerState.playerHP/towerState.playerMaxHP*100)+'%';
+}
+function updateTowerUI(){var f=towerState.floor;document.getElementById('towerFloorNum').textContent='第 '+f+' 层';document.getElementById('towerFloorLabel').textContent=f%10===0?'👑BOSS':'普通';document.getElementById('towerBestFloor').textContent=gameState.towerHighestFloor||0;document.getElementById('towerCoinDisplay').textContent=towerState._coins||0;updateHPs();}
+function towerNextFloor(){if(!towerState.inCombat&&towerState.playerHP>0)advanceToNextFloor();}
+function towerResumeFloor(){document.getElementById('towerStartArea').style.display='none';document.getElementById('towerQuestionArea').style.display='';document.getElementById('towerActions').style.display='';if(!towerState.monster)spawnTowerMonster();else renderQuestion();}
+function closeTower(){stopTimer();towerState.inCombat=false;if(towerState.floor>1&&towerState.floor>(gameState.towerHighestFloor||0))gameState.towerHighestFloor=towerState.floor;gameState.towerCoins=towerState._coins||0;saveGame();if(towerState.floor>1)try{localStorage.setItem('towerResume_'+studentId,JSON.stringify({floor:towerState.floor,coins:towerState._coins,playerHP:towerState.playerHP,playerMaxHP:towerState.playerMaxHP,_atkBonus:towerState._atkBonus,_critBonus:towerState._critBonus,_lifesteal:towerState._lifesteal,_shield:towerState._shield,_dodge:towerState._dodge,_bonusPts:towerState._bonusPts,questionIdx:towerState.questionIdx,classPicked:towerState.classPicked,className:towerState.className}));}catch(e){}closeOverlay('towerOverlay');}
+function towerReportWrong(){if(!towerState.question)return;var t=towerState._totalCorrect+towerState._totalWrong,acc=t>0?towerState._totalCorrect/t:1;if(t<10||acc<0.8){showCloudToast('正确率需≥80%且答题≥10题','warn');return;}var qid=towerState.question.id||('q_'+towerState.questionIdx);towerState._reportedQuestions[qid]=true;towerLog('❗ 答案纠错');try{var r=JSON.parse(localStorage.getItem('tower_reports_'+studentId)||'{}');r[qid]={id:qid,question:towerState.question.question,answer:towerState.question.answer,time:Date.now(),studentId:studentId};localStorage.setItem('tower_reports_'+studentId,JSON.stringify(r));}catch(e){}}
+
+function setupModeCards(sid) {
+  // Update progress bars based on real data
+  var lessProg = gameState.lessonProgress || {};
+  var totalLess = Object.keys(lessProg).length;
+  var doneLess = 0;
+  for (var k in lessProg) {
+    if (lessProg[k] && lessProg[k].stars && lessProg[k].stars >= 1) doneLess++;
+  }
+  var lessPct = totalLess > 0 ? Math.round(doneLess / totalLess * 100) : 0;
+
+  var towerFloor = gameState.towerHighestFloor || 0;
+  var towerPct = Math.min(towerFloor / 50 * 100, 100);
+
+  var ladderScore = gameState.ladderBestScore || 0;
+  var ladderPct = Math.min(ladderScore / 10000 * 100, 100);
+
+  // Update progress bars
+  var fills = document.querySelectorAll('.mode-progress-fill');
+  if (fills[0]) fills[0].style.width = lessPct + '%';
+  if (fills[1]) fills[1].style.width = towerPct + '%';
+  if (fills[2]) fills[2].style.width = ladderPct + '%';
+
+  // Wire mode cards — lesson opens course panel (or login)
+  var cards = document.querySelectorAll('.mode-card');
+  if (cards[0]) cards[0].setAttribute('onclick', 'openLesson()');
+  if (cards[1]) cards[1].setAttribute('onclick', "openTower()");
+  if (cards[2]) cards[2].setAttribute('onclick', "openLadder()");
+}
+
+var _ladderState = { score:0, dailyCount:0, streak:0, bestStreak:0, dailyDate:'', qIdx:0, correctCount:0, questions:[], _timer:null, _timerSec:20 };
+var _ladderTab = 'score';
+
+function openLadder() {
+  if (!studentId) { openOverlay('loginModal'); return; }
+  // Default 1000 base score (黑铁起点)
+  _ladderState.score = gameState.ladderPoints || 1000;
+  if (!gameState.ladderPoints) { gameState.ladderPoints = 1000; saveGame(); }
+  var today = new Date().toDateString();
+  if (_ladderState.dailyDate !== today) { _ladderState.dailyCount = 0; _ladderState.dailyDate = today; }
+  var tier = getTier(_ladderState.score);
+  var elScore = document.getElementById('ladderScore');
+  var elRem = document.getElementById('ladderRemaining');
+  if (elScore) elScore.innerHTML = tier.icon+' <span style=\"color:'+tier.color+';\">'+tier.name+tier.sub+'</span><br><span style=\"font-size:11px;\">'+_ladderState.score+' 分</span>';
+  if (elRem) elRem.textContent = Math.max(0, 10 - _ladderState.dailyCount);
+  document.getElementById('ladderStartArea').style.display = '';
+  document.getElementById('ladderQuizArea').style.display = 'none';
+  var elRes = document.getElementById('ladderResult'); if (elRes) elRes.style.display = 'none';
+  openOverlay('ladderOverlay');
+  loadStudentNames();
+  loadLadderRankings();
+}
+
+function getCurrentGrade() {
+  if (studentId && studentId.length>=4) { var gi=parseInt(studentId.substring(2,4)); var gm={20:'6',21:'5',22:'4',23:'3'}; return gm[gi]||'4'; }
+  return '4';
+}
+function loadGradeQuestions(grade) {
+  return new Promise(function(resolve) {
+    var qs = extractLessonQuestions(grade);
+    if (qs.length > 0) { resolve(qs); return; }
+    loadCourses(grade, '2').then(function() {
+      var qs2 = extractLessonQuestions(grade);
+      if (qs2.length > 0) { resolve(qs2); return; }
+      // v715: 下册无数据，尝试上册
+      loadCourses(grade, '1').then(function() {
+        resolve(extractLessonQuestions(grade));
+      }).catch(function() {
+        resolve(generateBackupQuestions());
+      });
+    }).catch(function() {
+      // v715: loadCourses失败，回退到备用题库
+      resolve(generateBackupQuestions());
+    });
+  });
+}
+function extractLessonQuestions(grade) {
+  var qs=[];
+  for (var sem=1;sem<=2;sem++) {
+    var data=lessonDataCache[grade+sem];
+    if(!data||!data.lessons) continue;
+    data.lessons.forEach(function(lesson){
+      if(lesson.questions) lesson.questions.forEach(function(q){
+        if(q.question&&q.options&&q.answer!==undefined) qs.push({question:'【'+grade+'·'+lesson.unit+'】'+q.question,options:q.options,answer:q.answer});
+      });
+    });
+  }
+  return qs;
+}
+function generateBackupQuestions() {
+  var qs=[];
+  for(var i=1;i<=10;i++) qs.push({question:'题库加载中... 第'+i+'题',options:['A','B','C','D'],answer:0});
+  return qs;
+}
+
+function startLadderChallenge() {
+  if (_ladderState.dailyCount >= 10) { showCloudToast('今日挑战次数已用完，明天再来！','warn'); return; }
+  document.getElementById('ladderStartArea').style.display = 'none';
+  document.getElementById('ladderQuizArea').style.display = '';
+  var elRes = document.getElementById('ladderResult'); if (elRes) elRes.style.display = 'none';
+  _ladderState.qIdx = 0; _ladderState.correctCount = 0; _ladderState.streak = 0;
+  // Use grade-specific lesson questions (基础题库)
+  var grade = getCurrentGrade();
+  loadGradeQuestions(grade).then(function(qs) {
+    _ladderState.questions = shuffleArray(qs.slice()).slice(0,10);
+    if (_ladderState.questions.length === 0) { showCloudToast('题库加载失败','warn'); return; }
+    renderLadderQ();
+  });
+}
+
+function renderLadderQ() {
+  var i = _ladderState.qIdx;
+  if (i >= _ladderState.questions.length) { showLadderResult(); return; }
+  var q = _ladderState.questions[i];
+  document.getElementById('ladderQIdx').textContent = i+1;
+  document.getElementById('ladderStreak').textContent = _ladderState.streak;
+  document.getElementById('ladderQText').innerHTML = (q.question||'').replace(/\\n/g,'<br>');
+  var imgDiv = document.getElementById('ladderQImg'); imgDiv.innerHTML = '';
+  var imgMatch = (q.question||'').match(/src=['\"]([^'\"]+)['\"]/);
+  if (imgMatch) { var src = imgMatch[1]; if (src.indexOf('icons/')===0) src='../'+src; imgDiv.innerHTML='<img src=\"'+src+'\" style=\"max-width:100%;max-height:140px;border-radius:8px;\">'; }
+  var optsDiv = document.getElementById('ladderQOpts'); optsDiv.innerHTML = '';
+  (q.options||['√','×']).forEach(function(opt,j){
+    var btn = document.createElement('button');
+    btn.textContent = (j===0?'A':j===1?'B':j===2?'C':'D')+'. '+opt;
+    btn.style.cssText = 'padding:7px 12px;border-radius:var(--radius-sm);border:2px solid var(--border);background:white;font-size:12px;cursor:pointer;text-align:left;font-weight:600;transition:all 0.15s;';
+    btn.onclick = function() { ladderAnswer(j); };
+    optsDiv.appendChild(btn);
+  });
+  document.getElementById('ladderQFeedback').style.display = 'none';
+  startLadderTimer();
+}
+
+function startLadderTimer() {
+  _ladderState._timerSec = 20;
+  if (_ladderState._timer) clearInterval(_ladderState._timer);
+  document.getElementById('ladderTimer').textContent = '20'; document.getElementById('ladderTimer').style.color = '';
+  _ladderState._timer = setInterval(function() {
+    _ladderState._timerSec--;
+    var el = document.getElementById('ladderTimer');
+    if (el) { el.textContent = _ladderState._timerSec; if (_ladderState._timerSec<=5) el.style.color='#DC2626'; }
+    if (_ladderState._timerSec <= 0) { clearInterval(_ladderState._timer); ladderAnswer(-1); }
+  }, 1000);
+}
+
+function ladderAnswer(choice) {
+  if (_ladderState._timer) { clearInterval(_ladderState._timer); _ladderState._timer = null; }
+  var q = _ladderState.questions[_ladderState.qIdx];
+  var correct = choice >= 0 && q.answer === choice;
+  var btns = document.querySelectorAll('#ladderQOpts button');
+  btns.forEach(function(b){b.disabled=true;});
+  if (q.answer >= 0 && q.answer < btns.length) btns[q.answer].style.background='#F0FDF4';
+  var fb = document.getElementById('ladderQFeedback');
+  if (correct) {
+    _ladderState.correctCount++; _ladderState.streak++;
+    if (_ladderState.streak > _ladderState.bestStreak) _ladderState.bestStreak = _ladderState.streak;
+    fb.style.display='';fb.style.background='#F0FDF4';fb.style.border='2px solid #22C55E';fb.innerHTML='✅ 正确！';
+  } else {
+    _ladderState.streak = 0;
+    fb.style.display='';fb.style.background='#FEF2F2';fb.style.border='2px solid #EF4444';
+    fb.innerHTML = '❌ 错误！'+(choice<0?'超时！':'')+' 答案: '+(q.options[q.answer]||'?');
+  }
+  _ladderState.qIdx++;
+  setTimeout(function(){ if (_ladderState.qIdx >= 10) showLadderResult(); else renderLadderQ(); }, 800);
+}
+
+function showLadderResult() {
+  document.getElementById('ladderQuizArea').style.display = 'none';
+  var elRes = document.getElementById('ladderResult'); if (elRes) elRes.style.display = '';
+  var correct = _ladderState.correctCount;
+  var table = [-8,-6,-4,-2,-1,1,2,4,6,8,16];
+  var points = table[correct] !== undefined ? table[correct] : table[0];
+  if (_ladderState.streak >= 5) points += 3;
+  if (points > 0 && _ladderState.bestStreak >= 3) points += 2;
+  _ladderState.score = Math.max(0, _ladderState.score + points);
+  _ladderState.dailyCount++;
+  var today = new Date().toDateString(); _ladderState.dailyDate = today;
+  gameState.ladderPoints = _ladderState.score;
+  gameState.ladderBestScore = Math.max(gameState.ladderBestScore||0, _ladderState.score);
+  saveGame();
+  var isWin = points >= 0;
+  document.getElementById('ladderResultIcon').textContent = isWin?'🏆':'💔';
+  document.getElementById('ladderResultTitle').textContent = isWin?'挑战完成！':'继续加油！';
+  document.getElementById('ladderResultTitle').style.color = isWin?'#059669':'#DC2626';
+  document.getElementById('ladderResultScore').innerHTML = '答对 <b>'+correct+'</b>/10 题 · 积分 <b style=\"color:'+(isWin?'#059669':'#DC2626')+';\">'+(points>=0?'+':'')+points+'</b> · 天梯分 <b>'+_ladderState.score+'</b>';
+  var elScore = document.getElementById('ladderScore');
+  if (elScore) { var t = getTier(_ladderState.score); elScore.innerHTML = t.icon+' <span style=\"color:'+t.color+';\">'+t.name+t.sub+'</span><br><span style=\"font-size:11px;\">'+_ladderState.score+' 分</span>'; }
+  var elRem = document.getElementById('ladderRemaining'); if (elRem) elRem.textContent = Math.max(0, 10 - _ladderState.dailyCount);
+  fetch(API_BASE + '/ladder/ranking', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({studentId:studentId,score:_ladderState.score})}).catch(function(){});
+  loadLadderRankings();
+}
+
+function resetLadderView() {
+  if (_ladderState.dailyCount >= 10) { showCloudToast('今日已用完10次','warn'); return; }
+  document.getElementById('ladderStartArea').style.display = '';
+  document.getElementById('ladderQuizArea').style.display = 'none';
+  var elRes = document.getElementById('ladderResult'); if (elRes) elRes.style.display = 'none';
+}
+
+function loadLadderRankings() {
+  if (!window._rankData) { fetchRankings(); return; }
+  renderLadder(window._rankData, _ladderTab);
+}
+
+function renderLadder(rankings, type) {
+  var list = document.getElementById('ladderList');
+  var sortField = type==='score'?'ladderScore':'accuracyRate';
+  rankings.sort(function(a,b){return(b[sortField]||0)-(a[sortField]||0);});
+  list.innerHTML='';
+  rankings.slice(0,15).forEach(function(item,i){
+    var medals=['🥇','🥈','🥉'],medal=medals[i]||(i+1),isMe=item.studentId===studentId,val=item[sortField]||0;
+    var name=getStudentDisplay(item.studentId);
+    var tier = getTier(item.ladderScore||0);
+    var tierBadge = '<span style=\"font-size:10px;color:'+tier.color+';\">'+tier.icon+tier.name+tier.sub+'</span>';
+    var row=document.createElement('div');row.className='rank-row';
+    row.style.cssText=isMe?'border:2px solid var(--primary-light);background:#EEF2FF;':'';
+    row.innerHTML='<span class=\"rank-num\">'+medal+'</span><span class=\"rank-avatar\" style=\"background:#EEF2FF;\">'+iconImg('🧑‍🔬',20)+'</span><span class=\"rank-name\"'+(isMe?' style=\"color:var(--primary);font-weight:800;\"':'')+'>'+escapeHtml(name)+(isMe?' (我)':'')+'<br>'+tierBadge+'</span><span class=\"rank-score\">'+val.toLocaleString()+'</span>';
+    list.appendChild(row);
+  });
+}
+
+function switchLadderTab(type){
+  _ladderTab = type;
+  var btns=document.querySelectorAll('#ladderOverlay .rank-tab');
+  btns.forEach(function(b){b.classList.toggle('active',type==='score'?b.textContent.indexOf('天梯分')!==-1:b.textContent.indexOf('正确率')!==-1);});
+  if(window._rankData)renderLadder(window._rankData,type);
+}
+
+function fetchRankings() {
+  var gradeKey = 'grade_all';
+  console.log('[Ranking] 获取排行榜: ' + gradeKey);
+  getRanking(gradeKey)
+    .then(function(data) {
+      // Parse dict format
+      var rankings = [];
+      if (data && typeof data === 'object' && !Array.isArray(data)) {
+        for (var k in data) { if (data.hasOwnProperty(k) && data[k] && data[k].studentId) rankings.push(data[k]); }
+      } else if (data && data.rankings) { rankings = data.rankings; }
+      console.log('[Ranking] 排行榜数据: ' + rankings.length + ' 条');
+      window._rankData = rankings;
+      switchRankTab('score');
+    })
+    .catch(function(e) {
+      console.error('[Ranking] 获取排行榜失败:', e);
+      var list = document.getElementById('rankListContent');
+      if (list) list.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted);">网络异常，请重试</div>';
+    });
+}
+
+var _currentRankTab = 'score';
+function switchRankTab(type) {
+  _currentRankTab = type;
+  // Update tab buttons
+  var tabs = document.querySelectorAll('#rankTabBar .rank-tab');
+  var tabNames = {score:'积分',ladder:'天梯',tower:'爬塔',mythic:'神话',achievement:'成就'};
+  var tName = tabNames[type] || '';
+  tabs.forEach(function(t) { t.classList.toggle('active', t.textContent.indexOf(tName) !== -1); });
+  
+  var rankings = window._rankData || [];
+  var list = document.getElementById('rankListContent');
+  if (!list) return;
+
+  var sortField, label, selfField, selfFallback;
+  if (type === 'score') { sortField = 'totalPoints'; label = '积分'; selfField = 'totalPoints'; selfFallback = gameState.totalPoints; }
+  else if (type === 'ladder') { sortField = 'ladderScore'; label = '天梯分'; selfField = 'ladderScore'; selfFallback = gameState.ladderBestScore; }
+  else if (type === 'tower') { sortField = 'towerFloor'; label = '爬塔层数'; selfField = 'towerFloor'; selfFallback = gameState.towerHighestFloor; }
+  else if (type === 'mythic') { sortField = 'mythicCount'; label = '神话装备'; selfField = 'mythicCount'; selfFallback = 0; }
+  else { sortField = 'achievementCount'; label = '成就数'; selfField = 'achievementCount'; selfFallback = (gameState.unlockedAchievements || []).length; }
+
+  rankings.sort(function(a, b) { return (b[sortField] || 0) - (a[sortField] || 0); });
+  
+  if (rankings.length === 0) { list.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted);">暂无排行数据</div>'; return; }
+  list.innerHTML = '';
+
+  // Self rank header
+  var selfRank = -1, selfVal = 0;
+  for (var i = 0; i < rankings.length; i++) {
+    if (rankings[i].studentId === studentId) { selfRank = i + 1; selfVal = rankings[i][selfField] || 0; break; }
+  }
+  if (selfRank === -1 && selfFallback > 0) { selfVal = selfFallback; }
+  if (selfVal > 0 || selfRank > 0) {
+    var hdr = document.createElement('div');
+    hdr.style.cssText = 'text-align:center;padding:14px 18px;margin-bottom:12px;border-radius:var(--radius-md);background:linear-gradient(135deg,#EEF2FF,#E0E7FF);border:2px solid var(--primary-light);';
+    hdr.innerHTML = '<div style="font-size:13px;color:var(--muted);">' + iconImg('⭐',14) + ' 我的排名</div>' +
+      '<div style="font-size:24px;font-weight:800;color:var(--primary);margin:4px 0;">' + (selfRank>0?'第'+selfRank+'名':'暂未上榜') + '</div>' +
+      '<div style="font-size:14px;color:var(--text);">' + label + '：' + selfVal.toLocaleString() + '</div>';
+    list.appendChild(hdr);
+  }
+
+  rankings.slice(0, 10).forEach(function(item, i) {
+    var medals = ['🥇','🥈','🥉'], medal = medals[i] || (i+1);
+    var isMe = item.studentId === studentId, val = item[sortField] || 0;
+    var displayName = getStudentDisplay(item.studentId);
+    var tier = getTier(item.ladderScore||0);
+    var tierBadge = '<span style=\"font-size:9px;color:'+tier.color+';\">'+tier.icon+tier.name+tier.sub+'</span>';
+    var row = document.createElement('div');
+    row.className = 'rank-row';
+    row.style.cssText = isMe ? 'border:2px solid var(--primary-light);background:#EEF2FF;' : '';
+    row.innerHTML = '<span class="rank-num">'+medal+'</span>' +
+      '<span class="rank-avatar" style="background:#EEF2FF;">' + iconImg('🧑‍🔬',20) + '</span>' +
+      '<span class="rank-name"' + (isMe?' style="color:var(--primary);font-weight:800;"':'') + '>' + escapeHtml(displayName) + (isMe?' (我)':'') + '<br>'+tierBadge+'</span>' +
+      '<span class="rank-score">' + val.toLocaleString() + '</span>';
+    list.appendChild(row);
+  });
+}
+
+function escapeHtml(s) {
+  var d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// ===== Login & Course System =====
+// Lesson data cache
+var lessonDataCache = {};
+var currentGrade = '';
+var currentSemester = '2';
+
+function openLesson() {
+  if (!studentId) {
+    // Not logged in — show login modal
+    openOverlay('loginModal');
+    document.getElementById('lmStudentId').focus();
+    return;
+  }
+  // Logged in — auto-detect grade from studentId
+  var g = '4';
+  if (studentId.length >= 4) {
+    var gi = parseInt(studentId.substring(2,4));
+    var gm = {20:'6',21:'5',22:'4',23:'3'};
+    g = gm[gi] || '4';
+  }
+  currentGrade = g;
+  openOverlay('courseOverlay');
+  highlightGradeTab(g);
+  loadCourses(g, currentSemester);
+}
+
+function highlightGradeTab(g) {
+  document.querySelectorAll('#cpGradeTabs .cp-grade-tab').forEach(function(t) {
+    t.classList.toggle('active', t.getAttribute('data-g') === g);
+  });
+  document.querySelectorAll('#cpSemesterTabs .cp-semester-tab').forEach(function(t) {
+    t.classList.toggle('active', t.getAttribute('data-s') === currentSemester);
+  });
+}
+
+function minimizeCourse() {
+  closeOverlay('courseOverlay');
+}
+
+// ===== Login Flow =====
+function setupLoginModal() {
+  var input = document.getElementById('lmStudentId');
+  var loginBtn = document.getElementById('lmLoginBtn');
+  var guestBtn = document.getElementById('lmGuestBtn');
+  var formEl = document.getElementById('lmForm');
+  var loadingEl = document.getElementById('lmLoading');
+
+  input.addEventListener('input', function() {
+    this.value = this.value.replace(/[^0-9]/g, '');
+  });
+
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') loginBtn.click();
+  });
+
+  loginBtn.addEventListener('click', function() {
+    var sid = input.value.trim();
+    if (sid.length !== 8) return;
+    formEl.style.display = 'none';
+    loadingEl.classList.add('show');
+    doCloudLogin(sid);
+  });
+
+  guestBtn.addEventListener('click', function() {
+    formEl.style.display = 'none';
+    loadingEl.classList.add('show');
+    doGuestLogin();
+  });
+}
+
+// ===== v712 背包装备槽 (索引存储, 兼容云存档) =====
+var bpEquippedSlots62 = {
+  weapon: null, hat: null, top: null, bottom: null, glove: null,
+  cape: null, shield: null, shoes: null, face: null, eyes: null,
+  treasure: [null, null]
+};
+
+function loadEquippedSlots62() {
+  try {
+    var key = 'bpEquipped_6_' + (studentId || '');
+    var state = JSON.parse(localStorage.getItem(key) || 'null');
+    if (state) { Object.assign(bpEquippedSlots62, state); }
+  } catch(e) {}
+}
+
+function saveEquippedSlots62() {
+  if (!studentId) return;
+  try { localStorage.setItem('bpEquipped_6_' + studentId, JSON.stringify(bpEquippedSlots62)); } catch(e) {}
+}
+
+async function doCloudLogin(sid) {
+  var grade = '4';
+  if (sid.length >= 4) {
+    var gi = parseInt(sid.substring(2,4));
+    var gm = {20:'6',21:'5',22:'4',23:'3'};
+    grade = gm[gi] || '4';
+  }
+  var gradeKey = 'grade_all';  // v712 统一使用 grade_all
+  studentId = sid;
+
+  // Reset equipped slots
+  bpEquippedSlots62 = { weapon:null,hat:null,top:null,bottom:null,glove:null,cape:null,shield:null,shoes:null,face:null,eyes:null,treasure:[null,null] };
+
+  // Init empty gameState with ALL fields matching v712's applyUserData()
+  gameState = {
+    studentId: sid,
+    studentName: getStudentName(sid),
+    isGuest: false,
+    totalPoints: 0,
+    lessonProgress: {},
+    equipment: new Array(500).fill(null),
+    equipDropped: {},
+    wrongQuestions: [],
+    syncedWrongQuestions: [],
+    cloudQBank: {},
+    lastSyncTime: null,
+    totalQuestionsAnswered: 0,
+    totalCorrectAnswers: 0,
+    dailyStamina: 20,
+    lastStaminaDate: null,
+    currentStreak: 0,
+    maxStreak: 0,
+    towerHighestFloor: 0,
+    towerCoins: 0,
+    ladderBestScore: 0,
+    ladderPoints: 0,
+    ladderTier: null,
+    honoraryTitles: [],
+    weeklyKingTitles: {},
+    explorePoints: 0,
+    clickedElements: [],
+    visitedPages: [],
+    clueFragments: [],
+    discoveredSecrets: [],
+    pets: [],
+    petPieces: {},
+    unlockedAchievements: [],
+    retrySuccessCount: 0
+  };
+
+  // Try to load from cloud (v712 sync pattern)
+  showCloudToast('⏳ 正在同步云端存档...', 'loading');
+  console.log('[Login] loadUserData: 开始从云端加载 ' + sid);
+  try {
+    var cloudData = await loadStudent(gradeKey, sid);
+    if (cloudData) {
+      // Apply ALL fields from cloud (matching v712's applyUserData)
+      gameState.totalPoints = cloudData.totalPoints || 0;
+      gameState.lessonProgress = cloudData.lessonProgress || {};
+      gameState.unlockedAchievements = cloudData.unlockedAchievements || [];
+      gameState.equipDropped = cloudData.equipDropped || {};
+      gameState.wrongQuestions = cloudData.wrongQuestions || [];
+      gameState.syncedWrongQuestions = cloudData.syncedWrongQuestions || [];
+      gameState.cloudQBank = cloudData.cloudQBank || {};
+      gameState.lastSyncTime = cloudData.lastSyncTime || null;
+      gameState.totalQuestionsAnswered = cloudData.totalQuestionsAnswered || 0;
+      gameState.totalCorrectAnswers = cloudData.totalCorrectAnswers || 0;
+      gameState.dailyStamina = (cloudData.dailyStamina !== undefined) ? cloudData.dailyStamina : 20;
+      gameState.lastStaminaDate = cloudData.lastStaminaDate || null;
+      gameState.currentStreak = cloudData.currentStreak || 0;
+      gameState.maxStreak = cloudData.maxStreak || 0;
+      gameState.towerHighestFloor = cloudData.towerHighestFloor || 0;
+      gameState.towerCoins = cloudData.towerCoins || 0;
+      gameState.ladderBestScore = cloudData.ladderBestScore || 0;
+      gameState.ladderPoints = cloudData.ladderPoints || 0;
+      gameState.ladderTier = cloudData.ladderTier || null;
+      gameState.honoraryTitles = cloudData.honoraryTitles || [];
+      gameState.weeklyKingTitles = cloudData.weeklyKingTitles || {};
+      gameState.explorePoints = cloudData.explorePoints || 0;
+      gameState.clickedElements = cloudData.clickedElements || [];
+      gameState.visitedPages = cloudData.visitedPages || [];
+      gameState.clueFragments = cloudData.clueFragments || [];
+      gameState.discoveredSecrets = cloudData.discoveredSecrets || [];
+      gameState.petPieces = cloudData.petPieces || {};
+      gameState.retrySuccessCount = cloudData.retrySuccessCount || 0;
+      
+      // Equipment: ensure 500-slot array (v712 format)
+      var eq = cloudData.equipment;
+      if (!eq || !Array.isArray(eq) || eq.length === 0) {
+        gameState.equipment = new Array(500).fill(null);
+      } else if (eq.length !== 500) {
+        var items = eq.filter(Boolean);
+        var inv = new Array(500).fill(null);
+        for (var i = 0; i < Math.min(items.length, 500); i++) { inv[i] = items[i]; }
+        gameState.equipment = inv;
+      } else {
+        gameState.equipment = eq;
+      }
+      
+      // Equipped slots: restore v712 bpEquippedSlots62 structure
+      if (cloudData.equippedSlots) {
+        Object.assign(bpEquippedSlots62, cloudData.equippedSlots);
+      }
+      saveEquippedSlots62();
+      
+      showCloudToast('✅ 云端存档同步完成', 'success');
+      var eqCount = gameState.equipment.filter(Boolean).length;
+      console.log('[Login] 云端存档加载成功: 积分=' + (cloudData.totalPoints || 0).toLocaleString() + ', 装备=' + eqCount + '件, 课程=' + Object.keys(cloudData.lessonProgress || {}).length + '课');
+    } else {
+      showCloudToast('📭 云端暂无数据，使用本地存档', 'info');
+      console.log('[Login] 云端无数据，使用本地存档');
+    }
+  } catch(e) {
+    showCloudToast('⚠️ 网络异常，使用本地存档', 'warn');
+    console.warn('[Login] Cloud load failed: ' + e.message + ', trying local');
+    // Try v712 localStorage backup
+    try {
+      var local = localStorage.getItem('scienceGame_user_' + sid);
+      if (!local) local = localStorage.getItem('gameState_' + sid);
+      if (local) {
+        var ld = JSON.parse(local);
+        for (var field in ld) {
+          if (ld.hasOwnProperty(field) && ld[field] !== undefined && field !== 'studentId') {
+            gameState[field] = ld[field];
+          }
+        }
+        // Equipment restoration
+        if (ld.equipment && Array.isArray(ld.equipment)) {
+          if (ld.equipment.length === 500) gameState.equipment = ld.equipment;
+          else {
+            var inv2 = new Array(500).fill(null);
+            ld.equipment.filter(Boolean).forEach(function(it, i) { if (i < 500) inv2[i] = it; });
+            gameState.equipment = inv2;
+          }
+        } else {
+          gameState.equipment = new Array(500).fill(null);
+        }
+      }
+    } catch(e2) {}
+    // Also try bpEquipped from localStorage
+    loadEquippedSlots62();
+  }
+
+  // Save to localStorage in both v712 and hub format
+  try { localStorage.setItem('scienceGame_user_' + sid, JSON.stringify(gameState)); } catch(e) {}
+  try { localStorage.setItem('gameState_' + sid, JSON.stringify(gameState)); } catch(e) {}
+  loadEquippedSlots62();
+
+  studentId = sid;
+  finishLogin();
+}
+
+function doGuestLogin() {
+  studentId = '';
+  bpEquippedSlots62 = { weapon:null,hat:null,top:null,bottom:null,glove:null,cape:null,shield:null,shoes:null,face:null,eyes:null,treasure:[null,null] };
+  gameState = {
+    studentId: '',
+    studentName: '游客',
+    totalPoints: 0,
+    currentStreak: 0,
+    lessonProgress: {},
+    equipment: new Array(500).fill(null),
+    wrongQuestions: [],
+    unlockedAchievements: [],
+    towerHighestFloor: 0,
+    towerCoins: 0,
+    ladderBestScore: 0,
+    isGuest: true
+  };
+  finishLogin();
+}
+
+function getStudentName(sid) {
+  var n = _studentNames[sid];
+  return n || (sid + ' 同学');
+}
+
+function finishLogin() {
+  closeOverlay('loginModal');
+  document.getElementById('lmForm').style.display = 'block';
+  document.getElementById('lmLoading').classList.remove('show');
+
+  // Update status bar
+  var gradeText = '四年级';
+  if (studentId && studentId.length >= 4) {
+    var gi = parseInt(studentId.substring(2,4));
+    var gm = {20:'六年级',21:'五年级',22:'四年级',23:'三年级'};
+    gradeText = gm[gi] || '四年级';
+  }
+  document.querySelector('.user-name').textContent = gameState.studentName || (studentId || '游客');
+  document.querySelector('.user-grade').textContent = studentId ? gradeText : '';
+
+  var pts = gameState.totalPoints || 0;
+  var el = document.querySelector('.stat-pill.points');
+  if (el) el.innerHTML = iconImg('⭐', 16) + ' ' + pts.toLocaleString();
+
+  var streak = gameState.currentStreak || 0;
+  var stEl = document.querySelector('.stat-pill.streak');
+  if (stEl) stEl.innerHTML = iconImg('🔥', 16) + ' 连续 ' + streak + ' 天';
+
+  var name = gameState.studentName || (studentId || '探险家');
+  var streakStr = '';
+  if ((gameState.currentStreak || 0) >= 3) {
+    streakStr = ' ' + iconImg('🔥', 18) + ' 连续' + gameState.currentStreak + '天！';
+  }
+  document.querySelector('.hero-greeting').innerHTML = '欢迎回来，' + name + '！' + streakStr;
+  
+  // Update avatar
+  var avatarEmoji = '🧑‍🔬';
+  document.querySelector('.user-avatar').innerHTML = iconImg(avatarEmoji, 28);
+  
+  // Update rank pill
+  var rankEl = document.querySelector('.stat-pill.rank');
+  if (rankEl) {
+    if (gameState.ladderTier) {
+      rankEl.innerHTML = iconImg('🎯', 16) + ' ' + gameState.ladderTier;
+    } else {
+      rankEl.innerHTML = iconImg('📚', 16) + ' ' + (gameState.totalQuestionsAnswered || 0) + ' 题';
+    }
+  }
+
+  setupModeCards(studentId);
+  fetchRankings();
+  loadStudentNames();  // Load student names for display
+
+  // Auto-open course panel
+  if (studentId && studentId.length >= 4) {
+    var g = '4';
+    var gi2 = parseInt(studentId.substring(2,4));
+    var gm2 = {20:'6',21:'5',22:'4',23:'3'};
+    g = gm2[gi2] || '4';
+    currentGrade = g;
+    highlightGradeTab(g);
+    loadCourses(g, currentSemester);
+  } else {
+    currentGrade = '4';
+    highlightGradeTab('4');
+    loadCourses('4', '2');
+  }
+  startDanmaku();
+}
+
+// ===== Danmaku System (floating) =====
+function startDanmaku() {
+  // Online count in status bar
+  var dmEl = document.querySelector('.user-grade');
+  if (dmEl) dmEl.insertAdjacentHTML('beforeend', ' <span id=\"dmOnlineCount\" style=\"font-size:10px;color:var(--primary-light);\"></span>');
+  addDanmaku(getStudentDisplay(studentId)+' 上线了', 'login-dm');
+  fetch(API_BASE+'/online/heartbeat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({studentId:studentId||''})})
+    .then(function(r){return r.json();}).then(function(d){
+      if(d&&d.onlineCount){ var el=document.getElementById('dmOnlineCount'); if(el)el.textContent=' | 👥'+d.onlineCount+'在线'; }
+    }).catch(function(){});
+  setInterval(function() {
+    var msgs = [
+      getStudentDisplay(studentId)+' 正在挑战天梯',
+      '🗼 爬塔最高 '+gameState.towerHighestFloor+' 层',
+      '🏆 '+((gameState.totalPoints||0).toLocaleString())+' 积分',
+      '⚡ 天梯 '+gameState.ladderPoints+' 分'
+    ];
+    if (Math.random()<0.35) addDanmaku(msgs[Math.floor(Math.random()*msgs.length)], 'achieve-dm');
+  }, 8000);
+}
+function addDanmaku(msg, cls) {
+  var el = document.createElement('div');
+  el.className = 'danmaku-float '+(cls||'');
+  el.textContent = msg;
+  el.style.top = (5 + Math.random()*70)+'%';
+  el.style.left = '0';
+  document.body.appendChild(el);
+  setTimeout(function(){if(el.parentNode)el.remove();}, 11000);
+}
+
+// ===== Logout =====
+function doLogout() {
+  // Clear all overlays
+  document.querySelectorAll('.overlay.show').forEach(function(o) { o.classList.remove('show'); });
+
+  // Clear localStorage
+  for (var k in localStorage) {
+    if (k.indexOf('gameState_') === 0) localStorage.removeItem(k);
+  }
+
+  studentId = '';
+  gameState = {};
+  lessonDataCache = {};
+
+  // Reset UI
+  document.querySelector('.user-name').textContent = '游客';
+  document.querySelector('.user-grade').textContent = '';
+  document.querySelector('.hero-greeting').textContent = '欢迎，探险家！';
+  var el = document.querySelector('.stat-pill.points');
+  if (el) el.innerHTML = iconImg('⭐', 16) + ' 0';
+  var stEl = document.querySelector('.stat-pill.streak');
+  if (stEl) stEl.innerHTML = iconImg('🔥', 16) + ' 连续 0 天';
+  var rkEl = document.querySelector('.stat-pill.rank');
+  if (rkEl) rkEl.innerHTML = iconImg('📚', 16) + ' 0 题';
+  // Reset progress bars
+  document.querySelectorAll('.mode-progress-fill').forEach(function(f) { f.style.width = '0%'; });
+
+  // Clear quiz progress
+  discardQuizProgress();
+}
+
+// ===== Course Panel =====
+function loadCourses(grade, semester) {
+  currentGrade = grade;
+  currentSemester = semester;
+  var key = grade + '-' + semester;
+  var grid = document.getElementById('cpLessonGrid');
+  if (!grid) return Promise.resolve(); // v715: 返回Promise保持一致性
+  grid.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted);">⏳ 加载课程中...</div>';
+
+  if (lessonDataCache[key]) {
+    refreshLessonGrid(grade, semester);
+    return Promise.resolve(); // v715: 已缓存，立即resolve
+  }
+
+  // Load lesson data file — v715: 返回Promise
+  return new Promise(function(resolve) {
+    var src = '../data/' + grade + '-' + semester + '-lessons.js';
+    var script = document.createElement('script');
+    script.src = src;
+    script.onload = function() {
+      var varName = 'QUESTION_BANK_' + grade + '_' + semester + '_LESSONS';
+      if (window[varName]) {
+        lessonDataCache[key] = window[varName];
+        refreshLessonGrid(grade, semester);
+      } else {
+        grid.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted);">😔 课程数据加载失败，请刷新重试</div>';
+      }
+      resolve();
+    };
+    script.onerror = function() {
+      grid.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted);">😔 ' + grade + '年级' + (semester==='2'?'下':'上') + '册课程数据暂未上线，敬请期待</div>';
+      resolve(); // v715: 不reject，让调用方走备用逻辑
+    };
+    document.head.appendChild(script);
+  });
+}
+
+function refreshLessonGrid(grade, semester) {
+  var key = grade + '-' + semester;
+  var data = lessonDataCache[key];
+  var grid = document.getElementById('cpLessonGrid');
+  if (!grid || !data) return;
+
+  var progress = gameState.lessonProgress || {};
+  var html = '';
+  
+  for (var unitKey in data) {
+    var unit = data[unitKey];
+    if (!unit || !unit.lessons) continue;
+    var unitName = unit.name || unitKey;
+    
+    unit.lessons.forEach(function(lesson) {
+      var lid = lesson.id;
+      if (!lid) return;
+      var lp = progress[lid];
+      var isCompleted = lp && lp.stars && lp.stars >= 1;
+      var stars = lp ? (lp.stars || 0) : 0;
+      var name = lesson.name || lid;
+      var icon = lesson.icon || '📚';
+
+      html += '<div class="cp-lesson' + (isCompleted ? ' completed' : '') + '" onclick="startLesson(\'' + lid + '\',\'' + grade + '\',\'' + semester + '\')">';
+      html += '<div class="cp-lesson-icon">' + (icon.indexOf('<img') === 0 ? '📚' : icon) + '</div>';
+      html += '<div class="cp-lesson-info">';
+      html += '<div class="cp-lesson-name">' + escapeHtml(name) + '</div>';
+      html += '<div class="cp-lesson-unit">' + escapeHtml(unitName) + '</div>';
+      html += '</div>';
+      if (isCompleted) {
+        html += '<span class="cp-lesson-badge stars">⭐' + stars + '星</span>';
+      } else {
+        html += '<span class="cp-lesson-badge todo">未完成</span>';
+      }
+      html += '</div>';
+    });
+  }
+
+  if (!html) {
+    html = '<div style="text-align:center;padding:32px;color:var(--muted);">😔 该册暂无课程数据</div>';
+  }
+  grid.innerHTML = html;
+}
+
+// ===== Inline Quiz Engine =====
+var quizState = {
+  lessonId: '', grade: '', semester: '',
+  questions: [], currentIndex: 0, correctCount: 0,
+  totalPoints: 0, hintsLeft: 2, answered: false
+};
+
+function startLesson(lid, grade, semester) {
+  if (!studentId) return;
+
+  // Check for in-progress quiz
+  var saved = null;
+  try { saved = JSON.parse(localStorage.getItem('quizProgress_' + studentId) || 'null'); } catch(e) {}
+
+  if (saved && saved.lessonId && saved.lessonId !== lid) {
+    // Different lesson in progress — ask user
+    var lessonName = saved.lessonName || '课程';
+    var pct = saved.currentIndex + '/' + saved.totalQuestions;
+    var msg = '📋 你有正在学习的「' + lessonName + '」（已完成 ' + pct + '）\n\n是否先回到那一课？';
+    var choice = confirm(msg);
+    if (choice === true) {
+      // Go back to previous lesson
+      quizState = saved;
+      quizState.answered = false;
+      closeOverlay('courseOverlay');
+      document.getElementById('quizTitle').innerHTML = iconImg('📚', 24) + ' ' + (saved.lessonName || saved.lessonId);
+      openOverlay('quizOverlay');
+      renderQuizQuestion();
+      return;
+    }
+    // Clicked cancel on the confirmation → close course panel too
+    // Clicked "不跳转" (false) → continue with new lesson
+    if (choice === false) { /* fall through to start new lesson */ }
+    else return; // cancelled
+  }
+
+  if (saved && saved.lessonId === lid) {
+    // Resume same lesson
+    quizState = saved;
+    quizState.answered = false;
+    closeOverlay('courseOverlay');
+    document.getElementById('quizTitle').textContent = '📚 ' + (saved.lessonName || lid);
+    openOverlay('quizOverlay');
+    renderQuizQuestion();
+    return;
+  }
+
+  // Start fresh
+  startFreshLesson(lid, grade, semester);
+}
+
+function startFreshLesson(lid, grade, semester) {
+  closeOverlay('courseOverlay');
+  var key = grade + '-' + semester;
+  var data = lessonDataCache[key];
+  if (!data) return;
+
+  var lesson = null;
+  for (var uk in data) {
+    var unit = data[uk];
+    if (unit && unit.lessons) {
+      for (var i = 0; i < unit.lessons.length; i++) {
+        if (unit.lessons[i].id === lid) { lesson = unit.lessons[i]; break; }
+      }
+    }
+    if (lesson) break;
+  }
+  if (!lesson) return;
+
+  var pool = [];
+  if (lesson.basic && lesson.basic.length) pool = pool.concat(lesson.basic);
+  if (lesson.medium && lesson.medium.length) pool = pool.concat(lesson.medium.slice(0, Math.min(3, lesson.medium.length)));
+  if (lesson.hard && lesson.hard.length) pool = pool.concat(lesson.hard.slice(0, Math.min(2, lesson.hard.length)));
+
+  for (var j = pool.length - 1; j > 0; j--) {
+    var kh = Math.floor(Math.random() * (j + 1));
+    var tmp = pool[j]; pool[j] = pool[kh]; pool[kh] = tmp;
+  }
+  var count = Math.min(pool.length, 10 + Math.floor(Math.random() * 3));
+  pool = pool.slice(0, count);
+
+  quizState = {
+    lessonId: lid, grade: grade, semester: semester,
+    lessonName: lesson.name || lid,
+    questions: pool, currentIndex: 0, correctCount: 0,
+    totalPoints: 0, hintsLeft: 2, answered: false,
+    totalQuestions: pool.length
+  };
+
+  saveQuizProgress();
+  document.getElementById('quizTitle').textContent = '📚 ' + (lesson.name || lid);
+  openOverlay('quizOverlay');
+  renderQuizQuestion();
+}
+
+function saveQuizProgress() {
+  if (!studentId) return;
+  try {
+    localStorage.setItem('quizProgress_' + studentId, JSON.stringify(quizState));
+  } catch(e) {}
+}
+
+function closeQuiz() {
+  saveQuizProgress();  // Minimize — save progress
+  closeOverlay('quizOverlay');
+}
+
+function discardQuizProgress() {
+  if (studentId) {
+    try { localStorage.removeItem('quizProgress_' + studentId); } catch(e) {}
+  }
+}
+
+function renderQuizQuestion() {
+  var qs = quizState;
+  var q = qs.questions[qs.currentIndex];
+  if (!q) return;
+  qs.answered = false;
+
+  var total = qs.questions.length;
+  var cur = qs.currentIndex + 1;
+
+  // Shuffle options
+  var opts = q.options.map(function(o, i) { return {text: o, idx: i}; });
+  for (var j = opts.length - 1; j > 0; j--) {
+    var k = Math.floor(Math.random() * (j + 1));
+    var tmp = opts[j]; opts[j] = opts[k]; opts[k] = tmp;
+  }
+  q._shuffledOpts = opts;
+  q._correctIdx = opts.findIndex(function(o) { return o.idx === q.answer; });
+
+  var html = '<div class="quiz-topbar">';
+  html += '<span class="quiz-progress">' + iconImg('📝', 16) + ' ' + cur + ' / ' + total + '</span>';
+  html += '<span>' + iconImg('✅', 16) + ' ' + qs.correctCount + ' 对</span>';
+  html += '<span class="quiz-points">' + iconImg('⭐', 16) + ' +' + qs.totalPoints + '分</span>';
+  html += '</div>';
+
+  html += '<div class="quiz-score-bar"><div class="quiz-score-fill" style="width:' + ((cur-1)/total*100) + '%"></div></div>';
+
+  html += '<div class="quiz-question">' + escapeHtml(q.q) + '</div>';
+
+  html += '<div class="quiz-options">';
+  opts.forEach(function(o, i) {
+    html += '<button class="quiz-option" onclick="checkAnswer(' + i + ')" id="qopt' + i + '">' +
+      String.fromCharCode(65 + i) + '. ' + escapeHtml(o.text) + '</button>';
+  });
+  html += '</div>';
+
+  if (qs.hintsLeft > 0) {
+    html += '<div class="quiz-hint-bar"><button class="quiz-hint-btn" onclick="useHint()">' + iconImg('💡', 16) + ' 提示 (' + qs.hintsLeft + '次)</button></div>';
+  }
+
+  document.getElementById('quizBody').innerHTML = html;
+}
+
+function checkAnswer(optIdx) {
+  if (quizState.answered) return;
+  quizState.answered = true;
+
+  var q = quizState.questions[quizState.currentIndex];
+  var isCorrect = optIdx === q._correctIdx;
+  var pointsEarned = 0;
+
+  // Visual feedback
+  var allOpts = document.querySelectorAll('.quiz-option');
+  allOpts.forEach(function(o) { o.style.pointerEvents = 'none'; });
+  document.getElementById('qopt' + q._correctIdx).classList.add('correct');
+  if (!isCorrect) {
+    document.getElementById('qopt' + optIdx).classList.add('wrong');
+  }
+
+  if (isCorrect) {
+    quizState.correctCount++;
+    pointsEarned = 10;
+    quizState.totalPoints += pointsEarned;
+  }
+
+  saveQuizProgress();
+
+  // Delay then next
+  setTimeout(function() {
+    quizState.currentIndex++;
+    if (quizState.currentIndex >= quizState.questions.length) {
+      discardQuizProgress();
+      showQuizResult();
+    } else {
+      renderQuizQuestion();
+    }
+  }, 1200);
+}
+
+function useHint() {
+  if (quizState.hintsLeft <= 0 || quizState.answered) return;
+  quizState.hintsLeft--;
+
+  var q = quizState.questions[quizState.currentIndex];
+  var hint = q.hint || '仔细看答案选项找规律哦';
+  var wrongOpts = [];
+  document.querySelectorAll('.quiz-option').forEach(function(o, i) {
+    if (i !== q._correctIdx) wrongOpts.push(i);
+  });
+  // Hide 2 wrong options
+  for (var i = 0; i < Math.min(2, wrongOpts.length); i++) {
+    var el = document.getElementById('qopt' + wrongOpts[i]);
+    if (el) el.style.opacity = '0.25';
+  }
+  document.querySelector('.quiz-hint-btn').innerHTML = iconImg('💡', 16) + ' 提示 (' + quizState.hintsLeft + '次)';
+}
+
+function showQuizResult() {
+  var qs = quizState;
+  var total = qs.questions.length;
+  var correct = qs.correctCount;
+  var pct = total > 0 ? correct / total : 0;
+
+  // Star calculation
+  var stars = 0;
+  if (pct >= 0.95) stars = 3;
+  else if (pct >= 0.7) stars = 2;
+  else if (pct >= 0.4) stars = 1;
+
+  // Improved score
+  var lp = gameState.lessonProgress || {};
+  var oldStars = lp[qs.lessonId] || 0;
+  var finalStars = Math.max(oldStars, stars);
+  lp[qs.lessonId] = finalStars;
+  gameState.lessonProgress = lp;
+  gameState.totalPoints = (gameState.totalPoints || 0) + qs.totalPoints;
+
+  // Save
+  if (studentId) {
+    try { localStorage.setItem('gameState_' + studentId, JSON.stringify(gameState)); } catch(e) {}
+    try {
+      var gk = 'grade_' + (qs.grade || '4');
+      saveStudent(gk, studentId, {
+        totalPoints: gameState.totalPoints,
+        lessonProgress: gameState.lessonProgress
+      });
+    } catch(e) {}
+  }
+
+  // Update status bar
+  var pts = gameState.totalPoints || 0;
+  var el = document.querySelector('.stat-pill.points');
+  if (el) el.innerHTML = iconImg('⭐', 16) + ' ' + pts.toLocaleString();
+
+  // Update course grid if it's open
+  loadCourses(qs.grade, qs.semester);
+
+  // Render result
+  var starEmoji = '☆☆☆';
+  if (stars >= 3) starEmoji = '⭐⭐⭐';
+  else if (stars >= 2) starEmoji = '⭐⭐☆';
+  else if (stars >= 1) starEmoji = '⭐☆☆';
+  var icon = pct >= 0.9 ? '🎉' : pct >= 0.6 ? '👍' : '💪';
+  var msg = pct >= 0.9 ? '太厉害了！全部掌握！' : pct >= 0.6 ? '做得不错，继续加油！' : '还需努力，重做一次吧！';
+
+  var html = '<div class="quiz-result">';
+  html += '<div class="quiz-result-icon">' + iconImg(icon, 64) + '</div>';
+  html += '<h3>' + msg + '</h3>';
+  html += '<p>答对 ' + correct + ' / ' + total + ' 题</p>';
+  html += '<p>获得积分 +' + qs.totalPoints + '</p>';
+  html += '<div class="stars-display">' + iconImg('⭐', 36) + ' × ' + stars + '</div>';
+  if (finalStars > oldStars) {
+    html += '<p style="color:var(--success);font-weight:700;">' + iconImg('🎯', 18) + ' 刷新记录！' + oldStars + '星 → ' + finalStars + '星</p>';
+  }
+  html += '<p style="margin-top:12px;color:var(--muted);font-size:14px;">总积分：' + gameState.totalPoints.toLocaleString() + '</p>';
+  html += '<div style="margin-top:20px;display:flex;gap:10px;justify-content:center;">';
+  html += '<button class="syn-btn" onclick="replayLesson()" style="margin:0;flex:1;">' + iconImg('🔄', 18) + ' 再练一次</button>';
+  html += '<button class="syn-btn" style="margin:0;flex:1;background:var(--muted);" onclick="closeQuiz()">' + iconImg('📋', 18) + ' 返回课程</button>';
+  html += '</div>';
+  html += '</div>';
+
+  document.getElementById('quizBody').innerHTML = html;
+  document.getElementById('quizTitle').innerHTML = iconImg('📚', 24) + ' 答题完成！';
+}
+
+function replayLesson() {
+  startLesson(quizState.lessonId, quizState.grade, quizState.semester);
+}
+
+function closeQuiz() {
+  closeOverlay('quizOverlay');
+}
+
+// ===== Grade/Semester Tab Handlers =====
+function setupCourseTabs() {
+  document.querySelectorAll('#cpGradeTabs .cp-grade-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      var g = this.getAttribute('data-g');
+      highlightGradeTab(g);
+      loadCourses(g, currentSemester);
+    });
+  });
+  document.querySelectorAll('#cpSemesterTabs .cp-semester-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      currentSemester = this.getAttribute('data-s');
+      highlightGradeTab(currentGrade);
+      loadCourses(currentGrade, currentSemester);
+    });
+  });
+}
+
+// ===== Populate Overlays with Real Data =====
+function populateOverlay(id) {
+  if (id === 'wrongOverlay') populateWrongQuestions();
+  else if (id === 'backpackOverlay') populateBackpack();
+  else if (id === 'petOverlay') populatePets();
+  else if (id === 'achieveOverlay') populateAchievements();
+}
+
+function populateWrongQuestions() {
+  var list = document.querySelector('#wrongOverlay .wq-list');
+  if (!list) return;
+  var wq = gameState.wrongQuestions || [];
+  if (wq.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted);font-weight:600;">🌟 暂无错题，继续保持！</div>';
+    return;
+  }
+  list.innerHTML = '';
+  wq.slice(0, 10).forEach(function(q) {
+    var div = document.createElement('div');
+    div.className = 'wq-item';
+    div.innerHTML = '<div class="wq-q">🔬 ' + escapeHtml(q.question || q.questionText || '') + '</div>' +
+      '<div class="wq-answers"><span class="wq-wrong">✗ 你答：' + escapeHtml(q.userAnswer || '') + '</span>' +
+      '<span class="wq-correct">✓ 正确：' + escapeHtml(q.correctAnswer || q.answer || '') + '</span></div>';
+    list.appendChild(div);
+  });
+}
+
+function getBackpackItems() {
+  // Filter non-null items from 500-slot equipment array
+  var eq = gameState.equipment || [];
+  if (eq.length === 500) {
+    return eq.map(function(item, idx) { return item ? Object.assign({}, item, {_idx: idx}) : null; }).filter(Boolean);
+  }
+  // Legacy flat array
+  return eq.filter(Boolean);
+}
+
+function isSlotEquipped62(slotType, idx) {
+  var sk = SLOT_CN_TO_EN[slotType] || slotType;
+  if (sk === 'treasure') {
+    if (!bpEquippedSlots62.treasure) return false;
+    return bpEquippedSlots62.treasure[0] === idx || bpEquippedSlots62.treasure[1] === idx;
+  }
+  return bpEquippedSlots62[sk] === idx;
+}
+
+// Save equipped stats for tower/ladder to read
+function syncEquipStats() {
+  if (!studentId) return;
+  var totalStr=0,totalDex=0,totalInt=0,totalMul=1.0;
+  var equippedItems = [];
+  ['weapon','hat','top','bottom','glove','cape','shield','shoes','face','eyes'].forEach(function(s) {
+    var i = bpEquippedSlots62[s], item = (i!=null&&gameState.equipment[i])?gameState.equipment[i]:null;
+    if (item) equippedItems.push(item);
+  });
+  var tr = bpEquippedSlots62.treasure || [null,null];
+  for (var t=0;t<2;t++) { var ti=tr[t]; if(ti!=null&&gameState.equipment[ti]) equippedItems.push(gameState.equipment[ti]); }
+  equippedItems.forEach(function(e) { totalStr+=e.str||0; totalDex+=e.dex||0; totalInt+=e.int||0; if(e.multiplier) totalMul+=(e.multiplier-1); });
+  try {
+    localStorage.setItem('equipStats_' + studentId, JSON.stringify({str:totalStr,dex:totalDex,int:totalInt,multiplier:totalMul,count:equippedItems.length}));
+  } catch(e) {}
+}
+
+function populateBackpack() {
+  _bpPage = 1;
+  var items = getBackpackItems();
+  var title = document.getElementById('bpTitle');
+  if (title) title.innerHTML = iconImg('🎒',24) + ' 我的背包 <span style="font-size:14px;color:var(--muted);">('+items.length+'件/500格)</span>';
+  renderEquippedSlots();
+  syncEquipStats();
+  renderBpPage();
+}
+
+function equipItem(idx, slot, e) {
+  e.stopPropagation();
+  var item = gameState.equipment[idx];
+  if (!item) return;
+  
+  if (slot === 'treasure') {
+    if (!bpEquippedSlots62.treasure) bpEquippedSlots62.treasure = [null, null];
+    // Find first empty treasure slot
+    if (bpEquippedSlots62.treasure[0] === null) {
+      bpEquippedSlots62.treasure[0] = idx;
+    } else if (bpEquippedSlots62.treasure[1] === null) {
+      bpEquippedSlots62.treasure[1] = idx;
+    } else {
+      // Both full — replace first
+      bpEquippedSlots62.treasure[0] = idx;
+    }
+  } else {
+    // Unequip any existing item in same slot first
+    for (var key in bpEquippedSlots62) {
+      if (key === slot && bpEquippedSlots62[key] === idx) return; // Already equipped
+      if (key === slot) bpEquippedSlots62[key] = idx;
+    }
+  }
+  saveEquippedSlots62();
+  saveGame();
+  populateBackpack();
+}
+
+function unequipItem(slot, idx, e) {
+  e.stopPropagation();
+  if (slot === 'treasure' && bpEquippedSlots62.treasure) {
+    var t = bpEquippedSlots62.treasure.indexOf(idx);
+    if (t !== -1) bpEquippedSlots62.treasure[t] = null;
+  } else if (bpEquippedSlots62[slot] === idx) {
+    bpEquippedSlots62[slot] = null;
+  }
+  saveEquippedSlots62();
+  saveGame();
+  populateBackpack();
+}
+
+// ===== Slot Mapping (中文→bpEquippedSlots62 key) =====
+var SLOT_CN_TO_EN = {
+  '宝物':'treasure','武器':'weapon','头盔':'hat','帽子':'hat',
+  '上衣':'top','下装':'bottom','裤子':'bottom','手套':'glove',
+  '披风':'cape','斗篷':'cape','盾牌':'shield','鞋子':'shoes','战靴':'shoes','轻鞋':'shoes',
+  '脸饰':'face','眼饰':'eyes'
+};
+function getSlotKey(item) {
+  var s = item.slot || item.slotType || '';
+  return SLOT_CN_TO_EN[s] || (s === 'treasure' ? 'treasure' : 'treasure');
+}
+
+// ===== v712 背包筛选/翻页/回收/赠送 =====
+var _bpPage = 1, _bpPerPage = 12;
+
+function getFilteredItems() {
+  var items = getBackpackItems();
+  var rf = document.getElementById('bpFilterRarity'), sf = document.getElementById('bpFilterSlot');
+  if (rf && rf.value !== 'all') items = items.filter(function(e) { return e.rarity == rf.value; });
+  if (sf && sf.value !== 'all') items = items.filter(function(e) { return (e.slot || e.slotType || '') === sf.value; });
+  return items;
+}
+
+function renderBpPage() {
+  var items = getFilteredItems();
+  var totalPages = Math.max(1, Math.ceil(items.length / _bpPerPage));
+  if (_bpPage > totalPages) _bpPage = totalPages;
+  var start = (_bpPage-1) * _bpPerPage, pageItems = items.slice(start, start + _bpPerPage);
+  var grid = document.getElementById('bpGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  if (items.length === 0) { grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);">暂无符合条件的装备</div>'; renderBpPageCtrl(0,1); return; }
+  
+  var rC = {1:'#9CA3AF',2:'#4CAF50',3:'#2196F3',4:'#9C27B0',5:'#E91E63',6:'#FFD700',7:'#FF6600'};
+  var rN = {1:'普通',2:'精致',3:'良好',4:'稀有',5:'史诗',6:'传说',7:'神话'};
+  
+  pageItems.forEach(function(e) {
+    var idx = e._idx, rarity = e.rarity || 1, typeId = e.typeId || (e.equipType||'box');
+    var sName = e.slot || e.slotType || 'treasure', slotKey = getSlotKey(e);
+    var isE = isSlotEquipped62(slotKey, idx);
+    var color = rC[rarity] || '#9CA3AF';
+    var div = document.createElement('div');
+    div.className = 'bp-item';
+    div.style.borderColor = isE ? 'var(--success)' : color;
+    div.style.borderWidth = isE ? '2px' : '1px';
+    div.onclick = function(ev) { showEquipPopup(idx, ev); };
+    div.innerHTML = '<div style="font-size:26px;margin-bottom:2px;">'+equipImg(typeId,32,e.icon||'🎒')+'</div>' +
+      '<div style="font-size:12px;font-weight:700;color:var(--text);">'+escapeHtml(e.name||e.equipName||'装备')+'</div>' +
+      '<span style="display:inline-block;padding:2px 8px;border-radius:var(--radius-full);font-size:10px;font-weight:700;color:'+color+';background:'+color+'22;">'+rN[rarity]+'</span>' +
+      '<div style="margin-top:4px;display:flex;gap:3px;flex-wrap:wrap;justify-content:center;">' +
+      (isE?'<button onclick="unequipItem(\''+slotKey+'\','+idx+',event)" style="font-size:10px;padding:2px 8px;border-radius:var(--radius-full);border:1px solid #DC2626;background:#FEF2F2;color:#DC2626;">卸下</button>':'<button onclick="equipItem('+idx+',\''+slotKey+'\',event)" style="font-size:10px;padding:2px 8px;border-radius:var(--radius-full);border:1px solid var(--success);background:var(--success-light);color:#166534;">装备</button>') +
+      '<button onclick="recycleEquip('+idx+',event)" title="回收换积分" style="font-size:10px;padding:2px 8px;border-radius:var(--radius-full);border:1px solid #D97706;background:#FFFBEB;color:#92400E;">♻️</button>' +
+      '<button onclick="giftEquip('+idx+',event)" title="赠送给好友" style="font-size:10px;padding:2px 8px;border-radius:var(--radius-full);border:1px solid #8B5CF6;background:#F5F3FF;color:#6D28D9;">🎁</button>' +
+      '</div>'; grid.appendChild(div);
+  });
+  renderBpPageCtrl(totalPages, items.length);
+  var info = document.getElementById('bpPageInfo');
+  if (info) info.textContent = '第'+_bpPage+'/'+totalPages+'页 (共'+items.length+'件)';
+}
+
+function renderBpPageCtrl(totalPages, totalItems) {
+  var ctrl = document.getElementById('bpPageCtrl');
+  if (!ctrl) return;
+  if (totalPages <= 1) { ctrl.innerHTML = ''; return; }
+  var h = '';
+  if (_bpPage > 1) h += '<button onclick="goBpPage('+(_bpPage-1)+')" style="padding:4px 12px;border-radius:var(--radius-full);border:2px solid var(--border);font-size:13px;font-weight:600;background:white;cursor:pointer;">← 上页</button>';
+  h += '<span style="padding:4px 12px;font-size:13px;">'+_bpPage+'/'+totalPages+'</span>';
+  if (_bpPage < totalPages) h += '<button onclick="goBpPage('+(_bpPage+1)+')" style="padding:4px 12px;border-radius:var(--radius-full);border:2px solid var(--border);font-size:13px;font-weight:600;background:white;cursor:pointer;">下页 →</button>';
+  ctrl.innerHTML = h;
+}
+function goBpPage(p) { _bpPage = p; renderBpPage(); }
+
+function renderEquippedSlots() {
+  var eqS = document.getElementById('bpEquipped');
+  if (!eqS) return;
+  // Calculate total stats
+  var totalStr=0,totalDex=0,totalInt=0,totalHp=0,totalMp=0,totalMul=1.0;
+  var slots = ['weapon','hat','top','bottom','glove','cape','shield','shoes','face','eyes'];
+  var sN = {weapon:'武器',hat:'帽子',top:'上衣',bottom:'下衣',glove:'手套',cape:'披风',shield:'盾牌',shoes:'鞋子',face:'脸饰',eyes:'眼饰'};
+  var sI = {weapon:'[剑]',hat:'[帽]',top:'[衣]',bottom:'[裤]',glove:'[手]',cape:'[披]',shield:'[盾]',shoes:'[鞋]',face:'[脸]',eyes:'[眼]'};
+  
+  // Collect equipped items for stat calc
+  var equippedItems = [];
+  slots.forEach(function(s) {
+    var i = bpEquippedSlots62[s], item = (i!=null&&gameState.equipment[i])?gameState.equipment[i]:null;
+    if (item) equippedItems.push(item);
+  });
+  var tr = bpEquippedSlots62.treasure || [null,null];
+  for (var t=0; t<2; t++) {
+    var ti = tr[t], tItem = (ti!=null&&gameState.equipment[ti])?gameState.equipment[ti]:null;
+    if (tItem) equippedItems.push(tItem);
+  }
+  equippedItems.forEach(function(e) {
+    totalStr += e.str||0; totalDex += e.dex||0; totalInt += e.int||0;
+    totalHp += e.hpBonus||0; totalMp += e.mpBonus||0;
+    if (e.multiplier) totalMul += (e.multiplier-1);
+  });
+  
+  // Stats summary bar
+  var statsHTML = '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;padding:8px 14px;background:linear-gradient(135deg,#F0FDF4,#EEF2FF);border-radius:var(--radius-sm);border:2px solid var(--primary-light);font-size:12px;font-weight:600;">';
+  statsHTML += '<span>💪'+totalStr+'</span> <span>🏃'+totalDex+'</span> <span>🧠'+totalInt+'</span>';
+  if (totalHp) statsHTML += ' <span>❤️+'+totalHp+'</span>';
+  if (totalMp) statsHTML += ' <span>💧+'+totalMp+'</span>';
+  if (totalMul > 1) statsHTML += ' <span style="color:#EAB308;">⭐×'+totalMul.toFixed(2)+'</span>';
+  statsHTML += ' <span style="margin-left:auto;color:var(--muted);">已装备 '+equippedItems.length+' 件</span></div>';
+  
+  eqS.innerHTML = statsHTML;
+  
+  // Render slot grid
+  slots.forEach(function(s) {
+    var i = bpEquippedSlots62[s], item = (i!=null&&gameState.equipment[i])?gameState.equipment[i]:null;
+    var d = document.createElement('div');
+    d.style.cssText = 'flex:1;min-width:88px;padding:6px;border-radius:var(--radius-sm);background:'+(item?'#F0FDF4':'var(--primary-bg)')+';border:2px solid '+(item?'var(--success)':'var(--border)')+';text-align:center;font-size:11px;';
+    if (item) { var t = item.typeId||(item.equipType||'box'); d.innerHTML = equipImg(t,22,item.icon)+'<div style="font-weight:700;">'+escapeHtml(item.name||'装备')+'</div><div style="font-size:10px;color:#166534;">'+sN[s]+'</div>'; }
+    else { d.innerHTML = '<div style="font-size:20px;opacity:0.2;">'+sI[s]+'</div><div style="color:var(--muted);">'+sN[s]+'</div><div style="font-size:10px;">空</div>'; }
+    eqS.appendChild(d);
+  });
+  for (var t=0; t<2; t++) {
+    var ti = tr[t], tItem = (ti!=null&&gameState.equipment[ti])?gameState.equipment[ti]:null;
+    var td = document.createElement('div');
+    td.style.cssText = 'flex:1;min-width:88px;padding:6px;border-radius:var(--radius-sm);background:'+(tItem?'#F0FDF4':'var(--primary-bg)')+';border:2px solid '+(tItem?'var(--success)':'var(--border)')+';text-align:center;font-size:11px;';
+    if (tItem) { var tt = tItem.typeId||(tItem.equipType||'box'); td.innerHTML = equipImg(tt,22,tItem.icon)+'<div style="font-weight:700;">'+escapeHtml(tItem.name||'装备')+'</div><div style="font-size:10px;color:#166534;">宝物'+(t+1)+'</div>'; }
+    else { td.innerHTML = '<div style="font-size:20px;opacity:0.2;">[宝'+(t+1)+']</div><div style="color:var(--muted);">宝物'+(t+1)+'</div><div style="font-size:10px;">空</div>'; }
+    eqS.appendChild(td);
+  }
+}
+
+function autoEquipBest() {
+  if (!studentId) return showCloudToast('请先登录','warn');
+  var items = getBackpackItems();
+  if (!items.length) return showCloudToast('背包为空','info');
+  var best = {};
+  items.forEach(function(e) {
+    var sk = getSlotKey(e);
+    if (!best[sk] || (e.rarity||0) > (best[sk].rarity||0)) best[sk] = e;
+  });
+  for (var s in best) {
+    if (s === 'treasure') { if (!bpEquippedSlots62.treasure) bpEquippedSlots62.treasure=[null,null]; bpEquippedSlots62.treasure[0]=best[s]._idx; }
+    else bpEquippedSlots62[s] = best[s]._idx;
+  }
+  saveEquippedSlots62(); saveGame(); populateBackpack();
+  showCloudToast('⚡ 已自动装备最优装备','success');
+}
+
+function recycleEquip(idx, e) {
+  e.stopPropagation();
+  var item = gameState.equipment[idx];
+  if (!item) return;
+  if (!confirm('回收「'+escapeHtml(item.name||'装备')+'」获得 '+((item.rarity||1)*10)+' 积分？')) return;
+  var pts = (item.rarity||1)*10; gameState.totalPoints += pts;
+  unequipIfNeeded(idx); gameState.equipment[idx] = null;
+  var pEl = document.querySelector('.stat-pill.points');
+  if (pEl) pEl.innerHTML = iconImg('⭐',16) + ' ' + gameState.totalPoints.toLocaleString();
+  saveGame(); populateBackpack();
+  showCloudToast('♻️ 回收 +'+pts+'积分','success');
+  console.log('[Equip] 回收 idx='+idx+', +'+pts+'分');
+}
+
+function unequipIfNeeded(idx) {
+  for (var s in bpEquippedSlots62) {
+    if (s==='treasure' && bpEquippedSlots62.treasure) {
+      var t = bpEquippedSlots62.treasure.indexOf(idx);
+      if (t!==-1) { bpEquippedSlots62.treasure[t]=null; }
+    } else if (bpEquippedSlots62[s] === idx) {
+      bpEquippedSlots62[s]=null;
+    }
+  }
+  saveEquippedSlots62();
+}
+
+function giftEquip(idx, e) {
+  e.stopPropagation();
+  var sid = prompt('请输入接收方8位学号：');
+  if (!sid||sid.length!==8) return;
+  if (sid===studentId) { alert('不能送给自己！'); return; }
+  var item = gameState.equipment[idx];
+  if (!item) return;
+  if ((gameState.totalPoints||0)<50) { alert('积分不足！赠送需要50积分'); return; }
+  if (!confirm('将「'+escapeHtml(item.name||'装备')+'」赠送给'+sid+'，消耗50积分？\n赠送后可增加亲密值！')) return;
+  gameState.totalPoints -= 50; unequipIfNeeded(idx);
+  fetch(API_BASE+'/gift/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({from:studentId,to:sid,equipIndex:idx,equip:item,cost:50})})
+    .then(function(r){return r.json();}).then(function(res){
+      if (res.ok||res.success) { gameState.equipment[idx]=null; showCloudToast('🎁 赠送成功！','success'); }
+      else { showCloudToast('赠送失败: '+(res.error||'未知'),'warn'); }
+    }).catch(function(){ showCloudToast('网络异常，赠送失败','warn'); });
+  saveGame(); populateBackpack();
+  var pEl = document.querySelector('.stat-pill.points');
+  if (pEl) pEl.innerHTML = iconImg('⭐',16) + ' ' + gameState.totalPoints.toLocaleString();
+  console.log('[Gift] 赠送装备给'+sid+', 消耗50积分');
+}
+
+function saveGame() {
+  if (!studentId) return;
+  try { localStorage.setItem('gameState_' + studentId, JSON.stringify(gameState)); } catch(err) {}
+  try { localStorage.setItem('scienceGame_user_' + studentId, JSON.stringify(gameState)); } catch(err) {}
+  saveEquippedSlots62();
+  
+  // Sync to cloud (v712 saveUserData format)
+  if (studentId && gameState.studentId && !gameState.isGuest) {
+    var gk = '4';
+    if (studentId.length >= 4) {
+      var gi2 = parseInt(studentId.substring(2,4));
+      var gm2 = {20:'6',21:'5',22:'4',23:'3'};
+      gk = gm2[gi2] || '4';
+    }
+    var gradeKey = 'grade_all';  // v712 统一使用 grade_all
+    var eqCount = gameState.equipment.filter(Boolean).length;
+    console.log('[saveGame] 保存云端: 积分=' + (gameState.totalPoints || 0).toLocaleString() + ', 装备=' + eqCount + '件');
+    saveStudent(gradeKey, studentId, {
+      totalPoints: gameState.totalPoints,
+      lessonProgress: gameState.lessonProgress,
+      unlockedAchievements: gameState.unlockedAchievements || [],
+      equipment: gameState.equipment,
+      equipDropped: gameState.equipDropped || {},
+      equippedSlots: bpEquippedSlots62,
+      wrongQuestions: gameState.wrongQuestions || [],
+      currentStreak: gameState.currentStreak || 0,
+      maxStreak: gameState.maxStreak || 0,
+      towerHighestFloor: gameState.towerHighestFloor || 0,
+      towerCoins: gameState.towerCoins || 0,
+      ladderBestScore: gameState.ladderBestScore || 0,
+      ladderPoints: gameState.ladderPoints || 0,
+      ladderTier: gameState.ladderTier || null,
+      honoraryTitles: gameState.honoraryTitles || [],
+      explorePoints: gameState.explorePoints || 0,
+      dailyStamina: gameState.dailyStamina,
+      lastStaminaDate: gameState.lastStaminaDate,
+      petPieces: gameState.petPieces || {},
+      retrySuccessCount: gameState.retrySuccessCount || 0,
+      lastUpdated: Date.now()
+    }).then(function(ok) {
+      if (ok) { showCloudToast('💾 云端存档成功', 'success'); console.log('[saveGame] 云端保存成功'); }
+      else { showCloudToast('⚠️ 云端存档失败，已保存本地', 'warn'); console.warn('[saveGame] 云端保存失败'); }
+    }).catch(function(e) {
+      console.warn('[saveGame] 云端保存异常: ' + e.message);
+    });
+  }
+}
+
+// ===== v712 Pet System (petSystemStateV2 localStorage) =====
+function getPetState() {
+  if (!studentId) return { pets: {}, fragments: {} };
+  try {
+    var key = 'petSystemStateV2_' + studentId;
+    var state = JSON.parse(localStorage.getItem(key) || 'null');
+    if (state) {
+      if (!state.pets) state.pets = {};
+      if (!state.fragments) state.fragments = {};
+      return state;
+    }
+  } catch(e) {}
+  return { pets: {}, fragments: {}, studentId: studentId };
+}
+
+function savePetState(state) {
+  if (!studentId) return;
+  try {
+    state.studentId = studentId;
+    localStorage.setItem('petSystemStateV2_' + studentId, JSON.stringify(state));
+  } catch(e) {}
+}
+
+// ===== 宠物表 (v712 PETS_DATA, 28种, 6稀有度) =====
+var PET_POOL = [
+  { id: 1, name: '小鸡崽', emoji: '🐤', rarity: 'N' },
+  { id: 2, name: '小奶狗', emoji: '🐶', rarity: 'N' },
+  { id: 3, name: '小橘猫', emoji: '🐱', rarity: 'N' },
+  { id: 4, name: '小白兔', emoji: '🐰', rarity: 'N' },
+  { id: 5, name: '小鸭鸭', emoji: '🦆', rarity: 'N' },
+  { id: 6, name: '小仓鼠', emoji: '🐹', rarity: 'R' },
+  { id: 7, name: '小猪猪', emoji: '🐷', rarity: 'R' },
+  { id: 8, name: '小刺猬', emoji: '🦔', rarity: 'R' },
+  { id: 9, name: '小松鼠', emoji: '🐿️', rarity: 'R' },
+  { id: 10, name: '小狐狸', emoji: '🦊', rarity: 'R' },
+  { id: 11, name: '小狼崽', emoji: '🐺', rarity: 'SR' },
+  { id: 12, name: '小棕熊', emoji: '🐻', rarity: 'SR' },
+  { id: 13, name: '小豹子', emoji: '🐆', rarity: 'SR' },
+  { id: 14, name: '小鹰隼', emoji: '🦅', rarity: 'SR' },
+  { id: 15, name: '小熊猫', emoji: '🐼', rarity: 'SR' },
+  { id: 16, name: '小狮子', emoji: '🦁', rarity: 'SSR' },
+  { id: 17, name: '小老虎', emoji: '🐯', rarity: 'SSR' },
+  { id: 18, name: '小飞龙', emoji: '🐉', rarity: 'SSR' },
+  { id: 19, name: '小狼王', emoji: '🐺', rarity: 'SSR' },
+  { id: 20, name: '小象龟', emoji: '🐘', rarity: 'SSR' },
+  { id: 21, name: '火凤凰', emoji: '🔥', rarity: 'UR' },
+  { id: 22, name: '冰霜龙', emoji: '❄️', rarity: 'UR' },
+  { id: 23, name: '雷霆鹰', emoji: '⚡', rarity: 'UR' },
+  { id: 24, name: '暗影豹', emoji: '🌑', rarity: 'UR' },
+  { id: 25, name: '神圣独角兽', emoji: '🦄', rarity: 'HR' },
+  { id: 26, name: '混沌麒麟', emoji: '🦎', rarity: 'HR' },
+  { id: 27, name: '时间龙龟', emoji: '🐢', rarity: 'HR' },
+  { id: 28, name: '星穹凤凰', emoji: '🌟', rarity: 'HR' }
+];
+
+var PET_RARITY_WEIGHTS = { N: 50, R: 25, SR: 12, SSR: 8, UR: 3.5, HR: 1.5 };
+var PET_RARITY_COLORS = { N: '#9CA3AF', R: '#60A5FA', SR: '#8B5CF6', SSR: '#F59E0B', UR: '#EF4444', HR: '#EC4899' };
+var PET_RARITY_NAMES = { N: '普通', R: '稀有', SR: '超级稀有', SSR: '特超级稀有', UR: '究极稀有', HR: '传说' };
+var PET_DRAW_COST = 100;
+
+function drawPet() {
+  if (!studentId || gameState.isGuest) {
+    document.getElementById('petResult').innerHTML = '<span style="color:var(--accent);">请先登录</span>';
+    return;
+  }
+  var pts = gameState.totalPoints || 0;
+  if (pts < PET_DRAW_COST) {
+    document.getElementById('petResult').innerHTML = '<span style="color:var(--accent);">积分不足！需要 ' + PET_DRAW_COST + ' 积分</span>';
+    return;
+  }
+
+  // Deduct points
+  gameState.totalPoints -= PET_DRAW_COST;
+  var ptsEl = document.querySelector('.stat-pill.points');
+  if (ptsEl) ptsEl.innerHTML = iconImg('⭐', 16) + ' ' + gameState.totalPoints.toLocaleString();
+
+  // Roll rarity (v712: N 50%, R 25%, SR 12%, SSR 8%, UR 3.5%, HR 1.5%)
+  var r = Math.random() * 100;
+  var rarity = 'N';
+  if (r < 1.5) rarity = 'HR';
+  else if (r < 5) rarity = 'UR';
+  else if (r < 13) rarity = 'SSR';
+  else if (r < 25) rarity = 'SR';
+  else if (r < 50) rarity = 'R';
+
+  // Pick random pet of that rarity
+  var pool = PET_POOL.filter(function(p) { return p.rarity === rarity; });
+  if (pool.length === 0) pool = PET_POOL.filter(function(p) { return p.rarity === 'N'; });
+  var petTemplate = pool[Math.floor(Math.random() * pool.length)];
+
+  // Add to v712 petSystemStateV2
+  var petState = getPetState();
+  var saveKey = String(petTemplate.id);
+  if (petState.pets[saveKey]) {
+    // Already have this pet — level up
+    petState.pets[saveKey].level = (petState.pets[saveKey].level || 1) + 1;
+    petState.pets[saveKey].hp = Math.min((petState.pets[saveKey].hp || 50) + 20, 200);
+    pet = petState.pets[saveKey];
+    pet.level = petState.pets[saveKey].level;
+  } else {
+    pet = {
+      id: petTemplate.id,
+      name: petTemplate.name,
+      emoji: petTemplate.emoji,
+      rarity: rarity,
+      rarityName: PET_RARITY_NAMES[rarity],
+      rarityColor: PET_RARITY_COLORS[rarity],
+      level: 1,
+      hp: 50,
+      maxHp: 50,
+      obtained: Date.now()
+    };
+    petState.pets[saveKey] = pet;
+  }
+  savePetState(petState);
+  console.log('[Pet] 抽取: ' + pet.name + ' (' + rarity + ') Lv.' + pet.level);
+  saveGame();
+
+  // Show result
+  var resultDiv = document.getElementById('petResult');
+  resultDiv.innerHTML = 
+    '<div style="margin-top:8px;padding:10px;background:white;border-radius:var(--radius-sm);border:2px solid ' + pet.rarityColor + ';">' +
+    '<div style="font-size:32px;">' + pet.emoji + '</div>' +
+    '<div style="font-weight:700;color:var(--text);">' + pet.name + '</div>' +
+    '<div style="font-size:12px;font-weight:700;color:' + pet.rarityColor + ';">' + pet.rarityName + ' · Lv.' + (pet.level || 1) + '</div>' +
+    '</div>';
+
+  // Refresh pet display
+  populatePets();
+
+  // Auto-close result after 3s
+  setTimeout(function() {
+    resultDiv.innerHTML = '';
+  }, 3500);
+}
+
+function populatePets() {
+  var grid = document.getElementById('petGrid');
+  if (!grid) return;
+  var petState = getPetState();
+  var pets = petState.pets || {};
+  var petList = Object.values(pets);
+  
+  if (petList.length === 0) {
+    grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-weight:600;">' + iconImg('🐾', 32) + ' 还没有宠物，快来抽取吧！</div>';
+    return;
+  }
+
+  grid.innerHTML = '';
+  petList.forEach(function(p) {
+    var name = p.name || '未知宠物';
+    var level = p.level || 1;
+    var hp = p.hp || 50;
+    var maxHp = p.maxHp || 50;
+    var hpPct = maxHp > 0 ? (hp / maxHp * 100) : 100;
+    var emoji = p.emoji || '🐾';
+    var rarity = p.rarity || 'common';
+    var rarityColor = PET_RARITY_COLORS[rarity] || '#9CA3AF';
+
+    var div = document.createElement('div');
+    div.className = 'pet-card';
+    div.style.border = '2px solid ' + rarityColor;
+    div.innerHTML = '<div class="pet-avatar">' + emoji + '</div>' +
+      '<div class="pet-name">' + escapeHtml(name) + '</div>' +
+      '<div class="pet-level">Lv.' + level + ' <span style="font-size:10px;color:' + rarityColor + '">' + (PET_RARITY_NAMES[rarity] || '') + '</span></div>' +
+      '<div class="pet-hp-bar"><div class="pet-hp-fill" style="width:' + hpPct + '%"></div></div>' +
+      '<div style="font-size:10px;color:var(--muted);margin-top:2px;">HP ' + hp + '/' + maxHp + '</div>';
+    grid.appendChild(div);
+  });
+}
+
+function populateAchievements() {
+  var grid = document.querySelector('#achieveOverlay .achievement-grid');
+  if (!grid) return;
+  var ach = gameState.unlockedAchievements || [];
+  if (ach.length === 0) {
+    grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-weight:600;">🏅 还没有成就，努力闯关解锁吧！</div>';
+    return;
+  }
+  grid.innerHTML = '';
+  ach.slice(0, 9).forEach(function(a) {
+    var name = typeof a === 'string' ? a : (a.name || '成就');
+    var div = document.createElement('div');
+    div.className = 'ach-badge';
+    div.innerHTML = '<div class="ach-icon">🏅</div><div class="ach-name">' + escapeHtml(name) + '</div><span class="ach-tier ach-tier-gold">已解锁</span>';
+    grid.appendChild(div);
+  });
+}
+
+// ===== Overlay Functions =====
+function openOverlay(id) {
+  document.getElementById(id).classList.add('show');
+}
+function closeOverlay(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+document.querySelectorAll('.overlay').forEach(function(el) {
+  el.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('show');
+  });
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.overlay.show').forEach(function(o) { o.classList.remove('show'); });
+  }
+});
+
+// ===== Entry Animations =====
+function animateEntrance() {
+  document.querySelectorAll('.stat-pill').forEach(function(p, i) {
+    p.style.opacity = '0'; p.style.transform = 'translateY(-10px)';
+    p.style.transition = 'all 0.5s ease';
+    setTimeout(function() { p.style.opacity = '1'; p.style.transform = 'translateY(0)'; }, 100 + i * 100);
+  });
+  document.querySelectorAll('.mode-card').forEach(function(c, i) {
+    c.style.opacity = '0'; c.style.transform = 'translateY(20px)';
+    c.style.transition = 'all 0.5s ease';
+    setTimeout(function() { c.style.opacity = '1'; c.style.transform = 'translateY(0)'; }, 300 + i * 120);
+  });
+  document.querySelectorAll('.quick-btn').forEach(function(b, i) {
+    b.style.opacity = '0'; b.style.transform = 'translateY(15px)';
+    b.style.transition = 'all 0.4s ease';
+    setTimeout(function() { b.style.opacity = '1'; b.style.transform = 'translateY(0)'; }, 600 + i * 60);
+  });
+}
+
+// ===== Init =====
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
