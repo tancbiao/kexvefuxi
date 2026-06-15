@@ -1143,6 +1143,83 @@ def xuanba_ranking():
 
 
 
+# ==================== 学生姓名查询 API (v715fix) ====================
+
+# 内存缓存, 避免每次请求都解析 648KB student_info.json
+_student_names_cache = None
+_student_names_cache_time = 0
+
+@app.route('/api/students/names', methods=['GET'])
+def students_names():
+    """返回学生学号→姓名映射表"""
+    global _student_names_cache, _student_names_cache_time
+    now = time.time()
+    # 缓存 10 分钟
+    if _student_names_cache is not None and (now - _student_names_cache_time) < 600:
+        return jsonify(_student_names_cache)
+
+    try:
+        info = _read_json('student_info')
+        names = {}
+        for sid, entry in info.items():
+            if isinstance(entry, dict) and 'name' in entry:
+                names[sid] = entry['name']
+        _student_names_cache = names
+        _student_names_cache_time = now
+        return jsonify(names)
+    except Exception as e:
+        print(f'[Names] 加载失败: {e}')
+        return jsonify({}), 500
+
+
+
+
+
+# ==================== 实时事件弹幕 API (v715) ====================
+
+# 内存事件队列（最多保留 50 条，自动清理）
+_EVENTS = []
+_EVENTS_MAX = 50
+_EVENTS_LOCK = False  # 简单标志位防止并发写入
+
+def _add_event(typ, student_id, student_name, data=None):
+    """添加一条事件到内存队列"""
+    global _EVENTS
+    event = {
+        'type': typ,
+        'studentId': str(student_id),
+        'studentName': str(student_name) if student_name else '',
+        'data': data or {},
+        'time': time.time()
+    }
+    _EVENTS.append(event)
+    if len(_EVENTS) > _EVENTS_MAX:
+        _EVENTS = _EVENTS[-_EVENTS_MAX:]
+
+@app.route('/api/events/recent', methods=['GET'])
+def events_recent():
+    """获取最近的事件（弹幕用）"""
+    since = request.args.get('since', 0, type=float)
+    # 返回 since 之后的新事件
+    recent = [e for e in _EVENTS if e['time'] > since]
+    return jsonify({'events': recent, 'serverTime': time.time()})
+
+@app.route('/api/events', methods=['POST'])
+def events_post():
+    """客户端上报事件"""
+    body = request.json
+    if not body or 'type' not in body:
+        return jsonify({'error': 'missing type'}), 400
+    _add_event(
+        body['type'],
+        body.get('studentId', ''),
+        body.get('studentName', ''),
+        body.get('data')
+    )
+    return jsonify({'ok': True})
+
+# 服务端自动事件：从已有 API 钩子注入
+# 登录事件由客户端在上线时主动 POST
 
 
 # ==================== 赠礼 & 亲密系统 API (v713部署) ====================

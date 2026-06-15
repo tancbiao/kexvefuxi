@@ -12,7 +12,7 @@
 const DIRECT_API_BASE = 'https://api.kexvefuxi.cn/api';
 // 当前生效的 API 地址（默认直连，会被 initAPIConfig 更新为 tunnel）
 var API_BASE = DIRECT_API_BASE;
-const FETCH_TIMEOUT = 8000; // 8 秒超时
+const FETCH_TIMEOUT = 20000; // 20 秒超时
 
 /** 页面加载时调用，从 tunnel-config.json 获取最新 tunnel URL（优先 tunnel 自动发现） */
 async function initAPIConfig() {
@@ -37,11 +37,17 @@ initAPIConfig();
 function setCloudKey(key) {}
 function getCloudKey() { return ''; }
 
-/** 带超时的 fetch 封装 */
+/** 带超时的 fetch 封装 — v715fix: Win7 兼容（无 AbortController 时跳过超时） */
 function fetchWithTimeout(url, options) {
+  // Win7/旧浏览器兼容: AbortController 不可用时直接 fetch
+  if (typeof AbortController === 'undefined') {
+    return fetch(url, options);
+  }
+  var opts = {};
+  for (var k in options) { if (options.hasOwnProperty(k)) opts[k] = options[k]; }
   var ctrl = new AbortController();
   var timer = setTimeout(function() { ctrl.abort(); }, FETCH_TIMEOUT);
-  var opts = Object.assign({}, options || {}, { signal: ctrl.signal });
+  opts.signal = ctrl.signal;
   return fetch(url, opts).finally(function() { clearTimeout(timer); });
 }
 

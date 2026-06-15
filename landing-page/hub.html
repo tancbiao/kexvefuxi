@@ -2926,34 +2926,101 @@ function finishLogin() {
   startDanmaku();
 }
 
-// ===== Danmaku System (floating) =====
+// ===== Danmaku System (floating, multi-user v715) =====
+var _danmakuLastTime = 0;
+var _danmakuOwnEvents = {}; // 去重：避免重复显示自己的事件
+
 function startDanmaku() {
   // Online count in status bar
   var dmEl = document.querySelector('.user-grade');
   if (dmEl) dmEl.insertAdjacentHTML('beforeend', ' <span id=\"dmOnlineCount\" style=\"font-size:10px;color:var(--primary-light);\"></span>');
-  addDanmaku(getStudentDisplay(studentId)+' 上线了', 'login-dm');
-  fetch(API_BASE+'/online/heartbeat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({studentId:studentId||''})})
-    .then(function(r){return r.json();}).then(function(d){
-      if(d&&d.onlineCount){ var el=document.getElementById('dmOnlineCount'); if(el)el.textContent=' | 👥'+d.onlineCount+'在线'; }
-    }).catch(function(){});
+
+  // 上报自己的登录事件
+  var myName = getStudentDisplay(studentId);
+  postEvent('login', {name: myName});
+  addDanmaku(myName + ' 上线了', 'login-dm');
+
+  // 心跳 + 在线人数
+  heartbeatOnline();
+
+  // 轮询全局弹幕事件
+  pollEvents();
+  setInterval(pollEvents, 6000);
+
+  // 自己的随机行为弹幕（频率降低，避免刷屏）
   setInterval(function() {
     var msgs = [
-      getStudentDisplay(studentId)+' 正在挑战天梯',
-      '🗼 爬塔最高 '+gameState.towerHighestFloor+' 层',
-      '🏆 '+((gameState.totalPoints||0).toLocaleString())+' 积分',
-      '⚡ 天梯 '+gameState.ladderPoints+' 分'
+      getStudentDisplay(studentId) + ' 正在挑战天梯',
+      '🗼 爬塔最高 ' + gameState.towerHighestFloor + ' 层',
+      '🏆 ' + ((gameState.totalPoints || 0).toLocaleString()) + ' 积分',
+      '⚡ 天梯 ' + (gameState.ladderPoints || 0) + ' 分'
     ];
-    if (Math.random()<0.35) addDanmaku(msgs[Math.floor(Math.random()*msgs.length)], 'achieve-dm');
-  }, 8000);
+    if (Math.random() < 0.2) addDanmaku(msgs[Math.floor(Math.random() * msgs.length)], 'achieve-dm');
+  }, 15000);
 }
+
+function heartbeatOnline() {
+  fetch(API_BASE + '/online/heartbeat', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ studentId: studentId || '' })
+  }).then(function(r) { return r.json(); }).then(function(d) {
+    if (d && d.onlineCount) {
+      var el = document.getElementById('dmOnlineCount');
+      if (el) el.textContent = ' | 👥' + d.onlineCount + '在线';
+    }
+  }).catch(function() {});
+}
+
+function postEvent(type, data) {
+  if (!studentId) return;
+  var key = type + '_' + (data && data.key ? data.key : '');
+  if (_danmakuOwnEvents[key]) return; // 去重
+  _danmakuOwnEvents[key] = Date.now();
+  fetch(API_BASE + '/events', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      type: type,
+      studentId: studentId,
+      studentName: getStudentDisplay(studentId),
+      data: data || {}
+    })
+  }).catch(function() {});
+}
+
+function pollEvents() {
+  fetch(API_BASE + '/events/recent?since=' + _danmakuLastTime)
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (!d || !d.events) return;
+      _danmakuLastTime = d.serverTime || Date.now() / 1000;
+      d.events.forEach(function(evt) {
+        // 跳过自己的事件（已本地显示）
+        if (evt.studentId === studentId) return;
+        var msg = '';
+        if (evt.type === 'login') {
+          msg = (evt.studentName || evt.studentId) + ' 上线了';
+        } else if (evt.type === 'achievement') {
+          msg = '🎉 ' + (evt.studentName || evt.studentId) + ' 获得成就：' + (evt.data && evt.data.name ? evt.data.name : '未知');
+        } else if (evt.type === 'tower') {
+          msg = '🗼 ' + (evt.studentName || evt.studentId) + ' 爬塔到达第 ' + (evt.data && evt.data.floor ? evt.data.floor : '?') + ' 层';
+        } else if (evt.type === 'ladder') {
+          msg = '🏆 ' + (evt.studentName || evt.studentId) + ' 天梯获得 ' + (evt.data && evt.data.score ? evt.data.score : '?') + ' 分';
+        } else {
+          return; // 未知类型跳过
+        }
+        addDanmaku(msg, 'achieve-dm');
+      });
+    }).catch(function() {});
+}
+
 function addDanmaku(msg, cls) {
   var el = document.createElement('div');
-  el.className = 'danmaku-float '+(cls||'');
+  el.className = 'danmaku-float ' + (cls || '');
   el.textContent = msg;
-  el.style.top = (5 + Math.random()*70)+'%';
+  el.style.top = (5 + Math.random() * 70) + '%';
   el.style.left = '0';
   document.body.appendChild(el);
-  setTimeout(function(){if(el.parentNode)el.remove();}, 11000);
+  setTimeout(function() { if (el.parentNode) el.remove(); }, 11000);
 }
 
 // ===== Logout =====
