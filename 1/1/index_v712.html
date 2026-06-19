@@ -1784,6 +1784,67 @@
     display: inline-flex; align-items: center; gap: 4px;
     margin-left: 8px; cursor: pointer;
   }
+
+/* ===== 答题全屏 (v716) ===== */
+#quizScreen.fullscreen {
+  position: fixed !important;
+  top: 0 !important; left: 0 !important;
+  width: 100vw !important; height: 100vh !important;
+  z-index: 9999 !important;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%) !important;
+ overflow-y: auto !important;
+  padding: 20px !important;
+}
+#quizScreen.fullscreen .quiz-header {
+  margin-bottom: 10px !important;
+}
+#quizScreen.fullscreen .question-card {
+  max-width: 800px !important;
+  margin: 0 auto !important;
+  padding: 20px !important;
+  font-size: 1.3em !important;
+  line-height: 1.6 !important;
+}
+#quizScreen.fullscreen .question-text {
+  font-size: 1.3em !important;
+  line-height: 1.6 !important;
+  margin-bottom: 16px !important;
+}
+#quizScreen.fullscreen .options .option {
+  font-size: 1.3em !important;
+  padding: 14px 18px !important;
+  margin-bottom: 10px !important;
+}
+#quizScreen.fullscreen .quiz-score-bar {
+  margin-bottom: 8px !important;
+}
+#quizScreen.fullscreen .btn-group {
+  margin-top: 16px !important;
+}
+/* 字体大小控制 */
+#quizScreen.font-size-sm .question-card { font-size: 0.95em !important; }
+#quizScreen.font-size-sm .question-text { font-size: 0.95em !important; }
+#quizScreen.font-size-sm .options .option { font-size: 0.95em !important; padding: 10px 14px !important; }
+#quizScreen.font-size-lg .question-card { font-size: 1.5em !important; }
+#quizScreen.font-size-lg .question-text { font-size: 1.5em !important; }
+#quizScreen.font-size-lg .options .option { font-size: 1.5em !important; padding: 18px 22px !important; }
+/* 全屏按钮 & 字体控制按钮样式 */
+.fullscreen-btn {
+  background: none; border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 20px; padding: 4px 12px;
+  color: rgba(255,255,255,0.8); font-size: 13px;
+  cursor: pointer; font-weight: 600; transition: all 0.2s;
+}
+.fullscreen-btn:hover { border-color: #f39c12; color: #f39c12; }
+.font-ctrl button {
+  padding: 3px 10px; border-radius: 20px;
+  border: 2px solid rgba(255,255,255,0.3); background: transparent;
+  color: rgba(255,255,255,0.6); font-size: 12px;
+  cursor: pointer; font-weight: 600; transition: all 0.2s;
+}
+.font-ctrl button.active {
+  border-color: #f39c12; color: #f39c12; background: rgba(243,156,18,0.15);
+}
 </style>
 </head>
 <body>
@@ -1951,9 +2012,17 @@
   </div>
 
   <div class="screen" id="quizScreen">
-    <div class="quiz-header">
+    <div class="quiz-header" id="quizHeader">
       <button class="back-btn" onclick="showLevelSelect()">← 返回</button>
       <span class="quiz-progress" id="quizProgress">1/10</span>
+      <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
+        <div class="font-ctrl" id="quizFontCtrl" style="display:none;gap:4px;">
+          <button onclick="setQuizFontSize('sm')" id="quizFontSm">小</button>
+          <button onclick="setQuizFontSize('md')" id="quizFontMd" class="active">中</button>
+          <button onclick="setQuizFontSize('lg')" id="quizFontLg">大</button>
+        </div>
+        <button class="fullscreen-btn" onclick="toggleQuizFullscreen()">⛶ 全屏</button>
+      </div>
     </div>
     <div class="question-card" id="questionCard">
       <span class="question-type type-choice" id="questionType">单选题</span>
@@ -8812,6 +8881,40 @@ async function executeSynthesis() {
 // v712: 登录后加载礼物数据 + 定时检查
 if (!window._giftCheckTimer) {
   window._giftCheckTimer = setInterval(function() { if (!gameState.isGuest && gameState.studentId) loadGiftData(); }, 120000);
+}
+
+
+// ===== 答题全屏 & 字体大小 (v716) =====
+function toggleQuizFullscreen() {
+  var qs = document.getElementById('quizScreen');
+  var btn = qs.querySelector('.fullscreen-btn');
+  var ctrl = document.getElementById('quizFontCtrl');
+  if (qs.classList.contains('fullscreen')) {
+    qs.classList.remove('fullscreen');
+    if (btn) btn.textContent = '⛶ 全屏';
+    if (ctrl) ctrl.style.display = 'none';
+    qs.classList.remove('font-size-sm','font-size-md','font-size-lg');
+  } else {
+    qs.classList.add('fullscreen');
+    if (btn) btn.textContent = '⛶ 退出';
+    if (ctrl) ctrl.style.display = 'flex';
+    qs.classList.add('font-size-md');
+    var mdBtn = document.getElementById('quizFontMd');
+    if (mdBtn) mdBtn.classList.add('active');
+  }
+}
+function setQuizFontSize(size) {
+  var qs = document.getElementById('quizScreen');
+  if (!qs) return;
+  qs.classList.remove('font-size-sm','font-size-md','font-size-lg');
+  qs.classList.add('font-size-' + size);
+  // 更新按钮 active 状态
+  ['quizFontSm','quizFontMd','quizFontLg'].forEach(function(id) {
+    var b = document.getElementById(id);
+    if (b) b.classList.remove('active');
+  });
+  var activeBtn = document.getElementById('quizFont' + size.charAt(0).toUpperCase() + size.slice(1));
+  if (activeBtn) activeBtn.classList.add('active');
 }
 
 </script>
