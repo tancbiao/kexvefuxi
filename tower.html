@@ -2840,9 +2840,15 @@ function showNextQuestion() {
   document.getElementById('qText').innerHTML = questionHTML;
 
   const container = document.getElementById('qOptions');
-  container.innerHTML = q.options.map((opt, i) =>
-    `<button class="q-option" data-idx="${i}" onclick="answerPlayerTurn(${i})">${opt}</button>`
-  ).join('');
+  container.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'q-option';
+    btn.dataset.idx = i;
+    btn.textContent = opt;
+    btn.addEventListener('click', () => answerPlayerTurn(i));
+    container.appendChild(btn);
+  });
 
   // 隐藏纠错按钮
   var cb = document.getElementById('correctionBtn');
@@ -3193,9 +3199,15 @@ function doMonsterDamageToPlayer(customAtk, callback, ignoreDodge, sureHit, dmgM
   document.getElementById('qText').innerHTML = qHTML;
 
   const container = document.getElementById('qOptions');
-  container.innerHTML = q.options.map((opt, i) =>
-    `<button class="q-option" data-idx="${i}" onclick="answerMonsterTurn(${i}, ${customAtk || 'null'}, ${sureHit || false}, ${dmgMult || 1})">${opt}</button>`
-  ).join('');
+  container.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'q-option';
+    btn.dataset.idx = i;
+    btn.textContent = opt;
+    btn.addEventListener('click', () => answerMonsterTurn(i, customAtk || null, sureHit || false, dmgMult || 1));
+    container.appendChild(btn);
+  });
 
   // 隐藏纠错按钮
   var cb = document.getElementById('correctionBtn');
