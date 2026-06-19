@@ -12,7 +12,7 @@
 const DIRECT_API_BASE = 'https://api.kexvefuxi.cn/api';
 // 当前生效的 API 地址（默认直连，会被 initAPIConfig 更新为 tunnel）
 var API_BASE = DIRECT_API_BASE;
-const FETCH_TIMEOUT = 20000; // 20 秒超时
+const FETCH_TIMEOUT = 60000; // 60 秒超时（写入 66MB students.json 需要更长时间）
 
 /** 页面加载时调用，从 tunnel-config.json 获取最新 tunnel URL（优先 tunnel 自动发现） */
 async function initAPIConfig() {
