@@ -6721,6 +6721,16 @@ function showBackpackReady() {
 // ========== 排行榜系统（JSONBin） ==========
 const RANKING_GRADE_KEY = 'global_ranking';
 
+// 姓名映射缓存（学号→姓名）
+var _studentNames = null;
+async function loadStudentNames() {
+  if (_studentNames) return;
+  try {
+    const res = await fetchWithRetry(`${API_BASE}/students/names`, {}, 2, 'students/names');
+    if (res.ok) _studentNames = await res.json();
+  } catch(e) { console.warn('[Ranking] 加载姓名映射失败', e); }
+}
+
 // 极光验证模块（内部用）
 var _l5 = (function(){
   var _m = parseInt("11110100001001000000", 2);
@@ -6781,6 +6791,7 @@ async function showRanking() {
   // 首次打开时加载数据，后续只显示（保持当前tab和滚动位置）
   if (!window._rankingLoaded) {
     await migrateLadderRankingData();
+    await loadStudentNames();
     document.querySelector('#rankingOverlay .ranking-tab').classList.add('active');
     await loadAndRenderRanking('points');
     window._rankingLoaded = true;
@@ -7161,6 +7172,8 @@ function renderAccuracyRankList(listEl, arr, myId) {
     const sid = item.studentId || '';
     let displayName = sid;
     if (sid.length >= 5) displayName = sid.substring(0, 2) + '**' + sid.substring(sid.length - 2);
+    const _nm = _studentNames && _studentNames[sid];
+    if (_nm) displayName += ' ' + _nm;
     const isMe = (item.studentId === myId);
     const accuracy = item.accuracyRate || 0;
     const totalQ = item.totalQuestionsAnswered || 0;
@@ -7189,6 +7202,8 @@ function renderXuanbaRankList(listEl, arr, myId) {
     const sid = item.studentId || '';
     let displayName = sid;
     if (sid.length >= 5) displayName = sid.substring(0, 2) + '**' + sid.substring(sid.length - 2);
+    const _nm = _studentNames && _studentNames[sid];
+    if (_nm) displayName += ' ' + _nm;
     const isMe = (item.studentId === myId);
     const ra = item.xuanbaRA || 0;
     const score = item.xuanbaScore || 0;
@@ -7219,6 +7234,8 @@ function renderRankList(listEl, arr, sortField, myId) {
     if (sid.length >= 5) {
       displayName = sid.substring(0, 2) + '**' + sid.substring(sid.length - 2);
     }
+    const _nm = _studentNames && _studentNames[sid];
+    if (_nm) displayName += ' ' + _nm;
     const isMe = (item.studentId === myId);
     const val = item[sortField] || 0;
     const isMillion = (sortField === 'totalPoints' && _l5(val));
