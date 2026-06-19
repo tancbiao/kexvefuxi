@@ -2830,6 +2830,8 @@ function showNextQuestion() {
     document.getElementById('qOptions').innerHTML = '';
     return;
   }
+  currentQuestion = q;
+
   var questionHTML = q.question;
   // 🆕 材料题换行 + 材料高亮 + 缺失配图提示
   questionHTML = questionHTML.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
