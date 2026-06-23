@@ -3393,21 +3393,67 @@ function tryDropEquip(isUnitComplete, penalty) {
   dropEquip(targetLevel);
 }
 
+// ====== 背包满自动清理低稀有度装备（v715+） ======
+function autoCleanEquipment() {
+  if (!gameState.equipment) return 0;
+  // 有空位就不清理
+  if (gameState.equipment.indexOf(null) !== -1) return 0;
+  // 丢弃 common(1) 和 exquisite(2)，保留 good(3)+/rare(4)/epic(5)/legendary(6)/mythic(7)
+  const discardRarities = [1, 2];
+  var discardable = [];
+  for (var i = 0; i < gameState.equipment.length; i++) {
+    var eq = gameState.equipment[i];
+    if (eq && discardRarities.includes(eq.rarity)) {
+      discardable.push({ index: i, rarity: eq.rarity });
+    }
+  }
+  // 按稀有度从低到高排序（优先丢弃 common 再 exquisite）
+  discardable.sort(function(a, b) { return a.rarity - b.rarity; });
+  // 每次最多腾出 5 个空位（防止一次清太多）
+  var maxClean = Math.min(discardable.length, 5);
+  for (var j = 0; j < maxClean; j++) {
+    gameState.equipment[discardable[j].index] = null;
+  }
+  if (maxClean > 0) {
+    console.log('[autoClean] 背包已满，自动清理 ' + maxClean + ' 件低稀有度装备');
+    if (typeof showToast === 'function') {
+      showToast('🧹 背包已满，自动清理 ' + maxClean + ' 件普通装备', 'info', 3000);
+    }
+  }
+  return maxClean;
+}
+
+// ====== 向背包添加装备（统一入口，含自动清理） ======
+function addToInventory(equip) {
+  if (!equip) return false;
+  if (!gameState.equipment) gameState.equipment = new Array(500).fill(null);
+  // 去重检查
+  var items = gameState.equipment.filter(Boolean);
+  if (items.find(function(e) { return e.id === equip.id; })) {
+    gameState.equipDupeCount = (gameState.equipDupeCount || 0) + 1;
+    if (!gameState.unlockedAchievements.includes('equip_dupe')) unlockAchievement('equip_dupe');
+    return false;
+  }
+  var slot = gameState.equipment.indexOf(null);
+  if (slot === -1) {
+    autoCleanEquipment();
+    slot = gameState.equipment.indexOf(null);
+  }
+  if (slot !== -1) {
+    gameState.equipment[slot] = equip;
+    return true;
+  }
+  console.log('[addToInventory] 背包满且无可清理装备，跳过 ' + (equip.name || equip.id));
+  return false;
+}
+
 function dropEquip(levelKey) {
   const typeInfo = ALL_EQUIP_TYPES[Math.floor(Math.random() * ALL_EQUIP_TYPES.length)];
   const rarityNum = LEVEL_TO_RARITY[levelKey] || (typeof levelKey === 'number' ? levelKey : 1);
   const equip = generateEquip(rarityNum, typeInfo.id);
-
-  if (!gameState.equipment) gameState.equipment = new Array(500).fill(null);
-  const items = gameState.equipment.filter(Boolean);
-  const exists = items.find(e => e.id === equip.id);
-  if (!exists) {
-    const emptySlot = gameState.equipment.indexOf(null);
-    if (emptySlot !== -1) gameState.equipment[emptySlot] = equip;
+  
+  if (addToInventory(equip)) {
     showEquipDrop(equip);
-  } else {
-    gameState.equipDupeCount = (gameState.equipDupeCount || 0) + 1;
-    if (!gameState.unlockedAchievements.includes('equip_dupe')) unlockAchievement('equip_dupe');
   }
 }
 
@@ -3554,8 +3600,7 @@ function checkEquipAchievements() {
       level: 'legendary',
       levelName: '金色传说的'
     };
-    const emptySlot = gameState.equipment.indexOf(null);
-    if (emptySlot !== -1) gameState.equipment[emptySlot] = cup;
+    addToInventory(cup);
     unlockAchievement('equip_tan_cup');
     showEquipDrop(cup);
   }
@@ -6979,8 +7024,7 @@ window.addEventListener('message', function(e) {
       }
       // 添加装备奖励
       if (reward.equipData) {
-        gameState.equipment = gameState.equipment || [];
-        gameState.equipment.push(reward.equipData);
+        addToInventory(reward.equipData);
       }
       // 显示提示
       if (reward.tierName) {
@@ -7696,9 +7740,8 @@ function checkActivityNotice(studentId) {
       if (typeof window.generateEquip === 'function') {
         var legEquip = window.generateEquip(6);
         if (legEquip) {
-          var es = gameState.equipment.indexOf(null);
-          if (es !== -1) gameState.equipment[es] = legEquip;
-          else gameState.equipment.push(legEquip);
+          var added = addToInventory(legEquip);
+          if (added) {
           localStorage.setItem(reward3Key, '1');
           saveUserData();
           updateStatusBar();
@@ -7715,9 +7758,8 @@ function checkActivityNotice(studentId) {
       if (typeof window.generateEquip === 'function') {
         var mythEquip = window.generateEquip(7);
         if (mythEquip) {
-          var es2 = gameState.equipment.indexOf(null);
-          if (es2 !== -1) gameState.equipment[es2] = mythEquip;
-          else gameState.equipment.push(mythEquip);
+          var added7 = addToInventory(mythEquip);
+          if (added7) {
           localStorage.setItem(reward7Key, '1');
           saveUserData();
           updateStatusBar();
@@ -7833,9 +7875,8 @@ function checkGrade45Activity(studentId) {
       if (typeof window.generateEquip === 'function') {
         var legEquip = window.generateEquip(6);
         if (legEquip) {
-          var es = gameState.equipment.indexOf(null);
-          if (es !== -1) gameState.equipment[es] = legEquip;
-          else gameState.equipment.push(legEquip);
+          var added = addToInventory(legEquip);
+          if (added) {
           localStorage.setItem(reward3Key, '1');
           saveUserData();
           updateStatusBar();
@@ -7852,9 +7893,8 @@ function checkGrade45Activity(studentId) {
       if (typeof window.generateEquip === 'function') {
         var mythEquip = window.generateEquip(7);
         if (mythEquip) {
-          var es2 = gameState.equipment.indexOf(null);
-          if (es2 !== -1) gameState.equipment[es2] = mythEquip;
-          else gameState.equipment.push(mythEquip);
+          var added7 = addToInventory(mythEquip);
+          if (added7) {
           localStorage.setItem(reward7Key, '1');
           saveUserData();
           updateStatusBar();
@@ -7962,14 +8002,12 @@ function autoEquipReward(equip) {
   if (!slotType) return;
 
   // 加入背包（找空槽）
-  var invIdx = -1;
-  for (var i = 0; i < gameState.equipment.length; i++) {
-    if (!gameState.equipment[i]) { invIdx = i; break; }
-  }
+  var invIdx = gameState.equipment.indexOf(null);
   if (invIdx === -1) {
-    gameState.equipment.push(equip);
-    invIdx = gameState.equipment.length - 1;
-  } else {
+    autoCleanEquipment();
+    invIdx = gameState.equipment.indexOf(null);
+  }
+  if (invIdx !== -1) {
     gameState.equipment[invIdx] = equip;
   }
 
@@ -8096,12 +8134,7 @@ function claimCompensation() {
     desc: '保持安静',
     str: 0, dex: 0, int: 0, hpBonus: 0, mpBonus: 0, affixes: []
   };
-  var emptySlot = gameState.equipment.indexOf(null);
-  if (emptySlot !== -1) {
-    gameState.equipment[emptySlot] = cup;
-  } else {
-    gameState.equipment.push(cup);
-  }
+  addToInventory(cup);
   // 如果还没解锁成就，顺便解锁
   if (!gameState.unlockedAchievements.includes('equip_tan_cup')) {
     gameState.unlockedAchievements.push('equip_tan_cup');
@@ -8147,9 +8180,7 @@ function claimS0Reward() {
   var mythicEquip = null;
   try { if (typeof window.generateEquip === 'function') mythicEquip = window.generateEquip(7); } catch(e) {}
   if (mythicEquip) {
-    var es = gameState.equipment.indexOf(null);
-    if (es !== -1) gameState.equipment[es] = mythicEquip;
-    else gameState.equipment.push(mythicEquip);
+    addToInventory(mythicEquip);
   }
   // UR宠物
   var urPetIds = [21,22,23,24];
@@ -8595,10 +8626,8 @@ async function acceptGift(giftId) {
         if (_giftPendingCache[i].id === giftId) { foundEquip = _giftPendingCache[i].equipData; break; }
       }
       if (foundEquip) {
-        if (!gameState.equipment || !Array.isArray(gameState.equipment)) gameState.equipment = new Array(100).fill(null);
-        var nullIdx = gameState.equipment.indexOf(null);
-        if (nullIdx >= 0) gameState.equipment[nullIdx] = foundEquip;
-        else gameState.equipment.push(foundEquip);
+        if (!gameState.equipment || !Array.isArray(gameState.equipment)) gameState.equipment = new Array(500).fill(null);
+        addToInventory(foundEquip);
       }
       saveUserData();
       await loadGiftData();
@@ -8624,10 +8653,8 @@ async function revokeGift(giftId) {
         if (_giftSentCache[i].id === giftId) { foundEquip = _giftSentCache[i].equipData; break; }
       }
       if (foundEquip) {
-        if (!gameState.equipment || !Array.isArray(gameState.equipment)) gameState.equipment = new Array(100).fill(null);
-        var nullIdx = gameState.equipment.indexOf(null);
-        if (nullIdx >= 0) gameState.equipment[nullIdx] = foundEquip;
-        else gameState.equipment.push(foundEquip);
+        if (!gameState.equipment || !Array.isArray(gameState.equipment)) gameState.equipment = new Array(500).fill(null);
+        addToInventory(foundEquip);
       }
       saveUserData();
       await loadGiftData();
@@ -8884,9 +8911,7 @@ async function executeSynthesis() {
     }
   }
   if (typeof saveEquippedState62 === 'function') saveEquippedState62();
-  var nullIdx = gameState.equipment.indexOf(null);
-  if (nullIdx >= 0) gameState.equipment[nullIdx] = newEquip;
-  else gameState.equipment.push(newEquip);
+  addToInventory(newEquip);
   // 保存课时进度到localStorage
   if (currentCourse) { var pgKey = 'progress_grade' + currentCourse.grade + currentCourse.sem + '_' + gameState.studentId; localStorage.setItem(pgKey, JSON.stringify(gameState.lessonProgress)); }
   _synthesisSlots = [-1, -1, -1];
