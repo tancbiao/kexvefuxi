@@ -2072,19 +2072,16 @@ function hideLoginScreen() { var ov = document.getElementById('loginOverlay'); i
 function loginWithId() {
   var id = document.getElementById('studentIdInput').value.trim();
   if (id.length !== 8 || !/^\d+$/.test(id)) { alert('请输入正确的8位数字学号！'); return; }
+  // 主脚本已加载 → 由主脚本版本接管
+  if (window._mainLoaded) { return; }
+  // 主脚本未加载 → 跳转到冒险大厅（hub.html）完成登录
   localStorage.setItem('rememberedStudentId', id);
-  // 检查主脚本是否已加载（_mainLoaded 在主脚本末尾设置）
-  if (window._mainLoaded) { return; /* 主脚本版本已接管 */ }
-  // 主脚本未加载 → 刷新重试（最多2次防死循环）
-  var retry = parseInt(localStorage.getItem('_lr') || '0');
-  if (retry >= 2) { alert('页面加载异常，请清除缓存后重试'); localStorage.removeItem('_lr'); return; }
-  localStorage.setItem('_lr', retry + 1);
-  location.reload();
+  window.location.href = '/?sid=' + id;
 }
 function loginAsGuest() {
-  localStorage.setItem('rememberedStudentId', 'guest');
+  // 主脚本已加载 → 由主脚本版本接管
   if (window._mainLoaded) { return; }
-  location.reload();
+  window.location.href = '/';
 }
 </script>
 
