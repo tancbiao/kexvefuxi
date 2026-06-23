@@ -11,7 +11,10 @@
 (function(){
   var d = new Date();
   var v = d.getFullYear() + ('0'+(d.getMonth()+1)).slice(-2) + ('0'+d.getDate()).slice(-2);
-  location.replace('/1/1/index_v712.html?v=' + v);
+  // 保留当前页面的查询参数，附加版本号
+  var qs = location.search;
+  var sep = qs ? '&' : '?';
+  location.replace('/1/1/index_v712.html' + qs + sep + 'v=' + v);
 })();
 </script>
 </head>

@@ -2076,12 +2076,12 @@ function loginWithId() {
   if (window._mainLoaded) { return; }
   // 主脚本未加载 → 跳转到冒险大厅（hub.html）完成登录
   localStorage.setItem('rememberedStudentId', id);
-  window.location.href = '/?sid=' + id;
+  window.location.href = '/landing-page/hub.html?sid=' + id;
 }
 function loginAsGuest() {
   // 主脚本已加载 → 由主脚本版本接管
   if (window._mainLoaded) { return; }
-  window.location.href = '/';
+  window.location.href = '/landing-page/hub.html';
 }
 </script>
 
