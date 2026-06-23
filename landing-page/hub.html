@@ -451,6 +451,7 @@ a { text-decoration: none; }
   max-width: 600px;
   max-height: 85vh;
   overflow-y: auto;
+  -webkit-transform: translateZ(0); /* iOS Safari fix: prevent backdrop-filter from blocking clicks */
   box-shadow:
     0 20px 60px rgba(79, 70, 229, 0.2),
     inset 0 -2px 6px rgba(255, 255, 255, 0.4);
@@ -1144,7 +1145,7 @@ a { text-decoration: none; }
   <h2 class="section-title">🎮 选择冒险模式</h2>
   <div class="mode-cards">
     <!-- 闯关学习 -->
-    <div class="mode-card lesson" onclick="openQuizSection()">
+    <div class="mode-card lesson" onclick="openLesson()">
       <div class="mode-icon lesson-bg">📚</div>
       <div class="mode-name">闯关学习</div>
       <div class="mode-desc">按课程闯关答题，掌握科学知识</div>
@@ -2873,6 +2874,9 @@ function finishLogin() {
   closeOverlay('loginModal');
   document.getElementById('lmForm').style.display = 'block';
   document.getElementById('lmLoading').classList.remove('show');
+
+  // Setup mode cards with real data (progress bars + onclick handlers)
+  setupModeCards(studentId);
 
   // Update status bar
   var gradeText = '四年级';
