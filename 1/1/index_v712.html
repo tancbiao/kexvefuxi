@@ -2066,20 +2066,20 @@
 
 <!-- ====== 独立登录模块（在主脚本之前，确保移动端登录可用） ====== -->
 <script>
-// 这些函数在主脚本中会被覆盖，但作为兜底确保移动端登录不依赖主脚本加载
+// 兜底：主脚本若未执行，这些函数提供基础登录（跳转 hub.html）
+// 主脚本执行后会重新声明同名函数，覆盖这里的版本
 function showLoginScreen() { var ov = document.getElementById('loginOverlay'); if (ov) ov.classList.add('show'); }
 function hideLoginScreen() { var ov = document.getElementById('loginOverlay'); if (ov) ov.classList.remove('show'); }
 function loginWithId() {
   var id = document.getElementById('studentIdInput').value.trim();
   if (id.length !== 8 || !/^\d+$/.test(id)) { alert('请输入正确的8位数字学号！'); return; }
-  // 主脚本已加载 → 由主脚本版本接管
+  // 主脚本已开始执行 → _mainLoaded 在 <script> 第一行就设为 true
   if (window._mainLoaded) { return; }
-  // 主脚本未加载 → 跳转到冒险大厅（hub.html）完成登录
+  // 主脚本未执行 → 跳转 hub.html 完成登录
   localStorage.setItem('rememberedStudentId', id);
   window.location.href = '/landing-page/hub.html?sid=' + id;
 }
 function loginAsGuest() {
-  // 主脚本已加载 → 由主脚本版本接管
   if (window._mainLoaded) { return; }
   window.location.href = '/landing-page/hub.html';
 }
@@ -2252,6 +2252,9 @@ var CLASS012102_IDS = ["01210236", "01210206", "01210222", "01210223", "01210231
 </div>
 
 <script>
+// 标记主脚本开始执行（供独立登录模块判断）
+window._mainLoaded = true;
+
 const equipmentSystem = {
   levels: typeof EQUIP_RARITY !== 'undefined' ? EQUIP_RARITY : {},
   equipTypes: typeof ALL_EQUIP_TYPES !== 'undefined' ? ALL_EQUIP_TYPES : [],
