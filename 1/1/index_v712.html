@@ -2161,7 +2161,12 @@ var CLASS012102_IDS = ["01210236", "01210206", "01210222", "01210223", "01210231
     btn.disabled = false;
     btn.textContent = '🚀 开始挑战';
     btn.style.cssText = '';
-    btn.setAttribute('onclick', 'showLoginScreen()');
+    // 用自包含 onclick，不依赖后续脚本中的 showLoginScreen()
+    btn.onclick = function() {
+      var ov = document.getElementById('loginOverlay');
+      if (ov) ov.classList.add('show');
+    };
+    btn.style.cursor = 'pointer';
   }
   if (hint) hint.textContent = '已就绪，点击开始你的科学探险之旅！';
 })();
