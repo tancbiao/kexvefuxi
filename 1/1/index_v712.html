@@ -2064,6 +2064,30 @@
   </div>
 </div>
 
+<!-- ====== 独立登录模块（在主脚本之前，确保移动端登录可用） ====== -->
+<script>
+// 这些函数在主脚本中会被覆盖，但作为兜底确保移动端登录不依赖主脚本加载
+function showLoginScreen() { var ov = document.getElementById('loginOverlay'); if (ov) ov.classList.add('show'); }
+function hideLoginScreen() { var ov = document.getElementById('loginOverlay'); if (ov) ov.classList.remove('show'); }
+function loginWithId() {
+  var id = document.getElementById('studentIdInput').value.trim();
+  if (id.length !== 8 || !/^\d+$/.test(id)) { alert('请输入正确的8位数字学号！'); return; }
+  localStorage.setItem('rememberedStudentId', id);
+  // 检查主脚本是否已加载（_mainLoaded 在主脚本末尾设置）
+  if (window._mainLoaded) { return; /* 主脚本版本已接管 */ }
+  // 主脚本未加载 → 刷新重试（最多2次防死循环）
+  var retry = parseInt(localStorage.getItem('_lr') || '0');
+  if (retry >= 2) { alert('页面加载异常，请清除缓存后重试'); localStorage.removeItem('_lr'); return; }
+  localStorage.setItem('_lr', retry + 1);
+  location.reload();
+}
+function loginAsGuest() {
+  localStorage.setItem('rememberedStudentId', 'guest');
+  if (window._mainLoaded) { return; }
+  location.reload();
+}
+</script>
+
 <div class="overlay" id="loginOverlay">
   <div class="login-box">
     <h2 class="login-title">🔐 输入学号登录</h2>
@@ -8963,6 +8987,10 @@ function setQuizFontSize(size) {
   var activeBtn = document.getElementById('quizFont' + size.charAt(0).toUpperCase() + size.slice(1));
   if (activeBtn) activeBtn.classList.add('active');
 }
+
+// 标记主脚本加载完成（供独立登录模块判断是否需要 reload）
+window._mainLoaded = true;
+localStorage.removeItem('_lr');
 
 </script>
 
