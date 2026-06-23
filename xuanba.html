@@ -270,72 +270,20 @@ var ATTEMPT_KEY = 'xuanba2_attempts_';
 var API_BASE = 'https://api.kexvefuxi.cn/api';
 
 // ============== Grade → Age Norm Table ==============
-// Raven's SPM raw score → percentile per grade level (simplified)
-// Based on published SPM age norms for 8-12 year olds
-var GRADE_NORMS = {
-  // Grade 6 (20) → age 11-12
-  '20': [0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 2,3,4,5,6,7,9,11,13,16, 21,25,30,35,41,47,53,58,64,69, 74,78,82,86,89,91,93,95,96,97, 97,98,98,99,99,99,99,99,99,99],
-  // Grade 5 (21) → age 10-11
-  '21': [0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,1,2, 3,5,7,9,12,16,21,26,31,37, 43,50,56,63,69,74,79,83,87,89, 92,94,95,96,97,98,98,99,99,99, 99,99,99,99,99,99,99,99,99,99],
-  // Grade 4 (22) → age 9-10
-  '22': [0,0,0,0,0,0,0,0,0,1, 2,3,4,6,9,12,16,21,26,32, 39,45,52,59,65,71,77,82,86,89, 92,94,96,97,98,98,99,99,99,99, 99,99,99,99,99,99,99,99,99,99, 99,99,99,99,99,99,99,99,99,99],
-  // Grade 3 (23) → age 8-9
-  '23': [0,0,0,0,0,0,0,1,2,3, 5,7,10,14,19,24,30,36,43,50, 57,63,69,75,80,84,88,91,93,95, 96,97,98,99,99,99,99,99,99,99, 99,99,99,99,99,99,99,99,99,99, 99,99,99,99,99,99,99,99,99,99]
-};
+// SPM 原始分 → RA 推理指数直接映射（不分年级，统一标准）
+// 基于 Raven's SPM 9-12岁常模，与正式瑞文 IQ 分布一致
+var SPM_RA_TABLE = [
+  60,60,60,60,60, 61,62,63,64,65,    //  0- 9
+  66,67,68,69,70, 71,72,73,74,75,    // 10-19
+  76,77,78,79,80, 81,82,83,84,86,    // 20-29
+  88,90,92,94,96, 98,100,102,104,106,// 30-39
+  108,110,113,116,119, 122,125,128,131,134,// 40-49
+  137,140,143,146,149, 152,155,157,159,160 // 50-59
+];
 
-// Convert raw score to percentile based on grade
-function rawScoreToPercentile(rawScore, grade) {
-  var norms = GRADE_NORMS[grade] || GRADE_NORMS['20'];
+function rawScoreToRA(rawScore) {
   var idx = Math.max(0, Math.min(59, rawScore));
-  return norms[idx] || 0;
-}
-
-// Convert percentile to RA score (60-160, same distribution as standard IQ)
-function percentileToRA(percentile) {
-  // Using normal distribution: mean=100, sd=15
-  if (percentile <= 0) return 60;
-  if (percentile >= 100) return 160;
-  
-  var p = percentile / 100;
-  var z = 0;
-  // Approximation of inverse normal
-  if (p < 0.5) {
-    z = -inverseNormalApprox(1 - p);
-  } else {
-    z = inverseNormalApprox(p);
-  }
-  var ra = Math.round(100 + z * 15);
-  return Math.max(60, Math.min(160, ra));
-}
-
-function inverseNormalApprox(p) {
-  // Rational approximation for inverse normal (Peter J. Acklam)
-  var a1 = -39.6968302866538, a2 = 220.9460984245205, a3 = -275.9285104469687;
-  var a4 = 138.3577518672690, a5 = -30.66479806614716, a6 = 2.506628277459239;
-  var b1 = -54.47609879822406, b2 = 161.5858368580409, b3 = -155.6989798598866;
-  var b4 = 66.80131188771972, b5 = -13.28068155288572;
-  var c1 = -7.784894002430293E-03, c2 = -0.3223964580411365;
-  var c3 = -2.400758277161838, c4 = -2.549732539343734;
-  var c5 = 4.374664141464968, c6 = 2.938163982698783;
-  var d1 = 7.784695709041462E-03, d2 = 0.3224671290700398;
-  var d3 = 2.445134137142996, d4 = 3.754408661907416;
-  var plow = 0.02425, phigh = 1 - plow;
-
-  var q, r;
-  if (p < plow) {
-    q = Math.sqrt(-2 * Math.log(p));
-    return (((((c1 * q + c2) * q + c3) * q + c4) * q + c5) * q + c6) /
-           ((((d1 * q + d2) * q + d3) * q + d4) * q + 1);
-  } else if (p <= phigh) {
-    q = p - 0.5;
-    r = q * q;
-    return (((((a1 * r + a2) * r + a3) * r + a4) * r + a5) * r + a6) * q /
-           (((((b1 * r + b2) * r + b3) * r + b4) * r + b5) * r + 1);
-  } else {
-    q = Math.sqrt(-2 * Math.log(1 - p));
-    return -(((((c1 * q + c2) * q + c3) * q + c4) * q + c5) * q + c6) /
-            ((((d1 * q + d2) * q + d3) * q + d4) * q + 1);
-  }
+  return SPM_RA_TABLE[idx];
 }
 
 // RA classification
@@ -487,9 +435,8 @@ function submitTest() {
     if (answers[i] !== null && answers[i] === q.correct) { correct++; gs[q.group].c++; }
   }
 
-  // Calculate RA score from raw score + grade norms
-  var percentile = rawScoreToPercentile(correct, gradeCode || '20');
-  var ra = percentileToRA(percentile);
+  // RA 推理指数：直接从原始分查表（不分年级，统一标准）
+  var ra = rawScoreToRA(correct);
   var cls = getRAClass(ra);
 
   // Display
