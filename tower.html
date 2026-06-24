@@ -234,22 +234,22 @@ body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius
 /* 怪物区域 */
 .monster-area {
   text-align: center;
-  padding: 20px;
+  padding: 12px 16px;
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 16px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
   position: relative;
-  min-height: 180px;
+  min-height: 130px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
 }
 .monster-area .monster-emoji {
-  font-size: 64px;
+  font-size: 48px;
   line-height: 1;
-  margin-bottom: 6px;
+  margin-bottom: 2px;
   transition: transform 0.3s;
 }
 .monster-area .monster-emoji.attacking {
@@ -409,6 +409,51 @@ body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius
   transition: width 1s linear;
   border-radius: 2px;
 }
+
+/* ========== 战斗全屏 + 字体控制 ========== */
+#screenBattle.fullscreen {
+  position: fixed !important; inset: 0; z-index: 10000;
+  background: #0a0a1a;
+  padding: 8px 12px; overflow-y: auto;
+  display: block !important;
+}
+#screenBattle.fullscreen .battle-header { margin-bottom: 4px; }
+#screenBattle.fullscreen .battle-header .floor-tag { font-size: 0.75em; padding: 2px 12px; }
+#screenBattle.fullscreen .monster-area {
+  min-height: 80px; padding: 6px 12px; margin-bottom: 6px;
+}
+#screenBattle.fullscreen .monster-area .monster-emoji { font-size: 32px; margin-bottom: 0; }
+#screenBattle.fullscreen .monster-area .monster-name { font-size: 0.85em; }
+#screenBattle.fullscreen .monster-area .monster-type-tag { font-size: 0.65em; margin-bottom: 4px; }
+#screenBattle.fullscreen .hp-bar-wrap { max-width: 240px; margin: 2px auto; }
+#screenBattle.fullscreen .hp-bar-bg { height: 10px; }
+#screenBattle.fullscreen .hp-text { font-size: 0.7em; }
+#screenBattle.fullscreen .skills-area { margin-top: 2px; }
+#screenBattle.fullscreen .skill-tag { font-size: 0.65em; }
+#screenBattle.fullscreen .battle-log { font-size: 0.75em; padding: 6px; margin-bottom: 4px; }
+#screenBattle.fullscreen .timer-bar-wrap { margin-bottom: 4px; }
+#screenBattle.fullscreen .quiz-area { padding: 10px 14px; margin-bottom: 8px; }
+#screenBattle.fullscreen .q-text { font-size: 1.2em !important; line-height: 1.7; margin-bottom: 8px; }
+#screenBattle.fullscreen .q-options { gap: 6px; }
+#screenBattle.fullscreen .q-option { padding: 10px 14px; font-size: 1.1em; }
+#screenBattle.fullscreen .correction-btn { font-size: 0.7em; }
+
+/* 字体大小变体 */
+#screenBattle.font-sm .q-text { font-size: 0.9em !important; }
+#screenBattle.font-sm .q-option { font-size: 0.9em !important; padding: 8px 12px !important; }
+#screenBattle.font-lg .q-text { font-size: 1.5em !important; line-height: 1.8; }
+#screenBattle.font-lg .q-option { font-size: 1.3em !important; padding: 14px 18px !important; }
+
+/* 全屏按钮样式 */
+.tower-fs-btn {
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.6); padding: 6px 10px; border-radius: 6px;
+  cursor: pointer; font-size: 0.75em; transition: all 0.2s;
+}
+.tower-fs-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+.tower-fs-btn.active { background: rgba(255,215,0,0.15); border-color: rgba(255,215,0,0.4); color: #ffd700; }
+.tower-font-ctrl { display: none; gap: 3px; }
+#screenBattle.fullscreen .tower-font-ctrl { display: flex; }
 
 /* ========== 卡牌奖励屏幕 ========== */
 .reward-box {
@@ -1047,8 +1092,14 @@ img.emoji { height: 1em; width: 1em; margin: 0 0.05em; vertical-align: -0.1em; }
 <div class="screen" id="screenBattle">
   <div class="battle-header">
     <span class="floor-tag" id="battleFloorTag">第 1 层</span>
-    <div style="position:absolute;right:12px;top:12px;display:flex;gap:6px;">
-      <button onclick="if(confirm('确定要放弃本次爬塔吗？已获得的积分和装备会保留。')){goHome()}" style="background:rgba(255,100,100,0.2);border:1px solid rgba(255,100,100,0.4);color:rgba(255,255,255,0.7);padding:6px 10px;border-radius:6px;cursor:pointer;font-size:0.75em;" title="放弃本次爬塔，返回首页（保留积分和装备）">🏠 退出</button>
+    <div style="position:absolute;right:12px;top:12px;display:flex;gap:6px;align-items:center;">
+      <div class="tower-font-ctrl" id="towerFontCtrl">
+        <button onclick="setTowerFont('sm')" class="tower-fs-btn" id="towerFontSm">小</button>
+        <button onclick="setTowerFont('md')" class="tower-fs-btn active" id="towerFontMd">中</button>
+        <button onclick="setTowerFont('lg')" class="tower-fs-btn" id="towerFontLg">大</button>
+      </div>
+      <button onclick="toggleTowerFullscreen()" class="tower-fs-btn" id="towerFSBtn" title="全屏模式：放大题目、缩小怪物">⛶</button>
+      <button onclick="if(confirm('确定要放弃本次爬塔吗？已获得的积分和装备会保留。')){goHome()}" style="background:rgba(255,100,100,0.2);border:1px solid rgba(255,100,100,0.4);color:rgba(255,255,255,0.7);padding:6px 10px;border-radius:6px;cursor:pointer;font-size:0.75em;" title="放弃本次爬塔，返回首页（保留积分和装备）">🏠</button>
       <button onclick="location.reload()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.5);padding:6px 10px;border-radius:6px;cursor:pointer;font-size:0.75em;" title="卡住时刷新页面">🔄</button>
     </div>
   </div>
@@ -4469,6 +4520,36 @@ function closeBoxOpening() {
   document.getElementById('boxOpeningOverlay').classList.remove('show');
   document.getElementById('boxAnimContainer').style.display = 'flex';
   document.getElementById('boxResultPanel').classList.remove('show');
+}
+
+// ====== 战斗全屏 + 字体控制 ======
+function toggleTowerFullscreen() {
+  var sb = document.getElementById('screenBattle');
+  var btn = document.getElementById('towerFSBtn');
+  var ctrl = document.getElementById('towerFontCtrl');
+  if (sb.classList.contains('fullscreen')) {
+    sb.classList.remove('fullscreen', 'font-sm', 'font-md', 'font-lg');
+    if (btn) btn.textContent = '⛶';
+    if (btn) btn.classList.remove('active');
+    if (ctrl) ctrl.style.display = 'none';
+  } else {
+    sb.classList.add('fullscreen', 'font-md');
+    if (btn) { btn.textContent = '✕'; btn.classList.add('active'); }
+    if (ctrl) ctrl.style.display = 'flex';
+    setTowerFontActive('md');
+  }
+}
+function setTowerFont(size) {
+  var sb = document.getElementById('screenBattle');
+  sb.classList.remove('font-sm', 'font-md', 'font-lg');
+  sb.classList.add('font-' + size);
+  setTowerFontActive(size);
+}
+function setTowerFontActive(size) {
+  ['sm','md','lg'].forEach(function(s) {
+    var el = document.getElementById('towerFont' + s.charAt(0).toUpperCase() + s.slice(1));
+    if (el) el.classList.toggle('active', s === size);
+  });
 }
 
 </script>
