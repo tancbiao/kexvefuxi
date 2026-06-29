@@ -6059,7 +6059,12 @@ function loadUserData() {
   const saveKey = 'scienceGame_user_' + gameState.studentId;
   const saved = localStorage.getItem(saveKey);
   const localData = saved ? JSON.parse(saved) : null;
-  if (localData) { applyUserData(localData); console.log('使用本地存档'); }
+  if (localData) {
+    // 🔧 修复：如果已从云端加载装备，不用本地空数据覆盖
+    var hasEquipment = gameState.equipment && Array.isArray(gameState.equipment) && gameState.equipment.filter(Boolean).length > 0;
+    if (!hasEquipment) { applyUserData(localData); }
+    console.log('使用本地存档' + (hasEquipment ? '(已跳过：云端数据优先)' : ''));
+  }
 
   // 【迁移】从旧版本 per-grade key 迁移所有存档数据
   var migrated = false;
