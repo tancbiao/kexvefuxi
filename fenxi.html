@@ -6431,7 +6431,7 @@ if (!this.data || !this.data.students) return;
       var res = await fetch('https://api.kexvefuxi.cn/api/students/batch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ students: students })
+        body: JSON.stringify({ students: students, examKey: App.examTitle || '' })
       });
       if (!res.ok) throw new Error('HTTP ' + res.status + ': ' + (await res.text()));
       var result = await res.json();
