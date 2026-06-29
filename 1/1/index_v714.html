@@ -2607,7 +2607,7 @@ async function loadUserDataFromCloud(studentId, attempt) {
     if (data && Object.keys(data).length > 0) {
       // 云端加载成功
       applyUserData(data);
-      gameState._cloudSynced = true;
+      // 🔧 v716修复: _cloudSynced 延迟设置，防止 finishLogin 期间的 saveUserData 上传空装备
       // 检查是否需要迁移本地数据到云端
       await migrateLocalToCloud(studentId);
       // 进入主界面
