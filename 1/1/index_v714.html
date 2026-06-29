@@ -6223,6 +6223,7 @@ function applyUserData(data) {
   gameState.lessonProgress = data.lessonProgress || {};
   gameState.unlockedAchievements = data.unlockedAchievements || [];
   gameState.equipment = data.equipment || [];
+  if (!Array.isArray(gameState.equipment)) gameState.equipment = new Array(500).fill(null);
   // 兼容旧存档：转换为500格数组
   if (gameState.equipment.length > 0 && gameState.equipment.length !== 500) {
     const items = gameState.equipment.filter(Boolean);
@@ -6706,7 +6707,7 @@ function bpUnequipByIdx62(idx) {
 }
 
 function initInventory62() {
-  if (!gameState.equipment) { gameState.equipment = new Array(500).fill(null); return; }
+  if (!gameState.equipment || !Array.isArray(gameState.equipment)) { gameState.equipment = new Array(500).fill(null); return; }
   if (gameState.equipment.length !== 500 || gameState.equipment.length === undefined) {
     const items = gameState.equipment.filter(Boolean);
     const inv = new Array(500).fill(null);
