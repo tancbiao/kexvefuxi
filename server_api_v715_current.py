@@ -159,6 +159,75 @@ def students_names():
         return jsonify({'error': str(e)}), 500
 
 
+# ==================== 学生成绩批量同步 API ====================
+@app.route('/api/students/batch', methods=['POST', 'OPTIONS'])
+def students_batch():
+    """fenxi.html 成绩分析 → 复习系统 学生成绩批量同步"""
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+    
+    body = request.json
+    if not body or 'students' not in body:
+        return jsonify({'error': '缺少 students 数组'}), 400
+    
+    students = body['students']
+    if not isinstance(students, list) or len(students) == 0:
+        return jsonify({'error': '无有效学生数据'}), 400
+    
+    # 检查是否已同步过（按考试名称+日期去重）
+    exam_key = body.get('examKey', '')
+    synced_exams = _read_json('synced_exams')
+    if exam_key and exam_key in synced_exams:
+        return jsonify({
+            'error': '该试卷已同步过',
+            'syncedAt': synced_exams[exam_key],
+            'count': 0
+        }), 409
+    
+    # 写入学生信息
+    info = _read_json('student_info')
+    count = 0
+    for s in students:
+        sid = str(s.get('studentId', '')).strip()
+        if not sid or len(sid) < 8:
+            continue
+        # 获取或创建学生记录
+        if sid not in info:
+            info[sid] = {}
+        rec = info[sid]
+        # 更新基本信息
+        if s.get('name'):
+            rec['name'] = s['name']
+        if s.get('className'):
+            rec['className'] = s['className']
+        # 追加考试成绩
+        if 'exams' not in rec:
+            rec['exams'] = []
+        exam_entry = {
+            'score': s.get('score', 0),
+            'wrongQuestions': s.get('wrongQuestions', []),
+            'answers': s.get('answers', {}),
+            'syncedAt': time.strftime('%Y-%m-%d %H:%M:%S'),
+            'examKey': exam_key
+        }
+        # 去重：同一 exam_key 不重复添加
+        existing_keys = [e.get('examKey', '') for e in rec.get('exams', [])]
+        if exam_key and exam_key in existing_keys:
+            continue
+        rec['exams'].append(exam_entry)
+        count += 1
+    
+    _write_json('student_info', info)
+    
+    # 记录已同步的考试
+    if exam_key:
+        synced_exams[exam_key] = time.strftime('%Y-%m-%d %H:%M:%S')
+        _write_json('synced_exams', synced_exams)
+    
+    print(f'[BATCH-SYNC] 共{len(students)}名学生, 成功写入{count}条, examKey={exam_key}')
+    return jsonify({'ok': True, 'count': count})
+
+
 # ==================== 学生存档 API（v706 智能合并） ====================
 # 限流：防止客户端疯狂重试导致 73MB 文件写入积压
 _save_throttle = {}  # {key: timestamp}
