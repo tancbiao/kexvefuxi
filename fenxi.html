@@ -6585,10 +6585,15 @@ if (!this.data || !this.data.students) return;
     try {
 
       const tpl = this.reportTemplate || 'school';
+      const gradeMap = { '3': '三年级', '4': '四年级', '5': '五年级', '6': '六年级' };
+      const exportData = Object.assign({}, this.data);
+      if (this.syncTargetGrade && gradeMap[this.syncTargetGrade]) {
+        exportData.grade = gradeMap[this.syncTargetGrade];
+      }
       if (tpl === 'district') {
-        await ReportExporter.exportDistrict(this.data, this.examQuestions);
+        await ReportExporter.exportDistrict(exportData, this.examQuestions);
       } else {
-        await ReportExporter.export(this.data, this.examQuestions);
+        await ReportExporter.export(exportData, this.examQuestions);
       }
 
       Util.toast('报告导出成功！', 'success');
