@@ -6273,8 +6273,8 @@ if (!this.data || !this.data.students) return;
 
     // 导出模板选择器（学校表 / 区教研表）
     h += '<div style="margin-bottom:16px;">';
-    h += '<span style="color:#fff;font-size:0.9em;margin-right:10px;">📑 导出模板：</span>';
-    h += '<select id="reportTemplateSelect" onchange="App.reportTemplate=this.value" style="padding:8px 14px;border-radius:6px;border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.12);color:#fff;font-size:0.9em;cursor:pointer;">';
+    h += '<span style="color:var(--text);font-size:0.9em;margin-right:10px;">📑 导出模板：</span>';
+    h += '<select id="reportTemplateSelect" onchange="App.reportTemplate=this.value" style="padding:8px 14px;border-radius:6px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:0.9em;cursor:pointer;">';
     h += '<option value="school"' + ((this.reportTemplate || 'school') === 'school' ? ' selected' : '') + '>学校质量分析表（原·班级分数分布）</option>';
     h += '<option value="district"' + ((this.reportTemplate || 'school') === 'district' ? ' selected' : '') + '>区教研小题分析表（蓬江区）</option>';
     h += '</select></div>';
@@ -6288,7 +6288,7 @@ if (!this.data || !this.data.students) return;
     try { savedGrade = localStorage.getItem('fenxi_sync_grade') || ''; } catch(e) {}
     var selGrade = savedGrade || detectedGrade;
     h += '<div style="display:inline-block;margin-left:8px;">';
-    h += '<select id="syncGradeSelect" style="padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:#fff;font-size:0.85em;cursor:pointer;" onchange="App.syncTargetGrade=this.value;try{localStorage.setItem(\'fenxi_sync_grade\',this.value)}catch(e){}">';
+    h += '<select id="syncGradeSelect" style="padding:8px 12px;border-radius:6px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:0.85em;cursor:pointer;" onchange="App.syncTargetGrade=this.value;try{localStorage.setItem(\'fenxi_sync_grade\',this.value)}catch(e){}">';
     h += '<option value="3"' + (selGrade==='3'?' selected':'') + '>三年级</option>';
     h += '<option value="4"' + (selGrade==='4'?' selected':'') + '>四年级</option>';
     h += '<option value="5"' + (selGrade==='5'?' selected':'') + '>五年级</option>';
