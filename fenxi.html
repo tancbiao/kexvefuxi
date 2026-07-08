@@ -2784,6 +2784,140 @@ const ReportExporter = {
     a.download = grade + '科学质量分析表_' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '.docx';
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 10000);
+  },
+
+  // ===== 区教研小题分析表（蓬江区模板） =====
+  async exportDistrict(DATA, examQuestions) {
+    if (typeof JSZip === 'undefined') throw new Error('JSZip组件未加载，无法导出区表');
+
+    let templateBuffer;
+    try {
+      const resp = await fetch('template_district.docx');
+      if (!resp.ok) throw new Error('区模板加载失败 (HTTP ' + resp.status + ')，请确认 template_district.docx 存在');
+      templateBuffer = await resp.arrayBuffer();
+    } catch (e) {
+      throw new Error('区模板加载失败: ' + e.message);
+    }
+
+    const zip = await JSZip.loadAsync(templateBuffer);
+    let xml = await zip.file('word/document.xml').async('string');
+
+    // ---- helpers ----
+    function setCellText(cellXml, text) {
+      text = String(text);
+      if (/<w:t[^>]*>[^<]*<\/w:t>/.test(cellXml)) {
+        return cellXml.replace(/(<w:t(?:\s[^>]*)?>)([\s\S]*?)(<\/w:t>)/, (m, o, r, c) => o + text + c);
+      }
+      return cellXml.replace(/(<\/w:p>)/, '<w:r><w:t>' + text + '<\/w:t><\/w:r>$1');
+    }
+    function parseCells(rowXml) {
+      const cells = [];
+      let pos = 0;
+      while (true) {
+        const start = rowXml.indexOf('<w:tc', pos);
+        if (start < 0) break;
+        const ch = rowXml[start + 5];
+        if (ch === '/' || (ch !== '>' && ch !== ' ')) { pos = start + 6; continue; }
+        let depth = 1, i = start + (rowXml[start + 5] === '>' ? 6 : 7);
+        while (i < rowXml.length - 6) {
+          if (rowXml.substring(i, i + 7) === '</w:tc>') { if (--depth === 0) { cells.push(rowXml.substring(start, i + 7)); pos = i + 7; break; } i += 7; }
+          else if (rowXml.substring(i, i + 5) === '<w:tc') { const ch2 = rowXml[i + 5]; if (ch2 === '>' || ch2 === ' ') { depth++; i += 6; } else i++; }
+          else i++;
+        }
+        if (depth !== 0) break;
+      }
+      return cells;
+    }
+
+    // ---- 表头：年级 + 科目 ----
+    const gradeMap = { '1': '一', '2': '二', '3': '三', '4': '四', '5': '五', '6': '六' };
+    let g = (DATA.grade || '三').replace('年级', '');
+    g = gradeMap[g] || g;
+    const gradeText = g + '年级';
+    const hIdx = xml.indexOf('教学质量监测');
+    if (hIdx >= 0) {
+      const hParaStart = xml.lastIndexOf('<w:p', hIdx);
+      const hParaEnd = xml.indexOf('</w:p>', hIdx) + 6;
+      let hPara = xml.substring(hParaStart, hParaEnd);
+      hPara = hPara.replace('科教学质量监测', '科学教学质量监测').replace('年级', gradeText);
+      xml = xml.substring(0, hParaStart) + hPara + xml.substring(hParaEnd);
+    }
+
+    // ---- 填报时间 ----
+    const now = new Date();
+    const dateStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+    xml = xml.replace('填报时间：', '填报时间：' + dateStr);
+
+    // ---- 解析两张表 ----
+    const parts = xml.split(/(<w:tbl[ >][\s\S]*?<\/w:tbl>)/);
+    const tables = [];
+    for (let i = 1; i < parts.length; i += 2) tables.push(parts[i]);
+
+    function fillQuestionTable(tblXml, questions, mode) {
+      const openMatch = tblXml.match(/^<w:tbl[^>]*>/);
+      const openTag = openMatch ? openMatch[0] : '<w:tbl>';
+      const inner = tblXml.replace(/^<w:tbl[^>]*>/, '').replace(/<\/w:tbl>$/, '');
+      const rowRegex = /<w:tr[^>]*>([\s\S]*?)<\/w:tr>/g;
+      const rows = [];
+      let rm;
+      while ((rm = rowRegex.exec(inner)) !== null) rows.push(rm[0]);
+      const maxData = Math.min(questions.length, rows.length - 1);
+      for (let i = 0; i < maxData; i++) {
+        const q = questions[i];
+        const cells = parseCells(rows[i + 1]);
+        const vals = ['', '', '', '', ''];
+        vals[0] = (q.id != null) ? String(q.id) : '';
+        vals[1] = (q.text ? String(q.text).replace(/[\r\n]/g, ' ').substring(0, 60) : ('第' + (q.id != null ? q.id : '?') + '题'));
+        vals[2] = (q.correctRate != null ? (q.correctRate * 100).toFixed(1) + '%' : '');
+        if (mode === 'best') {
+          vals[4] = '正确率' + (q.correctRate * 100).toFixed(1) + '%，绝大多数学生掌握扎实，建议保持并适当拓展。';
+        } else {
+          const wrongOpts = (q.answer === 'T' || q.answer === 'F') ? [] : ['A', 'B', 'C'].filter(o => o !== q.answer);
+          let reason = '正确率' + (q.correctRate * 100).toFixed(1) + '%，学生掌握不到位。';
+          if (wrongOpts.length) {
+            const top = wrongOpts.sort((a, b) => (q.optionCounts[b] || 0) - (q.optionCounts[a] || 0))[0];
+            const topP = ((q.optionRates[top] || 0) * 100).toFixed(1);
+            reason += '主要误选' + top + '（' + topP + '%），';
+          }
+          reason += '建议：重新讲解相关知识点，设计针对性练习巩固。';
+          vals[4] = reason;
+        }
+        let newRow = rows[i + 1];
+        for (let vi = 0; vi < cells.length && vi < vals.length; vi++) {
+          if (vals[vi] !== '') newRow = newRow.replace(cells[vi], setCellText(cells[vi], vals[vi]));
+        }
+        rows[i + 1] = newRow;
+      }
+      const tblPr = inner.match(/<w:tblPr>[\s\S]*?<\/w:tblPr>/)?.[0] || '';
+      const tblGrid = inner.match(/<w:tblGrid>[\s\S]*?<\/w:tblGrid>/)?.[0] || '';
+      return openTag + tblPr + tblGrid + rows.join('') + '</w:tbl>';
+    }
+
+    // ---- 准备题目数据 ----
+    const eqById = id => (examQuestions || []).find(x => x.id === id);
+    const qs = (DATA.questions || []).map(q => {
+      const eq = eqById(q.id);
+      return { id: q.id, correctRate: q.correctRate, answer: q.answer, optionCounts: q.optionCounts, optionRates: q.optionRates, text: eq ? eq.text : '' };
+    });
+    const best = [...qs].sort((a, b) => b.correctRate - a.correctRate).slice(0, 7);
+    const worst = [...qs].sort((a, b) => a.correctRate - b.correctRate).slice(0, 7);
+
+    if (tables.length >= 1) tables[0] = fillQuestionTable(tables[0], best, 'best');
+    if (tables.length >= 2) tables[1] = fillQuestionTable(tables[1], worst, 'worst');
+
+    // ---- 重组 ----
+    let ti = 0;
+    for (let i = 1; i < parts.length; i += 2) { parts[i] = tables[ti++]; }
+    xml = parts.join('');
+
+    zip.file('word/document.xml', xml);
+    const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = gradeText + '科学区教研小题分析_' + dateStr.replace(/-/g, '') + '.docx';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
   }
 };
 
@@ -2798,6 +2932,8 @@ const App = {
   examQuestions: [],
 
   giftSet: new Set(),
+
+  reportTemplate: 'school',
 
   currentTab: 'overview',
 
@@ -6149,6 +6285,14 @@ if (!this.data || !this.data.students) return;
 
     h += '<div class="card"><div class="card-body" style="text-align:center;padding:20px;">';
 
+    // 导出模板选择器（学校表 / 区教研表）
+    h += '<div style="margin-bottom:16px;">';
+    h += '<span style="color:#fff;font-size:0.9em;margin-right:10px;">📑 导出模板：</span>';
+    h += '<select id="reportTemplateSelect" onchange="App.reportTemplate=this.value" style="padding:8px 14px;border-radius:6px;border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.12);color:#fff;font-size:0.9em;cursor:pointer;">';
+    h += '<option value="school"' + ((this.reportTemplate || 'school') === 'school' ? ' selected' : '') + '>学校质量分析表（原·班级分数分布）</option>';
+    h += '<option value="district"' + ((this.reportTemplate || 'school') === 'district' ? ' selected' : '') + '>区教研小题分析表（蓬江区）</option>';
+    h += '</select></div>';
+
     h += '<button class="btn btn-primary" onclick="App.exportReport()" style="margin-right:12px">📥 导出分析报告 (DOCX)</button>';
 
     h += '<button class="btn btn-success" onclick="App.exportStaticHTML()" style="background:#52C41A;border-color:#52C41A">🌐 导出静态网页</button>';
@@ -6454,7 +6598,12 @@ if (!this.data || !this.data.students) return;
 
     try {
 
-      await ReportExporter.export(this.data, this.examQuestions);
+      const tpl = this.reportTemplate || 'school';
+      if (tpl === 'district') {
+        await ReportExporter.exportDistrict(this.data, this.examQuestions);
+      } else {
+        await ReportExporter.export(this.data, this.examQuestions);
+      }
 
       Util.toast('报告导出成功！', 'success');
 
