@@ -2642,7 +2642,7 @@ const ReportExporter = {
     // Replace title with actual grade
     const gradeShort = (DATA.grade || '').replace('年级', '');
     xml = xml.replace(/年级/, gradeShort + '年级');
-    xml = xml.replace(/科统计表/, '科学质量分析?');
+    xml = xml.replace(/科统计表/, '科学质量分析表');
 
     // ===== 练习情况分析（文字描述） =====
     const sorted = [...DATA.questions].sort((a, b) => b.correctRate - a.correctRate);
@@ -2662,62 +2662,62 @@ const ReportExporter = {
 
     if (bestQs.length) {
       const bestIds = bestQs.map(q => q.id);
-      analysisXml += p('本次练习中，?' + bestIds.join('?') + '题正确率达到80%以上，学生掌握情况良好?');
+      analysisXml += p('本次练习中，第' + bestIds.join('、') + '题正确率达到80%以上，学生掌握情况良好。');
       bestQs.forEach(q => {
         const rate = (q.correctRate * 100).toFixed(1) + '%';
         const eq = (examQuestions || []).find(x => x.id === q.id);
-        const knowledge = eq ? eq.text.replace(/[\r\n]/g, ' ').substring(0, 60) : '?' + q.id + '?';
-        let desc = '?' + q.id + '题（' + knowledge + '）正确率' + rate + '，学生掌握良?';
+        const knowledge = eq ? eq.text.replace(/[\r\n]/g, ' ').substring(0, 60) : '第' + q.id + '题';
+        let desc = '第' + q.id + '题（' + knowledge + '）正确率' + rate + '。';
         const wrongOpts = (q.answer === 'T' || q.answer === 'F') ? [] : ['A','B','C'].filter(o => o !== q.answer);
         if (wrongOpts.length) {
           const top = wrongOpts.sort((a,b) => (q.optionCounts[b]||0) - (q.optionCounts[a]||0))[0];
           const topP = ((q.optionRates[top]||0)*100).toFixed(1);
-          desc += '，干扰项' + top + '?' + topP + '%学生误?';
+          desc += '，干扰项' + top + '，约' + topP + '%学生误选。';
         }
         analysisXml += p(desc);
       });
     } else {
-      analysisXml += p('本次练习无正确率达到80%以上的题目?');
+      analysisXml += p('本次练习无正确率达到80%以上的题目。');
     }
 
     analysisXml += '<w:p><w:pPr><w:spacing w:before="240" w:after="120"/><w:rPr><w:sz w:val="24"/><w:b/><w:rFonts w:hint="eastAsia" w:eastAsia="宋体"/></w:rPr></w:pPr><w:r><w:rPr><w:sz w:val="24"/><w:b/><w:rFonts w:hint="eastAsia" w:eastAsia="宋体"/></w:rPr><w:t>二、最差题分析</w:t></w:r></w:p>';
 
     if (worstQs.length) {
       const worstIds = worstQs.map(q => q.id);
-      analysisXml += p('以下题目正确率低?60%，为本次练习的薄弱环节?');
+      analysisXml += p('以下题目正确率低于60%，为本次练习的薄弱环节：');
       worstQs.forEach(q => {
         const rate = (q.correctRate * 100).toFixed(1) + '%';
         const eq = (examQuestions || []).find(x => x.id === q.id);
-        const knowledge = eq ? eq.text.replace(/[\r\n]/g, ' ').substring(0, 60) : '?' + q.id + '?';
+        const knowledge = eq ? eq.text.replace(/[\r\n]/g, ' ').substring(0, 60) : '第' + q.id + '题';
         const wrongOpts = (q.answer === 'T' || q.answer === 'F') ? [] : ['A','B','C'].filter(o => o !== q.answer);
-        let desc = '?' + q.id + '题（' + knowledge + '）正确率?' + rate;
+        let desc = '第' + q.id + '题（' + knowledge + '）正确率' + rate;
         if (wrongOpts.length) {
           const top = wrongOpts.sort((a,b) => (q.optionCounts[b]||0) - (q.optionCounts[a]||0))[0];
           const topP = ((q.optionRates[top]||0)*100).toFixed(1);
-          desc += '?' + topP + '%学生误?' + top;
+          desc += '，' + topP + '%学生误选' + top + '。';
         }
-        const analysis = q.correctRate < 0.3 ? '，属于严重薄弱环节，建议重新讲解?' : q.correctRate < 0.4 ? '，错误率很高，需针对性讲解?' : '，部分学生理解不到位，需加强练习?';
+        const analysis = q.correctRate < 0.3 ? '，属于严重薄弱环节，建议重新讲解。' : q.correctRate < 0.4 ? '，错误率很高，需针对性讲解。' : '，部分学生理解不到位，需加强练习。';
         desc += analysis;
         analysisXml += p(desc);
       });
     } else {
-      analysisXml += p('暂无正确率低?60%的题目，整体表现优秀?');
+      analysisXml += p('暂无正确率低于60%的题目，整体表现优秀。');
     }
 
     // 教学建议
-    analysisXml += '<w:p><w:pPr><w:spacing w:before="240" w:after="120"/><w:rPr><w:sz w:val="24"/><w:b/><w:rFonts w:hint="eastAsia" w:eastAsia="宋体"/></w:rPr></w:pPr><w:r><w:rPr><w:sz w:val="24"/><w:b/><w:rFonts w:hint="eastAsia" w:eastAsia="宋体"/></w:rPr><w:t>三、教学建?</w:t></w:r></w:p>';
+    analysisXml += '<w:p><w:pPr><w:spacing w:before="240" w:after="120"/><w:rPr><w:sz w:val="24"/><w:b/><w:rFonts w:hint="eastAsia" w:eastAsia="宋体"/></w:rPr></w:pPr><w:r><w:rPr><w:sz w:val="24"/><w:b/><w:rFonts w:hint="eastAsia" w:eastAsia="宋体"/></w:rPr><w:t>三、教学建议</w:t></w:r></w:p>';
 
     // 整体情况
-    let suggest = '本次练习平均?' + DATA.avgScore + '分，合格?' + DATA.passRate + '%，优秀?' + DATA.excellentRate + '%';
-    suggest += avgNum >= 80 ? '。整体表现良好?' : avgNum >= 70 ? '。整体表现一般，部分知识点需加强?' : '。整体偏弱，需全面加强基础教学?';
+    let suggest = '本次练习平均分' + DATA.avgScore + '分，合格率' + DATA.passRate + '%，优秀率' + DATA.excellentRate + '%';
+    suggest += avgNum >= 80 ? '。整体表现良好。' : avgNum >= 70 ? '。整体表现一般，部分知识点需加强。' : '。整体偏弱，需全面加强基础教学。';
     analysisXml += p(suggest);
 
     // 薄弱环节
     if (worstQs.length) {
       const worstIds = worstQs.map(q => q.id);
-      let weakS = '薄弱环节：第' + worstIds.join('?') + '题正确率较低';
+      let weakS = '薄弱环节：第' + worstIds.join('、') + '题正确率较低';
       const veryBad = worstQs.filter(q => q.correctRate < 0.4);
-      weakS += veryBad.length ? '，其中第' + veryBad.map(q => q.id).join('?') + '题低?40%，建议重新讲解?' : '，建议重点复习相关知识点?';
+      weakS += veryBad.length ? '，其中第' + veryBad.map(q => q.id).join('、') + '题低于40%，建议重新讲解。' : '，建议重点复习相关知识点。';
       analysisXml += p(weakS);
     }
 
@@ -2728,8 +2728,8 @@ const ReportExporter = {
       const best = sortedCls[0];
       const worst = sortedCls[sortedCls.length - 1];
       const gap = (best.avg - worst.avg).toFixed(2);
-      let clsDiff = '班级差异：最高分班级' + best.name + '?' + best.avg.toFixed(2) + '分），最低分班级' + worst.name + '?' + worst.avg.toFixed(2) + '分），差?' + gap + '?';
-      clsDiff += parseFloat(gap) > 10 ? '。班级差距较大，建议加强薄弱班级辅导?' : '。班级差距在合理范围内?';
+      let clsDiff = '班级差异：最高分班级' + best.name + '（' + best.avg.toFixed(2) + '分），最低分班级' + worst.name + '（' + worst.avg.toFixed(2) + '分），差距' + gap + '分。';
+      clsDiff += parseFloat(gap) > 10 ? '班级差距较大，建议加强薄弱班级辅导。' : '班级差距在合理范围内。';
       analysisXml += p(clsDiff);
     }
 
