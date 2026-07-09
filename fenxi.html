@@ -2490,10 +2490,10 @@ const ReportExporter = {
       console.log('scan ri='+ri+' t0=['+t0+'] cells.length='+cells.length+' xiaobenIdx='+xiaobenSummaryRowIdx+' binjiangIdx='+binjiangSummaryRowIdx+' schoolIdx='+schoolSummaryRowIdx);
       const hasVMergeContinue = /<w:vMerge w:val="continue"/.test(rowXml);
       if (hasVMergeContinue) continue;
-      if (['校本汇?'].includes(t0)) {
+      if (['校本汇总'].includes(t0)) {
         summaryRowLabels.add(ri);
         xiaobenSummaryRowIdx = ri;
-      } else if (['滨江汇?'].includes(t0)) {
+      } else if (['滨江汇总'].includes(t0)) {
         summaryRowLabels.add(ri);
         binjiangSummaryRowIdx = ri;
       } else if (['全校合计', '全校'].includes(t0)) {
